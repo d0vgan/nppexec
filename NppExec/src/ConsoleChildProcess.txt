@@ -1,0 +1,209 @@
+
+Well, let's follow all the steps of child console process'es execution.
+
+
+(1)
+In the beginning, there was a plugin's script.
+Script's commands (which will be executed) are located inside 
+g_nppExec.m_CmdList - bidirectional list of strings. Each string
+is a separate command.
+
+
+(2)
+When a script is to be executed, a new thread is created:
+
+    if (!CreateNewThread(dwCreateConsoleProcess, NULL))
+    {
+        ConsoleError("CreateThread() failed");
+    }
+    
+You can find the "CreateNewThread" function inside "NppExec.cpp".
+Now let's refer to the "dwCreateConsoleProcess" function, which
+actually is executed in another thread. You can find this function
+inside "NppExecEngine.cpp".
+
+
+(3)
+dwCreateConsoleProcess is one of the basic functions of the
+plugin. All the commands from g_nppExec.m_CmdList are executed here.
+You can ensure it by looking at the brief code of this function:
+
+    ...
+    p = g_nppExec.m_CmdList.GetFirst(); // first list item
+    while (p && g_nppExec._consoleIsVisible)
+    {
+        S = p->GetItem(); // extract a string
+        if (S.length() > 0) 
+        { 
+            dwCmdType = ModifyCommandLine(szCmdLine, S.c_str()); 
+            S = szCmdLine;
+            ... 
+        }
+        p = p->GetNext(); // next list item
+    }
+    ...
+    
+The following line:
+
+    dwCmdType = ModifyCommandLine(szCmdLine, S.c_str());
+    
+returns an identifier of internal command such as NPP_EXEC, NPP_RUN and
+so on. In the same time, it substitutes corresponding strings instead of
+$(FILE_NAME), $(NPP_DIRECTORY) and so on.
+And the following line:
+
+    S = szCmdLine;
+    
+stores the returned string szCmdLine, which now actually is a parameter 
+of some internal command, in the string S.
+
+
+(4)
+A condition (dwCmdType == 0) means the following: current string does not
+contain any internal command, so it is interpretted as external command - 
+i.e. a path to some executable file. Let's look at the corresponding
+source code:
+
+    ...
+    else if (dwCmdType == 0)
+    {
+        g_nppExec.ConsoleMessage(S.c_str());
+        lstrcpy(g_nppExec._consoleCmdLine, szCmdLine);
+        g_nppExec.CreateChildProcess(
+          g_nppExec._consoleParentWnd, 
+          g_nppExec._consoleCmdLine
+        );
+        // this function does not return until child process exists
+    }
+    ...
+
+As you can see, it calls the "g_nppExec.CreateChildProcess" function with 
+szCmdLine as a parameter. So, let's refer to this function. You can find
+it inside "NppExec.cpp".
+
+
+(5)
+The first intelligible thing inside CreateChildProcess is a creation of
+input/output pipes (m_hStd-In/Out-Read/Write-Pipe). These pipes are 
+"information channels" between the plugin and a child process which 
+will be created soon. Don't forget about the pipes - we'll return to 
+them later.
+The second intelligible thing is actually the creation of a child
+process. Here is the corresponding code:
+
+    // initialize STARTUPINFO struct
+    ZeroMemory(&si, sizeof(STARTUPINFO));
+    si.cb = sizeof(STARTUPINFO);
+    si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+    si.wShowWindow = SW_HIDE;
+    si.hStdInput = m_hStdInReadPipe;    // pipe for user's input (stdin)
+    si.hStdOutput = m_hStdOutWritePipe; // pipe for process'es stdout
+    si.hStdError = m_hStdOutWritePipe;  // pipe for process'es stderr
+
+    _consoleStrToWrite[0] = 0;
+    _consoleStdInWritePipe = m_hStdInWritePipe;
+  
+    lstrcpy(szCmdLine, cszCommandLine);
+    //ShowWarning(szCmdLine);
+
+    if (CreateProcess(NULL, szCmdLine, ...))
+    {
+        ...
+    }
+    
+As you can see, the second parameter of CNppExec::CreateChildProcess is 
+directly passed to system's function CreateProcess. This parameter is a
+path to executable which will be run as a child process of the plugin.
+
+
+(6)
+Now the child process is created. Let's assume it is a console process.
+As you remember, the whole "dwCreateConsoleProcess" function is running
+in another thread, so this child process is run in that thread also.
+You can use the plugin's ConsoleDlg as the child console process'es 
+input while this process is running. I.e. when you type some string in 
+the ConsoleDlg's RichEdit control and press Enter, this string will be
+passed to the child process. You can find the corresponding code inside
+the "ConsoleDlg::OnNotify" function inside "DlgConsole.cpp". Search for 
+"::WriteFile(g_nppExec._consoleStdInWritePipe".
+But let's return to the capturing of the child process'es output.
+
+
+(7)
+This is a complete code of the capturing:
+
+    tstr  bufLine;  // a buffer for child process'es output
+    bool  bPrevLineEmpty = false;
+    int   nPrevState = 0;
+    
+    bufLine.Clear(); // just in case :-)
+    
+    do 
+    {
+        Console_ReadPipesAndOutput(bufLine, bPrevLineEmpty, nPrevState, false);
+  
+    }
+    while ((_consoleProcessIsRunning = (WaitForSingleObject(pi.hProcess, 
+              opt_ChildProcess_dwCycleTimeout_ms) == WAIT_TIMEOUT))
+        && _consoleIsVisible && !_consoleProcessBreak);
+    // NOTE: time-out inside WaitForSingleObject() prevents from 100% CPU usage!
+
+    if (_consoleIsVisible && !_consoleProcessBreak)
+    {
+        // maybe the child process is exited but not all its data is read
+        Console_ReadPipesAndOutput(bufLine, bPrevLineEmpty, nPrevState, true);
+        // ShowWarning("All is read!");
+    }
+    
+As you can see, we try to read data from the console process while it is not
+finished and while the plugin's ConsoleDlg is visible.
+And, at last, we see the "Console_ReadPipesAndOutput" function which actually
+does all the work about the capturing of the child console process'es output
+and shows this output in the ConsoleDlg.
+
+
+(8)
+The whole "Console_ReadPipesAndOutput" function can drive you crazy (I wrote
+this function by parts ;-)) but, in brief, it's very simple:
+
+    ...
+    do
+    { 
+        Sleep(10);  // it prevents from 100% CPU usage while reading!
+        dwBytesRead = 0;
+        if ((PeekNamedPipe(m_hStdOutReadPipe, NULL, 0, NULL, &dwBytesRead, NULL)
+             && (dwBytesRead > 0)) || bOutputAll)
+        {
+            // some data is in the Pipe or bOutputAll==true
+
+            bool bContainsData = (dwBytesRead > 0) ? true : false;
+            // without bContainsData==true the ReadFile operation will never return
+
+            if (bContainsData)
+                ZeroMemory(Buf, BUF_SIZE);
+            dwBytesRead = 0;
+            if ((bContainsData 
+                 && ReadFile(m_hStdOutReadPipe, Buf, (BUF_SIZE-1)*sizeof(TCHAR), &dwBytesRead, NULL)
+                 && (dwBytesRead > 0)) || bOutputAll)
+            {
+                // some data has been read from the Pipe or bOutputAll==true
+                ...
+            }
+        }
+    }
+    while (dwBytesRead > 0);
+    
+As you can see, at first we verify if there something in the pipe:
+
+    if ( (PeekNamedPipe(..., &dwBytesRead,...)) && (dwBytesRead > 0) )
+    
+then we read the data:
+
+    ReadFile(...)
+    
+
+[old part of the text, possibly non-actual anymore]
+
+And here is the problem. Sometimes PeekNamedPipe returns FALSE or 
+returns dwBytesRead == 0 though some data must be in the output pipe 
+already.

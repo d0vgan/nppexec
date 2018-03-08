@@ -1,0 +1,74 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Internet Assistant for Word Version 3.0">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.2. Environment</title>
+</HEAD>
+<BODY>
+<h3>4.2. Environment</h3>
+<p>NppExec allows you to specify the environment (i.e. environment variables) for any program you start from NppExec. You can do it from NppExec's scripts or directly from NppExec's Console window. You can set or remove/restore such environment variables using NppExec's commands ENV_SET and ENV_UNSET.</p>
+<p>For example, you can set your own value of PATH:</p>
+<blockquote>
+  <pre>ENV_SET PATH = C:\temp  // modified</pre>
+</blockquote>
+<p>Now you can start cmd.exe (from
+    NppExec's script or NppExec's console) and type &quot;echo %PATH%&quot; to ensure that the value of PATH is now &quot;C:\temp&quot;. Type &quot;exit&quot; to
+exit cmd.exe and then execute this NppExec's command:</p>
+<blockquote>
+  <pre>ENV_UNSET PATH  // restored</pre>
+</blockquote>
+<p>This command restores the initial value of PATH. NppExec does not remove the
+    PATH variable because this variable existed before it was modified with ENV_SET.
+  In the same time, you can create and remove new environment variables:</p>
+<blockquote>
+  <pre>ENV_SET new_environment_variable = Hello  // created
+ENV_UNSET new_environment_variable        // removed</pre>
+</blockquote>
+<p>Such environment variables can be used (and modified) by any program you start from NppExec. Also, values of such variables can be used by NppExec in a form of $(SYS.variable_name). For example:</p>
+<blockquote>
+  <pre>ENV_SET a = My Variable  // created:  a=My Variable
+echo $(SYS.a)            // prints:   My Variable
+ENV_SET a = aaa          // modified: a=aaa
+echo $(SYS.a)            // prints:   aaa
+ENV_UNSET a              // removed</pre>
+</blockquote>
+<p>I.e. you can use &quot;$(SYS.variable_name)&quot; to read the variable's value and use &quot;ENV_SET variable_name = value&quot; to
+set the variables's value.</p>
+<p>Type &quot;help env_set&quot; in NppExec's
+    Console
+for more details.</p>
+<p>Good way to set your environment is to do it inside NppExec's start-up script. You can specify your start-up script in NppExec's Advanced Options. This script will be executed each time Notepad++ starts. For example, you can create similar script:</p>
+<blockquote>
+  <pre>// don't show Console if it's hidden
+NPP_CONSOLE ?
+// set our environment variables
+ENV_SET NPPHOME = $(NPP_DIRECTORY)
+ENV_SET TCCHOME = C:\tools\tcc
+// restore initial value of PATH
+ENV_UNSET PATH
+// set our value of PATH
+ENV_SET PATH = $(SYS.NPPHOME);$(SYS.TCCHOME);$(SYS.PATH)
+// clear Console screen
+CLS</pre>
+</blockquote>
+<p>The first command (&quot;NPP_CONSOLE ?&quot;)
+    forbids the Console to be shown if it's hidden - this is usefull at Notepad++'es
+start-up. </p>
+<p>The two following commands set new environment variables: NPPHOME and TCCHOME. These environment variables can be used by any program you start from NppExec. </p>
+<p>The following command (&quot;ENV_UNSET PATH&quot;) restores the initial value of PATH if it was previously modified by NppExec. Of course, it can not be modified by NppExec before its start-up script is executed, but you may execute the start-up script again (using NPP_EXEC or from NppExec's &quot;Execute...&quot; dialog),
+    so it may be important to restore the initial value of PATH before modifying
+    it. Otherwise, the value of PATH may grow again and again - each time you
+    call the start-up script explicitly or execute another script which modifies
+the PATH variable.</p>
+<p>The next command sets the new value
+    of the PATH variable. Now PATH includes both NPPHOME and TCCHOME, so you
+    can
+    type just &quot;notepad++&quot; or &quot;tcc&quot; in order to use Notepad++'es command line
+switches or to run tcc.</p>
+<p>Finally, the last command (&quot;CLS&quot;)
+    clears NppExec's Console's output, so the Console will contain no text when
+    you
+open it.</p>
+</BODY>
+</HTML>

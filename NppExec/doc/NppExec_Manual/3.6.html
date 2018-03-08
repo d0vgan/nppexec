@@ -1,0 +1,33 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Internet Assistant for Word Version 3.0">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>3.6. NppExec's &quot;Execute...&quot;</title>
+</HEAD>
+<BODY>
+<h3>3.6. NppExec's &quot;Execute...&quot;</h3>
+<p>NppExec's &quot;Execute...&quot; dialog can be shown using its hotkey (F6 by default) or the menu item &quot;Execute...&quot; in NppExec's submenu (Plugins -&gt; NppExec -&gt; Execute...).</p>
+<p>NppExec's &quot;Execute...&quot; dialog allows to specify several NppExec's commands (one command per one line) which will be executed one after another. Such set of commands forms so-called NppExec's script. The script can be saved using the &quot;Save...&quot; button of the &quot;Execute...&quot; dialog.
+      For example, you can create NppExec's script which makes a reserve copy
+    of current file:</p>
+<p>1) open the &quot;Execute...&quot; dialog
+    and type the following</p>
+<blockquote>
+  <pre>// save current file
+NPP_SAVE
+// copy current file to C:\Backup
+cmd /c copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;C:\Backup\$(FILE_NAME)&quot; /Y</pre>
+</blockquote>
+<p>2)
+    press the &quot;Save...&quot; button, type &quot;Reserve Copy&quot; and press the &quot;Save&quot; button. </p>
+<p>This example allows you to create
+      and save NppExec's script named &quot;Reserve Copy&quot;. You can call this script later from the &quot;Execute...&quot; dialog. Also you can create a menu item for this script using NppExec's Advanced Options (Plugins -&gt; NppExec -&gt; Advanced
+    Options...).</p>
+<p>It is not necessary to save a new
+      script each time you want to execute several commands. You can use the &quot;&lt;temporary script&gt;&quot; for commands you don't need to save. The temporary script is saved automatically when you close Notepad++. Also, if you modify commands of some saved script (e.g. if you modify the &quot;Reserve Copy&quot; script), it will be saved automatically when you close Notepad++. Or you can press the &quot;Save&quot; button
+    to save it immediately.</p>
+<p>You can delete previously saved
+    scripts using the &quot;Execute...&quot; dialog. Press the &quot;Save...&quot; button (yes, the irony :)), select a script name and press the &quot;Delete&quot; button.</p>
+</BODY>
+</HTML>

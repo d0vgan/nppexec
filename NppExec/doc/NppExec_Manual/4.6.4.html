@@ -1,0 +1,78 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Internet Assistant for Word Version 3.0">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.4. Running Python & wxPython</title>
+</HEAD>
+<BODY>
+<h3>4.6.4. Running Python & wxPython</h3>
+
+<p>1. Interactive Python inside NppExec</p>
+<p>Running &quot;python -?&quot; gives the following help information, in particular:</p>
+<ul>
+  <li>-i : inspect interactively after running script, (also PYTHONINSPECT=x) and force prompts, <I>even if stdin does not appear to be a terminal</I></li>
+  <li>-u : <I>unbuffered binary stdout and stderr</I> (also PYTHONUNBUFFERED=x) see man page for details on internal buffering relating to '-u'</li>
+</ul>
+<p>The text in italic <I>exactly</I> refers to what is stated in NppExec's Manual, sections 1.3 and 3.1 by &quot;NppExec is not a console emulator&quot;.</p>
+<p>So, by running &quot;python -i -u&quot; in NppExec's Console, you get the interactive Python inside Notepad++.</p>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p>2. Python and UTF-8</p>
+<p>If your python's program contains some non-ASCII characters, you can get the following error from Python: &quot;SyntaxError: Non-ASCII character&quot;.</p>
+<p>To be able to represent such non-ASCII characters correctly on any system, 
+such source file should be saved as UTF-8 (either without BOM or with BOM). 
+Though the error mentioned above still remains. 
+To avoid this error, acccording to http://www.python.org/dev/peps/pep-0263/ , 
+you just need to specify</p>
+<blockquote>
+  <pre># coding=utf-8</pre>
+</blockquote>
+<p>or</p>
+<blockquote>
+  <pre># -*- coding: utf-8 -*-</pre>
+</blockquote>
+<p>at the beginning of your python's program.</p>
+<p>Another thing is to output something to console as UTF-8.</p>
+<p>In this case, you can get something similar from Python: &quot;UnicodeEncodeError: 'charmap' codec can't encode characters in position 0-2: character maps to &lt;undefined&gt;&quot;.</p>
+<p>To fix this last one, it's enough to specify the environment variable PYTHONIOENCODING by setting it to &quot;utf-8&quot;. I.e.</p>
+<blockquote>
+  <pre>// within NppExec
+env_set PYTHONIOENCODING=utf-8
+python my_program.py</pre>
+</blockquote>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p>3. Running Python scripts using wxPython</p>
+<p><em>[the text below has been originally posted by cioma in NppExec's forum]</em></p>
+<p>[ cioma: ]</p>
+<blockquote>
+  <p>I use NPP as an IDE for Python. And I use NppExec to run scripts directly from NPP, highlight script syntax and runtime errors (if any) and link errors to a line of code. </p>
+  <p>Some time ago I started using wxPython GUI library and faced problems with running such scripts from within NppExec. </p>
+  <p>If I run this (in NppExec prompt): </p>
+  <blockquote>
+    <pre>python -t -B -u &quot;$(FULL_CURRENT_PATH)&quot; </pre>
+  </blockquote>
+  <p>...then GUI part of wxPython is not shown. I guess the reason is that wxPython requires a &quot;real&quot; console buffer and NppExec doesn't provide that. </p>
+  <p>If I just run script over NPP &quot;Run&quot; dialog (no NppExec) then GUI is shown but if there are errors there is no way to easily relate them to line of code in NPP. </p>
+  <p>So I found this solution to work: </p>
+  <p>1. When creating wxPython application in the script make sure it's STDOUT is not redirected: </p>
+  <blockquote>
+    <pre>app = App(redirect=False) </pre>
+  </blockquote>
+  <p>2. Run in NppExec: </p>
+  <blockquote>
+    <pre>cmd /C python -t -B -u &quot;$(FULL_CURRENT_PATH)&quot; </pre>
+  </blockquote>
+  <p>Voila! We have both wxPython GUI running and its STDOUT redirected to NppExec. </p>
+</blockquote>
+<p>[ DV: ]</p>
+<blockquote>
+  <p>Just one thing. For more details regarding runtime errors parsing (keyword: Highlight filters), refer to [4.7.4] and &quot;help con_filter&quot;. </p>
+</blockquote>
+</BODY>
+</HTML>

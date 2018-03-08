@@ -1,0 +1,644 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include <winresrc.h>
+#include <richedit.h>
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// Russian resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+#ifdef _WIN32
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DOEXEC DIALOGEX 0, 0, 313, 150
+STYLE DS_SETFONT | DS_MODALFRAME | WS_THICKFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION |
+    WS_SYSMENU
+CAPTION "Execute..."
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,149,131,50,14
+    PUSHBUTTON      "Save...",IDSAVE,203,131,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,257,131,50,14
+    EDITTEXT        IDC_ED_CMDLINE,6,18,301,106,ES_MULTILINE | ES_AUTOVSCROLL |
+                    ES_AUTOHSCROLL | ES_NOHIDESEL | ES_WANTRETURN |
+                    WS_VSCROLL | WS_HSCROLL 
+    LTEXT           "Command(s):",IDC_STATIC,5,6,144,8
+    COMBOBOX        IDC_CB_SCRIPT,6,125,135,137,CBS_DROPDOWNLIST | CBS_SORT |
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+IDD_CONSOLE DIALOGEX 0, 0, 486, 102
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU |
+    WS_THICKFRAME | NOT WS_VISIBLE
+CAPTION "Console"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_RE_CONSOLE,RICHEDIT_CLASS,ES_MULTILINE | ES_AUTOVSCROLL |
+                    ES_AUTOHSCROLL | ES_WANTRETURN | ES_SAVESEL | ES_NOHIDESEL |
+//
+// Note:
+//  unminded VC++ 2003 transforms these two lines:
+//
+// CONTROL          "",IDC_RE_CONSOLE,"RICHEDIT",ES_MULTILINE | ES_AUTOVSCROLL |
+//                  ES_AUTOHSCROLL | ES_NOHIDESEL | ES_WANTRETURN |
+//
+//  to the following shit:
+//
+// CONTROL          "",IDC_RE_CONSOLE,"RICHEDIT",TCS_HOTTRACK | TCS_VERTICAL |
+//                  TCS_BUTTONS | TCS_FOCUSONBUTTONDOWN | TCS_MULTISELECT |
+//
+// 22 Nov 2007
+//  The control's style has been changed:  
+//   +ES_SAVESEL
+//
+                    WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_TABSTOP,0,0,486,86
+    CONTROL         "", IDC_ED_FIND, "Edit", WS_CHILD | WS_TABSTOP | ES_AUTOHSCROLL, 
+                    20,88,146,12, WS_EX_CLIENTEDGE
+    CONTROL         "Match &case", IDC_CH_CASE, "Button", BS_AUTOCHECKBOX | 
+                    WS_CHILD | WS_TABSTOP, 170,88,62,12
+    CONTROL         "Word &wrap", IDC_CH_WORDWRAP, "Button", BS_AUTOCHECKBOX | 
+                    WS_CHILD | WS_TABSTOP, 236,88,62,12
+    CONTROL         "Hide &toggled Console", IDC_CH_HIDETOGGLED, "Button", BS_AUTOCHECKBOX | 
+                    WS_CHILD | WS_TABSTOP, 302,88,90,12
+    CONTROL         "Tab = \\t", IDC_CH_TABASCHAR, "Button", BS_AUTOCHECKBOX | 
+                    WS_CHILD | WS_TABSTOP, 396,88,52,12
+    CONTROL         "X", IDC_BT_FINDCLOSE, "Button", BS_CENTER | BS_VCENTER | 
+                    WS_CHILD | WS_TABSTOP | 0x00008000, 2,88,13,12
+END
+
+IDD_SCRIPTNAME DIALOGEX 0, 0, 177, 48
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "Save",IDOK,9,32,50,14
+    PUSHBUTTON      "Delete",IDC_BT_DELETE,63,32,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,117,32,50,14
+    GROUPBOX        "Script name:",IDC_STATIC,2,2,173,48
+    COMBOBOX        IDC_CB_SCRIPTNAME,9,14,158,107,CBS_DROPDOWN | CBS_SORT |
+                    WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_DOEXEC, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 310
+        BOTTOMMARGIN, 123
+    END
+
+    IDD_CONSOLE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 179
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 55
+    END
+
+    IDD_SCRIPTNAME, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 175
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 46
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Russian resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Ukrainian resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_UKR)
+#ifdef _WIN32
+LANGUAGE LANG_UKRAINIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_HELP_ABOUT DIALOGEX 0, 0, 239, 282
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION |
+    WS_SYSMENU
+CAPTION "NppExec Help/About"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,95,262,50,14
+//    PUSHBUTTON      "Donate...",IDC_BT_DONATE,180,262,50,14
+#ifdef UNICODE
+    CTEXT           "NppExec ver. 0.6 beta 1 Unicode for Notepad++",
+#else
+    CTEXT           "NppExec ver. 0.6 beta 1 ANSI for Notepad++",
+#endif
+                    IDC_STATIC,7,7,225,13
+                    CTEXT           "(C)  Dec 2006 - Feb 2018,  Vitaliy Dovgan aka DV <dvv81 @ ukr.net>",
+                    IDC_STATIC,5,22,229,33
+    LTEXT           "",IDC_ED_INFO,7,98,225,134,0,WS_EX_STATICEDGE
+    CTEXT           "Thanks to:\r\nDon HO for Notepad++,\r\nJens Lorenz for the docking feature,\r\nJuha Nieminen and Joel Yliluoma for Function Parser\r\nand myself for this plugin :-)",
+                    IDC_STATIC,5,46,229,48
+//    CTEXT           "If you are using this software for commercial purpose,\r\nplease think about donation.",
+//                    IDC_STATIC,5,238,229,20
+END
+
+IDD_CONSOLE_FILTER DIALOGEX
+    0, 0, 395, 302
+    STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+    CAPTION "NppExec Console Filters"
+    FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,145,282,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,198,282,50,14
+END
+
+IDD_CONSOLE_OUTPUTFILTER DIALOGEX
+    10, 10, 379, 253
+    STYLE DS_SETFONT | DS_CONTROL | WS_CHILD
+    FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "Enable Console Output Filter", IDC_CH_FILTER_ENABLE,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,          5,  7,351,10
+    GROUPBOX        "Exclude mask(s):",             IDC_ST_FILTER_EXCLUDE,    5, 22,202,123
+    CONTROL         "",                             IDC_CH_EXCLUDE1,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10, 36,  9, 9
+    COMBOBOX                                        IDC_CB_EXCLUDE1,         22, 34,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",                             IDC_CH_EXCLUDE2,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10, 52,  9, 9
+    COMBOBOX                                        IDC_CB_EXCLUDE2,         22, 50,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",                             IDC_CH_EXCLUDE3,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10, 68,  9, 9
+    COMBOBOX        IDC_CB_EXCLUDE3,                                         22, 66,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",                             IDC_CH_EXCLUDE4,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10, 84,  9, 9
+    COMBOBOX        IDC_CB_EXCLUDE4,                                         22, 82,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",                             IDC_CH_EXCLUDE5,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10, 100, 9, 9
+    COMBOBOX        IDC_CB_EXCLUDE5,                                         22, 98,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Exclude duplicate empty lines",IDC_CH_EXCLUDE_DUPEMPTY,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10,117,160,10
+    CONTROL         "Exclude all empty lines",      IDC_CH_EXCLUDE_ALLEMPTY,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10,131,160,10
+    GROUPBOX        "Include mask(s):",             IDC_ST_FILTER_INCLUDE,    5,152,202,96
+    CONTROL         "",                             IDC_CH_INCLUDE1,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10,166,  9, 9
+    COMBOBOX        IDC_CB_INCLUDE1,                                         22,164,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",                             IDC_CH_INCLUDE2,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10,182,  9, 9
+    COMBOBOX        IDC_CB_INCLUDE2,                                         22,180,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",                             IDC_CH_INCLUDE3,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10,198,  9, 9
+    COMBOBOX        IDC_CB_INCLUDE3,                                         22,196,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",                             IDC_CH_INCLUDE4,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10,214,  9, 9
+    COMBOBOX        IDC_CB_INCLUDE4,                                         22,212,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",                             IDC_CH_INCLUDE5,
+                    "Button",                       BS_AUTOCHECKBOX | WS_TABSTOP,         10, 230, 9, 9
+    COMBOBOX        IDC_CB_INCLUDE5,                                         22, 228,179,100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Quick Reference",              IDC_ST_HELP_MASK,       217,26,157,222,0,
+                    WS_EX_STATICEDGE
+END
+
+IDD_CONSOLE_REPLACEFILTER DIALOGEX 10,10,379,253
+FONT 8,"MS Shell Dlg",400,0,1
+STYLE DS_SETFONT | DS_CONTROL | WS_CHILD
+BEGIN
+  CONTROL  "Enable Replacing Filters", IDC_CH_RPLCFILTER_ENABLE, "Button", 
+           BS_AUTOCHECKBOX | WS_TABSTOP, 5,7,351,10
+  GROUPBOX "", IDC_ST_FILTER_RPLC1, 5,23,369,47
+  CONTROL  "Replacing Filter 1", IDC_CH_RPLC1, "Button",
+           BS_AUTOCHECKBOX | WS_TABSTOP, 10,23,72,8
+  CONTROL  "Find what:", IDC_ST_RFIND1, "Static",
+           SS_RIGHT | WS_CHILD | WS_VISIBLE, 10,38,48,8
+  COMBOBOX IDC_CB_RFIND1, 62,35,178,99, 
+           CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_CHILD | WS_VSCROLL | WS_TABSTOP
+  CONTROL  "Match case", IDC_CH_RCASE1, "Button", 
+           BS_AUTOCHECKBOX | WS_TABSTOP, 246,37,96,9
+  CONTROL  "Replace with:", IDC_ST_RRPLC1, "Static", 
+           SS_RIGHT | WS_CHILD | WS_VISIBLE, 10,52,48,8
+  COMBOBOX IDC_CB_RRPLC1, 62,51,178,99,
+           CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_CHILD | WS_VSCROLL | WS_TABSTOP
+  GROUPBOX "", IDC_ST_FILTER_RPLC2, 5,77,369,47
+  CONTROL  "Replacing Filter 2", IDC_CH_RPLC2, "Button", 
+           BS_AUTOCHECKBOX | WS_TABSTOP, 10,77,72,8
+  CONTROL  "Find what:", IDC_ST_RFIND2, "Static", 
+           SS_RIGHT | WS_CHILD | WS_VISIBLE, 10,91,48,8
+  COMBOBOX IDC_CB_RFIND2, 62,89,178,99,
+           CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_CHILD | WS_VSCROLL | WS_TABSTOP
+  CONTROL  "Match case", IDC_CH_RCASE2, "Button", 
+           BS_AUTOCHECKBOX | WS_TABSTOP, 247,91,96,9
+  CONTROL  "Replace with:", IDC_ST_RRPLC2, "Static", 
+           SS_RIGHT | WS_CHILD | WS_VISIBLE, 9,107,48,8
+  COMBOBOX IDC_CB_RRPLC2, 62,105,178,99, 
+           CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_CHILD | WS_VSCROLL | WS_TABSTOP
+  GROUPBOX "", IDC_ST_FILTER_RPLC3, 5,131,369,47
+  CONTROL  "Replacing Filter 3", IDC_CH_RPLC3, "Button", 
+           BS_AUTOCHECKBOX | WS_TABSTOP, 10,131,72,8
+  CONTROL  "Find what:", IDC_ST_RFIND3, "Static", 
+           SS_RIGHT | WS_CHILD | WS_VISIBLE, 10,146,48,8
+  COMBOBOX IDC_CB_RFIND3, 62,144,178,99, 
+           CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_CHILD | WS_VSCROLL | WS_TABSTOP
+  CONTROL  "Match case", IDC_CH_RCASE3, "Button", 
+           BS_AUTOCHECKBOX | WS_TABSTOP, 247,145,96,9
+  CONTROL  "Replace with:", IDC_ST_RRPLC3, "Static", 
+           SS_RIGHT | WS_CHILD | WS_VISIBLE, 10,162,48,8
+  COMBOBOX IDC_CB_RRPLC3, 62,160,178,99,
+           CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_CHILD | WS_VSCROLL | WS_TABSTOP
+  GROUPBOX "", IDC_ST_FILTER_RPLC4, 5,186,369,47
+  CONTROL  "Replacing Filter 4", IDC_CH_RPLC4, "Button", 
+           BS_AUTOCHECKBOX | WS_TABSTOP,10,186,72,8
+  CONTROL  "Find what:", IDC_ST_RFIND4, "Static", 
+           SS_RIGHT | WS_CHILD | WS_VISIBLE, 10,202,48,8
+  COMBOBOX IDC_CB_RFIND4, 62,199,178,99, 
+           CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_CHILD | WS_VSCROLL | WS_TABSTOP
+  CONTROL  "Match case", IDC_CH_RCASE4, "Button", 
+           BS_AUTOCHECKBOX | WS_TABSTOP, 247,201,96,9
+  CONTROL  "Replace with:", IDC_ST_RRPLC4, "Static", 
+           SS_RIGHT | WS_CHILD | WS_VISIBLE, 10,218,48,8
+  COMBOBOX IDC_CB_RRPLC4, 62,215,178,99, 
+           CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_CHILD | WS_VSCROLL | WS_TABSTOP
+  CONTROL  "Exclude empty resulting lines", IDC_CH_EXCLUDE_EMPTYRSLT, "Button", 
+           BS_AUTOCHECKBOX | WS_TABSTOP, 5, 239, 200, 10
+END
+
+IDD_CONSOLE_HIGHLIGHTFILTER DIALOGEX
+    10, 10, 379, 253
+    STYLE DS_SETFONT | DS_CONTROL | WS_CHILD
+    FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+
+    GROUPBOX        "HighLight mask(s):", IDC_ST_FILTER_HIGHLIGHT,     5,   5, 369,  178
+    GROUPBOX        "Red",                IDC_RED,                   206,  10,  29,  169
+    GROUPBOX        "Green",              IDC_GREEN,                 240,  10,  29,  169
+    GROUPBOX        "Blue",               IDC_BLUE,                  274,  10,  29,  169
+    GROUPBOX        "I",                  IDC_ITALIC,                308,  10,  17,  169
+    GROUPBOX        "B",                  IDC_BOLD,                  330,  10,  17,  169
+    GROUPBOX        "U",                  IDC_UNDERLINED,            352,  10,  17,  169
+
+    CONTROL         "",IDC_CH_HIGHLIGHT1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  20,   9,   9
+    COMBOBOX           IDC_CB_HIGHLIGHT1,                             22,  18, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                209,  21,   7,  10
+    EDITTEXT           IDC_ED_HIGHLIGHT_R1,                          217,  19,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                243,  21,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G1,                             251,  19,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                277,  21,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B1,                             285,  19,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  20,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  20,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  20,   9,   9
+
+    CONTROL         "",IDC_CH_HIGHLIGHT2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  36,   9,   9
+    COMBOBOX        IDC_CB_HIGHLIGHT2,                                22,  34, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                209,  37,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_R2,                             217,  35,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                243,  37,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G2,                             251,  35,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                277,  37,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B2,                             285,  35,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  36,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  36,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  36,   9,   9
+    
+    CONTROL         "",IDC_CH_HIGHLIGHT3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  52,   9,   9
+    COMBOBOX        IDC_CB_HIGHLIGHT3,                                22,  50, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                209,  53,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_R3,                             217,  51,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                243,  53,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G3,                             251,  51,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                277,  53,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B3,                             285,  51,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  52,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  52,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  52,   9,   9
+
+    CONTROL         "",IDC_CH_HIGHLIGHT4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  68,   9,   9
+    COMBOBOX        IDC_CB_HIGHLIGHT4,                                22,  66, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                209,  69,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_R4,                             217,  67,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                243,  69,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G4,                             251,  67,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                277,  69,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B4,                             285,  67,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  68,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  68,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  68,   9,   9
+
+    CONTROL         "",IDC_CH_HIGHLIGHT5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  84,   9,   9
+    COMBOBOX        IDC_CB_HIGHLIGHT5,                                22,  82, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                209,  85,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_R5,                             217,  83,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                243,  85,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G5,                             251,  83,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                277,  85,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B5,                             285,  83,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  84,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  84,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  84,   9,   9
+
+    CONTROL         "",IDC_CH_HIGHLIGHT6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 100,   9,   9
+    COMBOBOX        IDC_CB_HIGHLIGHT6,                                22,  98, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                209, 101,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_R6,                             217,  99,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                243, 101,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G6,                             251,  99,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                277, 101,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B6,                             285,  99,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 100,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 100,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 100,   9,   9
+
+    CONTROL         "",IDC_CH_HIGHLIGHT7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 116,   9,   9
+    COMBOBOX        IDC_CB_HIGHLIGHT7,                                22, 114, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                209, 117,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_R7,                             217, 115,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                243, 117,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G7,                             251, 115,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                277, 117,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B7,                             285, 115,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 116,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 116,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 116,   9,   9
+
+    CONTROL         "",IDC_CH_HIGHLIGHT8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 132,   9,   9
+    COMBOBOX        IDC_CB_HIGHLIGHT8,                                22, 130, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                209, 133,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_R8,                             217, 131,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                243, 133,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G8,                             251, 131,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                277, 133,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B8,                             285, 131,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 132,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 132,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 132,   9,   9
+    
+    CONTROL         "",IDC_CH_HIGHLIGHT9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 148,   9,   9
+    COMBOBOX        IDC_CB_HIGHLIGHT9,                                22, 146, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                209, 149,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_R9,                             217, 147,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                243, 149,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G9,                             251, 147,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                277, 149,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B9,                             285, 147,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 148,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 148,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 148,   9,   9
+
+    CONTROL         "",IDC_CH_HIGHLIGHT10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 164,  9,   9
+    COMBOBOX        IDC_CB_HIGHLIGHT10,                                22, 162, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "0x", IDC_STATIC,                                 209, 165,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_R10,                             217, 163,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                 243, 165,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_G10,                             251, 163,  13,  12
+    LTEXT           "0x", IDC_STATIC,                                 277, 165,   7,  10
+    EDITTEXT        IDC_ED_HIGHLIGHT_B10,                             285, 163,  13,  12
+    CONTROL         "",IDC_CH_HIGHLIGHT_I10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 164,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_B10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 164,   9,   9
+    CONTROL         "",IDC_CH_HIGHLIGHT_U10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 164,   9,   9
+
+    
+    LTEXT           "Quick Reference",      IDC_ST_HELP_HIGHLIGHT,   5, 188, 369, 60, 0,
+                     WS_EX_STATICEDGE
+END
+
+IDD_ADVANCEDOPTIONS DIALOGEX 0, 0, 352, 298
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "NppExec Advanced Options"
+FONT 8, "Ms Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK", IDOK, 130, 278, 50, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 182, 278, 50, 14
+    GROUPBOX        "Menu items *", IDC_GB_MENUITEMS, 6, 6, 152, 167
+    CONTROL         "Place to the Macros submenu", IDC_CH_MACROS_SUBMENU, "Button", BS_AUTOCHECKBOX | 
+                    WS_CHILD | WS_TABSTOP, 12, 18, 136, 10
+    LISTBOX         IDC_LB_MENUITEMS, 12, 31, 140, 95, WS_TABSTOP | WS_VSCROLL | LBS_NOINTEGRALHEIGHT | LBS_NOTIFY
+    PUSHBUTTON      "Move up", IDC_BT_MOVEUP, 11, 131, 60, 14
+    PUSHBUTTON      "Move down", IDC_BT_MOVEDOWN, 92, 131, 60, 14
+    CTEXT           "* Assign shortcut keys using Settings:  Shortcut Mapper -> Plugin commands", IDC_ST_MENUITEMSHINT, 
+                    12, 151, 140, 20//, WS_CHILD | WS_VISIBLE | SS_CENTER, WS_EX_STATICEDGE
+    GROUPBOX        "Menu item", IDC_GB_MENUITEM, 6, 180, 152, 90
+    LTEXT           "Item name:", IDC_ST_ITEMNAME, 12, 192, 136, 8
+    EDITTEXT        IDC_ED_ITEMNAME, 12, 202, 140, 14, ES_AUTOHSCROLL
+    LTEXT           "Associated script:", IDC_ST_ITEMSCRIPT, 12, 220, 136, 8
+    COMBOBOX        IDC_CB_ITEMSCRIPT, 12, 230, 140, 100, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    PUSHBUTTON      "Add/Modify", IDC_BT_ITEMNEW, 11, 250, 66, 14
+    PUSHBUTTON      "Delete", IDC_BT_ITEMDELETE, 102, 250, 50, 14
+    GROUPBOX        "Advanced options", IDC_GB_ADVANCEDOPTIONS, 168, 6, 178, 264
+    LTEXT           "Execute this script when Notepad++ starts:", IDC_ST_OPT_SCRIPTNPPSTART, 174, 18, 178, 8
+    COMBOBOX        IDC_CB_OPT_SCRIPTNPPSTART, 200, 28, 140, 100, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "Execute this script when Notepad++ exits:", IDC_ST_OPT_SCRIPTNPPEXIT, 174, 46, 178, 8
+    COMBOBOX        IDC_CB_OPT_SCRIPTNPPEXIT, 200, 56, 140, 100, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    GROUPBOX        "[Options]", IDC_GB_OPT_OPTIONS, 168, 76, 178, 52
+    LTEXT           "HotKey", IDC_ST_OPT_HOTKEY, 174, 90, 112, 8
+    COMBOBOX        IDC_CB_OPT_HOTKEY, 292, 88, 48, 57, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "ToolbarBtn", IDC_ST_OPT_TOOLBARBTN, 174, 106, 112, 8
+    COMBOBOX        IDC_CB_OPT_TOOLBARBTN, 292, 104, 48, 57, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    GROUPBOX        "[Console]", IDC_GB_OPT_CONSOLE, 168, 124, 178, 146
+    LTEXT           "Visible (on start)", IDC_ST_OPT_CONVISIBLE, 174, 138, 112, 8
+    COMBOBOX        IDC_CB_OPT_CONVISIBLE, 292, 136, 48, 57, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "ShowHelp (on start)", IDC_ST_OPT_SHOWHELP, 174, 154, 112, 8
+    COMBOBOX        IDC_CB_OPT_SHOWHELP, 292, 152, 48, 57, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "SaveCmdHistory", IDC_ST_OPT_SAVECMDHST, 174, 170, 112, 8
+    COMBOBOX        IDC_CB_OPT_SAVECMDHST, 292, 168, 48, 57, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS
+    LTEXT           "CommentDelimiter", IDC_ST_OPT_COMMENTDELIM, 174, 186, 112, 8
+    EDITTEXT        IDC_ED_OPT_COMMENTDELIM, 292, 184, 48, 14, ES_AUTOHSCROLL
+    LTEXT           "TextColorNormal (RR GG BB)", IDC_ST_OPT_TEXTCOLORNORM, 174, 202, 112, 8
+    EDITTEXT        IDC_ED_OPT_TEXTCOLORNORM, 292, 200, 48, 14, ES_AUTOHSCROLL
+    LTEXT           "TextColorError (RR GG BB)", IDC_ST_OPT_TEXTCOLORERR, 174, 218, 112, 8
+    EDITTEXT        IDC_ED_OPT_TEXTCOLORERR, 292, 216, 48, 14, ES_AUTOHSCROLL
+    LTEXT           "TextColorMessage (RR GG BB)", IDC_ST_OPT_TEXTCOLORMSG, 174, 234, 112, 8
+    EDITTEXT        IDC_ED_OPT_TEXTCOLORMSG, 292, 232, 48, 14, ES_AUTOHSCROLL
+    LTEXT           "BackgroundColor (RR GG BB)", IDC_ST_OPT_BKCOLOR, 174, 250, 112, 8
+    EDITTEXT        IDC_ED_OPT_BKCOLOR, 292, 248, 48, 14, ES_AUTOHSCROLL
+END
+
+IDD_INPUTBOX DIALOGEX 0, 0, 396, 66
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "NppExec InputBox"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+      LTEXT         "", IDC_ST_VARMESSAGE, 4, 4, 389, 8
+      CONTROL       "", IDC_STATIC, "Static", WS_VISIBLE | SS_ETCHEDFRAME, 4, 15, 389, 1
+      RTEXT         "$(INPUT) =", IDC_ST_VARNAME, 4, 22, 53, 8
+      COMBOBOX      IDC_CB_VARVALUE, 60, 20, 331, 72, WS_CHILD | WS_VISIBLE | 
+                    WS_VSCROLL | WS_TABSTOP | CBS_AUTOHSCROLL | CBS_DROPDOWN
+      CONTROL       "", IDC_STATIC, "Static", WS_VISIBLE | SS_ETCHEDFRAME, 4, 38, 389, 1 
+      DEFPUSHBUTTON "OK", IDOK, 173, 46, 50, 14
+      PUSHBUTTON    "Kill", IDC_BT_KILL, 118, 46, 50, 14
+      PUSHBUTTON    "Cancel", IDCANCEL, 228, 46, 50, 14
+END
+
+IDD_CONSOLE_ENCODING DIALOG 0, 0, 201, 114
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_VISIBLE | WS_CAPTION | WS_SYSMENU
+CAPTION "Console Output/Input encoding"
+FONT 8, "Ms Shell Dlg"
+BEGIN
+    DEFPUSHBUTTON   "OK", IDOK, 48, 95, 50, 14
+    PUSHBUTTON      "Cancel", IDCANCEL, 103, 95, 50, 14
+    GROUPBOX        "Console Output is...", IDC_STATIC, 6, 6, 90, 59
+    AUTORADIOBUTTON "ANSI (Windows)", IDC_RB_OUTPUT_ANSI, 12, 20, 76, 10, WS_GROUP
+    AUTORADIOBUTTON "OEM (DOS)", IDC_RB_OUTPUT_OEM, 12, 35, 76, 10
+    AUTORADIOBUTTON "UTF-8", IDC_RB_OUTPUT_UTF8, 12, 50, 76, 10
+    GROUPBOX        "Console Input is...", IDC_STATIC, 106, 6, 90, 59
+    AUTORADIOBUTTON "ANSI (Windows)", IDC_RB_INPUT_ANSI, 112, 20, 76, 10, WS_GROUP
+    AUTORADIOBUTTON "OEM (DOS)", IDC_RB_INPUT_OEM, 112, 35, 76, 10
+    AUTORADIOBUTTON "UTF-8", IDC_RB_INPUT_UTF8, 112, 50, 76, 10
+    AUTOCHECKBOX    "Console Input is the same as Output", IDC_CH_INPUT_AS_OUTPUT, 6, 70, 190, 10
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO
+BEGIN
+    IDD_HELP_ABOUT, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 232
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 252
+    END
+
+    IDD_CONSOLE_OUTPUTFILTER, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 358
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 243
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 0, 6, 0, 0
+ PRODUCTVERSION 0, 6, 0, 0
+ FILEFLAGSMASK 0x17L
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x2L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "042204b0"
+        BEGIN
+            VALUE "Comments", "The wall is thin - and our foreheads are hard :-)"
+            VALUE "CompanyName", "Full of Madness Co."
+            VALUE "FileDescription", "NppExec plugin for Notepad++"
+            VALUE "FileVersion", "0, 6, 0, 0"
+            VALUE "InternalName", "NppExec"
+            VALUE "LegalCopyright", "(C) Dec 2006 - Feb 2018, Vitaliy Dovgan aka DV"
+            VALUE "OriginalFilename", "NppExec.dll"
+            VALUE "ProductName", "NppExec plugin for Notepad++"
+            VALUE "ProductVersion", "0, 6, 0, 0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x422, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_CONSOLEICON         ICON                    "ConsoleIcon.ico"
+
+IDI_CONSOLEBITMAP       BITMAP                  "ConsoleIcon.bmp"
+
+#endif    // Ukrainian resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE
+BEGIN
+    "resource.h\0"
+END
+
+//2 TEXTINCLUDE
+//BEGIN
+//    "#include ""afxres.h""\r\n"
+//    "\0"
+//END
+
+3 TEXTINCLUDE
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

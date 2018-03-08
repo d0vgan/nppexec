@@ -1,0 +1,28 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Internet Assistant for Word Version 3.0">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.7. Run and terminate PowerShell process</title>
+</HEAD>
+<BODY>
+<h3>4.6.7. Run and terminate PowerShell process</h3>
+
+<p><em>[this article contains the text originally posted in NppExec's forum]</em></p>
+<p>The problem: if you execute a PowerShell's script in NppExec's Console, the PowerShell process is not ended when the script is finished.</p>
+<p>The solution: use &quot;cmd /c echo. | powershell&quot; instead of &quot;powershell&quot; to emulate sending of the Enter key to PowerShell process.</p>
+<p>Here is an example of the full NppExec's script:</p>
+
+<blockquote>
+  <pre>// path to PowerShell.exe
+set local PS_EXE = C:\WINDOWS\system32\windowspowershell\v1.0\powershell.exe
+// temporary file
+set local TEMP_FILE = $(SYS.TEMP)\ps_sel.ps1
+// save selected text from current file to a temporary ANSI file
+SEL_SAVETO $(TEMP_FILE) :a
+// execute the temporary file in PowerShell and exit
+cmd /c echo. | &quot;$(PS_EXE)&quot; -nologo &quot;$(TEMP_FILE)&quot;</pre>
+</blockquote>
+
+</BODY>
+</HTML>

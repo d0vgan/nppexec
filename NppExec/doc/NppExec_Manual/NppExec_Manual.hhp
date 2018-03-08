@@ -1,0 +1,14 @@
+[OPTIONS]
+Auto Index=Yes
+Compatibility=1.1 or later
+Compiled file=NppExec_Manual.chm
+Contents file=NppExec_Manual.hhc
+Default topic=0. Title Page.html
+Display compile progress=No
+Full-text search=Yes
+Language=0x409 English (United States)
+Title=NppExec
+
+
+[INFOTYPES]
+

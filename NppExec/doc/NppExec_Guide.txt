@@ -1,0 +1,193 @@
+Guide: Using NppExec to compile sources with associated compilers
+
+As a Notepad++ user, did you ever think about ability to compile your source 
+file with its associated compiler in a single action?
+You may use the NppExec plugin to perform certain actions on your files, but
+what about the automatization? What if you want your .c files to be compiled
+with tcc, .cpp files to be compiled with g++ and .awk files to be interpretted
+with gawk automatically, without explicit call to required compiler or
+interpretter? Is it possible?
+Yes, NppExec ALREADY allows you to do this. All you need is some imagination
+and several things to do. And I'm about to tell what is needed.
+
+Let's begin with several theoretical questions.
+At first, how can NppExec understand which compiler/interpretter is required
+by your current source file? NppExec is not a compiler, it does not have
+any information about your file and does not know what to do with it. 
+Moreover, Notepad++ itself is not such IDE as Visual C++ Express or Dev-C++,
+it does not include any compiler and also does not know what to do with your
+source file.
+So, the only way to compile your source file with required compiler is to tell
+Notepad++ (to tell NppExec in our case) _which_ compiler to use and _how_ to
+use it.
+This is the solution which you may use already - explicit usage of certain
+compiler/interpretter with certain source file. For example, you may want to
+compile and run your .c source file with tcc. A simple NppExec's script can
+be created for this purpose:
+
+  "C:\tools\tcc\tcc.exe" -run "$(FULL_CURRENT_PATH)"
+  
+The full path "C:\tools\tcc\tcc.exe" specifies a path to required compiler;
+Notepad++'es environment variable "$(FULL_CURRENT_PATH)" specifies full path
+name to your current source file; and "-run" in tcc's command line means
+"run compiled source". The full path was given in quotes, because, in general,
+it can contain spaces.
+Now, we are talking about NppExec's script. It assumes the script has been
+created and saved with some name which identified that script. If you are
+not sure about NppExec's script creation & saving, let me guide you.
+
+To create & save some NppExec's script, do the following:
+1) Open NppExec's "Execute..." window: press the hotkey (F6 by default)
+   or select (main menu) Plugins -> NppExec -> Execute...
+2) Type the text of your script in the "Execute..." window. For example:
+
+     "C:\tools\tcc\tcc.exe" -run "$(FULL_CURRENT_PATH)"
+     
+3) Save this new script: press the "Save..." button, type your script name
+   (for example, type "run@.c") and press Save.
+
+Now you can compile & run any single .c file opened in Notepad++. To do it,
+press F6 (default hotkey for the "Execute..." window), select "run@.c" in
+the combo-box and press OK.
+You can press Ctrl+F6 (by default) to execute the same script again without
+showing the "Execute..." window.
+
+As you can see, currently you have to call the "run@.c" script explicitly 
+in order to compile & run your .c source file. Thus, to compile & run
+another source file (.cpp, .asm, .php, .lua, ...) you also have to call
+corresponding script explicitly. [The last sentence assumes you have created
+separate scripts for every language you use (.cpp, .asm, .php, .lua, ...)]
+However, we don't want to call required script explicitly. We want NppExec
+to call the "run@.c" script for a .c file and call different script required 
+for different (.cpp, .asm, .php, .lua, ...) file automatically.
+So, a question: how can we do it?
+The first part of the answer is in your source file's extension. There is 
+such environment varible as $(EXT_PART) which contains the extension of 
+current file opened in Notepad++.
+The second part of the answer is in NppExec's internal command NPP_EXEC.
+As you probably know already, this command expects an existing script name 
+or a script file name as its first argument. The purpose of this command is
+to execute specified NppExec's script.
+Thus, if you use NPP_EXEC command, and its first argument (a script to be
+executed) depends on current file's extension, you can call different scripts
+for different file types from one starting script!
+Let's examine it in more detail.
+
+We are about to create a general NppExec's script which would allow us to 
+call different scripts for different source files depending on their extension.
+In other words, we use the NPP_EXEC command to call required script, and the 
+script name depends on current file's extension. The name of the script above,
+"run@.c", consists of two parts: the prefix "run@" and the extension ".c".
+As the file's extension can be got from Notepad++, we can write general form 
+of this script's name: "run@$(EXT_PART)".
+It's not hard to understand that this script's name transforms to "run@.cpp"
+for .cpp source file, "run@.lua" for .lua source file and so on.
+So, let's create our general compile-or-run script which will be called each
+time you want compile or run ANY source file:
+
+  // save current file
+  NPP_SAVE
+  // construct the script name to be called  
+  SET Compiler = run@$(EXT_PART)
+  // call the script
+  NPP_EXEC "$(Compiler)"
+  
+Save this script as "compile_or_run". Now this is your only starting script
+which will allow you to compile or run ANY source file. I.e. press F6, select
+the "compile_or_run" and press OK in order to compile or run ANY source file.
+However, don't forget that this script requires existing scripts for every
+source file you want to compile. Thus, "run@.cpp" must exist to compile a .cpp
+file, "run@.php" must exist to compile a .php file and so on.
+You can see several examples of such scripts below:
+
+  // run@.c
+  "C:\tools\tcc\tcc.exe" -run "$(FULL_CURRENT_PATH)"
+  
+  // run@.cpp
+  SET local g++ = C:\Dev-Cpp\bin\g++.exe
+  SET local obj = $(CURRENT_DIRECTORY)\$(NAME_PART)
+  "$(g++)" -c "$(FULL_CURRENT_PATH)" -o "$(obj).o"
+  "$(g++)" "$(obj).o" -o "$(obj).exe"
+  NPP_RUN "$(obj).exe"
+  
+  // run@.awk
+  "C:\tools\gawk\gawk.exe" -f "$(FULL_CURRENT_PATH)"
+  
+All of these scripts will be started automatically from the "compile_or_run"
+script for .c, .cpp and .awk files. You can create more "run@..." scripts to
+support any source file extension you use.
+
+Now, let's return to our "compile_or_run" script. It uses the NPP_EXEC command
+which supports a script file name as its first argument. What does it mean?
+It means you can execute NppExec's script from a file.
+As you can see, current implementation of the "compile_or_run" script requires
+a lot of additional "run@..." scripts to exist together with other scripts
+which you may want to call explicitly. In the same time, you do not call the 
+"run@..." scripts explicitly. So, the "run@..." scripts may be undesired in 
+the NppExec's script combo-box (in the "Execute..." window).
+Thus, you may modify the "compile_or_run" script in order to call script files
+instead of internal scripts. For example:
+
+  // compile_or_run
+  NPP_SAVE
+  SET Compiler = C:\tools\NppExec Scripts\run@$(EXT_PART).txt
+  NPP_EXEC "$(Compiler)"
+  
+Now you must create a directory "C:\tools\NppExec Scripts" which contains
+the following files: "run@.c.txt", "run@.cpp.txt", "run@.awk.txt" and so on.
+The text of these files must be exactly the same as in the scripts "run@.c",
+"run@.cpp" and "run@.awk" above. 
+E.g. the file "C:\tools\NppExec Scripts\run@.awk.txt" must contain
+
+  "C:\tools\gawk\gawk.exe" -f "$(FULL_CURRENT_PATH)"
+  
+and so on for other file extensions (.c, .cpp, ...).
+To read more information about the NPP_EXEC command, open the NppExec's
+Console in Notepad++, and type:
+
+  help npp_exec
+  
+and press Enter.
+To get general NppExec's help information, type just
+
+  help
+  
+and press Enter.
+
+
+One more thing regarding NppExec usage. Compiler/interpreter's output is shown
+in NppExec's Console and can be parsed by NppExec. It means that different
+error/warning messages can be shown using different colours, and you can jump
+to corresponding line in the source file by double-clicking on such warning
+or error message in the NppExec's Console.
+To enable such parsing, you must tell NppExec what form do these error/warning
+messages have (i.e. specify the message mask). You can configure it from 
+(main menu) Plugins -> NppExec -> Console Output Filters... -> HighLight. 
+That window contains an example of parsing (highlighting) masks for GCC: 
+ 
+  Example 1: %ABSFILE%:%LINE%: warning:* => detects the warning lines from gcc
+  Example 2: %ABSFILE%:%LINE%: error:* => detects the error lines from gcc
+ 
+I.e. to enable detection (parsing) of GCC errors in NppExec, you must specify
+the mask of the compiler's error line ("%ABSFILE%:%LINE%: error:*") and, 
+optionally, specify Red, Green and Blue components of the line to be 
+highlighted and, also optionally, this line can be shown using Italic, Bold
+and/or Underlined font typeface. And, of course, corresponding check-box must
+be checked to enable this parsing mask. 
+For example, if you want to see GCC's errors as Bold lines with Red colour
+and GCC's warnings as Italic lines with Blue colour, it will look similar to
+the following: 
+ 
+  [v] [%ABSFILE%:%LINE%: error:*       ]  0x80 0x00 0x00  [ ] [v] [ ]
+  [v] [%ABSFILE%:%LINE%: warning:*     ]  0x00 0x00 0x80  [v] [ ] [ ]
+
+You can find some more notes and hints by typing
+
+  help con_filter
+
+
+Well, seems it's time to finish the guide. I hope this guide was usefull for 
+you, because otherwise it was waste of time for both of us: the reader (you) 
+and the writer (me).
+If you like this guide, I hope it will inspire you to find your own usefull
+application of NppExec's functions, and maybe to share it with us.

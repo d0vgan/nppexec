@@ -1,0 +1,48 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Internet Assistant for Word Version 3.0">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.4. Using cmd.exe</title>
+</HEAD>
+<BODY>
+<h3>4.4. Using cmd.exe</h3>
+<p>NppExec by itself does not support
+    standard console commands such as &quot;copy&quot;, &quot;move&quot;, &quot;mkdir&quot;, &quot;for&quot; etc. Actually,
+    these commands are part of system's command interpreter (cmd.exe). So, you
+    can
+    use cmd.exe to perform such commands. For example, you can type the following
+commands in NppExec's Console or inside NppExec's script:</p>
+<blockquote>
+  <pre>// create a directory C:\Backup
+cmd /c mkdir C:\Backup
+// save current Notepad++'es file
+NPP_SAVE
+// copy current file to C:\Backup
+cmd /c copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;C:\Backup\$(FILE_NAME)&quot; /Y 
+// change current directory
+cd C:\Backup
+// list all .txt files in C:\Backup
+cmd /c for %f in (*.txt) do @echo %f</pre>
+</blockquote>
+<p>NppExec by itself can not redirect console program's output into a text file. And, again, you can do it via cmd.exe:</p>
+<blockquote>
+  <pre>cmd /c program.exe &gt;program.txt</pre>
+</blockquote>
+<p>or even</p>
+<blockquote>
+  <pre>cmd /c for /? &gt;for.txt</pre>
+</blockquote>
+<p>By the way, cmd.exe allows to execute several commands one after another while each previous command is completed successfully. For example:</p>
+<blockquote>
+  <pre>cmd /c for /? &gt;for.txt &amp;&amp; type for.txt
+cmd /c C: &amp;&amp; cd C:\Backup &amp;&amp; for %f in (*.txt) do @echo %f</pre>
+</blockquote>
+<p>You can always type</p>
+<blockquote>
+  <pre>cmd /?</pre>
+</blockquote>
+<p>for more details about cmd.exe and its commands. You'll be surprised how powerful it is :)</p>
+<p>Don't forget you can execute .bat and .cmd files in the same way as executable files [3.3] - but the file extension (.bat or .cmd) can not be omitted in this case. The batch files (.bat or .cmd) allow to implement sequences of commands with simple algorithms, so you can use them when single cmd's commands are not enough.</p>
+</BODY>
+</HTML>

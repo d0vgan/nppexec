@@ -1,0 +1,149 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Internet Assistant for Word Version 3.0">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.0. Introduction to compiling/interpreting/etc.</title>
+</HEAD>
+<BODY>
+<h3>4.0. Introduction to compiling/interpreting/etc.</h3>
+<p>As you are starting to read about compiling/interpreting, you should know that programmers usually count from 0 instead of 1 -- that's why the number of this section is 4.0 instead of 4.1 :) But let's proceed. </p>
+<p>So, you want to compile or run something using NppExec. Great, that's the purpose of this plugin. But, before you start to do it, you  must understand the principles of NppExec. Let's refer to the section [1.3] of this manual: </p>
+<blockquote>
+  <pre>NppExec is not a compiler. NppExec allows you to use external tools 
+and compilers to process/compile your current file, but it has no 
+ability to do it by itself. No magic here :)</pre>
+</blockquote>
+<p>This is the basic idea of advanced usage of NppExec. Whatever source file you want to compile or run - whether it be C, or C++, or Java, or Python, or Perl, etc., etc. - you always need to specify two things: </p>
+<ol>
+  <li>WHAT to compile or run (the source file itself);</li>
+  <li>WHO will do it (the interpreter or compiler).</li>
+</ol>
+<p>If you specify only WHAT to compile or run, NppExec will tell the system exactly the same: run this file. And the system most likely will answer: I don't know how to run this file. </p>
+<p>If you specify only WHO will do it, NppExec will run the specified interpreter/compiler - but it will not interpret/compile anything because you did not specify WHAT to interpret or compile. </p>
+<p>Let's repeat it again: NppExec itself does not know anything about your source file and does not make any assumptions regarding it. NppExec just does exactly what you tell it to do - and that's all. </p>
+<p>OK, but you may ask: why, for example, when I'm double-clicking my GhostScript file (or NSIS file, or Python file, or JavaScript file, whatever) in Windows Explorer, it becomes to be executed - but it does not happen in NppExec? The system seems to know how to run the file, right? - so why isn't it executed from within NppExec? </p>
+<p>The answer is simple: double-clicking a file in Windows Explorer is not the same as trying to run this file directly. Let me explain: when you double-click a file, Windows Explorer tries to run it using the system file associations. For example, when you double-click a .doc or .docx file, Windows Explorer detects that this file is associated with Microsoft Office - and asks Microsoft Office to open this file. In the same way, if Python files are associated with some Python IDE, Windows Explorer will try to run or open these file using Python IDE. </p>
+<p>On the other hand, when you want NppExec to run a file, it tells the system: run this file as if it can be executed by itself (without any associated program). That's the difference. The system file associations are not used in this case. </p>
+<p>But NppExec also has the ability to run a file using the system file associations. I'm talking about &quot;NPP_RUN &lt;file&gt;&quot;. In this case NppExec will tell the system: run this file using the system file associations. It will have the same effect as double-clicking in Windows Explorer. The very same effect - so you will not have any output in NppExec's Console because the file will not be executed inside the Console in this case. Refer to the section [3.3] for more details. </p>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+<p>Now I guess it's time to rephrase the basic idea of advanced usage of NppExec:</p>
+<ul>
+  <li>To run your source file in NppExec's Console, you always need to specify two things.</li>
+  <li>The first thing is WHAT to compile or run (the source file itself).</li>
+  <li>The second thing is WHO will do it (the interpreter or compiler).</li>
+</ul>
+<p>Let's name the WHAT thing as &lt;file&gt; (because it's your source file) and the WHO thing as &lt;tool&gt; (because it's the tool which will interpret or compile you file). According to this, you need to specify the following generic command to interpret/compile/run any source file: </p>
+<blockquote>
+  <pre>&lt;tool&gt; &lt;file&gt; &lt;arguments&gt; </pre>
+</blockquote>
+<p>We have one additional thing here: &lt;arguments&gt;. This thing refers to the tool-specific command-line arguments which may (or may not) be needed to interpret/compile/run the source file. I can't give you more information here because this part really differs for different compilers/interpreters. You need to read the compiler/interpreter's documentation regarding this. In some cases you may need to specify additional arguments before the source file name: </p>
+<blockquote>
+  <pre>&lt;tool&gt; &lt;arguments&gt; &lt;file&gt; </pre>
+</blockquote>
+<p>Phew! It was a long way so far, isn't it? ;) But let's proceed. </p>
+<p>Now you already have (or at least I hope so) a general vision regarding what's needed to interpret/compile/run your source file. </p>
+<p>Let's take into account one more thing: NppExec is NOT cmd.exe. NppExec allows you to run something and see the console output, but it is NOT a system's command interpreter (cmd.exe) itself and DOES NOT invoke cmd.exe if you did not call it explicitly. Thus you may encounter different behaviour of NppExec's Console and the system's console (cmd.exe). Refer to the section [1.3] for more details. </p>
+<p>Anyway, you can &quot;ask&quot; cmd.exe to do something for you by calling it from NppExec explicitly. Refer to the section [4.4] for more details. </p>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+<p>So, what's next? Did I tell you everything you need or is there something left? Maybe, enough talking - and let's see some examples? Yes, let's have some practice. </p>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+<p>So, you want NppExec to do something. You open NppExec's Console and type: &quot;something&quot;. Then you press Enter. Here is what you see in the Console: </p>
+<blockquote>
+  <pre>something
+CreateProcess() failed with error code 2:
+The system cannot find the file specified.</pre>
+</blockquote>
+<p>What the hell happened? Help! </p>
+<p>Let's analyze. You tried to run &quot;something&quot;. What is &quot;something&quot;? It seems to be an executable file bacause you specified it without extension. And what do you have as result? You have &quot;The system cannot find the file specified&quot;. So, nothing magical: you tried to run a file which does not exist. </p>
+<p>Let me write some comments here. When you type &quot;something&quot; and press Enter, it means the following: run an executable file &quot;something&quot; (&quot;something.exe&quot;) from current directory or a directory mentioned in %PATH%. This is what the system tries to do. And if you do have &quot;something.exe&quot; in the current directory or somewhere in %PATH%, this file (&quot;something.exe&quot;) will be executed and you will not have the error code 2. </p>
+<p>You can have the very same error when the name of an executable was specified incorrectly. For example: </p>
+<blockquote>
+  <pre>%systemroot%\notepad.exe
+CreateProcess() failed with error code 2:
+The system cannot find the file specified.</pre>
+</blockquote>
+<p>What the hell happened? Help! </p>
+<p>As I already wrote, NppExec is NOT cmd.exe. What does it mean? It means that NppExec, in particular, does NOT know what is %systemroot%. But cmd.exe knows it, right? So you can type the following: </p>
+<blockquote>
+  <pre>cmd /c %systemroot%\notepad.exe</pre>
+</blockquote>
+<p>and Notepad will be run for you by cmd.exe (while cmd.exe itself is executing in NppExec). </p>
+<p>I hope these basic examples were useful, but our goal is to compile/interpret/run something, isn't it? So we want to see an example of something like &quot;&lt;tool&gt; &lt;file&gt; &lt;arguments&gt;&quot;, don't we? </p>
+<p>OK, let's take some source file and try to run it. As I said, we could take any source file - it does not matter what language you are using. But, just for the example purposes, let's assume we have an .awk file with the following text: </p>
+<blockquote>
+  <pre>BEGIN {
+  print &quot;Hello!&quot;
+}</pre>
+</blockquote>
+<p>Did you hear something about AWK or do you know something about it? No? That's great, because NppExec also does not! </p>
+<p>Now I want to repeat: it does not matter what language you are using - it could be Pascal, Java, PHP, Ruby and so on, and so on - but the principle remains the same. NppExec DOES NOT know anything about this language and DOES NOT make any assumptions regarding it. You should exactly specify WHAT to interpret/compile/run (the source file) and WHO will do it (the interpreter/compiler). </p>
+<p>So, we are assuming we have an opened file &quot;program.awk&quot; with the following text: </p>
+<blockquote>
+  <pre>BEGIN {
+  print &quot;Hello!&quot;
+}</pre>
+</blockquote>
+<p>and we want to run it. Right now we are able to specify WHAT we want to run: it's our source file &quot;program.awk&quot;. Notepad++ and NppExec provide the following variables which contain the current file name: </p>
+<ul>
+  <li>$(FULL_CURRENT_PATH) : full pathname of the current file in Notepad++</li>
+  <li>$(FILE_NAME) : name and extension of the current file in Notepad++</li>
+</ul>
+<p>Now, if you type &quot;$(FULL_CURRENT_PATH)&quot; and press Enter in NppExec's Console, you will see something like the following: </p>
+<blockquote>
+  <pre>$(FULL_CURRENT_PATH)
+C:\Documents and Settings\User\My Documents\program.awk
+CreateProcess() failed with error code 193</pre>
+</blockquote>
+<p>If you search Google (or Bing, whatever) for &quot;error code 193&quot;, you will find the following description: &quot;%1 is not a valid Win32 application&quot;. This is exactly what we have discussed before: the system does not know how to run this file. So, it's our responsibility to specify a valid compiler/interpreter which is able to run it. </p>
+<p>In our case of an .awk file, we should use ether GAWK or AWK95 interpreter. (In case of another file -- such as .cpp, .java, .php and so on -- you should use appropriate compiler/interpreter.) Let's assume you have downloaded the latest GAWK package and unpacked it to &quot;C:\tools\GAWK&quot;. So the path to GAWK executable is &quot;C:\tools\GAWK\gawk.exe&quot;. </p>
+<p>Let's try to run it without parameters: </p>
+<blockquote>
+  <pre>C:\tools\GAWK\gawk.exe
+Process started &gt;&gt;&gt;
+Usage: gawk [POSIX or GNU style options] -f progfile [--] file ...
+(...)
+&lt;&lt;&lt; Process finished.</pre>
+</blockquote>
+<p>So, what do we see? We see that we should specify &quot;-f&quot; between &quot;gawk.exe&quot; and the .awk source file. </p>
+<p>Now let's try to run our file: </p>
+<blockquote>
+  <pre>C:\tools\GAWK\gawk.exe -f $(FULL_CURRENT_PATH)
+C:\tools\GAWK\gawk.exe C:\Documents and Settings\User\My Documents\program.awk
+Process started &gt;&gt;&gt;
+gawk: fatal: can't open source file `C:\Documents' for reading (No such file or directory)
+&lt;&lt;&lt; Process finished.</pre>
+</blockquote>
+<p>What the hell happened? Help! </p>
+<p>Well. If we look at the file pathname &quot;C:\Documents and Settings\User\My Documents\program.awk&quot;, we can observe spaces there. What does it mean? According to default system behaviour, ALL file names with spaces should be enclosed in double quotes. Otherwise the system does not understand where is the end of file name and treats spaces as dividers between several file names. </p>
+<p>So, let's try again: </p>
+<blockquote>
+  <pre>&quot;C:\tools\GAWK\gawk.exe&quot; -f &quot;$(FULL_CURRENT_PATH)&quot;
+&quot;C:\tools\GAWK\gawk.exe&quot; -f &quot;C:\Documents and Settings\User\My Documents\program.awk&quot;
+Process started &gt;&gt;&gt;
+Hello!
+&lt;&lt;&lt; Process finished.</pre>
+</blockquote>
+<p>Success! We have successfully run our .awk program using gawk.exe. This illustrates our general principle which could be applied to ANY language: specify WHAT to run (the source file) and WHO will run it (the interpreter or compiler). Additional argument (&quot;-f&quot; in our case) included. </p>
+<p>The path to the interpreter was also enclosed in double quotes because, in general, it also may contain spaces. Thus I'd recommend to always enclose paths to interpeter/compiler and source file in double quotes. </p>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+<p>Phew!.. Are you still here, with me? ;)</p>
+<p>What else to say?.. Not much, actually. Often it's better to write some NppExec's script [3.7] for running/compiling purposes, because a lot of actions (commands) may be required for this. You can see several examples under the sections [4.6] and [4.7].</p>
+<p>And here is one more useful advice. Starting from NppExec v0.4.2, you can use run-time variables in your command aliases. For example, you can define the following alias:</p>
+<blockquote>
+  <pre>npe_cmdalias g = &quot;C:\tools\GAWK\gawk.exe&quot; -f &quot;$(FULL_CURRENT_PATH)&quot;</pre>
+</blockquote>
+<p>Once you did it, you can type just &quot;g&quot; to run your current file using gawk.exe. Type &quot;help npe_cmdalias&quot; in NppExec's Console to learn more about the command aliases.</p>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+</BODY>
+</HTML>

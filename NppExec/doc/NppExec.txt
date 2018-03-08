@@ -1,0 +1,646 @@
+ 
+ ****************************************************************************
+ * NppExec plugin ver. 0.6 beta 1 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - February 2018
+ * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
+ ****************************************************************************
+ *
+ * Abilities:
+ *   1) Run multiple commands from the "Execute..." dialog
+ *   2) Run stand-alone command from the Console Dlg
+ *   3) Separate console for each NppExec.dll (e.g. NppExec1.dll, NppExec2.dll)
+ *   4) Additional commands:
+ *        cls - clear Console screen
+ *        cd - shows current path
+ *        cd <path> - changes current directory (absolute or relative)
+ *        cd <drive:\path> - changes current drive and directory
+ *        dir - lists subdirs and files
+ *        dir <mask> - lists subdirs and files matched the mask
+ *        dir <path\mask> - lists subdirs and files matched the mask
+ *        echo <text> - prints a text in the Console 
+ *        if <condition> goto <label> - jumps to the label if the condition is true
+ *        if ... else if ... else ... endif - conditional execution
+ *        goto <label> - jumps to the label
+ *        set - shows all user's variables
+ *        set <var> - shows the value of user's variable <var>
+ *        set <var> = <value> - sets the value of user's variable <var>
+ *        set <var> ~ <math expression> - calculates the math expression
+ *        set <var> ~ strlen <string> - calculates the string length
+ *        set <var> ~ strlenutf8 <string> - calculates the UTF-8 string length
+ *        set <var> ~ strupper <string> - returns the string in upper case
+ *        set <var> ~ strlower <string> - returns the string in lower case
+ *        set <var> ~ substr <pos> <len> <string> - returns the substring
+ *        set <var> ~ strfind <s> <t> - returns the first position of <t> in <s>
+ *        set <var> ~ strrfind <s> <t> - returns the last position of <t> in <s>
+ *        set <var> ~ strreplace <s> <t0> <t1> - replaces all <t0> with <t1>
+ *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
+ *        set <var> ~ strtohex <s> - returns a hex-string from the string
+ *        set local - shows all user's local variables
+ *        set local <var> - shows the value of user's local variable <var>
+ *        set local <var> = ... - sets the value of user's local variable <var>
+ *        set local <var> ~ ... - calculates the value of user's local variable
+ *        unset <var> - removes user's variable <var>
+ *        unset local <var> - removes user's local variable <var>
+ *        env_set <var> - shows the value of environment variable <var>
+ *        env_set <var> = <value> - sets the value of environment variable <var>
+ *        env_unset <var> - removes/restores the environment variable <var>
+ *        inputbox "message" - shows InputBox, sets $(INPUT)
+ *        inputbox "message" : initial_value - InputBox, sets $(INPUT)
+ *        inputbox "message" : "value_name" : initial_value - InputBox customization
+ *        con_colour <colours> - sets the Console's colours
+ *        con_filter <filters> - enables/disables the Console's output filters
+ *        con_loadfrom <file> - loads a file's content to the Console
+ *        con_load <file> - see "con_loadfrom"
+ *        con_saveto <file> - saves the Console's content to a file
+ *        con_save - see "con_saveto"
+ *        sel_loadfrom <file> - replace current selection with a file's content
+ *        sel_load <file> - see "sel_loadfrom"
+ *        sel_saveto <file> - save the selected text to a file
+ *        sel_saveto <file> : <encoding> - save the selected text to a file
+ *        sel_save <file> : <encoding> - see "sel_saveto"
+ *        sel_settext <text> - replace current selection with the text specified
+ *        sel_settext+ <text> - replace current selection with the text specified
+ *        text_loadfrom <file> - replace the whole text with a file's content
+ *        text_load <file> - see "text_loadfrom"
+ *        text_saveto <file> - save the whole text to a file
+ *        text_saveto <file> : <encoding> - save the whole text to a file
+ *        text_save <file> : <encoding> - see "text_saveto"
+ *        npp_exec <script> - execute commands from specified NppExec's script
+ *        npp_exec <file> - execute commands from specified NppExec's file (*)
+ *        npp_close - close current file in Notepad++
+ *        npp_close <file> - close specified file opened in Notepad++      (*)
+ *        npp_console <on/off/keep> - show/hide the Console window
+ *        npp_console <enable/disable> - enable/disable output to the Console
+ *        npp_console <1/0/?> - show/hide the Console window
+ *        npp_console <+/-> - enable/disable output to the Console
+ *        npp_menucommand <menu\item\name> - executes (invokes) a menu item
+ *        npp_open <file> - open a file in Notepad++
+ *        npp_open <mask> - open files matched the mask
+ *        npp_open <path\mask> - open files matched the mask
+ *        npp_run <command> - run external process/command
+ *        npp_save - save current file in Notepad++
+ *        npp_save <file> - save a file in Notepad++ (if it's opened)      (*)
+ *        npp_saveas <file> - save current file with a new (path)name
+ *        npp_saveall - save all modified files
+ *        npp_switch <file> - switch to specified opened file              (*)
+ *        npp_sendmsg <msg> - send a message (msg) to Notepad++
+ *        npp_sendmsg <msg> <wparam> - message with parameter (wparam)
+ *        npp_sendmsg <msg> <wparam> <lparam> - msg to Notepad++
+ *        npp_sendmsgex <hwnd> <msg> <wparam> <lparam> - msg to hwnd
+ *        sci_sendmsg <msg> - send a message (msg) to current Scintilla
+ *        sci_sendmsg <msg> <wparam> - message with parameter (wparam)
+ *        sci_sendmsg <msg> <wparam> <lparam> - msg to Scintilla
+ *        sci_find <flags> <find_what> - find a string
+ *        sci_replace <flags> <find_what> <replace_with> - replace a string
+ *        proc_signal <signal> - signal to a child process
+ *        sleep <ms> - sleep during ms milliseconds
+ *        sleep <ms> <text> - print the text and sleep during ms milliseconds
+ *        npe_cmdalias - show all command aliases
+ *        npe_cmdalias <alias> - shows the value of command alias
+ *        npe_cmdalias <alias> = - removes the command alias
+ *        npe_cmdalias <alias> = <command> - sets the command alias
+ *        npe_console <options> - set/modify Console options/mode
+ *        npe_debuglog <on/off> - enable/disable Debug Log
+ *        npe_noemptyvars <1/0> - enable/disable replacement of empty vars
+ *        npe_queue <command> - queue NppExec's command to be executed
+ *        nppexec: - prefix for NppExec's commands (e.g. "nppexec:npp_console off")
+ *        nppexec:: - always executes a command in a collateral (parallel) script
+ *        (*) these commands work with a partial file path/name also
+ *            i.e.  npp_save c:\dir\f.txt  is the same as  npp_save f.txt
+ *   5) Additional console commands (Console Dlg only):
+ *        help           - show available commands
+ *        help <command> - information on the specific command (e.g. "help cls")
+ *        ver            - show plugin's version
+ *        manual         - show NppExec User Guide
+ *        about          - show NppExec Help/About
+ *        CTRL+C         - kill (via Ctrl+C) or terminatate current child process
+ *        CTRL+BREAK     - kill (via Ctrl+Break) or terminate current child process
+ *        CTRL+Z         - send ^Z to current child process
+ *   6) All Notepad++ environment variables are supported:
+ *        $(FULL_CURRENT_PATH)  : E:\my Web\main\welcome.html 
+ *        $(CURRENT_DIRECTORY)  : E:\my Web\main
+ *        $(FILE_NAME)          : welcome.html 
+ *        $(NAME_PART)          : welcome 
+ *        $(EXT_PART)           : .html
+ *        $(NPP_DIRECTORY)      : the full path of notepad++'s directory
+ *        $(CURRENT_WORD)       : word(s) you selected in Notepad++
+ *        $(CURRENT_LINE)       : current line number
+ *        $(CURRENT_COLUMN)     : current column number
+ *   7) Additional environment variables:
+ *        $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
+ *        $(#N), N=1,2,3...     : full path of the Nth opened document
+ *        $(LEFT_VIEW_FILE)     : current file path-name in primary (left) view
+ *        $(RIGHT_VIEW_FILE)    : current file path-name in second (right) view
+ *        $(PLUGINS_CONFIG_DIR) : full path of the plugins configuration directory
+ *        $(CWD)                : current working directory of NppExec (use "cd" to change it)
+ *        $(ARGC)               : number of arguments passed to the NPP_EXEC command
+ *        $(ARGV)               : all arguments passed to the NPP_EXEC command after the script name
+ *        $(ARGV[0])            : script name - first parameter of the NPP_EXEC command
+ *        $(ARGV[N])            : Nth argument (N=1,2,3...)
+ *        $(RARGV)              : all arguments in reverse order (except the script name)
+ *        $(RARGV[N])           : Nth argument in reverse order (N=1,2,3...)
+ *        $(INPUT)              : this value is set by the 'inputbox' command
+ *        $(INPUT[N])           : Nth field of the $(INPUT) value (N=1,2,3...)
+ *        $(OUTPUT)             : this value can be set by the child process, see npe_console v+
+ *        $(OUTPUT1)            : first line in $(OUTPUT)
+ *        $(OUTPUTL)            : last line in $(OUTPUT)
+ *        $(EXITCODE)           : exit code of the last executed child process
+ *        $(PID)                : process id of the current (or the last) child process
+ *        $(LAST_CMD_RESULT)    : result of the last NppExec's command
+ *                                  (1 - succeeded, 0 - failed, -1 - invalid arg)
+ *        $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
+ *        $(MSG_WPARAM)         : wParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
+ *        $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
+ *        $(SYS.<var>)          : system's environment variable, e.g. $(SYS.PATH)
+ *        $(@EXIT_CMD)          : a callback exit command for a child process
+ *        $(@EXIT_CMD_SILENT)   : a silent (non-printed) callback exit command
+ *
+ ****************************************************************************
+
+
+ *************
+ *  HISTORY  *
+ *************
+
+ v0.6 beta 1 - February 2018
+ ---------------------------
+ * changed: now the Execute dialog's auto-completion pop-up uses the same upper/lower case
+   as the first character of a word being typed (e.g. Npp -> NPP...; npp -> npp...);
+   also: now the auto-completion pop-up's height is limited by the number of its items
+ + new commands: SCI_FIND, SCI_REPLACE
+ + new commands: TEXT_SAVETO, TEXT_LOADFROM
+ + Function Parser has been updated to support the bitwise operators: ~, |, &, << and >>
+   (thanks to Juha Nieminen and Joel Yliluoma for their advice)
+ + $(LAST_CMD_RESULT) - result of the last NppExec's command (1 - succeeded, 0 - failed, -1 - invalid arg)
+ - fixed: parameters of sci_sendmsg/npp_sendmsg were truncated to 32-bit in 64-bit NppExec
+ - fixed: now pasting to the Console via Shift+Insert is equal to Ctrl+V
+
+
+ v0.6 alpha 1 - December 2017
+ ----------------------------
+ 1. Project infrastructure updated:
+    ! Now NppExec uses C++11 and requires at least VS 2013 Express
+    ! 32-bit NppExec targets Windows XP SP3 and higher (because of new VS C++ compiler)
+    + Project file for Visual Studio 2013 Express (NppExec_VC12.sln)
+    + Project file for Visual Studio 2015 Express (NppExec_VC14.sln)
+    + NppExec can be build with Orwell Dev-C++ (NppExec_DevCpp.dev)
+    + 64-bit ready (the 64-bit NppExec targets Windows 7 x64 and higher)
+ 2. Third-party components updated: 
+    + fparser updated to 4.5.2
+    + Notepad++ and Scintilla header files updated to Notepad++ 7.5.1
+ 3. Scripting abilities enhanced:
+    + added: "nppexec:" prefix to execute NppExec's commands from a child console process
+    + added: "nppexec::" prefix to execute NppExec's command always in a collateral script
+    + added: "@EXIT_CMD" and "@EXIT_CMD_SILENT" macro vars to specify child process'es exit command
+      (type "help @exit_cmd" in the Console for details)
+    + added: $(PID) macro var, e.g. to be able to "nppexec:taskkill /pid $(PID)"
+    + new commands: NPP_SAVEAS, PROC_SIGNAL, SLEEP, NPE_QUEUE
+    + set <var> ~ strfromhex <hex string>
+    + set <var> ~ strtohex <string>
+    + now IF...ELSE IF...ELSE...ENDIF sequences are supported (see "help if")
+    + now commands can be executed from macro-vars (e.g. "set a = npp_run calc" and then "$(a)" to execute)
+    + now a child console process is tried to be killed first, and only then terminated
+    + now "set local" in NppExec's Console creates Console's local vars (not shared with NppExec's script)
+    + NppExec's Plugin Interface has been enhanced; NppExecPluginMsgTester has been updated
+ 4. Improved and fixed:
+    + Warning Analyser: more accurate detection of %LINE% and %CHAR%
+    + NppExec's Console: Tab-completion improved; also works after "help " and "nppexec:"
+    + NppExec's Console: "Tab = \t" allows to type Tab character in the Console
+    + now SEL_LOADFROM and CON_LOADFROM detect UTF-8 without BOM
+    + now SEL_SAVETO can save as UTF-8 without BOM
+    - fixed: font of NppExec's Console could be set incorrectly
+    - fixed: crash while calculating very big numbers (e.g. 10^72)
+    - fixed: the "exit command" dialog did not use the "Key_Enter" value
+    - fixed: now pasting (Ctrl+V) to the Console clears the text formatting
+    - fixed: now the Console Filters masks' length is not limited by the edit controls' width
+    - fixed: double-click on word-wrapped errors and warnings did not work in the Console
+    * plugin's core has been rewritten (the layer of the CNppExecCommandExecutor)
+    * other internal improvements
+    * even more other internal improvements
+    * better error reporting
+    * output is suppressed while Notepad++ is exiting (applies to the exit script)
+ 5. Highlights:
+    * The "nppexec:" prefix allows to execute NppExec's commands while working
+      with a child console process (e.g. you can start cmd in NppExec's Console
+      and type "nppexec: set local @exit_cmd = exit" in cmd's prompt or even
+      type "nppexec: taskkill /pid $(PID)" to kill the cmd.exe). The command
+      that is executed in such way is an example of so-called collateral
+      NppExec's script. (It's collateral because it is executed while a child
+      console process is already executing.)
+    * The "nppexec::" prefix always starts a collateral (parallel) NppExec's
+      script to execute the given command. Even if there is no child process or
+      script running in NppExec, this prefix forces a collateral script to be
+      created to execute the command.
+    * All these variables are local now (similar to "set local"):
+      - $(INPUT), $(INPUT[N])
+      - $(OUTPUT), $(OUTPUT1), $(OUTPUTL)
+      - $(EXITCODE), $(PID)
+      - $(MSG_RESULT), $(MSG_WPARAM), $(MSG_LPARAM)
+      Now, with collateral scripts, it makes perfect sense to make these
+      variables to be local - as they are rather unique for each NppExec's
+      script than to NppExec as a whole. (Any NppExec's script can call
+      "inputbox", start a child process, send a message - and there is no
+      sense to share the resulting variables with all the other scripts.)
+    * NPE_CMDALIAS and NPE_QUEUE have additional parameters to enable/disable
+      the delayed variables substitution. NPE_QUEUE additionally has a parameter
+      that controls whether the queued command will be executed as a separate
+      NppExec's script (similar to NPEM_EXECUTE_QUEUED) or not.
+      Type "help npe_cmdalias" and "help npe_queue" in NppExec's Console for
+      details.
+    * NppExec's Plugin Interface has been enhanced; the NppExecPluginMsgTester
+      has been updated correspondingly.
+    * Now there are 32-bit and 64-bit versions of NppExec.
+    * More than 10 years of NppExec! :)
+
+ TODO:
+
+ - update the NppExec Manual (currently it's incomplete, see below)
+
+ - NppExec Manual - add info about opening files ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/ )
+   and testing the highlight masks (via echo + NPE_DEBUG 1);
+   - add info about @exit_cmd ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/da49de3c/ 
+                                https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/
+                              )
+   - add info about Python interactive ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/ )
+   - add info about NppExec Console colours ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/ )
+   - add info about collateral scripts/commands (e.g. "nppexec:cmd" while a child process is running)
+   - add info about the "nppexec:" prefix (with examples: NppExec's commands, python + cmd)
+   - add info about enabling the log files (from the NppExec_TechInfo.txt + more details)
+   - other interesting info:
+     https://sourceforge.net/p/npp-plugins/discussion/672146/thread/d6605f76/
+     https://sourceforge.net/p/npp-plugins/discussion/672146/thread/19ced17f/
+     https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/
+   - FAQ section?
+
+ - callback scripts? (though, we already have NppEventExec)
+
+ - PrintOutput: add support of "ESC ]" and "ESC [" sequences;
+   correspondingly, use CHARFORMAT2 to set both Text and Background color.
+   This probably will not be included in v0.6 (requires noticeable time for development & testing).
+
+ - Idea: add "local" keyword for _everything_, i.e. including env_set, con_colour, npp_console, npe_console, ...
+   It will mean: this change is local within the script - and when the script ends, everything will be restored
+   as it was before the "local" command was applied.
+   This will need implementation of "Undo" or "State" logic for all commands.
+   Extremally time-consuming, though. Probably will remain just an idea.
+
+
+ v0.5.3 - February 2015
+ ----------------------
+ + new menu items "Go to next error" and "Go to previous error" (based on
+   the HighLight masks), thanks to mrmixer
+ + now %FILE% is treated as both %ABSFILE% and %FILE%, so there's no need
+   to duplicate the masks with %ABSFILE% and %FILE%
+ + maximum number of user menu items increased to 100 (was 40)
+ + when npes_saved.txt is saved, its previous version is kept as .bak
+ + TAB navigation works in Filter/Replace/HighLight dialog
+ + now the INPUTBOX command can accept 3 parameters
+ + NppExec Manual updated
+ + other small improvements
+
+
+ v0.5.2.2 - December 2014
+ ------------------------
+ + now the IF-GOTO statement supports floating-point comparison as well
+   (e.g. IF 2.5 < 10.1 GOTO Label2)
+ + new advanced option "Console_NulChar" (enhancing v0.5.2.1)
+ * 8 years since NppExec was born! :)
+
+
+ v0.5.2.1 - November 2014
+ ------------------------
+ + Now NppExec is able to deal with NUL ('\0') character when external 
+   application outputs it to the Console:
+   (Unicode) 0x0000 "NUL" is replaced with 0x25E6 "White Bullet";
+   (ANSI) 0x00 "NUL" is replaced with 0x17 "End of Text Block".
+ + NppExec Manual updated a little bit.
+ * The "Donate..." button has been removed. Since I did not receive any 
+   donation - either due to ukrainian politics/restrictions as for PayPal
+   or due to lack of donations itself - and since this situation is unlikely
+   to change, the button has been removed.
+   You can always donate to Notepad++ itself.
+
+
+ v0.5.2 - January 2014
+ ---------------------
+ + set local <var> = <value>
+ + NppExec's options are now automatically saved on NPPN_SHUTDOWN
+ + Ctrl+Z sends ^Z (end-of-file) to current child process
+ + new advanced option "Key_Enter", by default its value is "\n"
+ + new advanced option "LogsDir" to create NppExec's log files
+ + NPE_CONSOLE k0..3 to enable/disable NppExec's shortcut keys in the Console
+ + NppExec Manual updated
+ + different internal improvements & refactoring
+ + fparser updated to v4.5.1
+ * 7th anniversary of NppExec :)
+
+
+ v0.5 - April 2013
+ -----------------
+ 1. Scripting abilities enhanced:
+    + new commands: IF, GOTO
+    + set <var> ~ strupper/strlower/substr <string>
+    + set <var> ~ strfind/strrfind <string>
+    + set <var> ~ strreplace <string>
+ 2. Highlighting abilities enhanced:
+    + now all the Console Filters support run-time $(vars)
+    + new commands: CON_COLOUR, CON_FILTER
+ 3. New/enhanced commands:
+    + new command: NPP_MENUCOMMAND
+    + now sel_settext+ supports '\r'
+ 4. Fixed:
+    - fixed: could not get/modify Notepad++'s main menu when it was hidden
+ 5. Other:
+    + new Console's commands: MANUAL, ABOUT
+    * different internal improvements
+
+
+ v0.4.3.2 - November 2012
+ ------------------------
+ - fixed: partial file name matching in npp_exec, npp_close, npp_save and
+   npp_switch (CNppExec::nppConvertToFullPathName, nppSwitchToDocument)
+ + HELP ALL to show all available help (all the commands in detail)
+ + @[] in CScriptEngine::doSendMsg
+
+
+ v0.4.3.1 - September 2012
+ -------------------------
+ - fixed: "Follow $(CURRENT_DIRECTORY)" did not work on file save
+ + NPE_CONSOLE f+/f- r+/r- to enable/disable the console output filters
+
+
+ v0.4.3 - May 2012
+ -----------------
+ + now NppExec's Console keeps its shown/hidden state after Notepad++ restarts
+   (* thanks to ufo-pu55y for help)
+ + NPP_CONSOLE +/- to enable/disable output to the Console
+ + some refactoring of NppExec's Console functions
+
+
+ v0.4.2.1 - March 2012
+ ---------------------
+ - fixed: incorrect check of Notepad++ version
+
+
+ v0.4.2 - November 2011
+ ----------------------
+ - fixed: $("var") was processed incorrectly
+ + now npe_cmdalias uses run-time $(vars)
+ + set <var> ~ strlen <string>
+ + set <var> ~ strlenutf8 <string>
+ + $(EXITCODE)
+ + npp_sendmsgex, [] in CScriptEngine::doSendMsg
+ + %CHAR% in WarningAnalyzer, thanks to Carlos (cabanela)
+ + fparser updated to v4.4.3
+ + NppExec Manual updated (one step closer to enlightenment :))
+
+
+ v0.4.1 - July 2010
+ ------------------
+ - fix for NPP_SENDMSG/SCI_SENDMSG with parameters containing dbl-quote(s)
+ + fparser updated to v4.2
+ + NppExec Manual updated
+
+
+ v0.4 - April 2010
+ -----------------
+ + new commands: NPP_SENDMSG, SCI_SENDMSG
+ + SET command extension: set <var> ~ <math expression>
+   (using Function Parser by Juha Nieminen, Joel Yliluoma)
+ + several small improvements
+
+
+ v0.3.3.1 - February 2010
+ ------------------------
+ - fixed: "WS_VSCROLL" was omitted for combo-boxes in IDD_ADVANCEDOPTIONS
+
+
+ v0.3.3 - January 2010
+ ---------------------
+ - fix1: now "\r\n" (Enter key emulation) is sent to the pipe separately
+ - fix2: n++'es unsubclassing on exit removed (might be dangerous)
+ - fix3: now the Console should keep its font always (IMF_AUTOFONT turned off)
+ + Help/Manual updated (sections 4.6.3 and 4.6.4 added)
+
+
+ v0.3.2 - September 2009
+ -----------------------
+ + new feature: TAB autocompletes file paths (in the Console)
+   (* thanks to ILme for initial implementation)
+ + new feature: Shift+Tab (in the Console, the same as TAB but backwards)
+ - fixed: 'cd \path', 'dir \path' did not jump to the root of current drive
+ - fixed: on-exit script was not executed
+ + new command: NPE_CMDALIAS
+ + new menu item: Disable command aliases
+ + new option in NPE_CONSOLE: q+/q-
+ 
+ 
+ v0.3.1 - June 2009
+ ------------------
+ + new command: SEL_LOADFROM
+ + new command: SEL_SETTEXT, SEL_SETTEXT+
+ + new variable: $(OUTPUT), $(OUTPUTL), $(OUTPUT1), see NPE_CONSOLE V+
+ + several small improvements
+ 
+ 
+ v0.3 final - April 2009
+ -----------------------
+ * thanks to Greg Webb for the .chm help file (manual)
+ + several small fixes
+ + new command: NPE_CONSOLE 
+
+
+ v0.3 RC1 - January 2009
+ -----------------------
+ * thanks to John LaCasse for useful suggestions
+ + new environment variable: $(CWD)
+ + new commands: ENV_SET/ENV_UNSET
+ + new menu item: Toggle Console Dialog (Ctrl+~)
+ + now NPE_DEBUGLOG reports on Console double-clicked line's Highlight Filter
+ + NppExecPluginMsgTester has been re-designed and updated
+ + both Unicode and ANSI builds are supported
+ + now the "Execute..." dialog is resizable
+ + now NppExec supports remapped shortcut keys (requires Notepad++ >= 5.1.4)
+ + other improvements
+ + now NppExec has the manual (yes!)
+
+ 
+ v0.3 beta1 - November 2008
+ --------------------------
+ + full Unicode compatibility (for Unicode version of Notepad++)
+ + additional functionality
+ + improvements in the script engine (architecture re-design)
+ + improvements in the warning analyzer (spaces/tabs can be omitted)
+ + other improvements and fixes
+ + now NppExec gets its configuration directory from Notepad++
+ + now you can exit a console process or interrupt current script at any time
+ + now both Console Output and Input can be ANSI, OEM or UTF-8
+ + now each copy of NppExec.dll has its own Console History
+ + new option: Follow $(CURRENT_DIRECTORY)
+ + new command: NPP_CONSOLE
+ + new environment variable: $(PLUGINS_CONFIG_DIR)
+
+ 
+ v0.2.5 release 2 - September 2008
+ ---------------------------------
+ - fixed: (potential) bug in CNppExec::DoExecScript()
+ - fixed: several (potential) bugs, thanks to Patrick Corwin
+ 
+ 
+ v0.2.5 - August 2008
+ --------------------
+ + added: word wrap in the Console dialog (Ctrl+W)
+ * changed: Advanced Options dialog - SaveCmdHistory added, 
+   RichEdit_MaxTextLength removed
+ - fixed: script with spaces in its name was not started using
+   associated menu item
+ + some improvements
+ + new command: NPP_CLOSE
+ + new command: INPUTBOX
+ * now NppExec uses Rich Edit 2.0 (instead of 1.0) in its Console window
+ + added Notepad++'s variables: $(CURRENT_LINE), $(CURRENT_COLUMN)
+ + external plugin interface messages:
+   NPEM_GETVERDWORD [returns version as DWORD]
+   NPEM_GETVERSTR [returns version as string]
+   NPEM_GETSTATE [returns state: ready/busy]
+   NPEM_PRINT [prints text which can be highlighted by the Highlight Filters]
+   NPEM_EXECUTE [executes given commands]
+   NPEM_NPPEXEC [executes script/file]
+   NPEN_RESULT [as a result of NPEM_EXECUTE or NPEM_NPPEXEC]
+
+ 
+ v0.2.4 - June 2008
+ ------------------
+ + added: "Replace" tab in the Console Filters dialog
+ * improved: the code of the DlgConsoleOutputFilter has been rewritten
+ + added: Console text and background colours can be changed
+ + new command: SEL_SAVETO - saves the selected text to a file
+ - fixed: CON_SAVETO did not work under Windows 9x
+ + added: ability to execute specified script when Notepad++ starts/exits
+ + added: ability to assign a menu item to specified script
+   (then you can assign a shortcut key to this menu item in Notepad++)
+ + added: Advanced Options dialog
+ + other improvements
+ 
+ 
+ v0.2 RC3.2 - February 2008
+ --------------------------
+ - fixed: NPP_RUN (ShellExecute) did not work with several arguments
+ 
+ 
+ v0.2 RC3.1 - February 2008
+ --------------------------
+ - fixed: buffer overflow in the Warning Analyzer
+ * changed: now NPP_RUN calls ShellExecute() instead of WinExec()
+ 
+ 
+ v0.2 RC3 - January 2008
+ -----------------------
+ + search in the Console
+ + history in the Console Filters dialog
+ + several issues fixed
+ + several cosmetic improvements
+
+ 
+ v0.2 RC2 - December 2007
+ ------------------------
+ + speeding up the console output
+ + watching for changes in "npes_saved.txt"
+ + TAB-key in the console auto-completes current command
+ + several cosmetic improvements
+ 
+ 
+ v0.2 RC1 - December 2007
+ ------------------------
+ 1. A lot of internal changes/improvements.
+ In particular, now all plugin's options are stored, read and written by the
+ Options Manager component.
+ The Warning Analyzer component, developed by Nicolas Babled, allows to filter
+ and recognize different compiler/interpretter error and warning messages - and
+ extract useful information from these messages (such as file name and line 
+ number).
+ The Simple Logger component stores detailed information about last executed
+ command (can be usefull for "debugging").
+ * The console redirecting engine has been improved.
+ * Now the plugin identifies itself by its dll-file name. Each copy of the 
+ plugin (each dll-file) stores its options in corresponding ini-file.
+ * Now plugin's environment variables (e.g. "$(FILE_NAME)") are available for
+ child console process. For example, start "cmd.exe" and type "echo $(#1)".
+ * Now system's environment variables are available in a form of "$(SYS.<var>)"
+ e.g. "$(SYS.WINDIR)", "$(SYS.TEMP)" etc.
+ * Now the NPP_EXEC command can pass arguments to the script. These arguments 
+ can be accessed in the script through the following macro-variables:
+ $(ARGC), $(ARGV), $(ARGV[n]).
+ Example:  npp_exec "script name" param_1 "param 2".
+ This example sets the following values for the script:
+ $(ARGC) = 3;  $(ARGV) = param_1 "param 2";  $(ARGV[0]) = script name;
+ $(ARGV[1]) = param_1;  $(ARGV[2]) = param 2.
+ * Each command now have detailed help information. Type "help" or "help help" 
+ in the NppExec's Console.
+ * Now the console commands history is restored when you restart Notepad++.
+
+ 2. New menu items:
+ (Thanks to Nicolas Babled & Geert Vancompernolle)
+ Direct Execute Previous - directly executes previous script.
+ No internal messages - do not show such messages as "Process started >>>", etc.
+ Save all files on execute - saves all files before executing a script.
+ Also NppExec's toolbar icon has been added.
+
+ 3. New dialog:  Console Output Filter -> Highlight.
+ (Thanks to Nicolas Babled & Geert Vancompernolle)
+ This dialog allows you to specify a string mask for compiler/interpretter error 
+ and warning messages with such keywords as %FILE%, %ABSFILE% and %LINE%.
+ These messages can be highlighted with different colours and allow you to go
+ to certain line in certain file when double-clicked in the Console window.
+
+ 4. New messages:
+ NPP_SAVEALL - saves all modified files.
+ CON_LOADFROM - loads a file's content to the Console.
+ CON_SAVETO - saves the Console's content to a file.
+ ECHO - prints a text in the Console (supports internal env. variables)
+ SET - sets the value of user's variable
+ UNSET - removes user's variable
+ 
+ 
+ v0.2 beta4 - July 2007
+ ----------------------
+ - fixed: buffer size was not checked before calling OemToChar() 
+ - fixed/added: '\b' and '\r' handling
+ + a lot of changes in plugin's internals (basic cpp-classes and NppExecEngine)
+ + new command: cd, cd <path>, cd <drive:\path>
+ + new command: dir, dir <mask>, dir <path\mask>
+ + new feature: npp_open <mask>, npp_open <path\mask>
+ + new environment variables: $(LEFT_VIEW_FILE) and $(RIGHT_VIEW_FILE)
+ * thanks to all who wait for this version
+ 
+
+ v0.2 beta3 - April 2007
+ -----------------------
+ - fixed: Delete button (Script name dialog) was not enabled sometimes
+ + Menu: Show Console Dialog
+ + Console Output Filter: Exclude all empty lines
+ + Comment delimiter can be user-defined, // in :// is no more comment
+ 
+ 
+ v0.2 beta2 - March 2007
+ -----------------------
+ + Menu: Console Commands History.
+     When enabled, previous commands can be scrolled by pressing 
+     arrow keys Up and Down.
+ + Menu: Console Output Filter.
+     When enabled, output messages from running console process
+     can be filtered (i.e. particular lines can be excluded)
+ - ConsoleDlg: Ctrl+A is unlocked
+ - ConsoleDlg: Quotes "" are no more added automatically for paths
+     with spaces (because of a bug with executables w/o extension
+     such as "cmd /c calc.exe")
+ - Several internal fixes
+ - Several additional internal fixes :-)
+ * Thanks to Jim Granville for his suggestions
+      
+ 
+ v0.1 - March 2007
+ -----------------
+ * initial version
+ 
+ 
