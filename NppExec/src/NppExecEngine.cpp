@@ -2843,7 +2843,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoConLoadFrom(const tstr& params)
     int nBytes = m_pNppExec->conLoadFrom(params.c_str());
     if ( nBytes < 0 )
     {
-        ScriptError( ET_REPORT, _T("- can not open the file or it\'s empty") );
+        ScriptError( ET_REPORT, _T("- can not open the file") );
         nCmdResult = CMDRESULT_FAILED;
     }
 
@@ -6010,7 +6010,7 @@ CScriptEngine::eCmdResult CScriptEngine::doTextLoad(const tstr& params, int cmdT
     int nBytes = m_pNppExec->textLoadFrom(params.c_str(), bSelectionOnly);
     if ( nBytes < 0 )
     {
-        ScriptError( ET_REPORT, _T("- can not open the file or it\'s empty") );
+        ScriptError( ET_REPORT, _T("- can not open the file") );
         nCmdResult = CMDRESULT_FAILED;
     }
 
