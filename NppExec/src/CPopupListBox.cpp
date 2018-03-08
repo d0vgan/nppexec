@@ -183,9 +183,9 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
        )
     {
       bExactMatch = false;
-      for (size_t i = 0; (i < std_helpers::size(CommandsList)) && !bExactMatch; i++)
+      for (const TCHAR* const& cmd : CommandsList)
       {
-        S = CommandsList[i];
+        S = cmd;
         if (S.StartsWith(WordUpper))
         {
           if (S != WordUpper)
@@ -203,7 +203,10 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
               AddString(S.c_str());
           }
           else
+          {
             bExactMatch = true;
+            break;
+          }
         }
       }
       if (bExactMatch)
@@ -216,15 +219,20 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
     if ((nLen >= 2) && (WordUpper.StartsWith(_T("$("))))
     {
       bExactMatch = false;
-      for (size_t i = 0; (i < std_helpers::size(VariablesList)) && !bExactMatch; i++)
+      for (const TCHAR* const& v : VariablesList)
       {
-        S = VariablesList[i];
+        S = v;
         if (S.StartsWith(WordUpper))
         {
           if (S != WordUpper)
+          {
             AddString(S.c_str());
+          }
           else
+          {
             bExactMatch = true;
+            break;
+          }
         }
       }
       if (bExactMatch)

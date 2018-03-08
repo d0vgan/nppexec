@@ -788,12 +788,14 @@ class FParserWrapper
             }
             else
             {
-
                 path = pNppExec->getPluginPath();
                 path += _T("\\NppExec");
 
                 Runtime::GetLogger().AddEx( _T("; no *.h files found in \"%s\""), path.c_str() );
 
+                pNppExec->GetConsole().PrintMessage( _T("- Warning: fparser's constants have not been initialized because"), false );
+                pNppExec->GetConsole().PrintMessage( _T("the following folder either does not exist or is empty:"), false );
+                pNppExec->GetConsole().PrintMessage( path.c_str(), false );
             }
 
             Runtime::GetLogger().DecIndentLevel();
@@ -1798,12 +1800,12 @@ CScriptEngine::eNppExecCmdPrefix CScriptEngine::checkNppExecCmdPrefix(CNppExec* 
 
 CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd, unsigned int nFlags)
 {
-    typedef struct stCmdTypes {
+    typedef struct stCmdType {
         const TCHAR* szCmd;
         eCmdType     nCmdType;
-    } tCmdTypes;
+    } tCmdType;
 
-    static const tCmdTypes CmdTypes[] = 
+    static const tCmdType CmdTypes[] = 
     {
         { CMD_CLS,            CMDTYPE_CLS            },
         { CMD_CD,             CMDTYPE_CD             },
@@ -1959,15 +1961,15 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd,
     NppExecHelpers::StrUpper(S);
   
     eCmdType nCmdType = CMDTYPE_UNKNOWN;
-    for (size_t j = 0; j < std_helpers::size(CmdTypes); j++)
+    for (const tCmdType& ct : CmdTypes)
     {
-        const TCHAR* cmd_str = CmdTypes[j].szCmd;
+        const TCHAR* cmd_str = ct.szCmd;
         if (S.StartsWith(cmd_str))
         {
             int i = lstrlen(cmd_str);
 
             const TCHAR    next_ch = S.GetAt(i);
-            const eCmdType cmd_type = CmdTypes[j].nCmdType;
+            const eCmdType cmd_type = ct.nCmdType;
 
             if ( IsTabSpaceOrEmptyChar(next_ch) || 
                  ((cmd_type == CMDTYPE_CD) && 
@@ -2501,7 +2503,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoCd(const tstr& params)
                         {
                             lstrcpyn( szPath, params.c_str() + ofs, i - ofs + 1 );
                             szPath[i - ofs + 1] = 0;
-                            SetCurrentDirectory( szPath ) ? CMDRESULT_SUCCEEDED : CMDRESULT_FAILED;
+                            SetCurrentDirectory( szPath );
                             break;
                         }
                     }
@@ -2943,9 +2945,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
             };
 
             int n = -1;
-            for ( size_t i = 0; i < std_helpers::size(arrIf) && n < 0; i++ )
+            for ( const TCHAR* const& i : arrIf )
             {
-                n = paramsUpperCase.RFind( arrIf[i] );
+                n = paramsUpperCase.RFind(i);
+                if ( n >= 0 )
+                    break;
             }
 
             if ( n < 0 )
@@ -3414,13 +3418,13 @@ template<> bool OperandComparator<tstr>::eq_i() const
 class CondOperand
 {
     public:
-        CondOperand(const tstr& s) : m_value_str(s), m_value_dbl(0), m_value_int(0)
+        CondOperand(const tstr& s) : m_value_str(s), m_value_dbl(0), m_value_int64(0)
         {
             m_type = isPureDecNumber(s.c_str());
             if ( m_type == DNT_INTNUMBER )
             {
-                m_value_int = c_base::_tstr2int(s.c_str());
-                m_value_dbl = m_value_int; // to be able to compare as double
+                m_value_int64 = c_base::_tstr2int64(s.c_str());
+                m_value_dbl = static_cast<double>(m_value_int64); // to be able to compare as double
             }
             else if ( m_type == DNT_FLOATNUMBER )
             {
@@ -3445,12 +3449,12 @@ class CondOperand
         inline eDecNumberType type() const { return m_type; }
         inline const tstr& value_str() const { return m_value_str; }
         inline double value_dbl() const { return m_value_dbl; }
-        inline int value_int() const { return m_value_int; }
+        inline __int64 value_int64() const { return m_value_int64; }
 
     protected:
-        tstr   m_value_str;
-        double m_value_dbl;
-        int    m_value_int;
+        tstr    m_value_str;
+        double  m_value_dbl;
+        __int64 m_value_int64;
         eDecNumberType m_type;
 };
 
@@ -3488,11 +3492,12 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
         op1 = args.GetArg(0);
         op2 = args.GetArg(2);
 
-        for ( size_t i = 0; i < std_helpers::size(arrCond) && condType == COND_NONE; i++ )
+        for ( const tCond& c : arrCond )
         {
-            if ( cond == arrCond[i].szCond )
+            if ( cond == c.szCond )
             {
-                condType = arrCond[i].nCondType;
+                condType = c.nCondType;
+                break;
             }
         }
 
@@ -3516,21 +3521,22 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
     }
     else
     {
-        for ( size_t i = 0; i < std_helpers::size(arrCond) && condType == COND_NONE; i++ )
+        for ( const tCond& c : arrCond )
         {
-            int n = Condition.Find(arrCond[i].szCond);
+            int n = Condition.Find(c.szCond);
             if ( n >= 0 )
             {
-                condType = arrCond[i].nCondType;
-                cond = arrCond[i].szCond;
+                condType = c.nCondType;
+                cond = c.szCond;
                 op1.Copy(Condition.c_str(), n);
-                op2.Copy(Condition.c_str() + n + lstrlen(arrCond[i].szCond));
+                op2.Copy(Condition.c_str() + n + lstrlen(c.szCond));
 
                 DelLeadingTabSpaces(op1);
                 DelTrailingTabSpaces(op1);
 
                 DelLeadingTabSpaces(op2);
                 DelTrailingTabSpaces(op2);
+                break;
             }
         }
     }
@@ -3566,7 +3572,7 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
         else
         {
             // compare as integer values
-            ret = OperandComparator<int>(co1.value_int(), co2.value_int()).compare(condType);
+            ret = OperandComparator<__int64>(co1.value_int64(), co2.value_int64()).compare(condType);
         }
 
         Runtime::GetLogger().DecIndentLevel();
@@ -3614,9 +3620,11 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
 
     int mode = IF_GOTO;
     int n = -1;
-    for ( size_t i = 0; i < std_helpers::size(arrGoTo) && n < 0; i++ )
+    for ( const TCHAR* const& i : arrGoTo )
     {
-        n = paramsUpperCase.RFind( arrGoTo[i] );
+        n = paramsUpperCase.RFind(i);
+        if ( n >= 0 )
+            break;
     }
 
     if ( n < 0 )
@@ -3628,9 +3636,11 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
         }
 
         mode = IF_THEN;
-        for ( size_t i = 0; i < std_helpers::size(arrThen) && n < 0; i++ )
+        for ( const TCHAR* const& i : arrThen )
         {
-            n = paramsUpperCase.RFind( arrThen[i] );
+            n = paramsUpperCase.RFind(i);
+            if ( n >= 0 )
+                break;
         }
 
         if ( n < 0 )
@@ -5561,10 +5571,6 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, in
             nRangeEnd = nTextLength;
         }
     }
-    if ( nFlags & NPE_SF_BACKWARD )
-        ::SendMessage(hSci, SCI_SETTARGETRANGE, nRangeEnd, nRangeStart);
-    else
-        ::SendMessage(hSci, SCI_SETTARGETRANGE, nRangeStart, nRangeEnd);
 
     // 4. Strings to find & replace...
     int nFindStrLen = 0;
@@ -5687,8 +5693,8 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, in
                     }
                 }
                 Sci_TextRange tr;
-                tr.chrg.cpMin = nPos;
-                tr.chrg.cpMax = nPos + nLen;
+                tr.chrg.cpMin = nPos;        // I believe Sci_CharacterRange will use INT_PTR
+                tr.chrg.cpMax = nPos + nLen; // or UINT_PTR to deal with 64-bit ranges
                 S.Reserve(50 + static_cast<int>(nLen)); // enough for both char* and TCHAR* buffer
                 tr.lpstrText = (char *) S.c_str(); // temporary using S as a char* buffer
                 ::SendMessage(hSci, SCI_GETTEXTRANGE, 0, (LPARAM) &tr);
@@ -5734,6 +5740,11 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, in
     }
     else
     {
+        if ( nFlags & NPE_SF_BACKWARD )
+            ::SendMessage(hSci, SCI_SETTARGETRANGE, nRangeEnd, nRangeStart);
+        else
+            ::SendMessage(hSci, SCI_SETTARGETRANGE, nRangeStart, nRangeEnd);
+
         nPos = (INT_PTR) ::SendMessage( hSci, SCI_SEARCHINTARGET, (WPARAM) nFindStrLen, (LPARAM) (pFindStr ? pFindStr : "") );
         if ( (nPos < 0) && (nFlags & NPE_SF_INWHOLETEXT) )
         {
@@ -5760,10 +5771,12 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, in
                         nRangeEnd = nTextLength;
                 }
             }
+
             if ( nFlags & NPE_SF_BACKWARD )
                 ::SendMessage(hSci, SCI_SETTARGETRANGE, nRangeEnd, nRangeStart);
             else
                 ::SendMessage(hSci, SCI_SETTARGETRANGE, nRangeStart, nRangeEnd);
+            
             nPos = (INT_PTR) ::SendMessage( hSci, SCI_SEARCHINTARGET, (WPARAM) nFindStrLen, (LPARAM) (pFindStr ? pFindStr : "") );
         }
 
@@ -7118,11 +7131,12 @@ void CNppExecMacroVars::StrCalc::Process()
 
         NppExecHelpers::StrUpper(m_param);
 
-        for ( size_t i = 0; i < std_helpers::size(arrCalcType) && m_calcType == CT_FPARSER; i++ )
+        for ( const tCalcType& ct : arrCalcType )
         {
-            if ( m_param == arrCalcType[i].szCalcType )
+            if ( m_param == ct.szCalcType )
             {
-                m_calcType = arrCalcType[i].nCalcType;
+                m_calcType = ct.nCalcType;
+                break;
             }
         }
     }

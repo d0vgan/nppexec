@@ -224,58 +224,10 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(@EXIT_CMD_SILENT)  :  a silent (non-printed) callback exit command") _T_RE_EOL \
   _T_RE_EOL;
 
-const int CMD_COUNT = 49;
-const TCHAR* CMD_ITEMS[CMD_COUNT] = {
-  CONSOLE_CMD_HELP,
-  CONSOLE_CMD_VER,
-  CONSOLE_CMD_MANUAL,
-  CONSOLE_CMD_ABOUT,
-  CMD_CLS,
-  CMD_CD,
-  CMD_DIR,
-  CMD_ECHO,
-  CMD_CONCOLOUR,
-  CMD_CONFILTER,
-  CMD_CONLOADFROM,
-  CMD_CONSAVETO,
-  CMD_NPPCLOSE,
-  CMD_NPPCONSOLE,
-  CMD_NPPEXEC,
-  CMD_NPPMENUCOMMAND,
-  CMD_NPPOPEN,
-  CMD_NPPRUN,
-  CMD_NPPSAVE,
-  CMD_NPPSAVEALL,
-  CMD_NPPSAVEAS,
-  CMD_NPPSWITCH,
-  CMD_NPPSENDMSG,
-  CMD_NPPSENDMSGEX,
-  CMD_SCISENDMSG,
-  CMD_SCIFIND,
-  CMD_SCIREPLACE,
-  _T("MASK"),
-  CMD_SET,
-  CMD_ENVSET,
-  CMD_INPUTBOX,
-  CMD_NPECMDALIAS,
-  CMD_NPECONSOLE,
-  CMD_NPEDEBUGLOG,
-  CMD_NPENOEMPTYVARS,
-  CMD_NPEQUEUE,
-  CMD_SELLOADFROM,
-  CMD_SELSAVETO,
-  CMD_SELSETTEXT,
-  CMD_TEXTLOADFROM,
-  CMD_TEXTSAVETO,
-  CMD_IF,
-  CMD_LABEL,
-  CMD_GOTO,
-  CMD_ELSE,
-  CMD_ENDIF,
-  CMD_PROCSIGNAL,
-  CMD_SLEEP,
-  _T("@EXIT_CMD")
-};
+typedef struct sCmdItemInfo {
+    const TCHAR* const name;
+    const TCHAR* const info;
+} tCmdItemInfo;
 
 #ifdef UNICODE
   #define _T_MENUCOMMAND_CYRILLIC  _T("\x0424\x0430\x0439\x043B|\x041D\x043E\x0432\x044B\x0439")
@@ -339,1591 +291,1738 @@ const TCHAR* CMD_ITEMS[CMD_COUNT] = {
   _T("      - print all the occurrences from the current pos to the end")
 
 // in the same order as in CMD_ITEMS
-const TCHAR* CONSOLE_CMD_INFO[CMD_COUNT] = {
+const tCmdItemInfo CONSOLE_CMD_INFO[] = {
   // HELP
-  _T("COMMAND:  help") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  help            (*)") _T_RE_EOL \
-  _T("  help <command>  (*)") _T_RE_EOL \
-  _T("  help all        (*)") _T_RE_EOL \
-  _T("  * available in the Console dialog only") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Prints help ;-)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  help           // prints general help information") _T_RE_EOL \
-  _T("  help npp_open  // prints detailed information about the NPP_OPEN command") _T_RE_EOL \
-  _T("  help all       // prints detailed information about all available commands") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  manual, about, ver") _T_RE_EOL,
+  {
+    CONSOLE_CMD_HELP,
+    _T("COMMAND:  help") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  help            (*)") _T_RE_EOL \
+    _T("  help <command>  (*)") _T_RE_EOL \
+    _T("  help all        (*)") _T_RE_EOL \
+    _T("  * available in the Console dialog only") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Prints help ;-)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  help           // prints general help information") _T_RE_EOL \
+    _T("  help npp_open  // prints detailed information about the NPP_OPEN command") _T_RE_EOL \
+    _T("  help all       // prints detailed information about all available commands") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  manual, about, ver") _T_RE_EOL
+  },
 
   // VER
-  _T("COMMAND:  ver") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  ver             (*)") _T_RE_EOL \
-  _T("  * available in the Console dialog only") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Prints plugin\'s version") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  about, help, manual") _T_RE_EOL,
+  {
+    CONSOLE_CMD_VER,
+    _T("COMMAND:  ver") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  ver             (*)") _T_RE_EOL \
+    _T("  * available in the Console dialog only") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Prints plugin\'s version") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  about, help, manual") _T_RE_EOL
+  },
 
   // MANUAL
-  _T("COMMAND:  manual") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  manual          (*)") _T_RE_EOL \
-  _T("  * available in the Console dialog only") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Shows NppExec User Guide") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  manual  // shows NppExec User Guide") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  help, about, ver") _T_RE_EOL,
+  {
+    CONSOLE_CMD_MANUAL,
+    _T("COMMAND:  manual") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  manual          (*)") _T_RE_EOL \
+    _T("  * available in the Console dialog only") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Shows NppExec User Guide") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  manual  // shows NppExec User Guide") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  help, about, ver") _T_RE_EOL
+  },
 
   // ABOUT
-  _T("COMMAND:  about") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  about           (*)") _T_RE_EOL \
-  _T("  * available in the Console dialog only") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Shows NppExec Help/About") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  about  // shows NppExec Help/About") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  ver, help, manual") _T_RE_EOL,
+  {
+    CONSOLE_CMD_ABOUT,
+    _T("COMMAND:  about") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  about           (*)") _T_RE_EOL \
+    _T("  * available in the Console dialog only") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Shows NppExec Help/About") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  about  // shows NppExec Help/About") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  ver, help, manual") _T_RE_EOL
+  },
 
   // CLS
-  _T("COMMAND:  cls") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  cls") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Clears the Console screen") _T_RE_EOL,
+  {
+    CMD_CLS,
+    _T("COMMAND:  cls") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  cls") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Clears the Console screen") _T_RE_EOL
+  },
 
   // CD
-  _T("COMMAND:  cd") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  cd") _T_RE_EOL \
-  _T("  cd <relative_path>") _T_RE_EOL \
-  _T("  cd <absolute_path>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Changes current directory (\"cd\" with parameters)") _T_RE_EOL \
-  _T("  2. Shows current directory path (\"cd\" without parameters)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  cd       // shows current directory path") _T_RE_EOL \
-  _T("  cd ..    // go to up-directory") _T_RE_EOL \
-  _T("  cd \\     // go to root-directory") _T_RE_EOL \
-  _T("  cd $(NPP_DIRECTORY)    // go to notepad++\'s directory") _T_RE_EOL \
-  _T("  cd e:\\temp            // change drive and directory") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  dir") _T_RE_EOL,
+  {
+    CMD_CD,
+    _T("COMMAND:  cd") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  cd") _T_RE_EOL \
+    _T("  cd <relative_path>") _T_RE_EOL \
+    _T("  cd <absolute_path>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Changes current directory (\"cd\" with parameters)") _T_RE_EOL \
+    _T("  2. Shows current directory path (\"cd\" without parameters)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  cd       // shows current directory path") _T_RE_EOL \
+    _T("  cd ..    // go to up-directory") _T_RE_EOL \
+    _T("  cd \\     // go to root-directory") _T_RE_EOL \
+    _T("  cd $(NPP_DIRECTORY)    // go to notepad++\'s directory") _T_RE_EOL \
+    _T("  cd e:\\temp            // change drive and directory") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  dir") _T_RE_EOL
+  },
 
   // DIR
-  _T("COMMAND:  dir") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  dir") _T_RE_EOL \
-  _T("  dir <path>") _T_RE_EOL \
-  _T("  dir <mask>") _T_RE_EOL \
-  _T("  dir <path\\mask>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Lists all subdirs and files in current/specified directory  (*)") _T_RE_EOL \
-  _T("  2. Lists subdirs and files matched the mask                   (**)") _T_RE_EOL \
-  _T("   * current directory can be set by the \"cd\" command") _T_RE_EOL \
-  _T("  ** type \"help mask\" for more information about file masks") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  dir                 // list all subdirs and files in current directory") _T_RE_EOL \
-  _T("  dir *               // the same") _T_RE_EOL \
-  _T("  dir d:\\docs\\*.txt   // list all *.txt files in the folder d:\\docs") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  cd, mask, npp_open") _T_RE_EOL,
+  {
+    CMD_DIR,
+    _T("COMMAND:  dir") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  dir") _T_RE_EOL \
+    _T("  dir <path>") _T_RE_EOL \
+    _T("  dir <mask>") _T_RE_EOL \
+    _T("  dir <path\\mask>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Lists all subdirs and files in current/specified directory  (*)") _T_RE_EOL \
+    _T("  2. Lists subdirs and files matched the mask                   (**)") _T_RE_EOL \
+    _T("   * current directory can be set by the \"cd\" command") _T_RE_EOL \
+    _T("  ** type \"help mask\" for more information about file masks") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  dir                 // list all subdirs and files in current directory") _T_RE_EOL \
+    _T("  dir *               // the same") _T_RE_EOL \
+    _T("  dir d:\\docs\\*.txt   // list all *.txt files in the folder d:\\docs") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  cd, mask, npp_open") _T_RE_EOL
+  },
 
   // ECHO
-  _T("COMMAND:  echo") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  echo <text>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Prints a text in the Console (the environment variables are supported)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  echo Notepad++\'s directory is: $(NPP_DIRECTORY)") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  sleep, set") _T_RE_EOL,
+  {
+    CMD_ECHO,
+    _T("COMMAND:  echo") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  echo <text>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Prints a text in the Console (the environment variables are supported)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  echo Notepad++\'s directory is: $(NPP_DIRECTORY)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  sleep, set") _T_RE_EOL
+  },
 
   // CON_COLOUR
-  _T("COMMAND:  con_colour") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  con_colour") _T_RE_EOL \
-  _T("  con_colour fg = <RR GG BB>") _T_RE_EOL \
-  _T("  con_colour bg = <RR GG BB>") _T_RE_EOL \
-  _T("  con_colour fg = <RR GG BB> bg = <RR GG BB>") _T_RE_EOL \
-  _T("  con_colour fg = 0") _T_RE_EOL \
-  _T("  con_colour bg = 0") _T_RE_EOL \
-  _T("  con_colour fg = 0 bg = 0") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  fg - sets foreground (text) colour of the Console;") _T_RE_EOL \
-  _T("  bg - sets background colour of the Console;") _T_RE_EOL \
-  _T("  without parameters - shows current values of the colours;") _T_RE_EOL \
-  _T("  the value of 0 restores the original colour(s).") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  con_colour bg=303030 fg=d0d0d0     // white text on dark-grey") _T_RE_EOL \
-  _T("  con_colour fg = 303030 bg = D0D0D0 // dark text on light-grey") _T_RE_EOL \
-  _T("  con_colour FG = 20 20 90           // dark-blue text") _T_RE_EOL \
-  _T("  con_colour fg = 0                  // restore original text colour") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  The foreground (text) colour is applied to new text only.") _T_RE_EOL \
-  _T("  The background colour is applied to the whole Console\'s background. And") _T_RE_EOL \
-  _T("  when it is being applied, all the text is being re-coloured to the current") _T_RE_EOL \
-  _T("  foreground colour.") _T_RE_EOL \
-  _T("  <RR GG BB> are hex values of Right, Green and Blue components of a colour") _T_RE_EOL \
-  _T("  to be used. Each colour component can have a value from 00 to FF. The value") _T_RE_EOL \
-  _T("  of 00 means absence of the colour component, FF means maximum. Thus, ") _T_RE_EOL \
-  _T("  00 00 00 means \"dark\" (absence of all colours), 00 FF 00 means \"maximum of") _T_RE_EOL \
-  _T("  green\", FF FF FF means \"maximum white\".") _T_RE_EOL \
-  _T("  These colours are run-time only, they are not saved when Notepad++ exits.") _T_RE_EOL \
-  _T("  (Use the Advanced Options to set and save the colours.)") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  con_filter, npe_console") _T_RE_EOL,
+  {
+    CMD_CONCOLOUR,
+    _T("COMMAND:  con_colour") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  con_colour") _T_RE_EOL \
+    _T("  con_colour fg = <RR GG BB>") _T_RE_EOL \
+    _T("  con_colour bg = <RR GG BB>") _T_RE_EOL \
+    _T("  con_colour fg = <RR GG BB> bg = <RR GG BB>") _T_RE_EOL \
+    _T("  con_colour fg = 0") _T_RE_EOL \
+    _T("  con_colour bg = 0") _T_RE_EOL \
+    _T("  con_colour fg = 0 bg = 0") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  fg - sets foreground (text) colour of the Console;") _T_RE_EOL \
+    _T("  bg - sets background colour of the Console;") _T_RE_EOL \
+    _T("  without parameters - shows current values of the colours;") _T_RE_EOL \
+    _T("  the value of 0 restores the original colour(s).") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  con_colour bg=303030 fg=d0d0d0     // white text on dark-grey") _T_RE_EOL \
+    _T("  con_colour fg = 303030 bg = D0D0D0 // dark text on light-grey") _T_RE_EOL \
+    _T("  con_colour FG = 20 20 90           // dark-blue text") _T_RE_EOL \
+    _T("  con_colour fg = 0                  // restore original text colour") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  The foreground (text) colour is applied to new text only.") _T_RE_EOL \
+    _T("  The background colour is applied to the whole Console\'s background. And") _T_RE_EOL \
+    _T("  when it is being applied, all the text is being re-coloured to the current") _T_RE_EOL \
+    _T("  foreground colour.") _T_RE_EOL \
+    _T("  <RR GG BB> are hex values of Right, Green and Blue components of a colour") _T_RE_EOL \
+    _T("  to be used. Each colour component can have a value from 00 to FF. The value") _T_RE_EOL \
+    _T("  of 00 means absence of the colour component, FF means maximum. Thus, ") _T_RE_EOL \
+    _T("  00 00 00 means \"dark\" (absence of all colours), 00 FF 00 means \"maximum of") _T_RE_EOL \
+    _T("  green\", FF FF FF means \"maximum white\".") _T_RE_EOL \
+    _T("  These colours are run-time only, they are not saved when Notepad++ exits.") _T_RE_EOL \
+    _T("  (Use the Advanced Options to set and save the colours.)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  con_filter, npe_console") _T_RE_EOL
+  },
 
   // CON_FILTER
-  _T("COMMAND:  con_filter") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  con_filter +x5/-x5 +i1/-i1 +fr4/-fr4 +frc1/-frc1 +h10/-h10") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Enables or disables the eXclude/Include/Replace/Highlight Filters") _T_RE_EOL \
-  _T("  +x<N>/-x<N>     - enables/disables the Nth eXclude Mask (N = 1..5)") _T_RE_EOL \
-  _T("  +i<N>/-i<N>     - enables/disables the Nth Include Mask (N = 1..5)") _T_RE_EOL \
-  _T("  +fr<N>/-fr<N>   - enables/disables the Nth Replacing Filter and") _T_RE_EOL \
-  _T("                    deactivates \"Match case\" (N = 1..4)") _T_RE_EOL \
-  _T("  +frc<N>/-frc<N> - enables/disables the Nth Replacing Filter and") _T_RE_EOL \
-  _T("                    activates \"Match case\" (N = 1..4)") _T_RE_EOL \
-  _T("  +h<N>/-h<N>     - enables/disables the Nth Highlight Mask (N = 1..10)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  con_filter +frc3 +fr2 -i5 +x2 +h1") _T_RE_EOL \
-  _T("  con_filter -x4 +h2 +i1 -fr3 +i2 -h7 +x1 +fr1 +frc2") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  This command allows to enable and disable the Console Output Filters from") _T_RE_EOL \
-  _T("  your script.") _T_RE_EOL \
-  _T("  When any eXclude or Include mask is enabled, the \"Enable Console Output Filter\"") _T_RE_EOL \
-  _T("  check-box becomes checked.") _T_RE_EOL \
-  _T("  When any Replacing Filter is enabled, the \"Enable Replacing Filters\" check-box") _T_RE_EOL \
-  _T("  becomes checked.") _T_RE_EOL \
-  _T("  While using CON_FILTER to enable or disable the Console Output Filters and having") _T_RE_EOL \
-  _T("  macro-variables as the values of these Filters, you are able to apply different") _T_RE_EOL \
-  _T("  filters during execution of your script - thus having the full control over the") _T_RE_EOL \
-  _T("  filters at runtime.") _T_RE_EOL \
-  _T("  To illustrate the last sentence, let\'s assume you have specified the following") _T_RE_EOL \
-  _T("  variables as filters in the Console Output Filters:") _T_RE_EOL \
-  _T("    $(Exclude5) as the 5th Exclude mask;") _T_RE_EOL \
-  _T("    $(Include5) as the 5th Include mask;") _T_RE_EOL \
-  _T("    $(Find4) and $(Replace4) as the 4th Replacing Filter;") _T_RE_EOL \
-  _T("    $(Highlight10) as the 10th Highlight mask.") _T_RE_EOL \
-  _T("  Now you can write the following script:") _T_RE_EOL \
-  _T("    // set the filters dynamically") _T_RE_EOL \
-  _T("    set Exclude5 = *(C)*     // exclude any line that contains \"(C)\"") _T_RE_EOL \
-  _T("    set Include5 = *         // include any line") _T_RE_EOL \
-  _T("    set Find4 = /            // find all \'/\'...") _T_RE_EOL \
-  _T("    set Replace4 = \\         // ...and replace with \'\\\'") _T_RE_EOL \
-  _T("    set Highlight10 = error* // highlight any line that starts with \"error\"") _T_RE_EOL \
-  _T("    con_filter +x5 +i5 +fr4 +h10  // enable the above filters") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  con_colour, npe_console, npp_console") _T_RE_EOL,
+  {
+    CMD_CONFILTER,
+    _T("COMMAND:  con_filter") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  con_filter +x5/-x5 +i1/-i1 +fr4/-fr4 +frc1/-frc1 +h10/-h10") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Enables or disables the eXclude/Include/Replace/Highlight Filters") _T_RE_EOL \
+    _T("  +x<N>/-x<N>     - enables/disables the Nth eXclude Mask (N = 1..5)") _T_RE_EOL \
+    _T("  +i<N>/-i<N>     - enables/disables the Nth Include Mask (N = 1..5)") _T_RE_EOL \
+    _T("  +fr<N>/-fr<N>   - enables/disables the Nth Replacing Filter and") _T_RE_EOL \
+    _T("                    deactivates \"Match case\" (N = 1..4)") _T_RE_EOL \
+    _T("  +frc<N>/-frc<N> - enables/disables the Nth Replacing Filter and") _T_RE_EOL \
+    _T("                    activates \"Match case\" (N = 1..4)") _T_RE_EOL \
+    _T("  +h<N>/-h<N>     - enables/disables the Nth Highlight Mask (N = 1..10)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  con_filter +frc3 +fr2 -i5 +x2 +h1") _T_RE_EOL \
+    _T("  con_filter -x4 +h2 +i1 -fr3 +i2 -h7 +x1 +fr1 +frc2") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  This command allows to enable and disable the Console Output Filters from") _T_RE_EOL \
+    _T("  your script.") _T_RE_EOL \
+    _T("  When any eXclude or Include mask is enabled, the \"Enable Console Output Filter\"") _T_RE_EOL \
+    _T("  check-box becomes checked.") _T_RE_EOL \
+    _T("  When any Replacing Filter is enabled, the \"Enable Replacing Filters\" check-box") _T_RE_EOL \
+    _T("  becomes checked.") _T_RE_EOL \
+    _T("  While using CON_FILTER to enable or disable the Console Output Filters and having") _T_RE_EOL \
+    _T("  macro-variables as the values of these Filters, you are able to apply different") _T_RE_EOL \
+    _T("  filters during execution of your script - thus having the full control over the") _T_RE_EOL \
+    _T("  filters at runtime.") _T_RE_EOL \
+    _T("  To illustrate the last sentence, let\'s assume you have specified the following") _T_RE_EOL \
+    _T("  variables as filters in the Console Output Filters:") _T_RE_EOL \
+    _T("    $(Exclude5) as the 5th Exclude mask;") _T_RE_EOL \
+    _T("    $(Include5) as the 5th Include mask;") _T_RE_EOL \
+    _T("    $(Find4) and $(Replace4) as the 4th Replacing Filter;") _T_RE_EOL \
+    _T("    $(Highlight10) as the 10th Highlight mask.") _T_RE_EOL \
+    _T("  Now you can write the following script:") _T_RE_EOL \
+    _T("    // set the filters dynamically") _T_RE_EOL \
+    _T("    set Exclude5 = *(C)*     // exclude any line that contains \"(C)\"") _T_RE_EOL \
+    _T("    set Include5 = *         // include any line") _T_RE_EOL \
+    _T("    set Find4 = /            // find all \'/\'...") _T_RE_EOL \
+    _T("    set Replace4 = \\         // ...and replace with \'\\\'") _T_RE_EOL \
+    _T("    set Highlight10 = error* // highlight any line that starts with \"error\"") _T_RE_EOL \
+    _T("    con_filter +x5 +i5 +fr4 +h10  // enable the above filters") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  con_colour, npe_console, npp_console") _T_RE_EOL
+  },
 
   // CON_LOADFROM
-  _T("COMMAND:  con_loadfrom") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  con_loadfrom <file>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Loads a file\'s content to the Console") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  con_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  Unicode version of NppExec can read ANSI, UTF-8, UCS-2 LE and") _T_RE_EOL \
-  _T("  UCS-2 BE text files") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  con_saveto") _T_RE_EOL, 
+  {
+    CMD_CONLOADFROM,
+    _T("COMMAND:  con_loadfrom") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  con_loadfrom <file>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Loads a file\'s content to the Console") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  con_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  Unicode version of NppExec can read ANSI, UTF-8, UCS-2 LE and") _T_RE_EOL \
+    _T("  UCS-2 BE text files") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  con_saveto") _T_RE_EOL
+  }, 
 
   // CON_SAVETO
-  _T("COMMAND:  con_saveto") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  con_saveto <file>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Saves the Console\'s content to a file") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  con_saveto c:\\temp\\output.txt") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  Unicode version of NppExec saves the Console\'s content as") _T_RE_EOL \
-  _T("  an Unicode text file (UCS-2 LE)") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  con_loadfrom") _T_RE_EOL,
+  {
+    CMD_CONSAVETO,
+    _T("COMMAND:  con_saveto") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  con_saveto <file>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Saves the Console\'s content to a file") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  con_saveto c:\\temp\\output.txt") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  Unicode version of NppExec saves the Console\'s content as") _T_RE_EOL \
+    _T("  an Unicode text file (UCS-2 LE)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  con_loadfrom") _T_RE_EOL
+  },
                    
   // NPP_CLOSE
-  _T("COMMAND:  npp_close") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_close") _T_RE_EOL \
-  _T("  npp_close <file>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Closes current file (\"npp_close\" without parameters)") _T_RE_EOL \
-  _T("  2. Closes specified opened file") _T_RE_EOL \
-  _T("     (supports a partial file path/name)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_close $(#3)  // closes 3rd file opened in Notepad++") _T_RE_EOL \
-  _T("  npp_close awk    // closes a first file which contains \"awk\" in its name") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npp_open, npp_switch, npp_save") _T_RE_EOL,
+  {
+    CMD_NPPCLOSE,
+    _T("COMMAND:  npp_close") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_close") _T_RE_EOL \
+    _T("  npp_close <file>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Closes current file (\"npp_close\" without parameters)") _T_RE_EOL \
+    _T("  2. Closes specified opened file") _T_RE_EOL \
+    _T("     (supports a partial file path/name)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_close $(#3)  // closes 3rd file opened in Notepad++") _T_RE_EOL \
+    _T("  npp_close awk    // closes a first file which contains \"awk\" in its name") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_open, npp_switch, npp_save") _T_RE_EOL
+  },
 
   // NPP_CONSOLE
-  _T("COMMAND:  npp_console") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_console <on/off/keep>") _T_RE_EOL \
-  _T("  npp_console <enable/disable>") _T_RE_EOL \
-  _T("  npp_console <1/0/?>") _T_RE_EOL \
-  _T("  npp_console <+/->") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Shows/hides the Console window.") _T_RE_EOL \
-  _T("  Enables/disables output to the Console.") _T_RE_EOL \
-  _T("  Usually the Console window is automatically opened each time you execute") _T_RE_EOL \
-  _T("  some command or script, so the purpose of this command is to change the") _T_RE_EOL \
-  _T("  default behaviour.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_console ?  // keep the Console\'s state: hidden Console is not shown") _T_RE_EOL \
-  _T("  npp_console 1  // open (show) the Console") _T_RE_EOL \
-  _T("  npp_console 0  // close (hide) the Console") _T_RE_EOL \
-  _T("  npp_console -  // disable output to the Console") _T_RE_EOL \
-  _T("  npp_console +  // enable output to the Console") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  You can use \'NPP_CONSOLE ?\' as a first command of your script in order to") _T_RE_EOL \
-  _T("  keep the Console\'s state: don\'t open hidden Console or don\'t hide opened one.") _T_RE_EOL \
-  _T("  If you want to apply \'NPP_CONSOLE ?\' to every script, you don\'t have to add") _T_RE_EOL \
-  _T("  this command to the beginning of each script. An auxiliary script can be created") _T_RE_EOL \
-  _T("  in order to start every script using this auxiliary script:") _T_RE_EOL \
-  _T("  ") _T_RE_EOL \
-  _T("    // auxiliary script") _T_RE_EOL \
-  _T("    NPP_CONSOLE ?  // keep the Console\'s state") _T_RE_EOL \
-  _T("    NPP_EXEC $(ARGV)  // execute NppExec\'s script passed as the argument") _T_RE_EOL \
-  _T("  ") _T_RE_EOL \
-  _T("  Now you can start any script using") _T_RE_EOL \
-  _T("    NPP_EXEC \"auxiliary script\" \"script to be executed\"") _T_RE_EOL \
-  _T("  ") _T_RE_EOL \
-  _T("  If you disable output to the Console via \'NPP_CONSOLE -\', you will not see any") _T_RE_EOL \
-  _T("  output neither from internal nor from external commands until you enable it") _T_RE_EOL \
-  _T("  via \'NPP_CONSOLE +\'.") _T_RE_EOL \
-  _T("  If you call \'NPP_CONSOLE -\' before running a child process, you will not see") _T_RE_EOL \
-  _T("  any prompt even if the proccess waits for user input. And \'NPP_CONSOLE +\'") _T_RE_EOL \
-  _T("  will not work until the child process finishes.") _T_RE_EOL \
-  _T("  Starting from NppExec v0.6, the command \'NPP_CONSOLE -\' has a \"local\" effect:") _T_RE_EOL \
-  _T("  when this command is executed within a script, the Console output is enabled") _T_RE_EOL \
-  _T("  automatically when the script ends. If, however, this script is executed via") _T_RE_EOL \
-  _T("  NPP_EXEC, the Console remains disabled.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npe_console, proc_signal, @exit_cmd (\"help @exit_cmd\")") _T_RE_EOL,
+  {
+    CMD_NPPCONSOLE,
+    _T("COMMAND:  npp_console") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_console <on/off/keep>") _T_RE_EOL \
+    _T("  npp_console <enable/disable>") _T_RE_EOL \
+    _T("  npp_console <1/0/?>") _T_RE_EOL \
+    _T("  npp_console <+/->") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Shows/hides the Console window.") _T_RE_EOL \
+    _T("  Enables/disables output to the Console.") _T_RE_EOL \
+    _T("  Usually the Console window is automatically opened each time you execute") _T_RE_EOL \
+    _T("  some command or script, so the purpose of this command is to change the") _T_RE_EOL \
+    _T("  default behaviour.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_console ?  // keep the Console\'s state: hidden Console is not shown") _T_RE_EOL \
+    _T("  npp_console 1  // open (show) the Console") _T_RE_EOL \
+    _T("  npp_console 0  // close (hide) the Console") _T_RE_EOL \
+    _T("  npp_console -  // disable output to the Console") _T_RE_EOL \
+    _T("  npp_console +  // enable output to the Console") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  You can use \'NPP_CONSOLE ?\' as a first command of your script in order to") _T_RE_EOL \
+    _T("  keep the Console\'s state: don\'t open hidden Console or don\'t hide opened one.") _T_RE_EOL \
+    _T("  If you want to apply \'NPP_CONSOLE ?\' to every script, you don\'t have to add") _T_RE_EOL \
+    _T("  this command to the beginning of each script. An auxiliary script can be created") _T_RE_EOL \
+    _T("  in order to start every script using this auxiliary script:") _T_RE_EOL \
+    _T("  ") _T_RE_EOL \
+    _T("    // auxiliary script") _T_RE_EOL \
+    _T("    NPP_CONSOLE ?  // keep the Console\'s state") _T_RE_EOL \
+    _T("    NPP_EXEC $(ARGV)  // execute NppExec\'s script passed as the argument") _T_RE_EOL \
+    _T("  ") _T_RE_EOL \
+    _T("  Now you can start any script using") _T_RE_EOL \
+    _T("    NPP_EXEC \"auxiliary script\" \"script to be executed\"") _T_RE_EOL \
+    _T("  ") _T_RE_EOL \
+    _T("  If you disable output to the Console via \'NPP_CONSOLE -\', you will not see any") _T_RE_EOL \
+    _T("  output neither from internal nor from external commands until you enable it") _T_RE_EOL \
+    _T("  via \'NPP_CONSOLE +\'.") _T_RE_EOL \
+    _T("  If you call \'NPP_CONSOLE -\' before running a child process, you will not see") _T_RE_EOL \
+    _T("  any prompt even if the proccess waits for user input. And \'NPP_CONSOLE +\'") _T_RE_EOL \
+    _T("  will not work until the child process finishes.") _T_RE_EOL \
+    _T("  Starting from NppExec v0.6, the command \'NPP_CONSOLE -\' has a \"local\" effect:") _T_RE_EOL \
+    _T("  when this command is executed within a script, the Console output is enabled") _T_RE_EOL \
+    _T("  automatically when the script ends. If, however, this script is executed via") _T_RE_EOL \
+    _T("  NPP_EXEC, the Console remains disabled.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npe_console, proc_signal, @exit_cmd (\"help @exit_cmd\")") _T_RE_EOL
+  },
   
   // NPP_EXEC
-  _T("COMMAND:  npp_exec") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_exec <script>") _T_RE_EOL \
-  _T("  npp_exec <file>") _T_RE_EOL \
-  _T("  npp_exec <script/file> <args>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Executes NppExec's commands from a specified script") _T_RE_EOL \
-  _T("  2. Executes NppExec's commands from a specified file") _T_RE_EOL \
-  _T("     (supports a partial file path/name)") _T_RE_EOL \
-  _T("  3. Executes NppExec's commands from a specified script/file") _T_RE_EOL \
-  _T("     and passes additional arguments to this script.") _T_RE_EOL \
-  _T("     These arguments can be accessed in the script through") _T_RE_EOL \
-  _T("     the following macro-variables: $(ARGC), $(ARGV),") _T_RE_EOL \
-  _T("     $(ARGV[n]), $(RARGV), $(RARGV[n])") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_exec \"awk-run\"         // executes NppExec\'s script named \"awk-run\"") _T_RE_EOL \
-  _T("  npp_exec \"..\\script.txt\"   // executes NppExec\'s file \"..\\script.txt\"") _T_RE_EOL \
-  _T("  npp_exec \"..\\script\"       // the same (if there is no other files with similar name)") _T_RE_EOL \
-  _T("  npp_exec \"script\" p1 \"p 2\" // in the script: $(ARGV[1]) = p1, $(ARGV[2]) = p 2") _T_RE_EOL \
-  _T("  // An example with npp_exec <file>:") _T_RE_EOL \
-  _T("  // 1. Create a new file and save it as e.g. \"test.nppexec\";") _T_RE_EOL \
-  _T("  // 2. Type the following line in this file:") _T_RE_EOL \
-  _T("  //      echo $(ARGV[1])") _T_RE_EOL \
-  _T("  //    and save the file;") _T_RE_EOL \
-  _T("  // 3. Now type the following in NppExec's Console:") _T_RE_EOL \
-  _T("  //      npp_exec \"$(FULL_CURRENT_PATH)\" \"Hello, world!\"") _T_RE_EOL \
-  _T("  // 4. Going further, a command alias can be assigned:") _T_RE_EOL \
-  _T("  //      npe_cmdalias f = npp_exec \"$(FULL_CURRENT_PATH)\"") _T_RE_EOL \
-  _T("  //      f \"Hello, world!\"") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  Do _not_ use NPP_EXEC to start a batch file or an executable file in NppExec!") _T_RE_EOL \
-  _T("  The purpose of NPP_EXEC is to execute NppExec's own script.") _T_RE_EOL \
-  _T("  To start a batch file or an executable file in NppExec, type just:") _T_RE_EOL \
-  _T("     application.exe // in case of an executable file named \"application.exe\"") _T_RE_EOL \
-  _T("     batchfile.bat   // in case of a batch file named \"batchfile.bat\"") _T_RE_EOL,
+  {
+    CMD_NPPEXEC,
+    _T("COMMAND:  npp_exec") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_exec <script>") _T_RE_EOL \
+    _T("  npp_exec <file>") _T_RE_EOL \
+    _T("  npp_exec <script/file> <args>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Executes NppExec's commands from a specified script") _T_RE_EOL \
+    _T("  2. Executes NppExec's commands from a specified file") _T_RE_EOL \
+    _T("     (supports a partial file path/name)") _T_RE_EOL \
+    _T("  3. Executes NppExec's commands from a specified script/file") _T_RE_EOL \
+    _T("     and passes additional arguments to this script.") _T_RE_EOL \
+    _T("     These arguments can be accessed in the script through") _T_RE_EOL \
+    _T("     the following macro-variables: $(ARGC), $(ARGV),") _T_RE_EOL \
+    _T("     $(ARGV[n]), $(RARGV), $(RARGV[n])") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_exec \"awk-run\"         // executes NppExec\'s script named \"awk-run\"") _T_RE_EOL \
+    _T("  npp_exec \"..\\script.txt\"   // executes NppExec\'s file \"..\\script.txt\"") _T_RE_EOL \
+    _T("  npp_exec \"..\\script\"       // the same (if there is no other files with similar name)") _T_RE_EOL \
+    _T("  npp_exec \"script\" p1 \"p 2\" // in the script: $(ARGV[1]) = p1, $(ARGV[2]) = p 2") _T_RE_EOL \
+    _T("  // An example with npp_exec <file>:") _T_RE_EOL \
+    _T("  // 1. Create a new file and save it as e.g. \"test.nppexec\";") _T_RE_EOL \
+    _T("  // 2. Type the following line in this file:") _T_RE_EOL \
+    _T("  //      echo $(ARGV[1])") _T_RE_EOL \
+    _T("  //    and save the file;") _T_RE_EOL \
+    _T("  // 3. Now type the following in NppExec's Console:") _T_RE_EOL \
+    _T("  //      npp_exec \"$(FULL_CURRENT_PATH)\" \"Hello, world!\"") _T_RE_EOL \
+    _T("  // 4. Going further, a command alias can be assigned:") _T_RE_EOL \
+    _T("  //      npe_cmdalias f = npp_exec \"$(FULL_CURRENT_PATH)\"") _T_RE_EOL \
+    _T("  //      f \"Hello, world!\"") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  Do _not_ use NPP_EXEC to start a batch file or an executable file in NppExec!") _T_RE_EOL \
+    _T("  The purpose of NPP_EXEC is to execute NppExec's own script.") _T_RE_EOL \
+    _T("  To start a batch file or an executable file in NppExec, type just:") _T_RE_EOL \
+    _T("     application.exe // in case of an executable file named \"application.exe\"") _T_RE_EOL \
+    _T("     batchfile.bat   // in case of a batch file named \"batchfile.bat\"") _T_RE_EOL
+  },
 
   // NPP_MENUCOMMAND
-  _T("COMMAND:  npp_menucommand") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_menucommand <full name of menu item>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Executes (invokes) a menu item by its full name.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_menucommand File\\New") _T_RE_EOL \
-  _T("  npp_menucommand Edit|Blank Operations|Trim Leading and Trailing Space") _T_RE_EOL \
-  _T("  npp_menucommand Plugins/Plugin Manager/Show Plugin Manager") _T_RE_EOL \
-  _T("  npp_menucommand Plugins\\\\NppExec\\\\Help/Manual") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  In general case, names of menu items are language-specific. If you have a") _T_RE_EOL \
-  _T("  translated menu in Notepad++, you should use the menu item names you see.") _T_RE_EOL \
-  _T("  (For example, \"npp_menucommand ") _T_MENUCOMMAND_CYRILLIC _T("\".)") _T_RE_EOL \
-  _T("  The menu item names are processed case-sensitively, so \"file/new\" or") _T_RE_EOL \
-  _T("  \"File|new\" does not correspond to the menu item \"File/New\".") _T_RE_EOL \
-  _T("  You can use \'\\\', \'/\' and \'|\' as a separator. Moreover, you can double or") _T_RE_EOL \
-  _T("  even triple the separator if a menu item already contains \'\\\', \'/\' or \'|\'.") _T_RE_EOL \
-  _T("  However, be sure to use the very same separator within a full name of menu") _T_RE_EOL \
-  _T("  item. For example: \"Plugins||NppExec||Help/Manual\" is correct since it uses") _T_RE_EOL \
-  _T("  the same separator \"||\". And \"Plugins\\\\NppExec||Help/Manual\" is incorrect") _T_RE_EOL \
-  _T("  because the first \"\\\\\" has been detected as a separator, and the remaining") _T_RE_EOL \
-  _T("  part \"NppExec||Help/Manual\" would be treated as a name of one sub-item") _T_RE_EOL \
-  _T("  since it did not contain the separator \"\\\\\".") _T_RE_EOL \
-  _T("  Note: do not forget that \"//\" by default is a start of a comment in NppExec.") _T_RE_EOL \
-  _T("  So do not use doubled \"//\" or tripled \"///\" as a separator of menu item name") _T_RE_EOL \
-  _T("  because the remaining part of the item name (after \"//\" or \"///\") will be") _T_RE_EOL \
-  _T("  treated as a comment and ignored.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npp_sendmsg") _T_RE_EOL,
+  {
+    CMD_NPPMENUCOMMAND,
+    _T("COMMAND:  npp_menucommand") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_menucommand <full name of menu item>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Executes (invokes) a menu item by its full name.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_menucommand File\\New") _T_RE_EOL \
+    _T("  npp_menucommand Edit|Blank Operations|Trim Leading and Trailing Space") _T_RE_EOL \
+    _T("  npp_menucommand Plugins/Plugin Manager/Show Plugin Manager") _T_RE_EOL \
+    _T("  npp_menucommand Plugins\\\\NppExec\\\\Help/Manual") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  In general case, names of menu items are language-specific. If you have a") _T_RE_EOL \
+    _T("  translated menu in Notepad++, you should use the menu item names you see.") _T_RE_EOL \
+    _T("  (For example, \"npp_menucommand ") _T_MENUCOMMAND_CYRILLIC _T("\".)") _T_RE_EOL \
+    _T("  The menu item names are processed case-sensitively, so \"file/new\" or") _T_RE_EOL \
+    _T("  \"File|new\" does not correspond to the menu item \"File/New\".") _T_RE_EOL \
+    _T("  You can use \'\\\', \'/\' and \'|\' as a separator. Moreover, you can double or") _T_RE_EOL \
+    _T("  even triple the separator if a menu item already contains \'\\\', \'/\' or \'|\'.") _T_RE_EOL \
+    _T("  However, be sure to use the very same separator within a full name of menu") _T_RE_EOL \
+    _T("  item. For example: \"Plugins||NppExec||Help/Manual\" is correct since it uses") _T_RE_EOL \
+    _T("  the same separator \"||\". And \"Plugins\\\\NppExec||Help/Manual\" is incorrect") _T_RE_EOL \
+    _T("  because the first \"\\\\\" has been detected as a separator, and the remaining") _T_RE_EOL \
+    _T("  part \"NppExec||Help/Manual\" would be treated as a name of one sub-item") _T_RE_EOL \
+    _T("  since it did not contain the separator \"\\\\\".") _T_RE_EOL \
+    _T("  Note: do not forget that \"//\" by default is a start of a comment in NppExec.") _T_RE_EOL \
+    _T("  So do not use doubled \"//\" or tripled \"///\" as a separator of menu item name") _T_RE_EOL \
+    _T("  because the remaining part of the item name (after \"//\" or \"///\") will be") _T_RE_EOL \
+    _T("  treated as a comment and ignored.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_sendmsg") _T_RE_EOL
+  },
 
   // NPP_OPEN
-  _T("COMMAND:  npp_open") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_open <file>") _T_RE_EOL \
-  _T("  npp_open <mask>") _T_RE_EOL \
-  _T("  npp_open <path\\mask>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Opens or reopens specified file in Notepad++") _T_RE_EOL \
-  _T("  2. Opens file(s) matched the mask                (*)") _T_RE_EOL \
-  _T("  * type \"help mask\" for more information about file masks") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_open *.txt             // opens all *.txt files in current directory") _T_RE_EOL \
-  _T("  npp_open e:\\temp\\file.txt  // opens the file \"e:\\temp\\file.txt\"") _T_RE_EOL \
-  _T("  npp_open .\\text\\*.*        // opens all files in the folder \".\\text\"") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  To reopen a file, specify the full file path.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npp_close, npp_switch, npp_save, mask, dir") _T_RE_EOL,
+  {
+    CMD_NPPOPEN,
+    _T("COMMAND:  npp_open") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_open <file>") _T_RE_EOL \
+    _T("  npp_open <mask>") _T_RE_EOL \
+    _T("  npp_open <path\\mask>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Opens or reopens specified file in Notepad++") _T_RE_EOL \
+    _T("  2. Opens file(s) matched the mask                (*)") _T_RE_EOL \
+    _T("  * type \"help mask\" for more information about file masks") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_open *.txt             // opens all *.txt files in current directory") _T_RE_EOL \
+    _T("  npp_open e:\\temp\\file.txt  // opens the file \"e:\\temp\\file.txt\"") _T_RE_EOL \
+    _T("  npp_open .\\text\\*.*        // opens all files in the folder \".\\text\"") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  To reopen a file, specify the full file path.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_close, npp_switch, npp_save, mask, dir") _T_RE_EOL
+  },
 
   // NPP_RUN
-  _T("COMMAND:  npp_run") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_run <command>") _T_RE_EOL \
-  _T("  npp_run <file>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. The same as Notepad++\'s Run command - runs an external process") _T_RE_EOL \
-  _T("  2. Opens specified file in its associated program (requires NppExec v0.2 RC3.1 or higher)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_run calc.exe    (*)") _T_RE_EOL \
-  _T("  * if you type just \"calc.exe\" without \"npp_run\", then NppExec runs") _T_RE_EOL \
-  _T("    \"calc.exe\" as a child process and waits until it returns (i.e. until") _T_RE_EOL \
-  _T("    you close the calc\'s window)") _T_RE_EOL \
-  _T("  npp_run \"index.html\" // opens \"index.html\" in your default web-browser") _T_RE_EOL \
-  _T("  npp_run \"C:\\Program Files\\Mozilla Firefox\\firefox.exe\" \"index.html\" // in Firefox") _T_RE_EOL \
-  _T("  npp_run \"$(FULL_CURRENT_PATH)\" // opening using the associated program") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  In terms of an application (a program), NPP_RUN allows to run it in its own") _T_RE_EOL \
-  _T("  window without waiting for its execution:") _T_RE_EOL \
-  _T("    npp_run application.exe") _T_RE_EOL \
-  _T("    npp_run application.exe <arguments>") _T_RE_EOL \
-  _T("  If, however, there is a need to wait until the application has been executed,") _T_RE_EOL \
-  _T("  while still running it in its own window, it can be achieved without NPP_RUN:") _T_RE_EOL \
-  _T("    cmd /c start /wait application.exe") _T_RE_EOL \
-  _T("    cmd /c start /wait application.exe <arguments>") _T_RE_EOL \
-  _T("  In this last case, NppExec waits for cmd to be executed, while cmd itself") _T_RE_EOL \
-  _T("  starts the application in its own separate window and waits until it has") _T_RE_EOL \
-  _T("  been executed.") _T_RE_EOL,
+  {
+    CMD_NPPRUN,
+    _T("COMMAND:  npp_run") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_run <command>") _T_RE_EOL \
+    _T("  npp_run <file>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. The same as Notepad++\'s Run command - runs an external process") _T_RE_EOL \
+    _T("  2. Opens specified file in its associated program (requires NppExec v0.2 RC3.1 or higher)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_run calc.exe    (*)") _T_RE_EOL \
+    _T("  * if you type just \"calc.exe\" without \"npp_run\", then NppExec runs") _T_RE_EOL \
+    _T("    \"calc.exe\" as a child process and waits until it returns (i.e. until") _T_RE_EOL \
+    _T("    you close the calc\'s window)") _T_RE_EOL \
+    _T("  npp_run \"index.html\" // opens \"index.html\" in your default web-browser") _T_RE_EOL \
+    _T("  npp_run \"C:\\Program Files\\Mozilla Firefox\\firefox.exe\" \"index.html\" // in Firefox") _T_RE_EOL \
+    _T("  npp_run \"$(FULL_CURRENT_PATH)\" // opening using the associated program") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  In terms of an application (a program), NPP_RUN allows to run it in its own") _T_RE_EOL \
+    _T("  window without waiting for its execution:") _T_RE_EOL \
+    _T("    npp_run application.exe") _T_RE_EOL \
+    _T("    npp_run application.exe <arguments>") _T_RE_EOL \
+    _T("  If, however, there is a need to wait until the application has been executed,") _T_RE_EOL \
+    _T("  while still running it in its own window, it can be achieved without NPP_RUN:") _T_RE_EOL \
+    _T("    cmd /c start /wait application.exe") _T_RE_EOL \
+    _T("    cmd /c start /wait application.exe <arguments>") _T_RE_EOL \
+    _T("  In this last case, NppExec waits for cmd to be executed, while cmd itself") _T_RE_EOL \
+    _T("  starts the application in its own separate window and waits until it has") _T_RE_EOL \
+    _T("  been executed.") _T_RE_EOL
+  },
 
   // NPP_SAVE
-  _T("COMMAND:  npp_save") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_save") _T_RE_EOL \
-  _T("  npp_save <file>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Saves current file (\"npp_save\" without parameters)") _T_RE_EOL \
-  _T("  2. Saves specified file if it\'s opened in Notepad++") _T_RE_EOL \
-  _T("     (supports a partial file path/name)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_save         // saves current file") _T_RE_EOL \
-  _T("  npp_save $(#2)   // saves 2nd file opened in Notepad++") _T_RE_EOL \
-  _T("  npp_save txt     // saves a first file which contains \"txt\" in its name") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npp_saveas, npp_saveall, npp_open") _T_RE_EOL,
+  {
+    CMD_NPPSAVE,
+    _T("COMMAND:  npp_save") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_save") _T_RE_EOL \
+    _T("  npp_save <file>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Saves current file (\"npp_save\" without parameters)") _T_RE_EOL \
+    _T("  2. Saves specified file if it\'s opened in Notepad++") _T_RE_EOL \
+    _T("     (supports a partial file path/name)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_save         // saves current file") _T_RE_EOL \
+    _T("  npp_save $(#2)   // saves 2nd file opened in Notepad++") _T_RE_EOL \
+    _T("  npp_save txt     // saves a first file which contains \"txt\" in its name") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_saveas, npp_saveall, npp_open") _T_RE_EOL
+  },
 
   // NPP_SAVEALL
-  _T("COMMAND:  npp_saveall") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_saveall") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Saves all modified files") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_saveall") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npp_save, npp_saveas, npp_open") _T_RE_EOL,
+  {
+    CMD_NPPSAVEALL,
+    _T("COMMAND:  npp_saveall") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_saveall") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Saves all modified files") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_saveall") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_save, npp_saveas, npp_open") _T_RE_EOL
+  },
 
   // NPP_SAVEAS
-  _T("COMMAND:  npp_saveas") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_saveas <file>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Saves current file with a new (path)name") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_saveas $(SYS.TEMP)\\newname.txt") _T_RE_EOL \
-  _T("  npp_saveas anothername.txt") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npp_save, npp_saveall, npp_open") _T_RE_EOL,
+  {
+    CMD_NPPSAVEAS,
+    _T("COMMAND:  npp_saveas") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_saveas <file>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Saves current file with a new (path)name") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_saveas $(SYS.TEMP)\\newname.txt") _T_RE_EOL \
+    _T("  npp_saveas anothername.txt") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_save, npp_saveall, npp_open") _T_RE_EOL
+  },
 
   // NPP_SWITCH
-  _T("COMMAND:  npp_switch") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_switch <file>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Switches to specified opened file") _T_RE_EOL \
-  _T("  (supports a partial file path/name)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_switch $(#3)  // activates 3rd file opened in Notepad++") _T_RE_EOL \
-  _T("  npp_switch awk    // activates a first file which contains \"awk\" in its name") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npp_open, npp_close, npp_save") _T_RE_EOL,
+  {
+    CMD_NPPSWITCH,
+    _T("COMMAND:  npp_switch") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_switch <file>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Switches to specified opened file") _T_RE_EOL \
+    _T("  (supports a partial file path/name)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_switch $(#3)  // activates 3rd file opened in Notepad++") _T_RE_EOL \
+    _T("  npp_switch awk    // activates a first file which contains \"awk\" in its name") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_open, npp_close, npp_save") _T_RE_EOL
+  },
 
   // NPP_SENDMSG
-  _T("COMMAND:  npp_sendmsg") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_sendmsg <msg>") _T_RE_EOL \
-  _T("  npp_sendmsg <msg> <wparam>") _T_RE_EOL \
-  _T("  npp_sendmsg <msg> <wparam> <lparam>") _T_RE_EOL \
-  _T("   * Warning: incorrect usage of this command may crash Notepad++ !!!") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Sends a message to Notepad++ (to its main window).") _T_RE_EOL \
-  _T("  This command invokes Win API function SendMessage:") _T_RE_EOL \
-  _T("    LRESULT SendMessage(hNppWnd, Msg, wParam, lParam)") _T_RE_EOL \
-  _T("  where lParam or both lParam and wParam can be omitted.") _T_RE_EOL \
-  _T("  <wparam> and <lparam> can be the following:") _T_RE_EOL \
-  _T("    <int>    - integer value (int or DWORD)") _T_RE_EOL \
-  _T("    @<int>   - pointer to integer (LPDWORD -> signed int)") _T_RE_EOL \
-  _T("    \"<str>\"  - const string (LPCTSTR)") _T_RE_EOL \
-  _T("    @\"<str>\" - pointer to string (LPTSTR)") _T_RE_EOL \
-  _T("  Use <int> and \"<str>\" to pass integer or string to Notepad++:") _T_RE_EOL \
-  _T("  e.g. 10, 0x1E, \"some text\".") _T_RE_EOL \
-  _T("  Use @<int> and @\"str\" to get integer or string from Notepad++:") _T_RE_EOL \
-  _T("  e.g. @0, @0x7FF, @\"\", @\"initial string\".") _T_RE_EOL \
-  _T("  When using @<int> and @\"<str>\", the values specified are") _T_RE_EOL \
-  _T("  initial values of the parameters.") _T_RE_EOL \
-  _T("  NppExec reserves a buffer of (4 MB)*sizeof(TCHAR) for @\"<str>\".") _T_RE_EOL \
-  _T("  When omitting <wparam> or <lparam>, NppExec treats the omitted") _T_RE_EOL \
-  _T("  parameter(s) as 0 (0 as int).") _T_RE_EOL \
-  _T("  This command sets the following local variables:") _T_RE_EOL \
-  _T("    $(MSG_RESULT) - LRESULT as int") _T_RE_EOL \
-  _T("    $(MSG_WPARAM) - int or string for @<int> or @\"<str>\", otherwise empty") _T_RE_EOL \
-  _T("    $(MSG_LPARAM) - int or string for @<int> or @\"<str>\", otherwise empty") _T_RE_EOL \
-  _T("  See MSDN for more details about SendMessage.") _T_RE_EOL \
-  _T("  See Notepad++\'es sources and documentation for more details") _T_RE_EOL \
-  _T("  about messages supported by Notepad++.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  // !!! All NPPM_* messages must be specified in upper case !!!") _T_RE_EOL \
-  _T("  // !!! (These messages are read from NppExec\\Notepad_plus_msgs.h) !!!") _T_RE_EOL \
-  _T("  // NPPM_GETNPPVERSION example:") _T_RE_EOL \
-  _T("  npp_sendmsg NPPM_GETNPPVERSION  // returns ver as LRESULT") _T_RE_EOL \
-  _T("  set local hver ~ trunc($(MSG_RESULT)/65536)  // HIWORD(ver)") _T_RE_EOL \
-  _T("  set local lver ~ $(MSG_RESULT) - $(hver)*65536  // LOWORD(ver)") _T_RE_EOL \
-  _T("  echo $(hver).$(lver)  // prints version as string") _T_RE_EOL \
-  _T("  // NPPM_GETPLUGINSCONFIGDIR example:") _T_RE_EOL \
-  _T("  npp_sendmsg NPPM_GETPLUGINSCONFIGDIR 4000000 @\"\"  // send a message") _T_RE_EOL \
-  _T("  echo $(MSG_LPARAM)  // prints the string pointed by lParam") _T_RE_EOL \
-  _T("  // NPPM_GETFULLPATHFROMBUFFERID _advanced_ example:") _T_RE_EOL \
-  _T("  npp_sendmsg NPPM_GETCURRENTBUFFERID  // returns buffer Id as result") _T_RE_EOL \
-  _T("  set local bufferId = $(MSG_RESULT)") _T_RE_EOL \
-  _T("  npp_sendmsg NPPM_GETFULLPATHFROMBUFFERID $(bufferId) @\"\"") _T_RE_EOL \
-  _T("  echo $(MSG_LPARAM)  // file path as string") _T_RE_EOL \
-  _T("  npp_sendmsg NPPM_GETFULLPATHFROMBUFFERID $(bufferId) @[]") _T_RE_EOL \
-  _T("  echo $(MSG_LPARAM)  // file path as hex string") _T_RE_EOL \
-  _T("  // (this last example uses undocumented ability of") _T_RE_EOL \
-  _T("  //  handling of hex-string parameters, e.g.:") _T_RE_EOL \
-  _T("  //  [00 7F EA 00] - const buffer of 4 bytes") _T_RE_EOL \
-  _T("  //  @[FF 02 0C]   - pointer to buffer") _T_RE_EOL \
-  _T("  //  Use it with care!)") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  sci_sendmsg, npp_sendmsgex, set") _T_RE_EOL,
+  {
+    CMD_NPPSENDMSG,
+    _T("COMMAND:  npp_sendmsg") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_sendmsg <msg>") _T_RE_EOL \
+    _T("  npp_sendmsg <msg> <wparam>") _T_RE_EOL \
+    _T("  npp_sendmsg <msg> <wparam> <lparam>") _T_RE_EOL \
+    _T("   * Warning: incorrect usage of this command may crash Notepad++ !!!") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Sends a message to Notepad++ (to its main window).") _T_RE_EOL \
+    _T("  This command invokes Win API function SendMessage:") _T_RE_EOL \
+    _T("    LRESULT SendMessage(hNppWnd, Msg, wParam, lParam)") _T_RE_EOL \
+    _T("  where lParam or both lParam and wParam can be omitted.") _T_RE_EOL \
+    _T("  <wparam> and <lparam> can be the following:") _T_RE_EOL \
+    _T("    <int>    - integer value (int or DWORD)") _T_RE_EOL \
+    _T("    @<int>   - pointer to integer (LPDWORD -> signed int)") _T_RE_EOL \
+    _T("    \"<str>\"  - const string (LPCTSTR)") _T_RE_EOL \
+    _T("    @\"<str>\" - pointer to string (LPTSTR)") _T_RE_EOL \
+    _T("  Use <int> and \"<str>\" to pass integer or string to Notepad++:") _T_RE_EOL \
+    _T("  e.g. 10, 0x1E, \"some text\".") _T_RE_EOL \
+    _T("  Use @<int> and @\"str\" to get integer or string from Notepad++:") _T_RE_EOL \
+    _T("  e.g. @0, @0x7FF, @\"\", @\"initial string\".") _T_RE_EOL \
+    _T("  When using @<int> and @\"<str>\", the values specified are") _T_RE_EOL \
+    _T("  initial values of the parameters.") _T_RE_EOL \
+    _T("  NppExec reserves a buffer of (4 MB)*sizeof(TCHAR) for @\"<str>\".") _T_RE_EOL \
+    _T("  When omitting <wparam> or <lparam>, NppExec treats the omitted") _T_RE_EOL \
+    _T("  parameter(s) as 0 (0 as int).") _T_RE_EOL \
+    _T("  This command sets the following local variables:") _T_RE_EOL \
+    _T("    $(MSG_RESULT) - LRESULT as int") _T_RE_EOL \
+    _T("    $(MSG_WPARAM) - int or string for @<int> or @\"<str>\", otherwise empty") _T_RE_EOL \
+    _T("    $(MSG_LPARAM) - int or string for @<int> or @\"<str>\", otherwise empty") _T_RE_EOL \
+    _T("  See MSDN for more details about SendMessage.") _T_RE_EOL \
+    _T("  See Notepad++\'es sources and documentation for more details") _T_RE_EOL \
+    _T("  about messages supported by Notepad++.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  // !!! All NPPM_* messages must be specified in upper case !!!") _T_RE_EOL \
+    _T("  // !!! (These messages are read from NppExec\\Notepad_plus_msgs.h) !!!") _T_RE_EOL \
+    _T("  // NPPM_GETNPPVERSION example:") _T_RE_EOL \
+    _T("  npp_sendmsg NPPM_GETNPPVERSION  // returns ver as LRESULT") _T_RE_EOL \
+    _T("  set local hver ~ trunc($(MSG_RESULT)/65536)  // HIWORD(ver)") _T_RE_EOL \
+    _T("  set local lver ~ $(MSG_RESULT) - $(hver)*65536  // LOWORD(ver)") _T_RE_EOL \
+    _T("  echo $(hver).$(lver)  // prints version as string") _T_RE_EOL \
+    _T("  // NPPM_GETPLUGINSCONFIGDIR example:") _T_RE_EOL \
+    _T("  npp_sendmsg NPPM_GETPLUGINSCONFIGDIR 4000000 @\"\"  // send a message") _T_RE_EOL \
+    _T("  echo $(MSG_LPARAM)  // prints the string pointed by lParam") _T_RE_EOL \
+    _T("  // NPPM_GETFULLPATHFROMBUFFERID _advanced_ example:") _T_RE_EOL \
+    _T("  npp_sendmsg NPPM_GETCURRENTBUFFERID  // returns buffer Id as result") _T_RE_EOL \
+    _T("  set local bufferId = $(MSG_RESULT)") _T_RE_EOL \
+    _T("  npp_sendmsg NPPM_GETFULLPATHFROMBUFFERID $(bufferId) @\"\"") _T_RE_EOL \
+    _T("  echo $(MSG_LPARAM)  // file path as string") _T_RE_EOL \
+    _T("  npp_sendmsg NPPM_GETFULLPATHFROMBUFFERID $(bufferId) @[]") _T_RE_EOL \
+    _T("  echo $(MSG_LPARAM)  // file path as hex string") _T_RE_EOL \
+    _T("  // (this last example uses undocumented ability of") _T_RE_EOL \
+    _T("  //  handling of hex-string parameters, e.g.:") _T_RE_EOL \
+    _T("  //  [00 7F EA 00] - const buffer of 4 bytes") _T_RE_EOL \
+    _T("  //  @[FF 02 0C]   - pointer to buffer") _T_RE_EOL \
+    _T("  //  Use it with care!)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  sci_sendmsg, npp_sendmsgex, set") _T_RE_EOL
+  },
 
   // NPP_SENDMSGEX
-  _T("COMMAND:  npp_sendmsgex") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npp_sendmsgex <hwnd> <msg>") _T_RE_EOL \
-  _T("  npp_sendmsgex <hwnd> <msg> <wparam>") _T_RE_EOL \
-  _T("  npp_sendmsgex <hwnd> <msg> <wparam> <lparam>") _T_RE_EOL \
-  _T("   * Warning: incorrect usage of this command may crash something !!!") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Sends a message to hwnd.") _T_RE_EOL \
-  _T("  This command invokes Win API function SendMessage:") _T_RE_EOL \
-  _T("    LRESULT SendMessage(hWnd, Msg, wParam, lParam)") _T_RE_EOL \
-  _T("  where lParam or both lParam and wParam can be omitted.") _T_RE_EOL \
-  _T("  See NPP_SENDMSG and SCI_SENDMSG for more details.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npp_sendmsg NPPM_DMMGETPLUGINHWNDBYNAME \" Console \" \"NppExec.dll\"") _T_RE_EOL \
-  _T("  set local hwnd = $(MSG_RESULT)  // hwnd of NppExec\'s Console") _T_RE_EOL \
-  _T("  npp_sendmsgex $(hwnd) WM_COMMAND 1154 0  // Word-Wrap checkbox") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npp_sendmsg, sci_sendmsg, set") _T_RE_EOL,
+  {
+    CMD_NPPSENDMSGEX,
+    _T("COMMAND:  npp_sendmsgex") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_sendmsgex <hwnd> <msg>") _T_RE_EOL \
+    _T("  npp_sendmsgex <hwnd> <msg> <wparam>") _T_RE_EOL \
+    _T("  npp_sendmsgex <hwnd> <msg> <wparam> <lparam>") _T_RE_EOL \
+    _T("   * Warning: incorrect usage of this command may crash something !!!") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Sends a message to hwnd.") _T_RE_EOL \
+    _T("  This command invokes Win API function SendMessage:") _T_RE_EOL \
+    _T("    LRESULT SendMessage(hWnd, Msg, wParam, lParam)") _T_RE_EOL \
+    _T("  where lParam or both lParam and wParam can be omitted.") _T_RE_EOL \
+    _T("  See NPP_SENDMSG and SCI_SENDMSG for more details.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_sendmsg NPPM_DMMGETPLUGINHWNDBYNAME \" Console \" \"NppExec.dll\"") _T_RE_EOL \
+    _T("  set local hwnd = $(MSG_RESULT)  // hwnd of NppExec\'s Console") _T_RE_EOL \
+    _T("  npp_sendmsgex $(hwnd) WM_COMMAND 1154 0  // Word-Wrap checkbox") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_sendmsg, sci_sendmsg, set") _T_RE_EOL
+  },
 
   // SCI_SENDMSG
-  _T("COMMAND:  sci_sendmsg") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  sci_sendmsg <msg>") _T_RE_EOL \
-  _T("  sci_sendmsg <msg> <wparam>") _T_RE_EOL \
-  _T("  sci_sendmsg <msg> <wparam> <lparam>") _T_RE_EOL \
-  _T("   * Warning: incorrect usage of this command may crash Notepad++ !!!") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Sends a message to current Scintilla (to its window).") _T_RE_EOL \
-  _T("  This command invokes Win API function SendMessage:") _T_RE_EOL \
-  _T("    LRESULT SendMessage(hSciWnd, Msg, wParam, lParam)") _T_RE_EOL \
-  _T("  where lParam or both lParam and wParam can be omitted.") _T_RE_EOL \
-  _T("  <wparam> and <lparam> can be the following:") _T_RE_EOL \
-  _T("    <int>    - integer value (int or DWORD)") _T_RE_EOL \
-  _T("    @<int>   - pointer to integer (LPDWORD -> signed int)") _T_RE_EOL \
-  _T("    \"<str>\"  - const string (LPCTSTR)") _T_RE_EOL \
-  _T("    @\"<str>\" - pointer to string (LPTSTR)") _T_RE_EOL \
-  _T("  Use <int> and \"<str>\" to pass integer or string to Scintilla:") _T_RE_EOL \
-  _T("  e.g. 10, 0x1E, \"some text\".") _T_RE_EOL \
-  _T("  Use @<int> and @\"str\" to get integer or string from Scintilla:") _T_RE_EOL \
-  _T("  e.g. @0, @0x7FF, @\"\", @\"initial string\".") _T_RE_EOL \
-  _T("  When using @<int> and @\"<str>\", the values specified are") _T_RE_EOL \
-  _T("  initial values of the parameters.") _T_RE_EOL \
-  _T("  NppExec reserves a buffer of (4 MB)*sizeof(char) for @\"<str>\".") _T_RE_EOL \
-  _T("  NppExec performs conversion from/to ANSI or UTF-8 automatically.") _T_RE_EOL \
-  _T("  When omitting <wparam> or <lparam>, NppExec treats the omitted") _T_RE_EOL \
-  _T("  parameter(s) as 0 (0 as int).") _T_RE_EOL \
-  _T("  This command sets the following local variables:") _T_RE_EOL \
-  _T("    $(MSG_RESULT) - LRESULT as int") _T_RE_EOL \
-  _T("    $(MSG_WPARAM) - int or string for @<int> or @\"<str>\", otherwise empty") _T_RE_EOL \
-  _T("    $(MSG_LPARAM) - int or string for @<int> or @\"<str>\", otherwise empty") _T_RE_EOL \
-  _T("  See MSDN for more details about SendMessage.") _T_RE_EOL \
-  _T("  See Scintilla\'s documentation for more details about messages") _T_RE_EOL \
-  _T("  supported by Scintilla.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  // !!! All SCI_* messages must be specified in upper case !!!") _T_RE_EOL \
-  _T("  // !!! (These messages are read from NppExec\\Scintilla.h) !!!") _T_RE_EOL \
-  _T("  // get the text of the first visible line:") _T_RE_EOL \
-  _T("  sci_sendmsg SCI_GETFIRSTVISIBLELINE  // returns line number as LRESULT") _T_RE_EOL \
-  _T("  sci_sendmsg SCI_GETLINE $(MSG_RESULT) @\"\"") _T_RE_EOL \
-  _T("  echo $(MSG_LPARAM)  // prints the string pointed by lParam") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npp_sendmsg, npp_sendmsgex, set") _T_RE_EOL,
+  {
+    CMD_SCISENDMSG,
+    _T("COMMAND:  sci_sendmsg") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  sci_sendmsg <msg>") _T_RE_EOL \
+    _T("  sci_sendmsg <msg> <wparam>") _T_RE_EOL \
+    _T("  sci_sendmsg <msg> <wparam> <lparam>") _T_RE_EOL \
+    _T("   * Warning: incorrect usage of this command may crash Notepad++ !!!") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Sends a message to current Scintilla (to its window).") _T_RE_EOL \
+    _T("  This command invokes Win API function SendMessage:") _T_RE_EOL \
+    _T("    LRESULT SendMessage(hSciWnd, Msg, wParam, lParam)") _T_RE_EOL \
+    _T("  where lParam or both lParam and wParam can be omitted.") _T_RE_EOL \
+    _T("  <wparam> and <lparam> can be the following:") _T_RE_EOL \
+    _T("    <int>    - integer value (int or DWORD)") _T_RE_EOL \
+    _T("    @<int>   - pointer to integer (LPDWORD -> signed int)") _T_RE_EOL \
+    _T("    \"<str>\"  - const string (LPCTSTR)") _T_RE_EOL \
+    _T("    @\"<str>\" - pointer to string (LPTSTR)") _T_RE_EOL \
+    _T("  Use <int> and \"<str>\" to pass integer or string to Scintilla:") _T_RE_EOL \
+    _T("  e.g. 10, 0x1E, \"some text\".") _T_RE_EOL \
+    _T("  Use @<int> and @\"str\" to get integer or string from Scintilla:") _T_RE_EOL \
+    _T("  e.g. @0, @0x7FF, @\"\", @\"initial string\".") _T_RE_EOL \
+    _T("  When using @<int> and @\"<str>\", the values specified are") _T_RE_EOL \
+    _T("  initial values of the parameters.") _T_RE_EOL \
+    _T("  NppExec reserves a buffer of (4 MB)*sizeof(char) for @\"<str>\".") _T_RE_EOL \
+    _T("  NppExec performs conversion from/to ANSI or UTF-8 automatically.") _T_RE_EOL \
+    _T("  When omitting <wparam> or <lparam>, NppExec treats the omitted") _T_RE_EOL \
+    _T("  parameter(s) as 0 (0 as int).") _T_RE_EOL \
+    _T("  This command sets the following local variables:") _T_RE_EOL \
+    _T("    $(MSG_RESULT) - LRESULT as int") _T_RE_EOL \
+    _T("    $(MSG_WPARAM) - int or string for @<int> or @\"<str>\", otherwise empty") _T_RE_EOL \
+    _T("    $(MSG_LPARAM) - int or string for @<int> or @\"<str>\", otherwise empty") _T_RE_EOL \
+    _T("  See MSDN for more details about SendMessage.") _T_RE_EOL \
+    _T("  See Scintilla\'s documentation for more details about messages") _T_RE_EOL \
+    _T("  supported by Scintilla.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  // !!! All SCI_* messages must be specified in upper case !!!") _T_RE_EOL \
+    _T("  // !!! (These messages are read from NppExec\\Scintilla.h) !!!") _T_RE_EOL \
+    _T("  // get the text of the first visible line:") _T_RE_EOL \
+    _T("  sci_sendmsg SCI_GETFIRSTVISIBLELINE  // returns line number as LRESULT") _T_RE_EOL \
+    _T("  sci_sendmsg SCI_GETLINE $(MSG_RESULT) @\"\"") _T_RE_EOL \
+    _T("  echo $(MSG_LPARAM)  // prints the string pointed by lParam") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_sendmsg, npp_sendmsgex, set") _T_RE_EOL
+  },
 
   // SCI_FIND
-  _T("COMMAND:  sci_find") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  sci_find <flags> <find_what>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Searches for the given string using the specified flags.") _T_RE_EOL \
-  _T("  It is recommended to enquote the \"find_what\" string.") _T_RE_EOL \
-  _T("  Use the \"Bitwise OR\" operator '|' to combine the flags.") _T_RE_EOL \
-  _T_HELP_NPE_SEARCHFLAGS _T_RE_EOL \
-  _T("  This command sets the following local variables:") _T_RE_EOL \
-  _T("    $(MSG_RESULT) - the position of the occurrence found, or -1") _T_RE_EOL \
-  _T("    $(MSG_WPARAM) - <find_what>'s length in Scintilla's chars (*)") _T_RE_EOL \
-  _T("    * in case of regular expression, it is the length of the matched string") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  // search for \"some text\", starting from the caret position:") _T_RE_EOL \
-  _T("  sci_find 0 \"some text\"") _T_RE_EOL \
-  _T("  // search backward (from the caret position), select if found:") _T_RE_EOL \
-  _T("  sci_find 0x02010000 \"some text\"") _T_RE_EOL \
-  _T("  sci_find NPE_SF_BACKWARD|NPE_SF_SETSEL \"some text\"  // the same") _T_RE_EOL \
-  _T("  sci_find \"NPE_SF_BACKWARD | NPE_SF_SETSEL\" \"some text\"  // the same") _T_RE_EOL \
-  _T("  set local flags ~ NPE_SF_BACKWARD | NPE_SF_SETSEL") _T_RE_EOL \
-  _T("  sci_find $(flags) \"some text\"  // the same") _T_RE_EOL \
-  _T("  // search for a regular expression in the whole text, select if found:") _T_RE_EOL \
-  _T("  set local flags ~ NPE_SF_REGEXP | NPE_SF_INWHOLETEXT | NPE_SF_SETSEL") _T_RE_EOL \
-  _T("  sci_find $(flags) \"[0-9]+\"") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  With NPE_SF_PRINTALL, it is possible to achieve a functionality similar to") _T_RE_EOL \
-  _T("  (but not equal to) the standard \"Find result\" window.") _T_RE_EOL \
-  _T("  Let's assume you want to find all occurrences of \"abc\":") _T_RE_EOL \
-  _T("    sci_find NPE_SF_INWHOLETEXT|NPE_SF_PRINTALL \"abc\"") _T_RE_EOL \
-  _T("  This will print all the occurrences of \"abc\" in the Console in a form of:") _T_RE_EOL \
-  _T("    (<line>,<column>)\t abc") _T_RE_EOL \
-  _T("  In case of searching with regular expressions, e.g.") _T_RE_EOL \
-  _T("    sci_find NPE_SF_INWHOLETEXT|NPE_SF_REGEXP|NPE_SF_PRINTALL \"WM_[A-Z_]+\"") _T_RE_EOL \
-  _T("  the results will be printed in a form of:") _T_RE_EOL \
-  _T("    (<line>,<column>)\t <matched_string>") _T_RE_EOL \
-  _T("  The \"(<line>,<column>)\" part and the matched string part are always separated") _T_RE_EOL \
-  _T("  by two characters: a tabulation character '\\t' plus a space character ' '.") _T_RE_EOL \
-  _T("  So the following Highlight Mask can be specified for the search results:") _T_RE_EOL \
-  _T("    (%LINE%,%CHAR%)? *") _T_RE_EOL \
-  _T("  This will allow to go to the occurrence by simple double-clicking.") _T_RE_EOL \
-  _T("  (A Highlight Mask can be specified either directly in the Console Filters") _T_RE_EOL \
-  _T("  dialog or using the technique described in \"help con_filter\".)") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  sci_replace, sci_sendmsg") _T_RE_EOL,
+  {
+    CMD_SCIFIND,
+    _T("COMMAND:  sci_find") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  sci_find <flags> <find_what>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Searches for the given string using the specified flags.") _T_RE_EOL \
+    _T("  It is recommended to enquote the \"find_what\" string.") _T_RE_EOL \
+    _T("  Use the \"Bitwise OR\" operator '|' to combine the flags.") _T_RE_EOL \
+    _T_HELP_NPE_SEARCHFLAGS _T_RE_EOL \
+    _T("  This command sets the following local variables:") _T_RE_EOL \
+    _T("    $(MSG_RESULT) - the position of the occurrence found, or -1") _T_RE_EOL \
+    _T("    $(MSG_WPARAM) - <find_what>'s length in Scintilla's chars (*)") _T_RE_EOL \
+    _T("    * in case of regular expression, it is the length of the matched string") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  // search for \"some text\", starting from the caret position:") _T_RE_EOL \
+    _T("  sci_find 0 \"some text\"") _T_RE_EOL \
+    _T("  // search backward (from the caret position), select if found:") _T_RE_EOL \
+    _T("  sci_find 0x02010000 \"some text\"") _T_RE_EOL \
+    _T("  sci_find NPE_SF_BACKWARD|NPE_SF_SETSEL \"some text\"  // the same") _T_RE_EOL \
+    _T("  sci_find \"NPE_SF_BACKWARD | NPE_SF_SETSEL\" \"some text\"  // the same") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_BACKWARD | NPE_SF_SETSEL") _T_RE_EOL \
+    _T("  sci_find $(flags) \"some text\"  // the same") _T_RE_EOL \
+    _T("  // search for a regular expression in the whole text, select if found:") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_REGEXP | NPE_SF_INWHOLETEXT | NPE_SF_SETSEL") _T_RE_EOL \
+    _T("  sci_find $(flags) \"[0-9]+\"") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  With NPE_SF_PRINTALL, it is possible to achieve a functionality similar to") _T_RE_EOL \
+    _T("  (but not equal to) the standard \"Find result\" window.") _T_RE_EOL \
+    _T("  Let's assume you want to find all occurrences of \"abc\":") _T_RE_EOL \
+    _T("    sci_find NPE_SF_INWHOLETEXT|NPE_SF_PRINTALL \"abc\"") _T_RE_EOL \
+    _T("  This will print all the occurrences of \"abc\" in the Console in a form of:") _T_RE_EOL \
+    _T("    (<line>,<column>)\t abc") _T_RE_EOL \
+    _T("  In case of searching with regular expressions, e.g.") _T_RE_EOL \
+    _T("    sci_find NPE_SF_INWHOLETEXT|NPE_SF_REGEXP|NPE_SF_PRINTALL \"WM_[A-Z_]+\"") _T_RE_EOL \
+    _T("  the results will be printed in a form of:") _T_RE_EOL \
+    _T("    (<line>,<column>)\t <matched_string>") _T_RE_EOL \
+    _T("  The \"(<line>,<column>)\" part and the matched string part are always separated") _T_RE_EOL \
+    _T("  by two characters: a tabulation character '\\t' plus a space character ' '.") _T_RE_EOL \
+    _T("  So the following Highlight Mask can be specified for the search results:") _T_RE_EOL \
+    _T("    (%LINE%,%CHAR%)? *") _T_RE_EOL \
+    _T("  This will allow to go to the occurrence by simple double-clicking.") _T_RE_EOL \
+    _T("  (A Highlight Mask can be specified either directly in the Console Filters") _T_RE_EOL \
+    _T("  dialog or using the technique described in \"help con_filter\".)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  sci_replace, sci_sendmsg") _T_RE_EOL
+  },
 
   // SCI_REPLACE
-  _T("COMMAND:  sci_replace") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  sci_replace <flags> <find_what> <replace_with>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Searches for the given string using the specified flags and replaces it.") _T_RE_EOL \
-  _T("  It is recommended to enquote the \"find_what\" and \"replace_with\" strings.") _T_RE_EOL \
-  _T("  Use the \"Bitwise OR\" operator '|' to combine the flags.") _T_RE_EOL \
-  _T_HELP_NPE_SEARCHFLAGS _T_RE_EOL \
-  _T("  This command sets the following local variables:") _T_RE_EOL \
-  _T("    $(MSG_RESULT) - the position of the occurrence found, or -1") _T_RE_EOL \
-  _T("    $(MSG_WPARAM) - <find_what>'s length in Scintilla's chars (*)") _T_RE_EOL \
-  _T("    $(MSG_LPARAM) - <replace_with>'s length in Scintilla's chars (*)") _T_RE_EOL \
-  _T("    * in case of regular expression, it is the length of the matched string") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  // replace the first occurrence of \"some text\" with nothing:") _T_RE_EOL \
-  _T("  sci_replace 0 \"some text\"") _T_RE_EOL \
-  _T("  // replace all occurrences of \"some text\" with nothing:") _T_RE_EOL \
-  _T("  sci_replace NPE_SF_INWHOLETEXT|NPE_SF_REPLACEALL \"some text\"") _T_RE_EOL \
-  _T("  // replace all occurrences of \"some text\" with \"other text\":") _T_RE_EOL \
-  _T("  sci_replace NPE_SF_INWHOLETEXT|NPE_SF_REPLACEALL \"some text\" \"other text\"") _T_RE_EOL \
-  _T("  // replace all occurrences in the selection, searching backward:") _T_RE_EOL \
-  _T("  set local flags ~ NPE_SF_INSELECTION | NPE_SF_REPLACEALL | NPE_SF_BACKWARD") _T_RE_EOL \
-  _T("  sci_replace $(flags) \"some text\" \"other text\"") _T_RE_EOL \
-  _T("  // replace using a regular expression, searching backward:") _T_RE_EOL \
-  _T("  set local flags ~ NPE_SF_BACKWARD | NPE_SF_REGEXP") _T_RE_EOL \
-  _T("  sci_replace $(flags) \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
-  _T("  // the same:") _T_RE_EOL \
-  _T("  sci_replace 0x00010100 \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
-  _T("  // the same:") _T_RE_EOL \
-  _T("  sci_replace NPE_SF_BACKWARD|NPE_SF_REGEXP \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
-  _T("  // replace using a regular expression, select if found:") _T_RE_EOL \
-  _T("  sci_replace NPE_SF_REGEXP|NPE_SF_SETSEL \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  Combining NPE_SF_REPLACEALL with NPE_SF_PRINTALL, it is possible to see all") _T_RE_EOL \
-  _T("  the replaced occurrences in the Console (see also: sci_find).") _T_RE_EOL \
-  _T("  Using NPE_SF_PRINTALL alone, without NPE_SF_REPLACEALL, it is possible to see") _T_RE_EOL \
-  _T("  all the found occurrences in the Console, with only the first occurrence") _T_RE_EOL \
-  _T("  replaced.") _T_RE_EOL \
-  _T("  The combination of NPE_SF_REPLACEALL|NPE_SF_PRINTALL|NPE_SF_BACKWARD will") _T_RE_EOL \
-  _T("  most likely lead to incorrect character positions printed in the Console.") _T_RE_EOL \
-  _T("  Why? Because each replacement with a string of different length changes the") _T_RE_EOL \
-  _T("  length of the whole text. And while the replacements are being done from") _T_RE_EOL \
-  _T("  the bottom to the top, each new replacement changes the offsets of all the") _T_RE_EOL \
-  _T("  strings below it, affecting the positions of the occurrences that have") _T_RE_EOL \
-  _T("  already been printed in the Console. (And yes, it proves that when you tell") _T_RE_EOL \
-  _T("  sci_replace to replace in the backward direction, it really does it in the") _T_RE_EOL \
-  _T("  backward direction.)") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  sci_find, sci_sendmsg") _T_RE_EOL,
+  {
+    CMD_SCIREPLACE,
+    _T("COMMAND:  sci_replace") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  sci_replace <flags> <find_what> <replace_with>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Searches for the given string using the specified flags and replaces it.") _T_RE_EOL \
+    _T("  It is recommended to enquote the \"find_what\" and \"replace_with\" strings.") _T_RE_EOL \
+    _T("  Use the \"Bitwise OR\" operator '|' to combine the flags.") _T_RE_EOL \
+    _T_HELP_NPE_SEARCHFLAGS _T_RE_EOL \
+    _T("  This command sets the following local variables:") _T_RE_EOL \
+    _T("    $(MSG_RESULT) - the position of the occurrence found, or -1") _T_RE_EOL \
+    _T("    $(MSG_WPARAM) - <find_what>'s length in Scintilla's chars (*)") _T_RE_EOL \
+    _T("    $(MSG_LPARAM) - <replace_with>'s length in Scintilla's chars (*)") _T_RE_EOL \
+    _T("    * in case of regular expression, it is the length of the matched string") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  // replace the first occurrence of \"some text\" with nothing:") _T_RE_EOL \
+    _T("  sci_replace 0 \"some text\"") _T_RE_EOL \
+    _T("  // replace all occurrences of \"some text\" with nothing:") _T_RE_EOL \
+    _T("  sci_replace NPE_SF_INWHOLETEXT|NPE_SF_REPLACEALL \"some text\"") _T_RE_EOL \
+    _T("  // replace all occurrences of \"some text\" with \"other text\":") _T_RE_EOL \
+    _T("  sci_replace NPE_SF_INWHOLETEXT|NPE_SF_REPLACEALL \"some text\" \"other text\"") _T_RE_EOL \
+    _T("  // replace all occurrences in the selection, searching backward:") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_INSELECTION | NPE_SF_REPLACEALL | NPE_SF_BACKWARD") _T_RE_EOL \
+    _T("  sci_replace $(flags) \"some text\" \"other text\"") _T_RE_EOL \
+    _T("  // replace using a regular expression, searching backward:") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_BACKWARD | NPE_SF_REGEXP") _T_RE_EOL \
+    _T("  sci_replace $(flags) \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
+    _T("  // the same:") _T_RE_EOL \
+    _T("  sci_replace 0x00010100 \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
+    _T("  // the same:") _T_RE_EOL \
+    _T("  sci_replace NPE_SF_BACKWARD|NPE_SF_REGEXP \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
+    _T("  // replace using a regular expression, select if found:") _T_RE_EOL \
+    _T("  sci_replace NPE_SF_REGEXP|NPE_SF_SETSEL \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  Combining NPE_SF_REPLACEALL with NPE_SF_PRINTALL, it is possible to see all") _T_RE_EOL \
+    _T("  the replaced occurrences in the Console (see also: sci_find).") _T_RE_EOL \
+    _T("  Using NPE_SF_PRINTALL alone, without NPE_SF_REPLACEALL, it is possible to see") _T_RE_EOL \
+    _T("  all the found occurrences in the Console, with only the first occurrence") _T_RE_EOL \
+    _T("  replaced.") _T_RE_EOL \
+    _T("  The combination of NPE_SF_REPLACEALL|NPE_SF_PRINTALL|NPE_SF_BACKWARD will") _T_RE_EOL \
+    _T("  most likely lead to incorrect character positions printed in the Console.") _T_RE_EOL \
+    _T("  Why? Because each replacement with a string of different length changes the") _T_RE_EOL \
+    _T("  length of the whole text. And while the replacements are being done from") _T_RE_EOL \
+    _T("  the bottom to the top, each new replacement changes the offsets of all the") _T_RE_EOL \
+    _T("  strings below it, affecting the positions of the occurrences that have") _T_RE_EOL \
+    _T("  already been printed in the Console. (And yes, it proves that when you tell") _T_RE_EOL \
+    _T("  sci_replace to replace in the backward direction, it really does it in the") _T_RE_EOL \
+    _T("  backward direction.)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  sci_find, sci_sendmsg") _T_RE_EOL
+  },
 
   // MASK
-  _T("DESCRIPTION:  file mask") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  File masks are used by such commands as DIR and NPP_OPEN") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  The file mask in NppExec is an orthographical construction where") _T_RE_EOL \
-  _T("    ? means any single character and") _T_RE_EOL \
-  _T("    * means any 0 or more characters") _T_RE_EOL \
-  _T("  regardless of such concepts as file name or file extension.") _T_RE_EOL \
-  _T("  Thus, *.* in NppExec DOES NOT match any file or directory name -") _T_RE_EOL \
-  _T("  it matches any string which contains \'.\'") _T_RE_EOL \
-  _T("  Also, *tx*.* does not match \"file.txt\" because \"tx\" must be") _T_RE_EOL \
-  _T("  located BEFORE \'.\' and not AFTER it.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  dir *.cpp         // prints all *.cpp files in current directory") _T_RE_EOL \
-  _T("  npp_open *dlg*.*  // opens all files which contain \"dlg\" and \'.\' in its name") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  dir, npp_open") _T_RE_EOL,
+  {
+    _T("MASK"),
+    _T("DESCRIPTION:  file mask") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  File masks are used by such commands as DIR and NPP_OPEN") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  The file mask in NppExec is an orthographical construction where") _T_RE_EOL \
+    _T("    ? means any single character and") _T_RE_EOL \
+    _T("    * means any 0 or more characters") _T_RE_EOL \
+    _T("  regardless of such concepts as file name or file extension.") _T_RE_EOL \
+    _T("  Thus, *.* in NppExec DOES NOT match any file or directory name -") _T_RE_EOL \
+    _T("  it matches any string which contains \'.\'") _T_RE_EOL \
+    _T("  Also, *tx*.* does not match \"file.txt\" because \"tx\" must be") _T_RE_EOL \
+    _T("  located BEFORE \'.\' and not AFTER it.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  dir *.cpp         // prints all *.cpp files in current directory") _T_RE_EOL \
+    _T("  npp_open *dlg*.*  // opens all files which contain \"dlg\" and \'.\' in its name") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  dir, npp_open") _T_RE_EOL
+  },
 
   // SET
-  _T("COMMAND:  set/unset") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  set") _T_RE_EOL \
-  _T("  set <var>") _T_RE_EOL \
-  _T("  set <var> = <value>") _T_RE_EOL \
-  _T("  set $(<var>) = <value>") _T_RE_EOL \
-  _T("  set <var> ~ <math expression>") _T_RE_EOL \
-  _T("  set <var> ~ strlen <string>") _T_RE_EOL \
-  _T("  set <var> ~ strlenutf8 <string>") _T_RE_EOL \
-  _T("  set <var> ~ strupper <string>") _T_RE_EOL \
-  _T("  set <var> ~ strlower <string>") _T_RE_EOL \
-  _T("  set <var> ~ substr <pos> <len> <string>") _T_RE_EOL \
-  _T("  set <var> ~ strfind <string> <sfind>") _T_RE_EOL \
-  _T("  set <var> ~ strrfind <string> <sfind>") _T_RE_EOL \
-  _T("  set <var> ~ strreplace <string> <sfind> <sreplace>") _T_RE_EOL \
-  _T("  set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
-  _T("  set <var> ~ strtohex <string>") _T_RE_EOL \
-  _T("  set local") _T_RE_EOL \
-  _T("  set local <var>") _T_RE_EOL \
-  _T("  set local <var> = ...") _T_RE_EOL \
-  _T("  set local <var> ~ ...") _T_RE_EOL \
-  _T("  unset <var>") _T_RE_EOL \
-  _T("  unset <var> = <value>") _T_RE_EOL \
-  _T("  unset local <var>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Shows all user\'s variables (\"set\" without parameters)") _T_RE_EOL \
-  _T("  2. Shows the value of user\'s variable (\"set\" without \"=\")") _T_RE_EOL \
-  _T("  3. Sets the value of user\'s variable (\"set <var> = <value>\")") _T_RE_EOL \
-  _T("  4. Calculates the math expression (\"set <var> ~ <math expr>\")") _T_RE_EOL \
-  _T("  5a. Calculates the string length (\"set <var> ~ strlen <string>\")") _T_RE_EOL \
-  _T("  5b. Calculates the UTF-8 string length (\"set <var> ~ strlenutf8 <s>\")") _T_RE_EOL \
-  _T("  5c. Returns the string in upper case (\"set <var> ~ strupper <s>\")") _T_RE_EOL \
-  _T("  5d. Returns the string in lower case (\"set <var> ~ strlower <s>\")") _T_RE_EOL \
-  _T("  5e. Returns the substring (\"substr <pos> <len> <s>\")") _T_RE_EOL \
-  _T("  5f. Returns the position of first <sfind> in <string>") _T_RE_EOL \
-  _T("  5g. Returns the position of last <sfind> in <string>") _T_RE_EOL \
-  _T("  5h. Replaces all <sfind> with <sreplace> in <string>") _T_RE_EOL \
-  _T("  5i. Returns a string from the <hexstring>") _T_RE_EOL \
-  _T("  5j. Returns a hex-string from the <string>") _T_RE_EOL \
-  _T("  6.  Shows/sets the value of local variable (\"set local <var> ...\")") _T_RE_EOL \
-  _T("  7.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
-  _T("  8.  Removes the local variable <var> (\"unset local <var>\")") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  set p = C:\\Program Files") _T_RE_EOL \
-  _T("  dir $(p)\\*  // the same as dir C:\\Program Files\\*") _T_RE_EOL \
-  _T("  unset p     // removes the variable p") _T_RE_EOL \
-  _T("  // set vs. set local:") _T_RE_EOL \
-  _T("  set x = 10       // 10: global x") _T_RE_EOL \
-  _T("  set local x = 20 // 20: local x") _T_RE_EOL \
-  _T("  echo $(x)        // 20: substitutes the overridden (local) x") _T_RE_EOL \
-  _T("  set x            // 10: prints global x") _T_RE_EOL \
-  _T("  set local x      // 20: prints local x") _T_RE_EOL \
-  _T("  unset local x    // 20: deletes local x") _T_RE_EOL \
-  _T("  echo $(x)        // 10: substitutes the global x") _T_RE_EOL \
-  _T("  // calculations:") _T_RE_EOL \
-  _T("  set ans ~ 1 + 2*(3 + 4) - 0x5  // calculates the expression") _T_RE_EOL \
-  _T("  set ans ~ 0x001 | 0x010 | 0x100  // calculates the expression") _T_RE_EOL \
-  _T("  set ans ~ hex(0x001 | 0x010 | 0x100)  // calculates as hexadecimal") _T_RE_EOL \
-  _T("  set n ~ strlen   ABC D   // sets n=5 (skipping leading & trailing spaces)") _T_RE_EOL \
-  _T("  set n ~ strlen \"  ABC \"  // sets n=8 (including spaces & double quotes)") _T_RE_EOL \
-  _T("  // in case of non-Latin characters, strlenutf8 may differ from strlen:") _T_RE_EOL \
-  _T("  set n ~ strlenutf8 ") _T_STRLEN_CYRILLIC _T("  // sets n=12 (number of UTF-8 bytes)") _T_RE_EOL \
-  _T("  // strupper/strlower:") _T_RE_EOL \
-  _T("  set s = Text") _T_RE_EOL \
-  _T("  set t = $(s)           // t = Text") _T_RE_EOL \
-  _T("  set t ~ strupper $(s)  // t = TEXT") _T_RE_EOL \
-  _T("  set t ~ strlower $(s)  // t = text") _T_RE_EOL \
-  _T("  // substr:") _T_RE_EOL \
-  _T("  set s ~ substr 0 3  abcde  // abc (3 characters from position 0)") _T_RE_EOL \
-  _T("  set s ~ substr 2 2  abcde  // cd (2 characters from position 2)") _T_RE_EOL \
-  _T("  set s ~ substr 3 -  abcde  // de (substring from position 3 to the end)") _T_RE_EOL \
-  _T("  set s ~ substr 1 -2 abcde  // bc (substring from position 1 to length-2)") _T_RE_EOL \
-  _T("  set s ~ substr -3 - abcde  // cde (substring from position length-3 to the end)") _T_RE_EOL \
-  _T("  set s ~ substr -2 1 abcde  // d (1 character from position length-2)") _T_RE_EOL \
-  _T("  set s ~ substr -3 -2 abcde // c (substring from position length-3 to length-2)") _T_RE_EOL \
-  _T("  set s = abcde") _T_RE_EOL \
-  _T("  set t ~ substr 1 3 $(s)    // bcd (3 characters from position 1)") _T_RE_EOL \
-  _T("  // strfind/strrfind") _T_RE_EOL \
-  _T("  // * quotes are not treated as a part of a string itself") _T_RE_EOL \
-  _T("  set n ~ strfind \"Hello world\" Hello  // returns 0") _T_RE_EOL \
-  _T("  set n ~ strfind \"Hello world\" \"o\"    // returns 4 - \"o\" in \"Hello\"") _T_RE_EOL \
-  _T("  set n ~ strrfind \"Hello world\" o     // returns 7 - \"o\" in \"world\"") _T_RE_EOL \
-  _T("  set n ~ strrfind \"Hello world\" x     // returns -1 - \"x\" not found") _T_RE_EOL \
-  _T("  set n ~ strfind \"Hello world\" \"o y\"  // returns -1 - \"o y\" not found") _T_RE_EOL \
-  _T("  set s = abcd") _T_RE_EOL \
-  _T("  set n ~ strfind \"$(s)\" cd            // returns 2") _T_RE_EOL \
-  _T("  // strreplace") _T_RE_EOL \
-  _T("  // * quotes are not treated as a part of a string itself") _T_RE_EOL \
-  _T("  set s ~ strreplace \"Hello world\" \"o\" \"0\" // Hell0 w0rld    (\"o\" -> \"0\")") _T_RE_EOL \
-  _T("  set s ~ strreplace \"$(s)\" l 1            // He110 w0r1d    (\"l\" -> \"1\")") _T_RE_EOL \
-  _T("  set s ~ strreplace \"$(s)\" 1 \"y \"         // Hey y 0 w0ry d (\"1\" -> \"y \")") _T_RE_EOL \
-  _T("  set s ~ strreplace \"queen-bee\" ee \"\"     // qun-b          (\"ee\" -> \"\")") _T_RE_EOL \
-  _T_HELP_STRTOHEX_STRFROMHEX \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  User\'s variables have the lowest priority, so they can\'t override") _T_RE_EOL \
-  _T("  other (predefined) variables. Thus, you can set your own variables") _T_RE_EOL \
-  _T("  $(FILE_NAME), $(ARGV) and so on, but their values will not be") _T_RE_EOL \
-  _T("  available because of predefined variables with the same name.") _T_RE_EOL \
-  _T("  These variables are internal variables of NppExec, unlike") _T_RE_EOL \
-  _T("  environment variables which can be set using ENV_SET.") _T_RE_EOL \
-  _T("  NppExec uses Function Parser (fparser) to calculate the math") _T_RE_EOL \
-  _T("  expression given as \"set <var> ~ <math expression>\".") _T_RE_EOL \
-  _T("  The math expression can contain hex numbers with leading \"0x\"") _T_RE_EOL \
-  _T("  (e.g. set ans ~ 0x0F + 0x10A - 0xB).") _T_RE_EOL \
-  _T("  The following constants are hardcoded: WM_USER, NPPMSG.") _T_RE_EOL \
-  _T("  For more details about supported functions, see \"fparser.html\".") _T_RE_EOL \
-  _T("  You can use NPE_CMDALIAS to define a short alias to the built-in") _T_RE_EOL \
-  _T("  calculator:") _T_RE_EOL \
-  _T("    npe_cmdalias = = set ans ~  // \"=\" -> \"set ans ~\"") _T_RE_EOL \
-  _T("    = 1 + 2/3 + 4/5  // using the alias for calculations") _T_RE_EOL \
-  _T("  Local variables (\"set local <var>\") live just within a script") _T_RE_EOL \
-  _T("  where they were declared. When the script ends, all its local") _T_RE_EOL \
-  _T("  variables are automatically deleted.") _T_RE_EOL \
-  _T("  Within a script, a local variable overrides a global variable") _T_RE_EOL \
-  _T("  with the same name. Each script may have its own local variables") _T_RE_EOL \
-  _T("  that are not inherited by NPP_EXEC-ed scripts.") _T_RE_EOL \
-  _T("  The same applies to local variables created directly in NppExec\'s") _T_RE_EOL \
-  _T("  Console - these local variables live only in NppExec\'s Console") _T_RE_EOL \
-  _T("  and are not visible in NppExec\'s scripts.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  env_set/env_unset, if") _T_RE_EOL,
+  {
+    CMD_SET,
+    _T("COMMAND:  set/unset") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  set") _T_RE_EOL \
+    _T("  set <var>") _T_RE_EOL \
+    _T("  set <var> = <value>") _T_RE_EOL \
+    _T("  set $(<var>) = <value>") _T_RE_EOL \
+    _T("  set <var> ~ <math expression>") _T_RE_EOL \
+    _T("  set <var> ~ strlen <string>") _T_RE_EOL \
+    _T("  set <var> ~ strlenutf8 <string>") _T_RE_EOL \
+    _T("  set <var> ~ strupper <string>") _T_RE_EOL \
+    _T("  set <var> ~ strlower <string>") _T_RE_EOL \
+    _T("  set <var> ~ substr <pos> <len> <string>") _T_RE_EOL \
+    _T("  set <var> ~ strfind <string> <sfind>") _T_RE_EOL \
+    _T("  set <var> ~ strrfind <string> <sfind>") _T_RE_EOL \
+    _T("  set <var> ~ strreplace <string> <sfind> <sreplace>") _T_RE_EOL \
+    _T("  set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
+    _T("  set <var> ~ strtohex <string>") _T_RE_EOL \
+    _T("  set local") _T_RE_EOL \
+    _T("  set local <var>") _T_RE_EOL \
+    _T("  set local <var> = ...") _T_RE_EOL \
+    _T("  set local <var> ~ ...") _T_RE_EOL \
+    _T("  unset <var>") _T_RE_EOL \
+    _T("  unset <var> = <value>") _T_RE_EOL \
+    _T("  unset local <var>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Shows all user\'s variables (\"set\" without parameters)") _T_RE_EOL \
+    _T("  2. Shows the value of user\'s variable (\"set\" without \"=\")") _T_RE_EOL \
+    _T("  3. Sets the value of user\'s variable (\"set <var> = <value>\")") _T_RE_EOL \
+    _T("  4. Calculates the math expression (\"set <var> ~ <math expr>\")") _T_RE_EOL \
+    _T("  5a. Calculates the string length (\"set <var> ~ strlen <string>\")") _T_RE_EOL \
+    _T("  5b. Calculates the UTF-8 string length (\"set <var> ~ strlenutf8 <s>\")") _T_RE_EOL \
+    _T("  5c. Returns the string in upper case (\"set <var> ~ strupper <s>\")") _T_RE_EOL \
+    _T("  5d. Returns the string in lower case (\"set <var> ~ strlower <s>\")") _T_RE_EOL \
+    _T("  5e. Returns the substring (\"substr <pos> <len> <s>\")") _T_RE_EOL \
+    _T("  5f. Returns the position of first <sfind> in <string>") _T_RE_EOL \
+    _T("  5g. Returns the position of last <sfind> in <string>") _T_RE_EOL \
+    _T("  5h. Replaces all <sfind> with <sreplace> in <string>") _T_RE_EOL \
+    _T("  5i. Returns a string from the <hexstring>") _T_RE_EOL \
+    _T("  5j. Returns a hex-string from the <string>") _T_RE_EOL \
+    _T("  6.  Shows/sets the value of local variable (\"set local <var> ...\")") _T_RE_EOL \
+    _T("  7.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
+    _T("  8.  Removes the local variable <var> (\"unset local <var>\")") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  set p = C:\\Program Files") _T_RE_EOL \
+    _T("  dir $(p)\\*  // the same as dir C:\\Program Files\\*") _T_RE_EOL \
+    _T("  unset p     // removes the variable p") _T_RE_EOL \
+    _T("  // set vs. set local:") _T_RE_EOL \
+    _T("  set x = 10       // 10: global x") _T_RE_EOL \
+    _T("  set local x = 20 // 20: local x") _T_RE_EOL \
+    _T("  echo $(x)        // 20: substitutes the overridden (local) x") _T_RE_EOL \
+    _T("  set x            // 10: prints global x") _T_RE_EOL \
+    _T("  set local x      // 20: prints local x") _T_RE_EOL \
+    _T("  unset local x    // 20: deletes local x") _T_RE_EOL \
+    _T("  echo $(x)        // 10: substitutes the global x") _T_RE_EOL \
+    _T("  // calculations:") _T_RE_EOL \
+    _T("  set ans ~ 1 + 2*(3 + 4) - 0x5  // calculates the expression") _T_RE_EOL \
+    _T("  set ans ~ 0x001 | 0x010 | 0x100  // calculates the expression") _T_RE_EOL \
+    _T("  set ans ~ hex(0x001 | 0x010 | 0x100)  // calculates as hexadecimal") _T_RE_EOL \
+    _T("  set n ~ strlen   ABC D   // sets n=5 (skipping leading & trailing spaces)") _T_RE_EOL \
+    _T("  set n ~ strlen \"  ABC \"  // sets n=8 (including spaces & double quotes)") _T_RE_EOL \
+    _T("  // in case of non-Latin characters, strlenutf8 may differ from strlen:") _T_RE_EOL \
+    _T("  set n ~ strlenutf8 ") _T_STRLEN_CYRILLIC _T("  // sets n=12 (number of UTF-8 bytes)") _T_RE_EOL \
+    _T("  // strupper/strlower:") _T_RE_EOL \
+    _T("  set s = Text") _T_RE_EOL \
+    _T("  set t = $(s)           // t = Text") _T_RE_EOL \
+    _T("  set t ~ strupper $(s)  // t = TEXT") _T_RE_EOL \
+    _T("  set t ~ strlower $(s)  // t = text") _T_RE_EOL \
+    _T("  // substr:") _T_RE_EOL \
+    _T("  set s ~ substr 0 3  abcde  // abc (3 characters from position 0)") _T_RE_EOL \
+    _T("  set s ~ substr 2 2  abcde  // cd (2 characters from position 2)") _T_RE_EOL \
+    _T("  set s ~ substr 3 -  abcde  // de (substring from position 3 to the end)") _T_RE_EOL \
+    _T("  set s ~ substr 1 -2 abcde  // bc (substring from position 1 to length-2)") _T_RE_EOL \
+    _T("  set s ~ substr -3 - abcde  // cde (substring from position length-3 to the end)") _T_RE_EOL \
+    _T("  set s ~ substr -2 1 abcde  // d (1 character from position length-2)") _T_RE_EOL \
+    _T("  set s ~ substr -3 -2 abcde // c (substring from position length-3 to length-2)") _T_RE_EOL \
+    _T("  set s = abcde") _T_RE_EOL \
+    _T("  set t ~ substr 1 3 $(s)    // bcd (3 characters from position 1)") _T_RE_EOL \
+    _T("  // strfind/strrfind") _T_RE_EOL \
+    _T("  // * quotes are not treated as a part of a string itself") _T_RE_EOL \
+    _T("  set n ~ strfind \"Hello world\" Hello  // returns 0") _T_RE_EOL \
+    _T("  set n ~ strfind \"Hello world\" \"o\"    // returns 4 - \"o\" in \"Hello\"") _T_RE_EOL \
+    _T("  set n ~ strrfind \"Hello world\" o     // returns 7 - \"o\" in \"world\"") _T_RE_EOL \
+    _T("  set n ~ strrfind \"Hello world\" x     // returns -1 - \"x\" not found") _T_RE_EOL \
+    _T("  set n ~ strfind \"Hello world\" \"o y\"  // returns -1 - \"o y\" not found") _T_RE_EOL \
+    _T("  set s = abcd") _T_RE_EOL \
+    _T("  set n ~ strfind \"$(s)\" cd            // returns 2") _T_RE_EOL \
+    _T("  // strreplace") _T_RE_EOL \
+    _T("  // * quotes are not treated as a part of a string itself") _T_RE_EOL \
+    _T("  set s ~ strreplace \"Hello world\" \"o\" \"0\" // Hell0 w0rld    (\"o\" -> \"0\")") _T_RE_EOL \
+    _T("  set s ~ strreplace \"$(s)\" l 1            // He110 w0r1d    (\"l\" -> \"1\")") _T_RE_EOL \
+    _T("  set s ~ strreplace \"$(s)\" 1 \"y \"         // Hey y 0 w0ry d (\"1\" -> \"y \")") _T_RE_EOL \
+    _T("  set s ~ strreplace \"queen-bee\" ee \"\"     // qun-b          (\"ee\" -> \"\")") _T_RE_EOL \
+    _T_HELP_STRTOHEX_STRFROMHEX \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  User\'s variables have the lowest priority, so they can\'t override") _T_RE_EOL \
+    _T("  other (predefined) variables. Thus, you can set your own variables") _T_RE_EOL \
+    _T("  $(FILE_NAME), $(ARGV) and so on, but their values will not be") _T_RE_EOL \
+    _T("  available because of predefined variables with the same name.") _T_RE_EOL \
+    _T("  These variables are internal variables of NppExec, unlike") _T_RE_EOL \
+    _T("  environment variables which can be set using ENV_SET.") _T_RE_EOL \
+    _T("  NppExec uses Function Parser (fparser) to calculate the math") _T_RE_EOL \
+    _T("  expression given as \"set <var> ~ <math expression>\".") _T_RE_EOL \
+    _T("  The math expression can contain hex numbers with leading \"0x\"") _T_RE_EOL \
+    _T("  (e.g. set ans ~ 0x0F + 0x10A - 0xB).") _T_RE_EOL \
+    _T("  The following constants are hardcoded: WM_USER, NPPMSG.") _T_RE_EOL \
+    _T("  For more details about supported functions, see \"fparser.html\".") _T_RE_EOL \
+    _T("  You can use NPE_CMDALIAS to define a short alias to the built-in") _T_RE_EOL \
+    _T("  calculator:") _T_RE_EOL \
+    _T("    npe_cmdalias = = set ans ~  // \"=\" -> \"set ans ~\"") _T_RE_EOL \
+    _T("    = 1 + 2/3 + 4/5  // using the alias for calculations") _T_RE_EOL \
+    _T("  Local variables (\"set local <var>\") live just within a script") _T_RE_EOL \
+    _T("  where they were declared. When the script ends, all its local") _T_RE_EOL \
+    _T("  variables are automatically deleted.") _T_RE_EOL \
+    _T("  Within a script, a local variable overrides a global variable") _T_RE_EOL \
+    _T("  with the same name. Each script may have its own local variables") _T_RE_EOL \
+    _T("  that are not inherited by NPP_EXEC-ed scripts.") _T_RE_EOL \
+    _T("  The same applies to local variables created directly in NppExec\'s") _T_RE_EOL \
+    _T("  Console - these local variables live only in NppExec\'s Console") _T_RE_EOL \
+    _T("  and are not visible in NppExec\'s scripts.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  env_set/env_unset, if") _T_RE_EOL
+  },
   
   // ENV_SET
-  _T("COMMAND:  env_set/env_unset") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  env_set <var>") _T_RE_EOL \
-  _T("  env_set <var> = <value>") _T_RE_EOL \
-  _T("  env_unset <var>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Shows the value of environment variable (\"env_set\" without \"=\")") _T_RE_EOL \
-  _T("  2. Sets the value of environment variable (\"env_set <var> = <value>\")") _T_RE_EOL \
-  _T("  3. Removes/restores the environment variable <var> (\"env_unset <var>\")") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  env_set NPPHOME = $(NPP_DIRECTORY)  // new environment variable: NPPHOME") _T_RE_EOL \
-  _T("  env_set PATH = $(SYS.NPPHOME);$(SYS.PATH)  // modifying the PATH variable") _T_RE_EOL \
-  _T("  npp_run readme.txt  // opening \"readme.txt\" from Notepad++\'es folder") _T_RE_EOL \
-  _T("                      // (NPPHOME is the first path in the PATH variable)") _T_RE_EOL \
-  _T("  env_unset NPPHOME  // removing the environment variable NPPHOME") _T_RE_EOL \
-  _T("  env_unset PATH     // restoring initial value of PATH") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  Unlike set/unset, these commands deal with Notepad++\'es environment vars") _T_RE_EOL \
-  _T("  which are inherited by child processes (programs, tools) started from") _T_RE_EOL \
-  _T("  NppExec or Notepad++\'es \"Run...\" menu.") _T_RE_EOL \
-  _T("  NppExec can use the values of environment variables in a form of $(SYS.<var>).") _T_RE_EOL \
-  _T("  For example:") _T_RE_EOL \
-  _T("    env_set NPPHOME = $(NPP_DIRECTORY)  // new environment variable: NPPHOME") _T_RE_EOL \
-  _T("    echo $(SYS.NPPHOME)  // print the value of NPPHOME") _T_RE_EOL \
-  _T("  NppExec does not understand such form of environment variable as %<var>%.") _T_RE_EOL \
-  _T("  I.e. you can type  \"env_set PATH = C:\\tools;$(SYS.PATH)\",") _T_RE_EOL \
-  _T("  but not  \"env_set PATH = C:\\tools;%PATH%\"") _T_RE_EOL \
-  _T("  because NppExec does not support such declaration as %PATH%.") _T_RE_EOL \
-  _T("  You can use a value of other variable as an environment variable name:") _T_RE_EOL \
-  _T("    set a = PATH  // value of \'a\' is a string \"PATH\"") _T_RE_EOL \
-  _T("    env_set $(a) = C:\\tools  // env. variable PATH becomes \"C:\\tools\"") _T_RE_EOL \
-  _T("    echo $(SYS.PATH)  // prints the value of env. var PATH i.e. \"C:\\tools\"") _T_RE_EOL \
-  _T("    env_unset $(a)  // restore the initial value of PATH") _T_RE_EOL \
-  _T("  The ENV_UNSET command removes only those environment variables which") _T_RE_EOL \
-  _T("  have been created by the ENV_SET command (i.e. did not exist before).") _T_RE_EOL \
-  _T("  Other environment variables (such as PATH, TEMP etc.) are not removed") _T_RE_EOL \
-  _T("  by ENV_UNSET because these variables were not created by ENV_SET.") _T_RE_EOL \
-  _T("  Instead, ENV_UNSET restores initial values of these variables.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  set/unset") _T_RE_EOL,
+  {
+    CMD_ENVSET,
+    _T("COMMAND:  env_set/env_unset") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  env_set <var>") _T_RE_EOL \
+    _T("  env_set <var> = <value>") _T_RE_EOL \
+    _T("  env_unset <var>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Shows the value of environment variable (\"env_set\" without \"=\")") _T_RE_EOL \
+    _T("  2. Sets the value of environment variable (\"env_set <var> = <value>\")") _T_RE_EOL \
+    _T("  3. Removes/restores the environment variable <var> (\"env_unset <var>\")") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  env_set NPPHOME = $(NPP_DIRECTORY)  // new environment variable: NPPHOME") _T_RE_EOL \
+    _T("  env_set PATH = $(SYS.NPPHOME);$(SYS.PATH)  // modifying the PATH variable") _T_RE_EOL \
+    _T("  npp_run readme.txt  // opening \"readme.txt\" from Notepad++\'es folder") _T_RE_EOL \
+    _T("                      // (NPPHOME is the first path in the PATH variable)") _T_RE_EOL \
+    _T("  env_unset NPPHOME  // removing the environment variable NPPHOME") _T_RE_EOL \
+    _T("  env_unset PATH     // restoring initial value of PATH") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  Unlike set/unset, these commands deal with Notepad++\'es environment vars") _T_RE_EOL \
+    _T("  which are inherited by child processes (programs, tools) started from") _T_RE_EOL \
+    _T("  NppExec or Notepad++\'es \"Run...\" menu.") _T_RE_EOL \
+    _T("  NppExec can use the values of environment variables in a form of $(SYS.<var>).") _T_RE_EOL \
+    _T("  For example:") _T_RE_EOL \
+    _T("    env_set NPPHOME = $(NPP_DIRECTORY)  // new environment variable: NPPHOME") _T_RE_EOL \
+    _T("    echo $(SYS.NPPHOME)  // print the value of NPPHOME") _T_RE_EOL \
+    _T("  NppExec does not understand such form of environment variable as %<var>%.") _T_RE_EOL \
+    _T("  I.e. you can type  \"env_set PATH = C:\\tools;$(SYS.PATH)\",") _T_RE_EOL \
+    _T("  but not  \"env_set PATH = C:\\tools;%PATH%\"") _T_RE_EOL \
+    _T("  because NppExec does not support such declaration as %PATH%.") _T_RE_EOL \
+    _T("  You can use a value of other variable as an environment variable name:") _T_RE_EOL \
+    _T("    set a = PATH  // value of \'a\' is a string \"PATH\"") _T_RE_EOL \
+    _T("    env_set $(a) = C:\\tools  // env. variable PATH becomes \"C:\\tools\"") _T_RE_EOL \
+    _T("    echo $(SYS.PATH)  // prints the value of env. var PATH i.e. \"C:\\tools\"") _T_RE_EOL \
+    _T("    env_unset $(a)  // restore the initial value of PATH") _T_RE_EOL \
+    _T("  The ENV_UNSET command removes only those environment variables which") _T_RE_EOL \
+    _T("  have been created by the ENV_SET command (i.e. did not exist before).") _T_RE_EOL \
+    _T("  Other environment variables (such as PATH, TEMP etc.) are not removed") _T_RE_EOL \
+    _T("  by ENV_UNSET because these variables were not created by ENV_SET.") _T_RE_EOL \
+    _T("  Instead, ENV_UNSET restores initial values of these variables.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  set/unset") _T_RE_EOL
+  },
   
   // INPUTBOX
-  _T("COMMAND:  inputbox") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  inputbox \"message\"") _T_RE_EOL \
-  _T("  inputbox \"message\" : initial_value") _T_RE_EOL \
-  _T("  inputbox \"message\" :: initial_value") _T_RE_EOL \
-  _T("  inputbox \"message\" : \"value_name\" : initial_value") _T_RE_EOL \
-  _T("  inputbox \"message\" : \" \" : initial_value") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Shows the InputBox with a message \'message\';") _T_RE_EOL \
-  _T("     the input value is stored in $(INPUT), $(INPUT[1]) etc.") _T_RE_EOL \
-  _T("  2. Shows the InputBox with a message \'message\';") _T_RE_EOL \
-  _T("     the initial input value is set to \'initial_value\';") _T_RE_EOL \
-  _T("     the input value is stored in $(INPUT), $(INPUT[1]) etc.") _T_RE_EOL \
-  _T("  3. Shows the InputBox with a message \'message\';") _T_RE_EOL \
-  _T("     the text \"$(INPUT) =\" is replaced with \'value_name\'") _T_RE_EOL \
-  _T("     (use \"\" to keep \"$(INPUT) =\"; use \" \" to empty it);") _T_RE_EOL \
-  _T("     the initial input value is set to \'initial_value\';") _T_RE_EOL \
-  _T("     the input value is stored in $(INPUT), $(INPUT[1]) etc.") _T_RE_EOL \
-  _T("  * Note: $(INPUT), $(INPUT[1]) etc. are local variables.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  // show the InputBox...") _T_RE_EOL \
-  _T("  inputbox \"Input values of A, B and C separated by spaces:\"") _T_RE_EOL \
-  _T("  // update the values of our variables...") _T_RE_EOL \
-  _T("  set local a = $(input[1])  // e.g. \'A\' in \'A \"B B\" C\'") _T_RE_EOL \
-  _T("  set local b = $(input[2])  // e.g. \'B B\' in \'A \"B B\" C\'") _T_RE_EOL \
-  _T("  set local c = $(input[3])  // e.g. \'C\' in \'A \"B B\" C\'") _T_RE_EOL \
-  _T("  // show the InputBox with specified initial value...") _T_RE_EOL \
-  _T("  inputbox \"Please confirm the value of C:\" : $(c)") _T_RE_EOL \
-  _T("  // update the value of c...") _T_RE_EOL \
-  _T("  set local c = $(input)") _T_RE_EOL \
-  _T("  // show the InputBox with the text \"Input a:\", \"a =\"...") _T_RE_EOL \
-  _T("  inputbox \"Input a:\" : \"a =\" : ") _T_RE_EOL \
-  _T("  // show the InputBox with empty value name...") _T_RE_EOL \
-  _T("  inputbox \"Input a:\" : \" \" :   // notice the  : \" \" :  part!") _T_RE_EOL \
-  _T("  // show the initial value with a colon...") _T_RE_EOL \
-  _T("  inputbox \"Input a:\" : : 1 : 2   // notice the  : :  part!") _T_RE_EOL \
-  _T("  // the same...") _T_RE_EOL \
-  _T("  inputbox \"Input a:\" :: 1 : 2   // notice the  ::  part!") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  You can use any environment variable inside the input value,") _T_RE_EOL \
-  _T("  except $(ARGC), $(ARGV), $(ARGV[N]), $(RARGV) and $(RARGV[N]).") _T_RE_EOL \
-  _T("  To use values of $(ARGV) or $(RARGV) inside the input value,") _T_RE_EOL \
-  _T("  you can SET some variable and use this variable in the InputBox e.g.") _T_RE_EOL \
-  _T("      SET local arg1 = $(ARGV[1])") _T_RE_EOL \
-  _T("      INPUTBOX \"Input A:\"") _T_RE_EOL \
-  _T("      // ... the InputBox is shown, you can type: $(arg1)") _T_RE_EOL \
-  _T("      SET local a = $(INPUT)") _T_RE_EOL \
-  _T("      // ... $(a) becomes $(arg1) i.e. $(ARGV[1])") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  set, unset, if") _T_RE_EOL,
+  {
+    CMD_INPUTBOX,
+    _T("COMMAND:  inputbox") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  inputbox \"message\"") _T_RE_EOL \
+    _T("  inputbox \"message\" : initial_value") _T_RE_EOL \
+    _T("  inputbox \"message\" :: initial_value") _T_RE_EOL \
+    _T("  inputbox \"message\" : \"value_name\" : initial_value") _T_RE_EOL \
+    _T("  inputbox \"message\" : \" \" : initial_value") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Shows the InputBox with a message \'message\';") _T_RE_EOL \
+    _T("     the input value is stored in $(INPUT), $(INPUT[1]) etc.") _T_RE_EOL \
+    _T("  2. Shows the InputBox with a message \'message\';") _T_RE_EOL \
+    _T("     the initial input value is set to \'initial_value\';") _T_RE_EOL \
+    _T("     the input value is stored in $(INPUT), $(INPUT[1]) etc.") _T_RE_EOL \
+    _T("  3. Shows the InputBox with a message \'message\';") _T_RE_EOL \
+    _T("     the text \"$(INPUT) =\" is replaced with \'value_name\'") _T_RE_EOL \
+    _T("     (use \"\" to keep \"$(INPUT) =\"; use \" \" to empty it);") _T_RE_EOL \
+    _T("     the initial input value is set to \'initial_value\';") _T_RE_EOL \
+    _T("     the input value is stored in $(INPUT), $(INPUT[1]) etc.") _T_RE_EOL \
+    _T("  * Note: $(INPUT), $(INPUT[1]) etc. are local variables.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  // show the InputBox...") _T_RE_EOL \
+    _T("  inputbox \"Input values of A, B and C separated by spaces:\"") _T_RE_EOL \
+    _T("  // update the values of our variables...") _T_RE_EOL \
+    _T("  set local a = $(input[1])  // e.g. \'A\' in \'A \"B B\" C\'") _T_RE_EOL \
+    _T("  set local b = $(input[2])  // e.g. \'B B\' in \'A \"B B\" C\'") _T_RE_EOL \
+    _T("  set local c = $(input[3])  // e.g. \'C\' in \'A \"B B\" C\'") _T_RE_EOL \
+    _T("  // show the InputBox with specified initial value...") _T_RE_EOL \
+    _T("  inputbox \"Please confirm the value of C:\" : $(c)") _T_RE_EOL \
+    _T("  // update the value of c...") _T_RE_EOL \
+    _T("  set local c = $(input)") _T_RE_EOL \
+    _T("  // show the InputBox with the text \"Input a:\", \"a =\"...") _T_RE_EOL \
+    _T("  inputbox \"Input a:\" : \"a =\" : ") _T_RE_EOL \
+    _T("  // show the InputBox with empty value name...") _T_RE_EOL \
+    _T("  inputbox \"Input a:\" : \" \" :   // notice the  : \" \" :  part!") _T_RE_EOL \
+    _T("  // show the initial value with a colon...") _T_RE_EOL \
+    _T("  inputbox \"Input a:\" : : 1 : 2   // notice the  : :  part!") _T_RE_EOL \
+    _T("  // the same...") _T_RE_EOL \
+    _T("  inputbox \"Input a:\" :: 1 : 2   // notice the  ::  part!") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  You can use any environment variable inside the input value,") _T_RE_EOL \
+    _T("  except $(ARGC), $(ARGV), $(ARGV[N]), $(RARGV) and $(RARGV[N]).") _T_RE_EOL \
+    _T("  To use values of $(ARGV) or $(RARGV) inside the input value,") _T_RE_EOL \
+    _T("  you can SET some variable and use this variable in the InputBox e.g.") _T_RE_EOL \
+    _T("      SET local arg1 = $(ARGV[1])") _T_RE_EOL \
+    _T("      INPUTBOX \"Input A:\"") _T_RE_EOL \
+    _T("      // ... the InputBox is shown, you can type: $(arg1)") _T_RE_EOL \
+    _T("      SET local a = $(INPUT)") _T_RE_EOL \
+    _T("      // ... $(a) becomes $(arg1) i.e. $(ARGV[1])") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  set, unset, if") _T_RE_EOL
+  },
   
   // NPE_CMDALIAS
-  _T("COMMAND:  npe_cmdalias") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npe_cmdalias") _T_RE_EOL \
-  _T("  npe_cmdalias <alias>") _T_RE_EOL \
-  _T("  npe_cmdalias <alias> =") _T_RE_EOL \
-  _T("  npe_cmdalias <alias> = <command>") _T_RE_EOL \
-  _T("  npe_cmdalias +v <alias> = <command>") _T_RE_EOL \
-  _T("  npe_cmdalias -v <alias> = <command>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Shows all command aliases (\"npe_cmdalias\" without parameters)") _T_RE_EOL \
-  _T("  2. Shows the value of command alias (\"npe_cmdalias\" without \"=\")") _T_RE_EOL \
-  _T("  3. Removes the command alias (\"npe_cmdalias\" with empty \"=\")") _T_RE_EOL \
-  _T("  4. Sets the value of command alias (\"npe_cmdalias <alias> = <command>\")") _T_RE_EOL \
-  _T("  5.1. +v uses delayed vars substitution (default), e.g. $(x) remains $(x)") _T_RE_EOL \
-  _T("  5.2. -v uses instant vars substitution, e.g. $(x) is replaced with its value") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  // basic examples:") _T_RE_EOL \
-  _T("  npe_cmdalias = = calc            // type just \"=\" instead of \"calc\"") _T_RE_EOL \
-  _T("  npe_cmdalias copy = cmd /c copy  // \"copy\" instead of \"cmd /c copy\"") _T_RE_EOL \
-  _T("  npe_cmdalias /c = cmd /c         // \"/c\" instead of \"cmd /c\"") _T_RE_EOL \
-  _T("  npe_cmdalias /c                  // show the value of command alias") _T_RE_EOL \
-  _T("  npe_cmdalias /c =                // remove the command alias") _T_RE_EOL \
-  _T("  // examples with +v and -v:") _T_RE_EOL \
-  _T("  npe_cmdalias e1 = echo $(A), $(B) // uses delayed substitution") _T_RE_EOL \
-  _T("  npe_cmdalias +v e2 = echo $(A), $(B) // uses delayed substitution") _T_RE_EOL \
-  _T("  set A = 123") _T_RE_EOL \
-  _T("  set B = 456") _T_RE_EOL \
-  _T("  e1 // prints \"123, 456\" because delayed substitution is used") _T_RE_EOL \
-  _T("  e2 // prints \"123, 456\" because delayed substitution is used") _T_RE_EOL \
-  _T("  npe_cmdalias -v e3 = echo $(A), $(B) // uses instant substitution") _T_RE_EOL \
-  _T("  set A = abc") _T_RE_EOL \
-  _T("  set B = def") _T_RE_EOL \
-  _T("  e1 // prints \"abc, def\" because delayed substitution is used") _T_RE_EOL \
-  _T("  e2 // prints \"abc, def\" because delayed substitution is used") _T_RE_EOL \
-  _T("  e3 // prints \"123, 456\" because instant substitution was used") _T_RE_EOL \
-  _T("  // delayed substitution example:") _T_RE_EOL \
-  _T("  npe_cmdalias fp = nircmd clipboard set $(FULL_CURRENT_PATH)") _T_RE_EOL \
-  _T("  fp // always uses the actual file path") _T_RE_EOL \
-  _T("  // now open or switch to another file in Notepad++") _T_RE_EOL \
-  _T("  fp // always uses the actual file path") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  To use the command alias, type it in the beginning of the input string") _T_RE_EOL \
-  _T("  (e.g. \"/c copy /?\" for the command alias \"/c -> cmd /c\"), otherwise") _T_RE_EOL \
-  _T("  it will NOT be treated as a command alias. For example, \"/c\" inside") _T_RE_EOL \
-  _T("  \"cmd /c move /?\" is not treated as a command alias because it is located") _T_RE_EOL \
-  _T("  in the middle of the string, so this string remains unmodified.") _T_RE_EOL \
-  _T("  To use -v or +v as the alias name, just specify the desired mode prior") _T_RE_EOL \
-  _T("  to the alias name:") _T_RE_EOL \
-  _T("    npe_cmdalias -v -v = ... // alias name is \"-v\", instant substitution") _T_RE_EOL \
-  _T("    npe_cmdalias +v -v = ... // alias name is \"-v\", delayed substitution") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npe_console q+/q-") _T_RE_EOL,
+  {
+    CMD_NPECMDALIAS,
+    _T("COMMAND:  npe_cmdalias") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npe_cmdalias") _T_RE_EOL \
+    _T("  npe_cmdalias <alias>") _T_RE_EOL \
+    _T("  npe_cmdalias <alias> =") _T_RE_EOL \
+    _T("  npe_cmdalias <alias> = <command>") _T_RE_EOL \
+    _T("  npe_cmdalias +v <alias> = <command>") _T_RE_EOL \
+    _T("  npe_cmdalias -v <alias> = <command>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Shows all command aliases (\"npe_cmdalias\" without parameters)") _T_RE_EOL \
+    _T("  2. Shows the value of command alias (\"npe_cmdalias\" without \"=\")") _T_RE_EOL \
+    _T("  3. Removes the command alias (\"npe_cmdalias\" with empty \"=\")") _T_RE_EOL \
+    _T("  4. Sets the value of command alias (\"npe_cmdalias <alias> = <command>\")") _T_RE_EOL \
+    _T("  5.1. +v uses delayed vars substitution (default), e.g. $(x) remains $(x)") _T_RE_EOL \
+    _T("  5.2. -v uses instant vars substitution, e.g. $(x) is replaced with its value") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  // basic examples:") _T_RE_EOL \
+    _T("  npe_cmdalias = = calc            // type just \"=\" instead of \"calc\"") _T_RE_EOL \
+    _T("  npe_cmdalias copy = cmd /c copy  // \"copy\" instead of \"cmd /c copy\"") _T_RE_EOL \
+    _T("  npe_cmdalias /c = cmd /c         // \"/c\" instead of \"cmd /c\"") _T_RE_EOL \
+    _T("  npe_cmdalias /c                  // show the value of command alias") _T_RE_EOL \
+    _T("  npe_cmdalias /c =                // remove the command alias") _T_RE_EOL \
+    _T("  // examples with +v and -v:") _T_RE_EOL \
+    _T("  npe_cmdalias e1 = echo $(A), $(B) // uses delayed substitution") _T_RE_EOL \
+    _T("  npe_cmdalias +v e2 = echo $(A), $(B) // uses delayed substitution") _T_RE_EOL \
+    _T("  set A = 123") _T_RE_EOL \
+    _T("  set B = 456") _T_RE_EOL \
+    _T("  e1 // prints \"123, 456\" because delayed substitution is used") _T_RE_EOL \
+    _T("  e2 // prints \"123, 456\" because delayed substitution is used") _T_RE_EOL \
+    _T("  npe_cmdalias -v e3 = echo $(A), $(B) // uses instant substitution") _T_RE_EOL \
+    _T("  set A = abc") _T_RE_EOL \
+    _T("  set B = def") _T_RE_EOL \
+    _T("  e1 // prints \"abc, def\" because delayed substitution is used") _T_RE_EOL \
+    _T("  e2 // prints \"abc, def\" because delayed substitution is used") _T_RE_EOL \
+    _T("  e3 // prints \"123, 456\" because instant substitution was used") _T_RE_EOL \
+    _T("  // delayed substitution example:") _T_RE_EOL \
+    _T("  npe_cmdalias fp = nircmd clipboard set $(FULL_CURRENT_PATH)") _T_RE_EOL \
+    _T("  fp // always uses the actual file path") _T_RE_EOL \
+    _T("  // now open or switch to another file in Notepad++") _T_RE_EOL \
+    _T("  fp // always uses the actual file path") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  To use the command alias, type it in the beginning of the input string") _T_RE_EOL \
+    _T("  (e.g. \"/c copy /?\" for the command alias \"/c -> cmd /c\"), otherwise") _T_RE_EOL \
+    _T("  it will NOT be treated as a command alias. For example, \"/c\" inside") _T_RE_EOL \
+    _T("  \"cmd /c move /?\" is not treated as a command alias because it is located") _T_RE_EOL \
+    _T("  in the middle of the string, so this string remains unmodified.") _T_RE_EOL \
+    _T("  To use -v or +v as the alias name, just specify the desired mode prior") _T_RE_EOL \
+    _T("  to the alias name:") _T_RE_EOL \
+    _T("    npe_cmdalias -v -v = ... // alias name is \"-v\", instant substitution") _T_RE_EOL \
+    _T("    npe_cmdalias +v -v = ... // alias name is \"-v\", delayed substitution") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npe_console q+/q-") _T_RE_EOL
+  },
   
   // NPE_CONSOLE
-  _T("COMMAND:  npe_console") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npe_console") _T_RE_EOL \
-  _T("  npe_console a+/a- d+/d- h+/h- m+/m- q+/q- v+/v- f+/f- r+/r- k0..3") _T_RE_EOL \
-  _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
-  _T("  npe_console <options> --") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Without parameter - shows current Console options/mode") _T_RE_EOL \
-  _T("  2. X+/X-  enables/disables the option/mode X:") _T_RE_EOL \
-  _T("       a+/a-  append mode (don\'t clear Console) on/off") _T_RE_EOL \
-  _T("       d+/d-  follow $(CURRENT_DIRECTORY) on/off") _T_RE_EOL \
-  _T("       h+/h-  console commands history on/off") _T_RE_EOL \
-  _T("       m+/m-  console internal messages on/off") _T_RE_EOL \
-  _T("       q+/q-  command aliases on/off") _T_RE_EOL \
-  _T("       v+/v-  set the $(OUTPUT) local variable on/off") _T_RE_EOL \
-  _T("       f+/f-  console output filter on/off") _T_RE_EOL \
-  _T("       r+/r-  console output replace filter on/off") _T_RE_EOL \
-  _T("       k0..3  catch NppExec\'s shortcut keys on/off") _T_RE_EOL \
-  _T("  3. Y0/Y1/Y2  sets the value of the option/mode Y:") _T_RE_EOL \
-  _T("       o0/o1/o2  console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
-  _T("       i0/i1/i2  console input encoding: ANSI/OEM/UTF8") _T_RE_EOL \
-  _T("  4. --  silent (don\'t print Console mode info)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  npe_console o1 i1 a+ --") _T_RE_EOL \
-  _T("    //// OEM/OEM, append mode, silent") _T_RE_EOL \
-  _T("  npe_console h+ m+ a- i0 o0") _T_RE_EOL \
-  _T("    //// history on, int. msgs on, don\'t append, ANSI/ANSI") _T_RE_EOL \
-  _T("  npe_console d+ k0 q-") _T_RE_EOL \
-  _T("    //// follow curr. dir, don\'t catch shortcut keys, cmd aliases off") _T_RE_EOL \
-  _T("  npe_console -- v+ m- // silent, enable the $(OUTPUT) var, no int.msgs") _T_RE_EOL \
-  _T("  cmd /c time /t       // cmd prints current time; $(OUTPUT) is set") _T_RE_EOL \
-  _T("  echo $(OUTPUT)       // NppExec prints $(OUTPUT) i.e. current time") _T_RE_EOL \
-  _T("  npe_console -- v- m+ // don\'t forget to disable the $(OUTPUT) var") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  a+/a-  Console append mode on/off.") _T_RE_EOL \
-  _T("         There is no corresponding menu item.") _T_RE_EOL \
-  _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
-  _T("         Default value: off") _T_RE_EOL \
-  _T("         (Console is automatically cleared when new script starts).") _T_RE_EOL \
-  _T("  d+/d-  Follow $(CURRENT_DIRECTORY) on/off.") _T_RE_EOL \
-  _T("         Corresponding menu item: Follow $(CURRENT_DIRECTORY).") _T_RE_EOL \
-  _T("         If On, NppExec follows the directory of current file.") _T_RE_EOL \
-  _T("  h+/h-  Console commands history on/off.") _T_RE_EOL \
-  _T("         Corresponding menu item: Console Commands History.") _T_RE_EOL \
-  _T("         If On, NppExec\'s Console remembers the commands you typed.") _T_RE_EOL \
-  _T("  m+/m-  Console internal messages on/off.") _T_RE_EOL \
-  _T("         Corresponding menu item (inverse): No internal messages.") _T_RE_EOL \
-  _T("         If On, NppExec\'s Console prints all internal (green) messages.") _T_RE_EOL \
-  _T("  q+/q-  Command aliases on/off.") _T_RE_EOL \
-  _T("         Corresponding menu item (inverse): Disable command aliases.") _T_RE_EOL \
-  _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
-  _T("         Default value: on") _T_RE_EOL \
-  _T("         (command aliases created with NPE_CMDALIAS are active).") _T_RE_EOL \
-  _T("  v+/v-  Set the $(OUTPUT) local variable on/off.") _T_RE_EOL \
-  _T("         (this variable will store the child process\'es output).") _T_RE_EOL \
-  _T("         There is no corresponding menu item.") _T_RE_EOL \
-  _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
-  _T("         Default value: off.") _T_RE_EOL \
-  _T("  f+/f-  Console output filter on/off.") _T_RE_EOL \
-  _T("         Corresponding menu item: Console Output Filters...") _T_RE_EOL \
-  _T("  r+/r-  Console output replace filter on/off.") _T_RE_EOL \
-  _T("         Corresponding menu item: Console Output Filters...") _T_RE_EOL \
-  _T("  k0..3  Catch NppExec\'s shortcut keys on/off") _T_RE_EOL \
-  _T("         Controls if NppExec\'s Console catches shortcut keys related") _T_RE_EOL \
-  _T("         to NppExec\'s menu items or scripts. This allows to execute") _T_RE_EOL \
-  _T("         the corresponding commands from NppExec\'s Console when the") _T_RE_EOL \
-  _T("         associated shortcut keys are pressed.") _T_RE_EOL \
-  _T("         k0: Do not catch NppExec\'s shortcut keys;") _T_RE_EOL \
-  _T("         k1: Catch standard NppExec\'s shortcut keys (Execute... etc.);") _T_RE_EOL \
-  _T("         k2: Catch user\'s NppExec\'s shortcut keys (scripts\' menu items);") _T_RE_EOL \
-  _T("         k3: Catch all NppExec\'s shortcut keys (standard+scripts).") _T_RE_EOL \
-  _T("         There is no corresponding menu item.") _T_RE_EOL \
-  _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
-  _T("         Default value: 3.") _T_RE_EOL \
-  _T("  o0/o1/o2  Console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
-  _T("            Corresponding menu item: Console Output...") _T_RE_EOL \
-  _T("            Sets Console output encoding.") _T_RE_EOL \
-  _T("  i0/i1/i2  Console input encoding: ANSI/OEM/UTF8") _T_RE_EOL \
-  _T("            Corresponding menu item: Console Output...") _T_RE_EOL \
-  _T("            Sets Console input encoding.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  con_filter, npp_console, npe_noemptyvars") _T_RE_EOL,
+  {
+    CMD_NPECONSOLE,
+    _T("COMMAND:  npe_console") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npe_console") _T_RE_EOL \
+    _T("  npe_console a+/a- d+/d- h+/h- m+/m- q+/q- v+/v- f+/f- r+/r- k0..3") _T_RE_EOL \
+    _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
+    _T("  npe_console <options> --") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Without parameter - shows current Console options/mode") _T_RE_EOL \
+    _T("  2. X+/X-  enables/disables the option/mode X:") _T_RE_EOL \
+    _T("       a+/a-  append mode (don\'t clear Console) on/off") _T_RE_EOL \
+    _T("       d+/d-  follow $(CURRENT_DIRECTORY) on/off") _T_RE_EOL \
+    _T("       h+/h-  console commands history on/off") _T_RE_EOL \
+    _T("       m+/m-  console internal messages on/off") _T_RE_EOL \
+    _T("       q+/q-  command aliases on/off") _T_RE_EOL \
+    _T("       v+/v-  set the $(OUTPUT) local variable on/off") _T_RE_EOL \
+    _T("       f+/f-  console output filter on/off") _T_RE_EOL \
+    _T("       r+/r-  console output replace filter on/off") _T_RE_EOL \
+    _T("       k0..3  catch NppExec\'s shortcut keys on/off") _T_RE_EOL \
+    _T("  3. Y0/Y1/Y2  sets the value of the option/mode Y:") _T_RE_EOL \
+    _T("       o0/o1/o2  console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
+    _T("       i0/i1/i2  console input encoding: ANSI/OEM/UTF8") _T_RE_EOL \
+    _T("  4. --  silent (don\'t print Console mode info)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npe_console o1 i1 a+ --") _T_RE_EOL \
+    _T("    //// OEM/OEM, append mode, silent") _T_RE_EOL \
+    _T("  npe_console h+ m+ a- i0 o0") _T_RE_EOL \
+    _T("    //// history on, int. msgs on, don\'t append, ANSI/ANSI") _T_RE_EOL \
+    _T("  npe_console d+ k0 q-") _T_RE_EOL \
+    _T("    //// follow curr. dir, don\'t catch shortcut keys, cmd aliases off") _T_RE_EOL \
+    _T("  npe_console -- v+ m- // silent, enable the $(OUTPUT) var, no int.msgs") _T_RE_EOL \
+    _T("  cmd /c time /t       // cmd prints current time; $(OUTPUT) is set") _T_RE_EOL \
+    _T("  echo $(OUTPUT)       // NppExec prints $(OUTPUT) i.e. current time") _T_RE_EOL \
+    _T("  npe_console -- v- m+ // don\'t forget to disable the $(OUTPUT) var") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  a+/a-  Console append mode on/off.") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
+    _T("         Default value: off") _T_RE_EOL \
+    _T("         (Console is automatically cleared when new script starts).") _T_RE_EOL \
+    _T("  d+/d-  Follow $(CURRENT_DIRECTORY) on/off.") _T_RE_EOL \
+    _T("         Corresponding menu item: Follow $(CURRENT_DIRECTORY).") _T_RE_EOL \
+    _T("         If On, NppExec follows the directory of current file.") _T_RE_EOL \
+    _T("  h+/h-  Console commands history on/off.") _T_RE_EOL \
+    _T("         Corresponding menu item: Console Commands History.") _T_RE_EOL \
+    _T("         If On, NppExec\'s Console remembers the commands you typed.") _T_RE_EOL \
+    _T("  m+/m-  Console internal messages on/off.") _T_RE_EOL \
+    _T("         Corresponding menu item (inverse): No internal messages.") _T_RE_EOL \
+    _T("         If On, NppExec\'s Console prints all internal (green) messages.") _T_RE_EOL \
+    _T("  q+/q-  Command aliases on/off.") _T_RE_EOL \
+    _T("         Corresponding menu item (inverse): Disable command aliases.") _T_RE_EOL \
+    _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
+    _T("         Default value: on") _T_RE_EOL \
+    _T("         (command aliases created with NPE_CMDALIAS are active).") _T_RE_EOL \
+    _T("  v+/v-  Set the $(OUTPUT) local variable on/off.") _T_RE_EOL \
+    _T("         (this variable will store the child process\'es output).") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
+    _T("         Default value: off.") _T_RE_EOL \
+    _T("  f+/f-  Console output filter on/off.") _T_RE_EOL \
+    _T("         Corresponding menu item: Console Output Filters...") _T_RE_EOL \
+    _T("  r+/r-  Console output replace filter on/off.") _T_RE_EOL \
+    _T("         Corresponding menu item: Console Output Filters...") _T_RE_EOL \
+    _T("  k0..3  Catch NppExec\'s shortcut keys on/off") _T_RE_EOL \
+    _T("         Controls if NppExec\'s Console catches shortcut keys related") _T_RE_EOL \
+    _T("         to NppExec\'s menu items or scripts. This allows to execute") _T_RE_EOL \
+    _T("         the corresponding commands from NppExec\'s Console when the") _T_RE_EOL \
+    _T("         associated shortcut keys are pressed.") _T_RE_EOL \
+    _T("         k0: Do not catch NppExec\'s shortcut keys;") _T_RE_EOL \
+    _T("         k1: Catch standard NppExec\'s shortcut keys (Execute... etc.);") _T_RE_EOL \
+    _T("         k2: Catch user\'s NppExec\'s shortcut keys (scripts\' menu items);") _T_RE_EOL \
+    _T("         k3: Catch all NppExec\'s shortcut keys (standard+scripts).") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
+    _T("         Default value: 3.") _T_RE_EOL \
+    _T("  o0/o1/o2  Console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
+    _T("            Corresponding menu item: Console Output...") _T_RE_EOL \
+    _T("            Sets Console output encoding.") _T_RE_EOL \
+    _T("  i0/i1/i2  Console input encoding: ANSI/OEM/UTF8") _T_RE_EOL \
+    _T("            Corresponding menu item: Console Output...") _T_RE_EOL \
+    _T("            Sets Console input encoding.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  con_filter, npp_console, npe_noemptyvars") _T_RE_EOL
+  },
 
   // NPE_DEBUGLOG
-  _T("COMMAND:  npe_debuglog") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npe_debuglog") _T_RE_EOL \
-  _T("  npe_debuglog on") _T_RE_EOL \
-  _T("  npe_debuglog 1") _T_RE_EOL \
-  _T("  npe_debuglog off") _T_RE_EOL \
-  _T("  npe_debuglog 0") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Without parameter - shows current Debug Log state (On/Off)") _T_RE_EOL \
-  _T("  2. On or 1 - enables the Debug Log in NppExec's Console") _T_RE_EOL \
-  _T("  3. Off or 0 - disables the Debug Log in NppExec's Console") _T_RE_EOL,
+  {
+    CMD_NPEDEBUGLOG,
+    _T("COMMAND:  npe_debuglog") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npe_debuglog") _T_RE_EOL \
+    _T("  npe_debuglog on") _T_RE_EOL \
+    _T("  npe_debuglog 1") _T_RE_EOL \
+    _T("  npe_debuglog off") _T_RE_EOL \
+    _T("  npe_debuglog 0") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Without parameter - shows current Debug Log state (On/Off)") _T_RE_EOL \
+    _T("  2. On or 1 - enables the Debug Log in NppExec's Console") _T_RE_EOL \
+    _T("  3. Off or 0 - disables the Debug Log in NppExec's Console") _T_RE_EOL
+  },
 
   // NPE_NOEMPTYVARS
-  _T("COMMAND:  npe_noemptyvars") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npe_noemptyvars") _T_RE_EOL \
-  _T("  npe_noemptyvars 1") _T_RE_EOL \
-  _T("  npe_noemptyvars 0") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Without parameter - shows current option\'s state") _T_RE_EOL \
-  _T("  2. 1 or On - enables replacement of empty (uninitialized) vars") _T_RE_EOL \
-  _T("  3. 0 or Off - disables replacement of empty (uninitialized) vars") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  unset var            // to be sure that $(var) is uninitialized") _T_RE_EOL \
-  _T("  unset local var      // to be sure that $(var) is uninitialized") _T_RE_EOL \
-  _T("  npe_noemptyvars 0    // disabled") _T_RE_EOL \
-  _T("  echo var = \"$(var)\"  // prints: var = \"$(var)\"") _T_RE_EOL \
-  _T("  npe_noemptyvars 1    // enabled") _T_RE_EOL \
-  _T("  echo var = \"$(var)\"  // prints: var = \"\"") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  Refer to NppExec.ini, parameter NoEmptyVars in the [Console] section.") _T_RE_EOL \
-  _T("  This option is not saved when you close Notepad++.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  set, echo, npe_console") _T_RE_EOL,
+  {
+    CMD_NPENOEMPTYVARS,
+    _T("COMMAND:  npe_noemptyvars") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npe_noemptyvars") _T_RE_EOL \
+    _T("  npe_noemptyvars 1") _T_RE_EOL \
+    _T("  npe_noemptyvars 0") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Without parameter - shows current option\'s state") _T_RE_EOL \
+    _T("  2. 1 or On - enables replacement of empty (uninitialized) vars") _T_RE_EOL \
+    _T("  3. 0 or Off - disables replacement of empty (uninitialized) vars") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  unset var            // to be sure that $(var) is uninitialized") _T_RE_EOL \
+    _T("  unset local var      // to be sure that $(var) is uninitialized") _T_RE_EOL \
+    _T("  npe_noemptyvars 0    // disabled") _T_RE_EOL \
+    _T("  echo var = \"$(var)\"  // prints: var = \"$(var)\"") _T_RE_EOL \
+    _T("  npe_noemptyvars 1    // enabled") _T_RE_EOL \
+    _T("  echo var = \"$(var)\"  // prints: var = \"\"") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  Refer to NppExec.ini, parameter NoEmptyVars in the [Console] section.") _T_RE_EOL \
+    _T("  This option is not saved when you close Notepad++.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  set, echo, npe_console") _T_RE_EOL
+  },
 
   // NPE_QUEUE
-  _T("COMMAND:  npe_queue") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  npe_queue <command>") _T_RE_EOL \
-  _T("  npe_queue +s/-s +v/-v <command>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Queues a command to be executed after the current NppExec's script is finished.") _T_RE_EOL \
-  _T("  +s - execute the queued command as a separate NppExec's script (default)") _T_RE_EOL \
-  _T("  -s - execute the queued command in the scope of the current NppExec's script") _T_RE_EOL \
-  _T("  +v - use delayed vars substitution (default), e.g. $(x) remains $(x)") _T_RE_EOL \
-  _T("  -v - use instant vars substitution, e.g. $(x) is replaced with its value") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  // queue each command as a separate script:") _T_RE_EOL \
-  _T("  set X = 10") _T_RE_EOL \
-  _T("  npe_queue set X = 20 // queued: will set X to 20") _T_RE_EOL \
-  _T("  echo $(X) // prints the current value of X, i.e. 10") _T_RE_EOL \
-  _T("  npe_queue echo $(X) // queued: will print the latest value of X, i.e. 20") _T_RE_EOL \
-  _T("  npe_queue -v echo $(X) // queued: will print the current value of X, i.e. 10") _T_RE_EOL \
-  _T("  // queue in the scope of the current script:") _T_RE_EOL \
-  _T("  set X = 10") _T_RE_EOL \
-  _T("  npe_queue -s set X = 20 // queued: will set X to 20") _T_RE_EOL \
-  _T("  echo $(X) // prints the current value of X, i.e. 10") _T_RE_EOL \
-  _T("  npe_queue -s +v echo $(X) // queued: will print the latest value of X, i.e. 20") _T_RE_EOL \
-  _T("  npe_queue -v -s echo $(X) // queued: will print the current value of X, i.e. 10") _T_RE_EOL \
-  _T("  // the order of execution:") _T_RE_EOL \
-  _T("  npe_queue echo 5th") _T_RE_EOL \
-  _T("  npe_queue echo 6th") _T_RE_EOL \
-  _T("  npe_queue -s echo 3rd") _T_RE_EOL \
-  _T("  npe_queue -s echo 4th") _T_RE_EOL \
-  _T("  echo 1st") _T_RE_EOL \
-  _T("  echo 2nd") _T_RE_EOL \
-  _T("  // just a nice script that looks elegant:") _T_RE_EOL \
-  _T("  npp_console -") _T_RE_EOL \
-  _T("  npe_console -- v+") _T_RE_EOL \
-  _T("  cmd /c time /t") _T_RE_EOL \
-  _T("  npe_queue -v -s echo $(OUTPUT)") _T_RE_EOL \
-  _T("  npe_console -- v-") _T_RE_EOL \
-  _T("  npp_console +") _T_RE_EOL \
-  _T("  // now something really crazy, just because we _can_ do it:") _T_RE_EOL \
-  _T("  npe_queue npe_queue npe_queue sleep 2000 Let's sleep for 2 seconds...") _T_RE_EOL \
-  _T("  npe_queue -s npe_queue -s npe_queue -s sleep 2000 Let's sleep for 2 seconds...") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  The parameters +v/-v and +s/-s can be specified in any order, but always") _T_RE_EOL \
-  _T("  right after \"npe_queue\" and before the command to be executed. Both the") _T_RE_EOL \
-  _T("  parameters can be omitted.") _T_RE_EOL \
-  _T("  The NPE_QUEUE command can be useful in combination with the \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("\" prefix.") _T_RE_EOL \
-  _T("  For example, if cmd.exe is running in NppExec's Console and you realized you") _T_RE_EOL \
-  _T("  want some command to be executed right after the cmd.exe has finished, it can") _T_RE_EOL \
-  _T("  be queued right from the cmd's prompt:") _T_RE_EOL \
-  _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("npe_queue npp_console off") _T_RE_EOL \
-  _T("  This will close the Console right after you have finished to work with the") _T_RE_EOL \
-  _T("  cmd.exe. (Note: as the \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("\" prefix tells NppExec to start a collateral") _T_RE_EOL \
-  _T("  script in this case, the usage of \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("npe_queue -s npp_console off\"") _T_RE_EOL \
-  _T("  (with \"-s\") would be equivalent to a simple \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("npp_console off\", thus") _T_RE_EOL \
-  _T("  trying to execute it immediately rather than queuing.)") _T_RE_EOL \
-  _T("  The parameter \"-v\" is necessary when working with local variables. Consider") _T_RE_EOL \
-  _T("  the following examples:") _T_RE_EOL \
-  _T("    // example 1, inside NppExec's script:") _T_RE_EOL \
-  _T("    set local a = 12345") _T_RE_EOL \
-  _T("    npe_queue -v echo $(a)") _T_RE_EOL \
-  _T("    // example 2, in NppExec's Console while some process is running:") _T_RE_EOL \
-  _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("npe_queue -v echo $(pid)") _T_RE_EOL \
-  _T("  In both situations, the variables $(a) and $(pid) are local variables. If the") _T_RE_EOL \
-  _T("  \"-v\" parameter was not specified, it would mean: print the value of $(a) or") _T_RE_EOL \
-  _T("  $(pid) at the moment of the previous script or process has finished. But, as") _T_RE_EOL \
-  _T("  these variables are local ones, they will not exist at that moment! So, most") _T_RE_EOL \
-  _T("  likely, an empty string will be printed - unless there is another, non-local,") _T_RE_EOL \
-  _T("  variable with the same name.") _T_RE_EOL \
-  _T("  Here is another non-intuitive example: as NPE_QUEUE queues a given command as") _T_RE_EOL \
-  _T("  a separate NppExec's script (without \"-s\", of course), this script - as any") _T_RE_EOL \
-  _T("  script in NppExec - does not have access to local variables of the invoker.") _T_RE_EOL \
-  _T("  For example, let's type the following commands one by one:") _T_RE_EOL \
-  _T("    set a = 123             // non-local $(a)") _T_RE_EOL \
-  _T("    set local a = abc       // local $(a)") _T_RE_EOL \
-  _T("    echo $(a)               // prints \"abc\" - local $(a)") _T_RE_EOL \
-  _T("    npe_queue echo $(a)     // separate script: prints \"123\" - non-local $(a)") _T_RE_EOL \
-  _T("    npe_queue -s echo $(a)  // current script: prints \"abc\" - local $(a)") _T_RE_EOL \
-  _T("    npe_queue -v echo $(a)  // separate script: prints \"abc\" - current $(a)") _T_RE_EOL \
-  _T("  Well, I hope you enjoy it :)") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  npe_cmdalias") _T_RE_EOL,
+  {
+    CMD_NPEQUEUE,
+    _T("COMMAND:  npe_queue") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npe_queue <command>") _T_RE_EOL \
+    _T("  npe_queue +s/-s +v/-v <command>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Queues a command to be executed after the current NppExec's script is finished.") _T_RE_EOL \
+    _T("  +s - execute the queued command as a separate NppExec's script (default)") _T_RE_EOL \
+    _T("  -s - execute the queued command in the scope of the current NppExec's script") _T_RE_EOL \
+    _T("  +v - use delayed vars substitution (default), e.g. $(x) remains $(x)") _T_RE_EOL \
+    _T("  -v - use instant vars substitution, e.g. $(x) is replaced with its value") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  // queue each command as a separate script:") _T_RE_EOL \
+    _T("  set X = 10") _T_RE_EOL \
+    _T("  npe_queue set X = 20 // queued: will set X to 20") _T_RE_EOL \
+    _T("  echo $(X) // prints the current value of X, i.e. 10") _T_RE_EOL \
+    _T("  npe_queue echo $(X) // queued: will print the latest value of X, i.e. 20") _T_RE_EOL \
+    _T("  npe_queue -v echo $(X) // queued: will print the current value of X, i.e. 10") _T_RE_EOL \
+    _T("  // queue in the scope of the current script:") _T_RE_EOL \
+    _T("  set X = 10") _T_RE_EOL \
+    _T("  npe_queue -s set X = 20 // queued: will set X to 20") _T_RE_EOL \
+    _T("  echo $(X) // prints the current value of X, i.e. 10") _T_RE_EOL \
+    _T("  npe_queue -s +v echo $(X) // queued: will print the latest value of X, i.e. 20") _T_RE_EOL \
+    _T("  npe_queue -v -s echo $(X) // queued: will print the current value of X, i.e. 10") _T_RE_EOL \
+    _T("  // the order of execution:") _T_RE_EOL \
+    _T("  npe_queue echo 5th") _T_RE_EOL \
+    _T("  npe_queue echo 6th") _T_RE_EOL \
+    _T("  npe_queue -s echo 3rd") _T_RE_EOL \
+    _T("  npe_queue -s echo 4th") _T_RE_EOL \
+    _T("  echo 1st") _T_RE_EOL \
+    _T("  echo 2nd") _T_RE_EOL \
+    _T("  // just a nice script that looks elegant:") _T_RE_EOL \
+    _T("  npp_console -") _T_RE_EOL \
+    _T("  npe_console -- v+") _T_RE_EOL \
+    _T("  cmd /c time /t") _T_RE_EOL \
+    _T("  npe_queue -v -s echo $(OUTPUT)") _T_RE_EOL \
+    _T("  npe_console -- v-") _T_RE_EOL \
+    _T("  npp_console +") _T_RE_EOL \
+    _T("  // now something really crazy, just because we _can_ do it:") _T_RE_EOL \
+    _T("  npe_queue npe_queue npe_queue sleep 2000 Let's sleep for 2 seconds...") _T_RE_EOL \
+    _T("  npe_queue -s npe_queue -s npe_queue -s sleep 2000 Let's sleep for 2 seconds...") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  The parameters +v/-v and +s/-s can be specified in any order, but always") _T_RE_EOL \
+    _T("  right after \"npe_queue\" and before the command to be executed. Both the") _T_RE_EOL \
+    _T("  parameters can be omitted.") _T_RE_EOL \
+    _T("  The NPE_QUEUE command can be useful in combination with the \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("\" prefix.") _T_RE_EOL \
+    _T("  For example, if cmd.exe is running in NppExec's Console and you realized you") _T_RE_EOL \
+    _T("  want some command to be executed right after the cmd.exe has finished, it can") _T_RE_EOL \
+    _T("  be queued right from the cmd's prompt:") _T_RE_EOL \
+    _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("npe_queue npp_console off") _T_RE_EOL \
+    _T("  This will close the Console right after you have finished to work with the") _T_RE_EOL \
+    _T("  cmd.exe. (Note: as the \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("\" prefix tells NppExec to start a collateral") _T_RE_EOL \
+    _T("  script in this case, the usage of \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("npe_queue -s npp_console off\"") _T_RE_EOL \
+    _T("  (with \"-s\") would be equivalent to a simple \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("npp_console off\", thus") _T_RE_EOL \
+    _T("  trying to execute it immediately rather than queuing.)") _T_RE_EOL \
+    _T("  The parameter \"-v\" is necessary when working with local variables. Consider") _T_RE_EOL \
+    _T("  the following examples:") _T_RE_EOL \
+    _T("    // example 1, inside NppExec's script:") _T_RE_EOL \
+    _T("    set local a = 12345") _T_RE_EOL \
+    _T("    npe_queue -v echo $(a)") _T_RE_EOL \
+    _T("    // example 2, in NppExec's Console while some process is running:") _T_RE_EOL \
+    _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("npe_queue -v echo $(pid)") _T_RE_EOL \
+    _T("  In both situations, the variables $(a) and $(pid) are local variables. If the") _T_RE_EOL \
+    _T("  \"-v\" parameter was not specified, it would mean: print the value of $(a) or") _T_RE_EOL \
+    _T("  $(pid) at the moment of the previous script or process has finished. But, as") _T_RE_EOL \
+    _T("  these variables are local ones, they will not exist at that moment! So, most") _T_RE_EOL \
+    _T("  likely, an empty string will be printed - unless there is another, non-local,") _T_RE_EOL \
+    _T("  variable with the same name.") _T_RE_EOL \
+    _T("  Here is another non-intuitive example: as NPE_QUEUE queues a given command as") _T_RE_EOL \
+    _T("  a separate NppExec's script (without \"-s\", of course), this script - as any") _T_RE_EOL \
+    _T("  script in NppExec - does not have access to local variables of the invoker.") _T_RE_EOL \
+    _T("  For example, let's type the following commands one by one:") _T_RE_EOL \
+    _T("    set a = 123             // non-local $(a)") _T_RE_EOL \
+    _T("    set local a = abc       // local $(a)") _T_RE_EOL \
+    _T("    echo $(a)               // prints \"abc\" - local $(a)") _T_RE_EOL \
+    _T("    npe_queue echo $(a)     // separate script: prints \"123\" - non-local $(a)") _T_RE_EOL \
+    _T("    npe_queue -s echo $(a)  // current script: prints \"abc\" - local $(a)") _T_RE_EOL \
+    _T("    npe_queue -v echo $(a)  // separate script: prints \"abc\" - current $(a)") _T_RE_EOL \
+    _T("  Well, I hope you enjoy it :)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npe_cmdalias") _T_RE_EOL
+  },
 
   // SEL_LOADFROM
-  _T("COMMAND:  sel_loadfrom") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  sel_loadfrom <file>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Replaces currently selected text with the file\'s content") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  sel_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  Unicode version of NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE") _T_RE_EOL \
-  _T("  text files.") _T_RE_EOL \
-  _T("  The text loaded from the file is converted to the current Scintialla's") _T_RE_EOL \
-  _T("  encoding.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  sel_saveto, sel_settext, text_loadfrom") _T_RE_EOL,
+  {
+    CMD_SELLOADFROM,
+    _T("COMMAND:  sel_loadfrom") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  sel_loadfrom <file>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Replaces currently selected text with the file\'s content") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  sel_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  Unicode version of NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE") _T_RE_EOL \
+    _T("  text files.") _T_RE_EOL \
+    _T("  The text loaded from the file is converted to the current Scintialla's") _T_RE_EOL \
+    _T("  encoding.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  sel_saveto, sel_settext, text_loadfrom") _T_RE_EOL
+  },
   
   // SEL_SAVETO
-  _T("COMMAND:  sel_saveto") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  sel_saveto <file>") _T_RE_EOL \
-  _T("  sel_saveto <file> : <encoding>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Saves the selected text (in its current encoding) to a file") _T_RE_EOL \
-  _T("  2. Saves the selected text (converted to specified encoding) to a file") _T_RE_EOL \
-  _T("     <encoding> may be:  a (ANSI), u (UTF-8), w (UCS-2 LE)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  sel_saveto c:\\temp\\output.txt // may be ANSI, UTF-8 or DBCS file") _T_RE_EOL \
-  _T("  sel_saveto c:\\temp\\outputANSI.txt :a     // save as ANSI file") _T_RE_EOL \
-  _T("  sel_saveto c:\\temp\\outputUTF8.txt :u     // save as UTF-8 (with BOM) file") _T_RE_EOL \
-  _T("  sel_saveto c:\\temp\\outputUTF8.txt :u+    // save as UTF-8 (with BOM) file") _T_RE_EOL \
-  _T("  sel_saveto c:\\temp\\outputUTF8.txt :u-    // save as UTF-8 (without BOM) file") _T_RE_EOL \
-  _T("  sel_saveto c:\\temp\\outputUnicode.txt :w  // save as UCS-2 LE (with BOM) file") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  SEL_SAVETO with the <encoding> parameter omitted saves the text in the") _T_RE_EOL \
-  _T("  Scintilla\'s current encoding (it can be ANSI, DBCS or UTF-8).") _T_RE_EOL \
-  _T("  So, if you want to save the text as UCS-2 LE (Unicode in Windows), you") _T_RE_EOL \
-  _T("  must specify the \":w\" parameter.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  sel_loadfrom, sel_settext, text_saveto") _T_RE_EOL,
+  {
+    CMD_SELSAVETO,
+    _T("COMMAND:  sel_saveto") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  sel_saveto <file>") _T_RE_EOL \
+    _T("  sel_saveto <file> : <encoding>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Saves the selected text (in its current encoding) to a file") _T_RE_EOL \
+    _T("  2. Saves the selected text (converted to specified encoding) to a file") _T_RE_EOL \
+    _T("     <encoding> may be:  a (ANSI), u (UTF-8), w (UCS-2 LE)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  sel_saveto c:\\temp\\output.txt // may be ANSI, UTF-8 or DBCS file") _T_RE_EOL \
+    _T("  sel_saveto c:\\temp\\outputANSI.txt :a     // save as ANSI file") _T_RE_EOL \
+    _T("  sel_saveto c:\\temp\\outputUTF8.txt :u     // save as UTF-8 (with BOM) file") _T_RE_EOL \
+    _T("  sel_saveto c:\\temp\\outputUTF8.txt :u+    // save as UTF-8 (with BOM) file") _T_RE_EOL \
+    _T("  sel_saveto c:\\temp\\outputUTF8.txt :u-    // save as UTF-8 (without BOM) file") _T_RE_EOL \
+    _T("  sel_saveto c:\\temp\\outputUnicode.txt :w  // save as UCS-2 LE (with BOM) file") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  SEL_SAVETO with the <encoding> parameter omitted saves the text in the") _T_RE_EOL \
+    _T("  Scintilla\'s current encoding (it can be ANSI, DBCS or UTF-8).") _T_RE_EOL \
+    _T("  So, if you want to save the text as UCS-2 LE (Unicode in Windows), you") _T_RE_EOL \
+    _T("  must specify the \":w\" parameter.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  sel_loadfrom, sel_settext, text_saveto") _T_RE_EOL
+  },
 
   // SEL_SETTEXT
-  _T("COMMAND:  sel_settext, sel_settext+") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  sel_settext <text>") _T_RE_EOL \
-  _T("  sel_settext+ <text>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Replaces currently selected text with the text specified") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  sel_settext This text has replaced the previously selected text") _T_RE_EOL \
-  _T("  sel_settext $(INPUT)   // see: inputbox") _T_RE_EOL \
-  _T("  sel_settext $(OUTPUT)  // see: npe_console v+") _T_RE_EOL \
-  _T("  sel_settext $(SYS.PATH)") _T_RE_EOL \
-  _T("  sel_settext+ A text with new line:\\r\\nnew line") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  Use sel_settext+ to insert special characters:") _T_RE_EOL \
-  _T("  \\n  - line feed (LF) character;") _T_RE_EOL \
-  _T("  \\r  - carriage return (CR) character;") _T_RE_EOL \
-  _T("  \\t  - tabulation character;") _T_RE_EOL \
-  _T("  \\\\  - \\;  \\\\n - \\n;  \\\\t - \\t.") _T_RE_EOL \
-  _T("  To replace the whole text rather than the selected text, use") _T_RE_EOL \
-  _T("  the following script:") _T_RE_EOL \
-  _T("    // 1. disabling redrawing") _T_RE_EOL \
-  _T("    sci_sendmsg 0x000B 0 // WM_SETREDRAW FALSE") _T_RE_EOL \
-  _T("    // 2. selecting all the text") _T_RE_EOL \
-  _T("    sci_sendmsg SCI_SELECTALL") _T_RE_EOL \
-  _T("    // 3. enabling redrawing") _T_RE_EOL \
-  _T("    sci_sendmsg 0x000B 1 // WM_SETREDRAW TRUE") _T_RE_EOL \
-  _T("    // 4. replacing the text") _T_RE_EOL \
-  _T("    sel_settext ...") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  sel_loadfrom, sel_saveto") _T_RE_EOL,
+  {
+    CMD_SELSETTEXT,
+    _T("COMMAND:  sel_settext, sel_settext+") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  sel_settext <text>") _T_RE_EOL \
+    _T("  sel_settext+ <text>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Replaces currently selected text with the text specified") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  sel_settext This text has replaced the previously selected text") _T_RE_EOL \
+    _T("  sel_settext $(INPUT)   // see: inputbox") _T_RE_EOL \
+    _T("  sel_settext $(OUTPUT)  // see: npe_console v+") _T_RE_EOL \
+    _T("  sel_settext $(SYS.PATH)") _T_RE_EOL \
+    _T("  sel_settext+ A text with new line:\\r\\nnew line") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  Use sel_settext+ to insert special characters:") _T_RE_EOL \
+    _T("  \\n  - line feed (LF) character;") _T_RE_EOL \
+    _T("  \\r  - carriage return (CR) character;") _T_RE_EOL \
+    _T("  \\t  - tabulation character;") _T_RE_EOL \
+    _T("  \\\\  - \\;  \\\\n - \\n;  \\\\t - \\t.") _T_RE_EOL \
+    _T("  To replace the whole text rather than the selected text, use") _T_RE_EOL \
+    _T("  the following script:") _T_RE_EOL \
+    _T("    // 1. disabling redrawing") _T_RE_EOL \
+    _T("    sci_sendmsg 0x000B 0 // WM_SETREDRAW FALSE") _T_RE_EOL \
+    _T("    // 2. selecting all the text") _T_RE_EOL \
+    _T("    sci_sendmsg SCI_SELECTALL") _T_RE_EOL \
+    _T("    // 3. enabling redrawing") _T_RE_EOL \
+    _T("    sci_sendmsg 0x000B 1 // WM_SETREDRAW TRUE") _T_RE_EOL \
+    _T("    // 4. replacing the text") _T_RE_EOL \
+    _T("    sel_settext ...") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  sel_loadfrom, sel_saveto") _T_RE_EOL
+  },
 
   // TEXT_LOADFROM
-  _T("COMMAND:  text_loadfrom") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  text_loadfrom <file>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Replaces the whole text with the file\'s content") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  text_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  Unicode version of NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE") _T_RE_EOL \
-  _T("  text files.") _T_RE_EOL \
-  _T("  The text loaded from the file is converted to the current Scintialla's") _T_RE_EOL \
-  _T("  encoding.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  text_saveto, sel_loadfrom") _T_RE_EOL,
+  {
+    CMD_TEXTLOADFROM,
+    _T("COMMAND:  text_loadfrom") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  text_loadfrom <file>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Replaces the whole text with the file\'s content") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  text_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  Unicode version of NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE") _T_RE_EOL \
+    _T("  text files.") _T_RE_EOL \
+    _T("  The text loaded from the file is converted to the current Scintialla's") _T_RE_EOL \
+    _T("  encoding.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  text_saveto, sel_loadfrom") _T_RE_EOL
+  },
 
   // TEXT_SAVETO
-  _T("COMMAND:  text_saveto") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  text_saveto <file>") _T_RE_EOL \
-  _T("  text_saveto <file> : <encoding>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  1. Saves the whole text (in its current encoding) to a file") _T_RE_EOL \
-  _T("  2. Saves the whole text (converted to specified encoding) to a file") _T_RE_EOL \
-  _T("     <encoding> may be:  a (ANSI), u (UTF-8), w (UCS-2 LE)") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  text_saveto c:\\temp\\output.txt // may be ANSI, UTF-8 or DBCS file") _T_RE_EOL \
-  _T("  text_saveto c:\\temp\\outputANSI.txt :a    // save as ANSI file") _T_RE_EOL \
-  _T("  text_saveto c:\\temp\\outputUTF8.txt :u    // save as UTF-8 (with BOM) file") _T_RE_EOL \
-  _T("  text_saveto c:\\temp\\outputUTF8.txt :u+   // save as UTF-8 (with BOM) file") _T_RE_EOL \
-  _T("  text_saveto c:\\temp\\outputUTF8.txt :u-   // save as UTF-8 (without BOM) file") _T_RE_EOL \
-  _T("  text_saveto c:\\temp\\outputUnicode.txt :w // save as UCS-2 LE (with BOM) file") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  TEXT_SAVETO with the <encoding> parameter omitted saves the text in the") _T_RE_EOL \
-  _T("  Scintilla\'s current encoding (it can be ANSI, DBCS or UTF-8).") _T_RE_EOL \
-  _T("  So, if you want to save the text as UCS-2 LE (Unicode in Windows), you") _T_RE_EOL \
-  _T("  must specify the \":w\" parameter.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  text_loadfrom, sel_saveto") _T_RE_EOL,
+  {
+    CMD_TEXTSAVETO,
+    _T("COMMAND:  text_saveto") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  text_saveto <file>") _T_RE_EOL \
+    _T("  text_saveto <file> : <encoding>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Saves the whole text (in its current encoding) to a file") _T_RE_EOL \
+    _T("  2. Saves the whole text (converted to specified encoding) to a file") _T_RE_EOL \
+    _T("     <encoding> may be:  a (ANSI), u (UTF-8), w (UCS-2 LE)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  text_saveto c:\\temp\\output.txt // may be ANSI, UTF-8 or DBCS file") _T_RE_EOL \
+    _T("  text_saveto c:\\temp\\outputANSI.txt :a    // save as ANSI file") _T_RE_EOL \
+    _T("  text_saveto c:\\temp\\outputUTF8.txt :u    // save as UTF-8 (with BOM) file") _T_RE_EOL \
+    _T("  text_saveto c:\\temp\\outputUTF8.txt :u+   // save as UTF-8 (with BOM) file") _T_RE_EOL \
+    _T("  text_saveto c:\\temp\\outputUTF8.txt :u-   // save as UTF-8 (without BOM) file") _T_RE_EOL \
+    _T("  text_saveto c:\\temp\\outputUnicode.txt :w // save as UCS-2 LE (with BOM) file") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  TEXT_SAVETO with the <encoding> parameter omitted saves the text in the") _T_RE_EOL \
+    _T("  Scintilla\'s current encoding (it can be ANSI, DBCS or UTF-8).") _T_RE_EOL \
+    _T("  So, if you want to save the text as UCS-2 LE (Unicode in Windows), you") _T_RE_EOL \
+    _T("  must specify the \":w\" parameter.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  text_loadfrom, sel_saveto") _T_RE_EOL
+  },
 
   // IF
-  _T("COMMAND:  if") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  1. if <condition> goto <label>") _T_RE_EOL \
-  _T("  2. if <condition> then") _T_RE_EOL \
-  _T("       ...") _T_RE_EOL \
-  _T("     endif") _T_RE_EOL \
-  _T("  3. if <condition> then") _T_RE_EOL \
-  _T("       ...") _T_RE_EOL \
-  _T("     else") _T_RE_EOL \
-  _T("       ...") _T_RE_EOL \
-  _T("     endif") _T_RE_EOL \
-  _T("  4. if <condition1> then") _T_RE_EOL \
-  _T("       ...") _T_RE_EOL \
-  _T("     else if <condition2> then") _T_RE_EOL \
-  _T("       ...") _T_RE_EOL \
-  _T("     else") _T_RE_EOL \
-  _T("       ...") _T_RE_EOL \
-  _T("     endif") _T_RE_EOL \
-  _T("  5. if <condition1> goto <label1>") _T_RE_EOL \
-  _T("     else if <condition2> goto <label2>") _T_RE_EOL \
-  _T("     else") _T_RE_EOL \
-  _T("       ...") _T_RE_EOL \
-  _T("     endif") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  If the condition is true, jumps to the specified label.") _T_RE_EOL \
-  _T("  If the condition is false, proceeds to the next line.") _T_RE_EOL \
-  _T("  * If the specified label can not be found within the current script,") _T_RE_EOL \
-  _T("  this command reports an error and proceeds to the next line.") _T_RE_EOL \
-  _T("  ** You should always place \"if\" and \"goto\" on the same line.") _T_RE_EOL \
-  _T("  Available conditions:") _T_RE_EOL \
-  _T("  a == b  - equal:             1 == 1, \"Ab\" == \"Ab\"") _T_RE_EOL \
-  _T("  a = b   - equal:             2 = 2,  \"Aa\" = \"Aa\"") _T_RE_EOL \
-  _T("  a != b  - not equal:         1 != 2, \"Ab\" != \"AB\"") _T_RE_EOL \
-  _T("  a <> b  - not equal:         1 <> 2, \"Aa\" <> \"A\"") _T_RE_EOL \
-  _T("  a > b   - greater:           2 > 1,  \"Ab\" > \"Aa\"") _T_RE_EOL \
-  _T("  a < b   - less:             -2 < 1,  \"a\" < \"ab\"") _T_RE_EOL \
-  _T("  a >= b  - greater or equal:  0 >= 0, \"AB\" >= \"AA\"") _T_RE_EOL \
-  _T("  a <= b  - less or equal:     1 <= 2, \"A\" <= \"AA\"") _T_RE_EOL \
-  _T("  a ~= b  - equal no case:     \"AA\" ~= \"aa\"") _T_RE_EOL \
-  _T("  * You can use variables and constants as the operands:") _T_RE_EOL \
-  _T("    \"if $(var1) == $(var2) goto EqualVars\"") _T_RE_EOL \
-  _T("    \"if $(var) != 10 goto NotEqualTo10\"") _T_RE_EOL \
-  _T("    \"if ABC < $(var) goto GreaterThanABC\"") _T_RE_EOL \
-  _T("  ** Each condition always expects two operands: the left one and the") _T_RE_EOL \
-  _T("  right one. Thus, \"if $(var) goto Label\" is not valid - you should") _T_RE_EOL \
-  _T("  specify either \"if $(var) != 0 goto Label\" for a number or") _T_RE_EOL \
-  _T("  \"if \"$(var)\" != \"\" goto Label\" for a string.") _T_RE_EOL \
-  _T("  *** If both operands are decimal numbers, a numeric comparison is") _T_RE_EOL \
-  _T("  used. Otherwise the operands are compared as strings.") _T_RE_EOL \
-  _T("  Thus, -2 < -1 (decimal numbers) and \"-2\" > \"-1\" (strings).") _T_RE_EOL \
-  _T("  **** No additional calculations are performed during the comparison.") _T_RE_EOL \
-  _T("  Thus, \"if 3 == 1 + 2 goto Label\" is not a valid numeric comparison") _T_RE_EOL \
-  _T("  because \"1 + 2\" is not calculated and remains as is, so the string") _T_RE_EOL \
-  _T("  comparison is used in this case (\"3\" is compared with \"1 + 2\").") _T_RE_EOL \
-  _T("  All the calculations should be performed in advance.") _T_RE_EOL \
-  _T("  ***** Notice the usage of double quotes and spaces between the") _T_RE_EOL \
-  _T("  operands while comparing strings that contain '>', '<' and so on:") _T_RE_EOL \
-  _T("    if \"1 >\" < \"2\" goto Label1  // \"1 >\" vs. \"2\"") _T_RE_EOL \
-  _T("    if \"1\" > \"< 2\" goto Label2  // \"1\" vs. \"< 2\"") _T_RE_EOL \
-  _T("  ****** Nested conditions are supported.") _T_RE_EOL \
-  _T("  ******* The keyword \"then\" can be omitted.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  ////////////////////////") _T_RE_EOL \
-  _T("  // Example 1:") _T_RE_EOL \
-  _T("  // emulating \"for (i = 1; i <= 10; i += 1) { cout << i << endl; }\"") _T_RE_EOL \
-  _T("  set local i ~ 1          // initialization: \"i = 1\"") _T_RE_EOL \
-  _T("  :for_i                   // start of the cycle") _T_RE_EOL \
-  _T("  echo $(i)                // the cycle body: \"cout << i << endl;\"") _T_RE_EOL \
-  _T("  set local i ~ $(i) + 1   // iteration: \"i += 1\"") _T_RE_EOL \
-  _T("  if $(i) <= 10 goto for_i // condition: \"i <= 10\"") _T_RE_EOL \
-  _T("  // - equivalent to \"i = 1; do { cout << i << endl; i += 1; } while (i <= 10);\"") _T_RE_EOL \
-  _T("  ////////////////////////") _T_RE_EOL \
-  _T("  // Example 2:") _T_RE_EOL \
-  _T("  // compare N leading characters of S1 with N trailing characters of S2") _T_RE_EOL \
-  _T("  set local S1 = extension  // input: S1") _T_RE_EOL \
-  _T("  set local S2 = some text  // input: S2") _T_RE_EOL \
-  _T("  set local N = 3           // initialization: N") _T_RE_EOL \
-  _T("  set local sub1 ~ substr 0 $(N) $(S1)   // get N leading characters of S1") _T_RE_EOL \
-  _T("  set local sub2 ~ substr -$(N) - $(S2)  // get N trailing characters of S2") _T_RE_EOL \
-  _T("  if \"$(sub1)\" == \"$(sub2)\" then") _T_RE_EOL \
-  _T("    echo substrings are equal: \"$(sub1)\" == \"$(sub2)\"") _T_RE_EOL \
-  _T("  else") _T_RE_EOL \
-  _T("    echo substrings are not equal: \"$(sub1)\" != \"$(sub2)\"") _T_RE_EOL \
-  _T("  endif") _T_RE_EOL \
-  _T("  ////////////////////////") _T_RE_EOL \
-  _T("  // Example 3:") _T_RE_EOL \
-  _T("  // emulating \"IF 1 <= x AND x < 5\"") _T_RE_EOL \
-  _T("  if 1 > $(x) goto @If_End  // opposite to 1 <= x") _T_RE_EOL \
-  _T("  if $(x) >= 5 goto @If_End // opposite to x < 5") _T_RE_EOL \
-  _T("  :@If_True") _T_RE_EOL \
-  _T("  // the condition is true, do something...") _T_RE_EOL \
-  _T("  echo True: 1 <= x < 5") _T_RE_EOL \
-  _T("  :@If_End") _T_RE_EOL \
-  _T("  ////////////////////////") _T_RE_EOL \
-  _T("  // Example 4:") _T_RE_EOL \
-  _T("  // emulating \"IF s == \'ABC\' OR s == \'DEF\' THEN ... ELSE ...\"") _T_RE_EOL \
-  _T("  if \"$(s)\" == \"ABC\" goto @If_True") _T_RE_EOL \
-  _T("  if \"$(s)\" == \"DEF\" goto @If_True") _T_RE_EOL \
-  _T("  else") _T_RE_EOL \
-  _T("    // the condition is false, do something...") _T_RE_EOL \
-  _T("    echo False: s is neither \"ABC\" nor \"DEF\"") _T_RE_EOL \
-  _T("  endif") _T_RE_EOL \
-  _T("  goto @If_End") _T_RE_EOL \
-  _T("  :@If_True") _T_RE_EOL \
-  _T("  // the condition is true, do something...") _T_RE_EOL \
-  _T("  echo True: s is either \"ABC\" or \"DEF\"") _T_RE_EOL \
-  _T("  :@If_End") _T_RE_EOL \
-  _T("  ////////////////////////") _T_RE_EOL \
-  _T("  // Example 5:") _T_RE_EOL \
-  _T("  // nested conditions") _T_RE_EOL \
-  _T("  set local x = 0") _T_RE_EOL \
-  _T("  set local y = 1") _T_RE_EOL \
-  _T("  if $(x) == 0 then") _T_RE_EOL \
-  _T("    echo x is 0") _T_RE_EOL \
-  _T("    if $(y) == 0 then") _T_RE_EOL \
-  _T("      echo y is 0") _T_RE_EOL \
-  _T("    else") _T_RE_EOL \
-  _T("      echo y is not 0") _T_RE_EOL \
-  _T("    endif") _T_RE_EOL \
-  _T("  else") _T_RE_EOL \
-  _T("    echo x is not 0") _T_RE_EOL \
-  _T("  endif") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  As you can see, different IF-GOTO constructions in combination with") _T_RE_EOL \
-  _T("  another GOTOs and LABELs can serve as IF-ELSE, FOR and WHILE.") _T_RE_EOL \
-  _T("  This allows to apply more-or-less complicated conditional logic") _T_RE_EOL \
-  _T("  inside NppExec\'s scripts.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  else, endif, goto, label, set") _T_RE_EOL,
+  {
+    CMD_IF,
+    _T("COMMAND:  if") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  1. if <condition> goto <label>") _T_RE_EOL \
+    _T("  2. if <condition> then") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     endif") _T_RE_EOL \
+    _T("  3. if <condition> then") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     else") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     endif") _T_RE_EOL \
+    _T("  4. if <condition1> then") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     else if <condition2> then") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     else") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     endif") _T_RE_EOL \
+    _T("  5. if <condition1> goto <label1>") _T_RE_EOL \
+    _T("     else if <condition2> goto <label2>") _T_RE_EOL \
+    _T("     else") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     endif") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  If the condition is true, jumps to the specified label.") _T_RE_EOL \
+    _T("  If the condition is false, proceeds to the next line.") _T_RE_EOL \
+    _T("  * If the specified label can not be found within the current script,") _T_RE_EOL \
+    _T("  this command reports an error and proceeds to the next line.") _T_RE_EOL \
+    _T("  ** You should always place \"if\" and \"goto\" on the same line.") _T_RE_EOL \
+    _T("  Available conditions:") _T_RE_EOL \
+    _T("  a == b  - equal:             1 == 1, \"Ab\" == \"Ab\"") _T_RE_EOL \
+    _T("  a = b   - equal:             2 = 2,  \"Aa\" = \"Aa\"") _T_RE_EOL \
+    _T("  a != b  - not equal:         1 != 2, \"Ab\" != \"AB\"") _T_RE_EOL \
+    _T("  a <> b  - not equal:         1 <> 2, \"Aa\" <> \"A\"") _T_RE_EOL \
+    _T("  a > b   - greater:           2 > 1,  \"Ab\" > \"Aa\"") _T_RE_EOL \
+    _T("  a < b   - less:             -2 < 1,  \"a\" < \"ab\"") _T_RE_EOL \
+    _T("  a >= b  - greater or equal:  0 >= 0, \"AB\" >= \"AA\"") _T_RE_EOL \
+    _T("  a <= b  - less or equal:     1 <= 2, \"A\" <= \"AA\"") _T_RE_EOL \
+    _T("  a ~= b  - equal no case:     \"AA\" ~= \"aa\"") _T_RE_EOL \
+    _T("  * You can use variables and constants as the operands:") _T_RE_EOL \
+    _T("    \"if $(var1) == $(var2) goto EqualVars\"") _T_RE_EOL \
+    _T("    \"if $(var) != 10 goto NotEqualTo10\"") _T_RE_EOL \
+    _T("    \"if ABC < $(var) goto GreaterThanABC\"") _T_RE_EOL \
+    _T("  ** Each condition always expects two operands: the left one and the") _T_RE_EOL \
+    _T("  right one. Thus, \"if $(var) goto Label\" is not valid - you should") _T_RE_EOL \
+    _T("  specify either \"if $(var) != 0 goto Label\" for a number or") _T_RE_EOL \
+    _T("  \"if \"$(var)\" != \"\" goto Label\" for a string.") _T_RE_EOL \
+    _T("  *** If both operands are decimal numbers, a numeric comparison is") _T_RE_EOL \
+    _T("  used. Otherwise the operands are compared as strings.") _T_RE_EOL \
+    _T("  Thus, -2 < -1 (decimal numbers) and \"-2\" > \"-1\" (strings).") _T_RE_EOL \
+    _T("  **** No additional calculations are performed during the comparison.") _T_RE_EOL \
+    _T("  Thus, \"if 3 == 1 + 2 goto Label\" is not a valid numeric comparison") _T_RE_EOL \
+    _T("  because \"1 + 2\" is not calculated and remains as is, so the string") _T_RE_EOL \
+    _T("  comparison is used in this case (\"3\" is compared with \"1 + 2\").") _T_RE_EOL \
+    _T("  All the calculations should be performed in advance.") _T_RE_EOL \
+    _T("  ***** Notice the usage of double quotes and spaces between the") _T_RE_EOL \
+    _T("  operands while comparing strings that contain '>', '<' and so on:") _T_RE_EOL \
+    _T("    if \"1 >\" < \"2\" goto Label1  // \"1 >\" vs. \"2\"") _T_RE_EOL \
+    _T("    if \"1\" > \"< 2\" goto Label2  // \"1\" vs. \"< 2\"") _T_RE_EOL \
+    _T("  ****** Nested conditions are supported.") _T_RE_EOL \
+    _T("  ******* The keyword \"then\" can be omitted.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  ////////////////////////") _T_RE_EOL \
+    _T("  // Example 1:") _T_RE_EOL \
+    _T("  // emulating \"for (i = 1; i <= 10; i += 1) { cout << i << endl; }\"") _T_RE_EOL \
+    _T("  set local i ~ 1          // initialization: \"i = 1\"") _T_RE_EOL \
+    _T("  :for_i                   // start of the cycle") _T_RE_EOL \
+    _T("  echo $(i)                // the cycle body: \"cout << i << endl;\"") _T_RE_EOL \
+    _T("  set local i ~ $(i) + 1   // iteration: \"i += 1\"") _T_RE_EOL \
+    _T("  if $(i) <= 10 goto for_i // condition: \"i <= 10\"") _T_RE_EOL \
+    _T("  // - equivalent to \"i = 1; do { cout << i << endl; i += 1; } while (i <= 10);\"") _T_RE_EOL \
+    _T("  ////////////////////////") _T_RE_EOL \
+    _T("  // Example 2:") _T_RE_EOL \
+    _T("  // compare N leading characters of S1 with N trailing characters of S2") _T_RE_EOL \
+    _T("  set local S1 = extension  // input: S1") _T_RE_EOL \
+    _T("  set local S2 = some text  // input: S2") _T_RE_EOL \
+    _T("  set local N = 3           // initialization: N") _T_RE_EOL \
+    _T("  set local sub1 ~ substr 0 $(N) $(S1)   // get N leading characters of S1") _T_RE_EOL \
+    _T("  set local sub2 ~ substr -$(N) - $(S2)  // get N trailing characters of S2") _T_RE_EOL \
+    _T("  if \"$(sub1)\" == \"$(sub2)\" then") _T_RE_EOL \
+    _T("    echo substrings are equal: \"$(sub1)\" == \"$(sub2)\"") _T_RE_EOL \
+    _T("  else") _T_RE_EOL \
+    _T("    echo substrings are not equal: \"$(sub1)\" != \"$(sub2)\"") _T_RE_EOL \
+    _T("  endif") _T_RE_EOL \
+    _T("  ////////////////////////") _T_RE_EOL \
+    _T("  // Example 3:") _T_RE_EOL \
+    _T("  // emulating \"IF 1 <= x AND x < 5\"") _T_RE_EOL \
+    _T("  if 1 > $(x) goto @If_End  // opposite to 1 <= x") _T_RE_EOL \
+    _T("  if $(x) >= 5 goto @If_End // opposite to x < 5") _T_RE_EOL \
+    _T("  :@If_True") _T_RE_EOL \
+    _T("  // the condition is true, do something...") _T_RE_EOL \
+    _T("  echo True: 1 <= x < 5") _T_RE_EOL \
+    _T("  :@If_End") _T_RE_EOL \
+    _T("  ////////////////////////") _T_RE_EOL \
+    _T("  // Example 4:") _T_RE_EOL \
+    _T("  // emulating \"IF s == \'ABC\' OR s == \'DEF\' THEN ... ELSE ...\"") _T_RE_EOL \
+    _T("  if \"$(s)\" == \"ABC\" goto @If_True") _T_RE_EOL \
+    _T("  if \"$(s)\" == \"DEF\" goto @If_True") _T_RE_EOL \
+    _T("  else") _T_RE_EOL \
+    _T("    // the condition is false, do something...") _T_RE_EOL \
+    _T("    echo False: s is neither \"ABC\" nor \"DEF\"") _T_RE_EOL \
+    _T("  endif") _T_RE_EOL \
+    _T("  goto @If_End") _T_RE_EOL \
+    _T("  :@If_True") _T_RE_EOL \
+    _T("  // the condition is true, do something...") _T_RE_EOL \
+    _T("  echo True: s is either \"ABC\" or \"DEF\"") _T_RE_EOL \
+    _T("  :@If_End") _T_RE_EOL \
+    _T("  ////////////////////////") _T_RE_EOL \
+    _T("  // Example 5:") _T_RE_EOL \
+    _T("  // nested conditions") _T_RE_EOL \
+    _T("  set local x = 0") _T_RE_EOL \
+    _T("  set local y = 1") _T_RE_EOL \
+    _T("  if $(x) == 0 then") _T_RE_EOL \
+    _T("    echo x is 0") _T_RE_EOL \
+    _T("    if $(y) == 0 then") _T_RE_EOL \
+    _T("      echo y is 0") _T_RE_EOL \
+    _T("    else") _T_RE_EOL \
+    _T("      echo y is not 0") _T_RE_EOL \
+    _T("    endif") _T_RE_EOL \
+    _T("  else") _T_RE_EOL \
+    _T("    echo x is not 0") _T_RE_EOL \
+    _T("  endif") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  As you can see, different IF-GOTO constructions in combination with") _T_RE_EOL \
+    _T("  another GOTOs and LABELs can serve as IF-ELSE, FOR and WHILE.") _T_RE_EOL \
+    _T("  This allows to apply more-or-less complicated conditional logic") _T_RE_EOL \
+    _T("  inside NppExec\'s scripts.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  else, endif, goto, label, set") _T_RE_EOL
+  },
 
   // LABEL
-  _T("COMMAND:  label, :") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  label <LabelName>") _T_RE_EOL \
-  _T("  :<LabelName>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Declares a label within the current script.") _T_RE_EOL \
-  _T("  You can jump to a label using the GOTO command.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  :Label1") _T_RE_EOL \
-  _T("  label MyLabelB") _T_RE_EOL \
-  _T("  :C") _T_RE_EOL \
-  _T("  label 4") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  You can give any name to your label. Leading and trailing spaces are") _T_RE_EOL \
-  _T("  ignored.") _T_RE_EOL \
-  _T("  Each label \"lives\" within a script where it is declared. You can not") _T_RE_EOL \
-  _T("  jump to a label located inside another script - either outer or inner") _T_RE_EOL \
-  _T("  one. (And this is the difference between labels and variables: each") _T_RE_EOL \
-  _T("  script has its own set of labels which are not shared between scripts,") _T_RE_EOL \
-  _T("  whereas any declared variable is visible and exists everywhere - unless") _T_RE_EOL \
-  _T("  it is a local variable, of course.)") _T_RE_EOL \
-  _T("  Thus, you can declare labels with the same names inside different") _T_RE_EOL \
-  _T("  scripts (but not within one script). E.g. you may have labels named") _T_RE_EOL \
-  _T("  A, B and C inside SomeScript1 and the same label names A, B and C") _T_RE_EOL \
-  _T("  inside SomeScript2 - and these labels are different because they") _T_RE_EOL \
-  _T("  \"exist\" in different scripts, even if SomeScript1 then uses") _T_RE_EOL \
-  _T("  NPP_EXEC to execute SomeScript2 or vice versa.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  goto, if") _T_RE_EOL,
+  {
+    CMD_LABEL,
+    _T("COMMAND:  label, :") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  label <LabelName>") _T_RE_EOL \
+    _T("  :<LabelName>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Declares a label within the current script.") _T_RE_EOL \
+    _T("  You can jump to a label using the GOTO command.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  :Label1") _T_RE_EOL \
+    _T("  label MyLabelB") _T_RE_EOL \
+    _T("  :C") _T_RE_EOL \
+    _T("  label 4") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  You can give any name to your label. Leading and trailing spaces are") _T_RE_EOL \
+    _T("  ignored.") _T_RE_EOL \
+    _T("  Each label \"lives\" within a script where it is declared. You can not") _T_RE_EOL \
+    _T("  jump to a label located inside another script - either outer or inner") _T_RE_EOL \
+    _T("  one. (And this is the difference between labels and variables: each") _T_RE_EOL \
+    _T("  script has its own set of labels which are not shared between scripts,") _T_RE_EOL \
+    _T("  whereas any declared variable is visible and exists everywhere - unless") _T_RE_EOL \
+    _T("  it is a local variable, of course.)") _T_RE_EOL \
+    _T("  Thus, you can declare labels with the same names inside different") _T_RE_EOL \
+    _T("  scripts (but not within one script). E.g. you may have labels named") _T_RE_EOL \
+    _T("  A, B and C inside SomeScript1 and the same label names A, B and C") _T_RE_EOL \
+    _T("  inside SomeScript2 - and these labels are different because they") _T_RE_EOL \
+    _T("  \"exist\" in different scripts, even if SomeScript1 then uses") _T_RE_EOL \
+    _T("  NPP_EXEC to execute SomeScript2 or vice versa.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  goto, if") _T_RE_EOL
+  },
 
   // GOTO
-  _T("COMMAND:  goto") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  goto <LabelName>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Jumps to the label") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  ////////////////////////") _T_RE_EOL \
-  _T("  // Theoretical example:") _T_RE_EOL \
-  _T("  // Pure GOTOs with short label names") _T_RE_EOL \
-  _T("  goto 1") _T_RE_EOL \
-  _T("  :2") _T_RE_EOL \
-  _T("  goto 3") _T_RE_EOL \
-  _T("  :1") _T_RE_EOL \
-  _T("  goto 2") _T_RE_EOL \
-  _T("  :3") _T_RE_EOL \
-  _T("  ////////////////////////") _T_RE_EOL \
-  _T("  // Theoretical example:") _T_RE_EOL \
-  _T("  // Endless cycle with neat label name...") _T_RE_EOL \
-  _T("  :Neat Label Name") _T_RE_EOL \
-  _T("  goto Neat Label Name") _T_RE_EOL \
-  _T("  // ...now you can either wait until the number of executed GOTOs") _T_RE_EOL \
-  _T("  // exceeds the value of GoTo_MaxCount - or just close the Console.") _T_RE_EOL \
-  _T("  // When the Console is closed, the script execution is stopped.") _T_RE_EOL \
-  _T("  ////////////////////////") _T_RE_EOL \
-  _T("  // Practical example:") _T_RE_EOL \
-  _T("  // IF-GOTO") _T_RE_EOL \
-  _T("  if \"$(a)\" == \"\" goto @a_is_empty") _T_RE_EOL \
-  _T("  echo a is not empty: a=$(a)") _T_RE_EOL \
-  _T("  goto done") _T_RE_EOL \
-  _T("  :@a_is_empty") _T_RE_EOL \
-  _T("  echo a is empty") _T_RE_EOL \
-  _T("  :done") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  You can give any name to your label. Leading and trailing spaces are") _T_RE_EOL \
-  _T("  ignored.") _T_RE_EOL \
-  _T("  Each label \"lives\" within a script where it is declared. You can not") _T_RE_EOL \
-  _T("  jump to a label located inside another script - either outer or inner") _T_RE_EOL \
-  _T("  one. (And this is the difference between labels and variables: each") _T_RE_EOL \
-  _T("  script has its own set of labels which are not shared between scripts,") _T_RE_EOL \
-  _T("  whereas any declared variable is visible and exists everywhere - unless") _T_RE_EOL \
-  _T("  it is a local variable, of course.)") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  label, if") _T_RE_EOL,
+  {
+    CMD_GOTO,
+    _T("COMMAND:  goto") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  goto <LabelName>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Jumps to the label") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  ////////////////////////") _T_RE_EOL \
+    _T("  // Theoretical example:") _T_RE_EOL \
+    _T("  // Pure GOTOs with short label names") _T_RE_EOL \
+    _T("  goto 1") _T_RE_EOL \
+    _T("  :2") _T_RE_EOL \
+    _T("  goto 3") _T_RE_EOL \
+    _T("  :1") _T_RE_EOL \
+    _T("  goto 2") _T_RE_EOL \
+    _T("  :3") _T_RE_EOL \
+    _T("  ////////////////////////") _T_RE_EOL \
+    _T("  // Theoretical example:") _T_RE_EOL \
+    _T("  // Endless cycle with neat label name...") _T_RE_EOL \
+    _T("  :Neat Label Name") _T_RE_EOL \
+    _T("  goto Neat Label Name") _T_RE_EOL \
+    _T("  // ...now you can either wait until the number of executed GOTOs") _T_RE_EOL \
+    _T("  // exceeds the value of GoTo_MaxCount - or just close the Console.") _T_RE_EOL \
+    _T("  // When the Console is closed, the script execution is stopped.") _T_RE_EOL \
+    _T("  ////////////////////////") _T_RE_EOL \
+    _T("  // Practical example:") _T_RE_EOL \
+    _T("  // IF-GOTO") _T_RE_EOL \
+    _T("  if \"$(a)\" == \"\" goto @a_is_empty") _T_RE_EOL \
+    _T("  echo a is not empty: a=$(a)") _T_RE_EOL \
+    _T("  goto done") _T_RE_EOL \
+    _T("  :@a_is_empty") _T_RE_EOL \
+    _T("  echo a is empty") _T_RE_EOL \
+    _T("  :done") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  You can give any name to your label. Leading and trailing spaces are") _T_RE_EOL \
+    _T("  ignored.") _T_RE_EOL \
+    _T("  Each label \"lives\" within a script where it is declared. You can not") _T_RE_EOL \
+    _T("  jump to a label located inside another script - either outer or inner") _T_RE_EOL \
+    _T("  one. (And this is the difference between labels and variables: each") _T_RE_EOL \
+    _T("  script has its own set of labels which are not shared between scripts,") _T_RE_EOL \
+    _T("  whereas any declared variable is visible and exists everywhere - unless") _T_RE_EOL \
+    _T("  it is a local variable, of course.)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  label, if") _T_RE_EOL
+  },
 
   // ELSE
-  _T("COMMAND:  else") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  if <condition>") _T_RE_EOL \
-  _T("    ...") _T_RE_EOL \
-  _T("  else if <condition>") _T_RE_EOL \
-  _T("    ...") _T_RE_EOL \
-  _T("  else") _T_RE_EOL \
-  _T("    ...") _T_RE_EOL \
-  _T("  endif") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Implements IF ... ELSE ... ENDIF") _T_RE_EOL \
-  _T("  or         IF ... ELSE IF ... ENDIF") _T_RE_EOL \
-  _T("  or         IF ... ELSE IF ... ELSE ... ENDIF") _T_RE_EOL \
-  _T("  or         IF ... ELSE IF ... ELSE IF ... ENDIF") _T_RE_EOL \
-  _T("  and similar constructions.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  see: if") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  if, endif") _T_RE_EOL,
+  {
+    CMD_ELSE,
+    _T("COMMAND:  else") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  if <condition>") _T_RE_EOL \
+    _T("    ...") _T_RE_EOL \
+    _T("  else if <condition>") _T_RE_EOL \
+    _T("    ...") _T_RE_EOL \
+    _T("  else") _T_RE_EOL \
+    _T("    ...") _T_RE_EOL \
+    _T("  endif") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Implements IF ... ELSE ... ENDIF") _T_RE_EOL \
+    _T("  or         IF ... ELSE IF ... ENDIF") _T_RE_EOL \
+    _T("  or         IF ... ELSE IF ... ELSE ... ENDIF") _T_RE_EOL \
+    _T("  or         IF ... ELSE IF ... ELSE IF ... ENDIF") _T_RE_EOL \
+    _T("  and similar constructions.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  see: if") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  if, endif") _T_RE_EOL
+  },
 
   // ENDIF
-  _T("COMMAND:  endif") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  if <condition>") _T_RE_EOL \
-  _T("    ...") _T_RE_EOL \
-  _T("  endif") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  The end of the IF ... ENDIF construction.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  see: if, else") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  if, else") _T_RE_EOL,
+  {
+    CMD_ENDIF,
+    _T("COMMAND:  endif") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  if <condition>") _T_RE_EOL \
+    _T("    ...") _T_RE_EOL \
+    _T("  endif") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  The end of the IF ... ENDIF construction.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  see: if, else") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  if, else") _T_RE_EOL
+  },
 
   // PROC_SIGNAL
-  _T("COMMAND:  proc_signal") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  proc_signal <signal>") _T_RE_EOL \
-  _T("  proc_signal <signal> <timeout>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  proc_signal ctrl-c        // sends Ctrl-C to the process") _T_RE_EOL \
-  _T("  proc_signal ctrl-break    // sends Ctrl-Break to the process") _T_RE_EOL \
-  _T("  proc_signal wm_close      // sends WM_CLOSE to the process") _T_RE_EOL \
-  _T("  proc_signal wm_close 1000 // wait for reaction during 1000 ms") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  proc_signal CtrlC                 // sends Ctrl-C") _T_RE_EOL \
-  _T("  proc_signal Ctrl-C Ctrl-Break     // sends Ctrl-C, then Ctrl-Break") _T_RE_EOL \
-  _T("  proc_signal ctrl-break wm_close   // sends Ctrl-Break, then WM_CLOSE") _T_RE_EOL \
-  _T("  proc_signal ctrlbreak wmclose 500 // Ctrl-Break, waits 500 ms, WM_CLOSE") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  This command is expected to be sent while a child console process is running") _T_RE_EOL \
-  _T("  in NppExec\'s Console. So the usual syntax of this command will be:") _T_RE_EOL \
-  _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("proc_signal <signal>") _T_RE_EOL \
-  _T("  Also this command can be combined with $(@exit_cmd), e.g. to break the child") _T_RE_EOL \
-  _T("  process automatically when NppExec's Console is closed (and when the child") _T_RE_EOL \
-  _T("  process can not be finished by some regular exit command):") _T_RE_EOL \
-  _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("set local @exit_cmd = ") DEFAULT_NPPEXEC_CMD_PREFIX _T("proc_signal CtrlC WMCLOSE") _T_RE_EOL \
-  _T("    // now close the NppExec's Console - or type:") _T_RE_EOL \
-  _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("npp_console off") _T_RE_EOL \
-  _T("  This latest example actually has a similar effect as the following one:") _T_RE_EOL \
-  _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("set local @exit_cmd = ") DEFAULT_NPPEXEC_CMD_PREFIX _T("taskkill /pid $(PID)") _T_RE_EOL \
-  _T("  Anyway, it's recommended to use an exit command (such as \"exit\" for cmd and") _T_RE_EOL \
-  _T("  \"exit()\" for python) whenever possible to let the process exit normally.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  @exit_cmd (\"help @exit_cmd\"), npp_console") _T_RE_EOL,
+  {
+    CMD_PROCSIGNAL,
+    _T("COMMAND:  proc_signal") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  proc_signal <signal>") _T_RE_EOL \
+    _T("  proc_signal <signal> <timeout>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  proc_signal ctrl-c        // sends Ctrl-C to the process") _T_RE_EOL \
+    _T("  proc_signal ctrl-break    // sends Ctrl-Break to the process") _T_RE_EOL \
+    _T("  proc_signal wm_close      // sends WM_CLOSE to the process") _T_RE_EOL \
+    _T("  proc_signal wm_close 1000 // wait for reaction during 1000 ms") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  proc_signal CtrlC                 // sends Ctrl-C") _T_RE_EOL \
+    _T("  proc_signal Ctrl-C Ctrl-Break     // sends Ctrl-C, then Ctrl-Break") _T_RE_EOL \
+    _T("  proc_signal ctrl-break wm_close   // sends Ctrl-Break, then WM_CLOSE") _T_RE_EOL \
+    _T("  proc_signal ctrlbreak wmclose 500 // Ctrl-Break, waits 500 ms, WM_CLOSE") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  This command is expected to be sent while a child console process is running") _T_RE_EOL \
+    _T("  in NppExec\'s Console. So the usual syntax of this command will be:") _T_RE_EOL \
+    _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("proc_signal <signal>") _T_RE_EOL \
+    _T("  Also this command can be combined with $(@exit_cmd), e.g. to break the child") _T_RE_EOL \
+    _T("  process automatically when NppExec's Console is closed (and when the child") _T_RE_EOL \
+    _T("  process can not be finished by some regular exit command):") _T_RE_EOL \
+    _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("set local @exit_cmd = ") DEFAULT_NPPEXEC_CMD_PREFIX _T("proc_signal CtrlC WMCLOSE") _T_RE_EOL \
+    _T("    // now close the NppExec's Console - or type:") _T_RE_EOL \
+    _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("npp_console off") _T_RE_EOL \
+    _T("  This latest example actually has a similar effect as the following one:") _T_RE_EOL \
+    _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("set local @exit_cmd = ") DEFAULT_NPPEXEC_CMD_PREFIX _T("taskkill /pid $(PID)") _T_RE_EOL \
+    _T("  Anyway, it's recommended to use an exit command (such as \"exit\" for cmd and") _T_RE_EOL \
+    _T("  \"exit()\" for python) whenever possible to let the process exit normally.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  @exit_cmd (\"help @exit_cmd\"), npp_console") _T_RE_EOL
+  },
 
   // SLEEP
-  _T("COMMAND:  sleep") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  sleep <ms>") _T_RE_EOL \
-  _T("  sleep <ms> <text>") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  Sleeps during <ms> milliseconds.") _T_RE_EOL \
-  _T("  If the <text> parameter is specified, it is printed first.") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  // without the text:") _T_RE_EOL \
-  _T("  sleep 1000 // sleeps during 1 second") _T_RE_EOL \
-  _T("  // with the text:") _T_RE_EOL \
-  _T("  set local t = 2500") _T_RE_EOL \
-  _T("  sleep $(t) \"Sleeping during $(t) milliseconds...\"") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  It is not necessary to use quotes for the <text> parameter as this command") _T_RE_EOL \
-  _T("  expects either 1 or 2 parameters, not more.") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  echo, set") _T_RE_EOL,
+  {
+    CMD_SLEEP,
+    _T("COMMAND:  sleep") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  sleep <ms>") _T_RE_EOL \
+    _T("  sleep <ms> <text>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Sleeps during <ms> milliseconds.") _T_RE_EOL \
+    _T("  If the <text> parameter is specified, it is printed first.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  // without the text:") _T_RE_EOL \
+    _T("  sleep 1000 // sleeps during 1 second") _T_RE_EOL \
+    _T("  // with the text:") _T_RE_EOL \
+    _T("  set local t = 2500") _T_RE_EOL \
+    _T("  sleep $(t) \"Sleeping during $(t) milliseconds...\"") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  It is not necessary to use quotes for the <text> parameter as this command") _T_RE_EOL \
+    _T("  expects either 1 or 2 parameters, not more.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  echo, set") _T_RE_EOL
+  },
 
   // @EXIT_CMD
-  _T("VARIABLE:  @exit_cmd / @exit_cmd_silent") _T_RE_EOL \
-  _T("USAGE:") _T_RE_EOL \
-  _T("  set @exit_cmd = exit // sets the child process'es exit command") _T_RE_EOL \
-  _T("  set @exit_cmd_silent = exit // sets the child process'es silent exit command") _T_RE_EOL \
-  _T("DESCRIPTION:") _T_RE_EOL \
-  _T("  When NppExec's Console is being closed while a child console process is running") _T_RE_EOL \
-  _T("  in it, the specified exit command is sent to the running process automatically.") _T_RE_EOL \
-  _T("  The exit command is expected to finish the process normally - otherwise, if the") _T_RE_EOL \
-  _T("  process does not finish, the Console won't close.") _T_RE_EOL \
-  _T("  In case of @exit_cmd, the exit command is printed in the Console.") _T_RE_EOL \
-  _T("  In case of @exit_cmd_silent, the exit command is not printed in the Console.") _T_RE_EOL \
-  _T("  Note: the Console can be closed either manually (by clicking the \"x\" button)") _T_RE_EOL \
-  _T("  or programmatically (via \"npp_console off\").") _T_RE_EOL \
-  _T("EXAMPLES:") _T_RE_EOL \
-  _T("  set local @exit_cmd = exit // the exit command is \"exit\"") _T_RE_EOL \
-  _T("  cmd // running the cmd.exe") _T_RE_EOL \
-  _T("  // now close the Console - \"exit\" will be sent to the cmd.exe automatically") _T_RE_EOL \
-  _T("REMARKS:") _T_RE_EOL \
-  _T("  It is possible to close NppExec's Console by typing \"npp_console off\" in it.") _T_RE_EOL \
-  _T("  Even when a child console process (such as \"cmd\" or \"python -u -i\") is running") _T_RE_EOL \
-  _T("  and waiting for the input, the Console can be closed by typing:") _T_RE_EOL \
-  _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("npp_console off") _T_RE_EOL \
-  _T("SEE ALSO:") _T_RE_EOL \
-  _T("  set, proc_signal, npp_console") _T_RE_EOL
+  {
+    _T("@EXIT_CMD"),
+    _T("VARIABLE:  @exit_cmd / @exit_cmd_silent") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  set @exit_cmd = exit // sets the child process'es exit command") _T_RE_EOL \
+    _T("  set @exit_cmd_silent = exit // sets the child process'es silent exit command") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  When NppExec's Console is being closed while a child console process is running") _T_RE_EOL \
+    _T("  in it, the specified exit command is sent to the running process automatically.") _T_RE_EOL \
+    _T("  The exit command is expected to finish the process normally - otherwise, if the") _T_RE_EOL \
+    _T("  process does not finish, the Console won't close.") _T_RE_EOL \
+    _T("  In case of @exit_cmd, the exit command is printed in the Console.") _T_RE_EOL \
+    _T("  In case of @exit_cmd_silent, the exit command is not printed in the Console.") _T_RE_EOL \
+    _T("  Note: the Console can be closed either manually (by clicking the \"x\" button)") _T_RE_EOL \
+    _T("  or programmatically (via \"npp_console off\").") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  set local @exit_cmd = exit // the exit command is \"exit\"") _T_RE_EOL \
+    _T("  cmd // running the cmd.exe") _T_RE_EOL \
+    _T("  // now close the Console - \"exit\" will be sent to the cmd.exe automatically") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  It is possible to close NppExec's Console by typing \"npp_console off\" in it.") _T_RE_EOL \
+    _T("  Even when a child console process (such as \"cmd\" or \"python -u -i\") is running") _T_RE_EOL \
+    _T("  and waiting for the input, the Console can be closed by typing:") _T_RE_EOL \
+    _T("    ") DEFAULT_NPPEXEC_CMD_PREFIX _T("npp_console off") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  set, proc_signal, npp_console") _T_RE_EOL
+  }
 
 };
 
@@ -4322,12 +4421,10 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
             NppExec.GetConsole().PrintMessage( _T(""), false );
             NppExec.GetConsole().PrintMessage(CONSOLE_COMMANDS_INFO, false);
 
-            i = 0;
-            while (i < CMD_COUNT)
+            for (const tCmdItemInfo& ci : CONSOLE_CMD_INFO)
             {
               NppExec.GetConsole().PrintMessage( _T("------------------------------------------------------------------------------"), false );
-              NppExec.GetConsole().PrintMessage( CONSOLE_CMD_INFO[i], false );
-              ++i;
+              NppExec.GetConsole().PrintMessage( ci.info, false );
             }
             printConsoleReady();
             return true;
@@ -4370,17 +4467,15 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
                      S1 == _T("@EXIT_CMD")    || S1 == _T("@EXIT_CMD_SILENT")  ||
                      S1 == _T("$(@EXIT_CMD)") || S1 == _T("$(@EXIT_CMD_SILENT)"))
               S1 = _T("@EXIT_CMD");
-            i = 0;
-            while (i < CMD_COUNT)
+            for (const tCmdItemInfo& ci : CONSOLE_CMD_INFO)
             {
-              if (S1 == CMD_ITEMS[i])
+              if (S1 == ci.name)
               {
                 NppExec.GetConsole().PrintMessage( _T(""), false );
-                NppExec.GetConsole().PrintMessage( CONSOLE_CMD_INFO[i], false );
+                NppExec.GetConsole().PrintMessage( ci.info, false );
                 printConsoleReady();
                 return true;
               }
-              ++i;
             }
           }
         }
