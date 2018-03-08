@@ -10,7 +10,11 @@ NppExec\NppExec*.vcxproj.filters
 NppExec\NppExec*.sln
 NppExec\doc\NppExec*.txt
 NppExec\doc\NppExec*.chm
-NppExec\doc\NppExec_Manual\*.*
+NppExec\doc\NppExec_Manual\*.html
+NppExec\doc\NppExec_Manual\*.txt
+NppExec\doc\NppExec_Manual\*.css
+NppExec\doc\NppExec_Manual\*.hhc
+NppExec\doc\NppExec_Manual\*.hhp
 NppExec\doc\*.html
 NppExec\doc\*.css
 NppExec\doc\*.png
