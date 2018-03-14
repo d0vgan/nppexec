@@ -3896,7 +3896,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                                     break;
                             }
 
-                            DelLeadingTabSpaces(cmdLine);
+                            NppExecHelpers::StrDelLeadingTabSpaces(cmdLine);
 
                             Runtime::GetNppExec().GetMacroVars().CheckAllMacroVars(nullptr, cmdLine, false);
                             
@@ -4077,7 +4077,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                                 {
                                     if ( c_base::_tstr_unsafe_cmpn(szLine, _T("HELP"), 4) == 0 )
                                     {
-                                        if ( (szLine[4] == _T(' ')) || (szLine[4] == _T('\t')) )
+                                        if ( NppExecHelpers::IsTabSpaceChar(szLine[4]) )
                                         {
                                             // Allow Tab-completion from CmdVarsList after "help ..."
                                             n = 5;
@@ -4101,7 +4101,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                                     if ( n != 0 )
                                     {
                                         // skip tabs and spaces
-                                        while ((szLine[n] == _T(' ')) || (szLine[n] == _T('\t')))  ++n;
+                                        while ( NppExecHelpers::IsTabSpaceChar(szLine[n]) )  ++n;
 
                                         // don't do anything special for "$(" here
                                         if ( szLine[n] == _T('$') )
@@ -4182,7 +4182,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                                     int i = nLen - 1;
                                     for ( ; i >= 0; i--)
                                     {
-                                        if ( (szLine[i] == _T(' ')) || (szLine[i] == _T('\t')) )
+                                        if ( NppExecHelpers::IsTabSpaceChar(szLine[i]) )
                                         {
                                             ++i;
                                             if ( szLine[i] == _T('\"') )  ++i;  // skip first '"'
@@ -4405,10 +4405,10 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
         tstr S1;
 
         ++i;
-        while ((S[i] == _T(' ')) || (S[i] == _T('\t'))) ++i;
+        while (NppExecHelpers::IsTabSpaceChar(S[i])) ++i;
         S1.Copy( S.c_str() + i, S.length() - i );
         i = 0;
-        while ((i < S1.length()) && (S1[i] != _T(' ')) && (S1[i] != _T('\t'))) ++i;
+        while ((i < S1.length()) && !NppExecHelpers::IsTabSpaceChar(S1[i])) ++i;
         if (i < S1.length())
         {
           S1.SetSize(i);

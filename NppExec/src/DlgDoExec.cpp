@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DlgDoExec.h"
 #include "cpp/CListT.h"
 #include "CFileModificationChecker.h"
+#include "NppExecHelpers.h"
 
 
 CFileModificationChecker g_scriptFileChecker;
@@ -721,7 +722,7 @@ LRESULT CALLBACK edScriptWindowProc(
             {
                 szLeadingSpaces[n] = 0; // 0-terminated string
                 n = 0; // now let's check for leading spaces...
-                while (szLeadingSpaces[n] == _T(' ') || szLeadingSpaces[n] == _T('\t'))  ++n;
+                while (NppExecHelpers::IsTabSpaceChar(szLeadingSpaces[n]))  ++n;
             }
         }
         if (n < 0)  n = 0;
@@ -915,8 +916,7 @@ bool CScriptNameDlg::OnBtSave()
     return false;
   }
 
-  if ( (DoExecDlg.m_szScriptNameToSave[0] == _T(' ')) ||
-       (DoExecDlg.m_szScriptNameToSave[0] == _T('\t')) )
+  if ( NppExecHelpers::IsTabSpaceChar(DoExecDlg.m_szScriptNameToSave[0]) )
   {
     DoExecDlg.m_szScriptNameToSave[0] = 0;
     MessageBox(m_hWnd, _T("Script name can\'t contain leading space characters"), 

@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "NppScriptList.h"
+#include "NppExecHelpers.h"
 
 CNppScriptList::CNppScriptList()
 {
@@ -197,7 +198,7 @@ void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLengt
     while (fbuf.GetLine(S) >= 0)
     {
       i = 0;
-      while ((i < S.length()) && (S[i] == ' ' || S[i] == '\t'))
+      while ((i < S.length()) && NppExecHelpers::IsTabSpaceChar(S[i]))
       {
         i++;
       }
@@ -206,7 +207,7 @@ void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLengt
         // it is a script name
         ScriptName = S.GetData() + i + 2;
         i = ScriptName.length() - 1;
-        while ((i >= 0) && (ScriptName[i] == ' ' || ScriptName[i] == '\t'))
+        while ((i >= 0) && NppExecHelpers::IsTabSpaceChar(ScriptName[i]))
         {
           ScriptName.Delete(i);
           i--;

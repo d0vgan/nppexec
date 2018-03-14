@@ -26,9 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 LRESULT CALLBACK nppPluginWndProc(HWND, UINT, WPARAM, LPARAM);
 
-void  DelLeadingTabSpaces(tstr& S);
-void  DelTrailingTabSpaces(tstr& S);
-
 char*  SciTextFromLPCTSTR(LPCTSTR pText, HWND hSci, int* pnLen = NULL); // finally call SciTextDeleteResultPtr
 LPTSTR SciTextToLPTSTR(const char* pSciText, HWND hSci); // finally call SciTextDeleteResultPtr
 

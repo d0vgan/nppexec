@@ -371,6 +371,14 @@ namespace NppExecHelpers
     void StrUpper(TCHAR* S); // converts to upper case
 
     void StrUnquote(tstr& S); // removes the starting and trailing '\"'
+
+    inline bool IsTabSpaceChar(char ch) { return ((ch == ' ') || (ch == '\t')); }
+    inline bool IsTabSpaceChar(wchar_t ch) { return ((ch == L' ') || (ch == L'\t')); }
+
+    void StrDelLeadingTabSpaces(CStrT<char>& S);
+    void StrDelLeadingTabSpaces(CStrT<wchar_t>& S);
+    void StrDelTrailingTabSpaces(CStrT<char>& S);
+    void StrDelTrailingTabSpaces(CStrT<wchar_t>& S);
 }
 
 namespace std_helpers

@@ -310,28 +310,6 @@ static bool IsTabSpaceOrEmptyChar(const TCHAR ch)
 {
   return ( (ch == 0 || ch == _T(' ') || ch == _T('\t')) ? true : false );
 }
- /**/
-void DelLeadingTabSpaces(tstr& S)
-{
-  TCHAR ch;
-  int   i = 0;
-  while ( ((ch = S.GetAt(i)) == _T(' ')) || (ch == _T('\t')) )
-  {
-    ++i;
-  }
-  S.Delete(0, i);
-}
- /**/
-void DelTrailingTabSpaces(tstr& S)
-{
-  TCHAR ch;
-  int   i = S.length() - 1;
-  while ( ((ch = S.GetAt(i)) == _T(' ')) || (ch == _T('\t')) )
-  {
-    --i;
-  }
-  S.Delete(i + 1, -1);
-}
 
 /*
 static bool isHexNumChar(const TCHAR ch)
@@ -358,7 +336,7 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
     if ( pDblQuote )  *pDblQuote = false;
     if ( pBracket )   *pBracket = false;
 
-    while ( *s == _T(' ') || *s == _T('\t') )  ++s;  // skip leading tabs/spaces
+    while ( NppExecHelpers::IsTabSpaceChar(*s) )  ++s;  // skip leading tabs/spaces
 
     int i = 0;
     int n = 0;
@@ -472,8 +450,7 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
     
     for ( i = param.length() - 1; i >= n; i-- )
     {
-        const TCHAR ch = param[i];
-        if ( ch != _T(' ') && ch != _T('\t') )
+        if ( !NppExecHelpers::IsTabSpaceChar(param[i]) )
             break;
     }
     n = param.length() - 1;
@@ -482,7 +459,7 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
         param.Delete(i + 1, n - i); // remove trailing tabs/spaces
     }
 
-    while ( *s == _T(' ') || *s == _T('\t') )  ++s;  // skip trailing tabs/spaces
+    while ( NppExecHelpers::IsTabSpaceChar(*s) )  ++s;  // skip trailing tabs/spaces
 
     return s;
 }
@@ -555,29 +532,6 @@ static tstr getQueuedCommand(const tstr& params, bool& bUseSeparateScript)
 }
 
 /**/
-void DelLeadingTabSpaces1(CStrT<char>& S)
-{
-    char  ch;
-    int   i = 0;
-    while ( ((ch = S.GetAt(i)) == ' ') || (ch == '\t') )
-    {
-        ++i;
-    }
-    S.Delete(0, i);
-}
-/**/
-void DelTrailingTabSpaces1(CStrT<char>& S)
-{
-    char  ch;
-    int   i = S.length() - 1;
-    while ( ((ch = S.GetAt(i)) == ' ') || (ch == '\t') )
-    {
-        --i;
-    }
-    S.Delete(i + 1, -1);
-}
-
-/**/
 class FParserWrapper
 {
     public:
@@ -636,12 +590,12 @@ class FParserWrapper
                         if ( i >= 0 )
                             line.Delete(i, -1);
 
-                        DelLeadingTabSpaces1(line);
+                        NppExecHelpers::StrDelLeadingTabSpaces(line);
 
                         if ( line.length() > 0 && line.StartsWith("#define") )
                         {
                             line.Delete(0, 7); // delete "#define"
-                            DelLeadingTabSpaces1(line);
+                            NppExecHelpers::StrDelLeadingTabSpaces(line);
                             if ( line.length() > 0 )
                             {
                                 userConst.constName.Clear();
@@ -649,15 +603,15 @@ class FParserWrapper
                                 userConst.nLine = fbuf.GetLineNumber() - 1;
 
                                 i = 0;
-                                while ( i < line.length() && line[i] != ' ' && line[i] != '\t' )
+                                while ( i < line.length() && !NppExecHelpers::IsTabSpaceChar(line[i]) )
                                 {
                                     userConst.constName += line[i];
                                     ++i;
                                 }
 
                                 line.Delete(0, i); // delete const name
-                                DelLeadingTabSpaces1(line);
-                                DelTrailingTabSpaces1(line);
+                                NppExecHelpers::StrDelLeadingTabSpaces(line);
+                                NppExecHelpers::StrDelTrailingTabSpaces(line);
                                 if ( line.length() > 0 )
                                 {
                                     double val = 0;
@@ -1791,7 +1745,7 @@ CScriptEngine::eNppExecCmdPrefix CScriptEngine::checkNppExecCmdPrefix(CNppExec* 
             if ( bRemovePrefix )
             {
                 Cmd.Delete(0, nPrefixLen);
-                DelLeadingTabSpaces(Cmd);
+                NppExecHelpers::StrDelLeadingTabSpaces(Cmd);
             }
         }
     }
@@ -1876,8 +1830,8 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd,
         Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), Cmd.c_str() );
     }
 
-    DelLeadingTabSpaces(Cmd);
-    DelTrailingTabSpaces(Cmd);
+    NppExecHelpers::StrDelLeadingTabSpaces(Cmd);
+    NppExecHelpers::StrDelTrailingTabSpaces(Cmd);
 
     CScriptEngine::eNppExecCmdPrefix cmdPrefix = checkNppExecCmdPrefix(pNppExec, Cmd);
 
@@ -2064,7 +2018,7 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
         return nCmdType;
     }
 
-    DelLeadingTabSpaces(Cmd);
+    NppExecHelpers::StrDelLeadingTabSpaces(Cmd);
     if ( Cmd.IsEmpty() || (nCmdType == CMDTYPE_CLS) )
     {
         Runtime::GetLogger().Add(   _T("; no arguments given") );
@@ -2117,7 +2071,7 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
             
             if ( nCmdType != CMDTYPE_UNKNOWN )
             {
-                DelLeadingTabSpaces(Cmd);
+                NppExecHelpers::StrDelLeadingTabSpaces(Cmd);
             }
         }
 
@@ -2273,8 +2227,8 @@ bool CScriptEngine::isCommentOrEmpty(CNppExec* pNppExec, tstr& Cmd)
         }
     }
   
-    DelLeadingTabSpaces(Cmd);
-    DelTrailingTabSpaces(Cmd);
+    NppExecHelpers::StrDelLeadingTabSpaces(Cmd);
+    NppExecHelpers::StrDelTrailingTabSpaces(Cmd);
 
     return Cmd.IsEmpty();
 }
@@ -2578,8 +2532,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                 COLORREF color;
 
                 colorFG.Delete(0, n + 1);
-                DelLeadingTabSpaces(colorFG);
-                DelTrailingTabSpaces(colorFG);
+                NppExecHelpers::StrDelLeadingTabSpaces(colorFG);
+                NppExecHelpers::StrDelTrailingTabSpaces(colorFG);
                 if ( (!colorFG.IsEmpty()) && getColorFromStr(colorFG.c_str(), &color) )
                 {
                     m_pNppExec->GetConsole().SetCurrentColorTextNorm(color);
@@ -2609,8 +2563,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                 COLORREF color;
 
                 colorBG.Delete(0, n + 1);
-                DelLeadingTabSpaces(colorBG);
-                DelTrailingTabSpaces(colorBG);
+                NppExecHelpers::StrDelLeadingTabSpaces(colorBG);
+                NppExecHelpers::StrDelTrailingTabSpaces(colorBG);
                 if ( (!colorBG.IsEmpty()) && getColorFromStr(colorBG.c_str(), &color) )
                 {
                     m_pNppExec->GetConsole().SetCurrentColorBkgnd(color);
@@ -2961,8 +2915,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
             {
                 tstr ifParams;
                 ifParams.Copy( params.c_str() + n + 3 );
-                DelLeadingTabSpaces(ifParams);
-                DelTrailingTabSpaces(ifParams);
+                NppExecHelpers::StrDelLeadingTabSpaces(ifParams);
+                NppExecHelpers::StrDelTrailingTabSpaces(ifParams);
 
                 doIf(ifParams, true);
             }
@@ -3019,10 +2973,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
         tstr& varName = args.Arg(0);
         tstr& varValue = args.Arg(1);
         
-        DelLeadingTabSpaces(varName);
-        DelTrailingTabSpaces(varName);
-        DelLeadingTabSpaces(varValue);
-        DelTrailingTabSpaces(varValue);
+        NppExecHelpers::StrDelLeadingTabSpaces(varName);
+        NppExecHelpers::StrDelTrailingTabSpaces(varName);
+        NppExecHelpers::StrDelLeadingTabSpaces(varValue);
+        NppExecHelpers::StrDelTrailingTabSpaces(varValue);
 
         if ( varName.length() > 0 )
         {
@@ -3075,8 +3029,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
     // show the value
     tstr& varName = args.Arg(0);
         
-    DelLeadingTabSpaces(varName);
-    DelTrailingTabSpaces(varName);
+    NppExecHelpers::StrDelLeadingTabSpaces(varName);
+    NppExecHelpers::StrDelTrailingTabSpaces(varName);
 
     if ( varName.length() > 0 )
     {
@@ -3137,8 +3091,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvUnset(const tstr& params)
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     tstr varName = params;
     
-    DelLeadingTabSpaces(varName);
-    DelTrailingTabSpaces(varName);
+    NppExecHelpers::StrDelLeadingTabSpaces(varName);
+    NppExecHelpers::StrDelTrailingTabSpaces(varName);
 
     if ( varName.length() > 0 )
     {
@@ -3204,8 +3158,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
         return CMDRESULT_INVALIDPARAM;
 
     tstr labelName = params;
-    DelLeadingTabSpaces(labelName);
-    DelTrailingTabSpaces(labelName);
+    NppExecHelpers::StrDelLeadingTabSpaces(labelName);
+    NppExecHelpers::StrDelTrailingTabSpaces(labelName);
     NppExecHelpers::StrUpper(labelName);
 
     if ( labelName.IsEmpty() )
@@ -3228,8 +3182,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
             Cmd = p->GetItem();
             if ( getCmdType(m_pNppExec, Cmd) == CMDTYPE_LABEL )
             {
-                DelLeadingTabSpaces(Cmd);
-                DelTrailingTabSpaces(Cmd);
+                NppExecHelpers::StrDelLeadingTabSpaces(Cmd);
+                NppExecHelpers::StrDelTrailingTabSpaces(Cmd);
                 NppExecHelpers::StrUpper(Cmd);
                 if ( Labels.find(Cmd) == Labels.end() )
                 {
@@ -3531,11 +3485,11 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
                 op1.Copy(Condition.c_str(), n);
                 op2.Copy(Condition.c_str() + n + lstrlen(c.szCond));
 
-                DelLeadingTabSpaces(op1);
-                DelTrailingTabSpaces(op1);
+                NppExecHelpers::StrDelLeadingTabSpaces(op1);
+                NppExecHelpers::StrDelTrailingTabSpaces(op1);
 
-                DelLeadingTabSpaces(op2);
-                DelTrailingTabSpaces(op2);
+                NppExecHelpers::StrDelLeadingTabSpaces(op2);
+                NppExecHelpers::StrDelTrailingTabSpaces(op2);
                 break;
             }
         }
@@ -3649,8 +3603,8 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
 
     tstr ifCondition;
     ifCondition.Copy( params.c_str(), n );
-    DelLeadingTabSpaces(ifCondition);
-    DelTrailingTabSpaces(ifCondition);
+    NppExecHelpers::StrDelLeadingTabSpaces(ifCondition);
+    NppExecHelpers::StrDelTrailingTabSpaces(ifCondition);
 
     if ( ifCondition.IsEmpty() )
     {
@@ -3663,8 +3617,8 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
     if ( mode == IF_GOTO )
     {
         labelName.Copy( params.c_str() + n + 6 );
-        DelLeadingTabSpaces(labelName);
-        DelTrailingTabSpaces(labelName);
+        NppExecHelpers::StrDelLeadingTabSpaces(labelName);
+        NppExecHelpers::StrDelTrailingTabSpaces(labelName);
         NppExecHelpers::StrUpper(labelName);
 
         if ( labelName.IsEmpty() )
@@ -3747,8 +3701,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoLabel(const tstr& params)
         return CMDRESULT_INVALIDPARAM;
 
     tstr labelName = params;
-    DelLeadingTabSpaces(labelName);
-    DelTrailingTabSpaces(labelName);
+    NppExecHelpers::StrDelLeadingTabSpaces(labelName);
+    NppExecHelpers::StrDelTrailingTabSpaces(labelName);
     NppExecHelpers::StrUpper(labelName);
 
     ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
@@ -3859,10 +3813,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
             aliasName = args.Arg(0);
             aliasValue = args.Arg(1);
 
-            DelLeadingTabSpaces(aliasName);
-            DelTrailingTabSpaces(aliasName);
-            DelLeadingTabSpaces(aliasValue);
-            DelTrailingTabSpaces(aliasValue);
+            NppExecHelpers::StrDelLeadingTabSpaces(aliasName);
+            NppExecHelpers::StrDelTrailingTabSpaces(aliasName);
+            NppExecHelpers::StrDelLeadingTabSpaces(aliasValue);
+            NppExecHelpers::StrDelTrailingTabSpaces(aliasValue);
 
             if ( aliasName.IsEmpty() )
             {
@@ -3873,8 +3827,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                     aliasName += args.Arg(0);
                     aliasValue = args.Arg(1);
 
-                    DelTrailingTabSpaces(aliasName);
-                    DelLeadingTabSpaces(aliasValue);
+                    NppExecHelpers::StrDelTrailingTabSpaces(aliasName);
+                    NppExecHelpers::StrDelLeadingTabSpaces(aliasValue);
                 }
             }
             
@@ -3953,8 +3907,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
         else
         {
             aliasName = args.Arg(0);
-            DelLeadingTabSpaces(aliasName);
-            DelTrailingTabSpaces(aliasName);
+            NppExecHelpers::StrDelLeadingTabSpaces(aliasName);
+            NppExecHelpers::StrDelTrailingTabSpaces(aliasName);
 
             NppExecHelpers::StrUpper(aliasName);
         }
@@ -6157,8 +6111,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
             varName.SetSize(k);
             isInternal = true;
         }
-        DelLeadingTabSpaces(varName);
-        DelTrailingTabSpaces(varName);
+        NppExecHelpers::StrDelLeadingTabSpaces(varName);
+        NppExecHelpers::StrDelTrailingTabSpaces(varName);
         bLocalVar = m_pNppExec->GetMacroVars().IsLocalMacroVar(varName);
         if ( varName.length() > 0 )
         {
@@ -6298,7 +6252,7 @@ bool CNppExecMacroVars::IsLocalMacroVar(tstr& varName)
         {
             isLocal = true;
             varName.Delete(0, n);
-            DelLeadingTabSpaces(varName);
+            NppExecHelpers::StrDelLeadingTabSpaces(varName);
         }
     }
     return isLocal;
@@ -6488,7 +6442,7 @@ void CNppExecMacroVars::CheckCmdAliases(tstr& S, bool useLogging)
             Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );
         }
         
-        //DelLeadingTabSpaces(S);
+        //NppExecHelpers::StrDelLeadingTabSpaces(S);
         
         if ( S.length() > 0 )
         {
@@ -6818,10 +6772,10 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
     {
       tstr& varName = args.Arg(0);
       tstr& varValue = args.Arg(1);
-      DelLeadingTabSpaces(varName);
-      DelTrailingTabSpaces(varName);
-      DelLeadingTabSpaces(varValue);
-      DelTrailingTabSpaces(varValue);
+      NppExecHelpers::StrDelLeadingTabSpaces(varName);
+      NppExecHelpers::StrDelTrailingTabSpaces(varName);
+      NppExecHelpers::StrDelLeadingTabSpaces(varValue);
+      NppExecHelpers::StrDelTrailingTabSpaces(varValue);
 
       if ( ContainsMacroVar(varValue) )
       {
@@ -6877,8 +6831,8 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
     tstr varName = S;
     int k = varName.Find( _T("=") );
     if ( k >= 0 )  varName.SetSize(k);
-    DelLeadingTabSpaces(varName);
-    DelTrailingTabSpaces(varName);
+    NppExecHelpers::StrDelLeadingTabSpaces(varName);
+    NppExecHelpers::StrDelTrailingTabSpaces(varName);
 
     bool bLocalVar = IsLocalMacroVar(varName);
     unsigned int nFlags = CNppExecMacroVars::svRemoveVar;

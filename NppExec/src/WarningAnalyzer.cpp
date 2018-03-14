@@ -403,7 +403,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             --postr2;
             while ( --postr2 >= m_FileName )
             {
-                if ( *postr2 != _T(' ') && *postr2 != _T('\t') )
+                if ( !NppExecHelpers::IsTabSpaceChar(*postr2) )
                     break;
             }
             *(++postr2) = 0;
@@ -611,13 +611,13 @@ bool match_mask_2( const TCHAR* mask
 
 TCHAR* skip_tabspaces(TCHAR* s)
 {
-    while ( (*s == _T(' ')) || (*s == _T('\t')) )  ++s;
+    while ( NppExecHelpers::IsTabSpaceChar(*s) )  ++s;
     return s;
 }
 
 const TCHAR* skip_tabspaces(const TCHAR* s)
 {
-    while ( (*s == _T(' ')) || (*s == _T('\t')) )  ++s;
+    while ( NppExecHelpers::IsTabSpaceChar(*s) )  ++s;
     return s;
 }
 

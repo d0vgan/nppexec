@@ -564,6 +564,8 @@ void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd)
     Runtime::GetLogger().Add( _T("") );
 
     bool bScriptThreadRunning = false;
+    // We don't call StrDelLeadingTabSpaces here as the leading space(s)
+    // may be a meaningful part of a command given to the child process.
     CScriptEngine::eNppExecCmdPrefix cmdPrefix = CScriptEngine::checkNppExecCmdPrefix(m_pNppExec, cmd);
     if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
     {

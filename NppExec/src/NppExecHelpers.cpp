@@ -445,6 +445,46 @@ namespace NppExecHelpers
             S.DeleteFirstChar();
         }
     }
+
+    void StrDelLeadingTabSpaces(CStrT<char>& S)
+    {
+        int i = 0;
+        while ( IsTabSpaceChar(S.GetAt(i)) )
+        {
+            ++i;
+        }
+        S.Delete(0, i);
+    }
+
+    void StrDelLeadingTabSpaces(CStrT<wchar_t>& S)
+    {
+        int i = 0;
+        while ( IsTabSpaceChar(S.GetAt(i)) )
+        {
+            ++i;
+        }
+        S.Delete(0, i);
+    }
+
+    void StrDelTrailingTabSpaces(CStrT<char>& S)
+    {
+        int i = S.length() - 1;
+        while ( IsTabSpaceChar(S.GetAt(i)) )
+        {
+            --i;
+        }
+        S.Delete(i + 1, -1);
+    }
+
+    void StrDelTrailingTabSpaces(CStrT<wchar_t>& S)
+    {
+        int i = S.length() - 1;
+        while ( IsTabSpaceChar(S.GetAt(i)) )
+        {
+            --i;
+        }
+        S.Delete(i + 1, -1);
+    }
 }
 
 //-------------------------------------------------------------------------
