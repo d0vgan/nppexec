@@ -565,7 +565,8 @@ void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd)
 
     bool bScriptThreadRunning = false;
     // We don't call StrDelLeadingTabSpaces here as the leading space(s)
-    // may be a meaningful part of a command given to the child process.
+    // can be a meaningful part of a command given to the child process 
+    // (example: Python, where indentation is important).
     CScriptEngine::eNppExecCmdPrefix cmdPrefix = CScriptEngine::checkNppExecCmdPrefix(m_pNppExec, cmd);
     if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
     {
