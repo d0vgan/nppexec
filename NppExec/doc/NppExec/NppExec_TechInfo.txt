@@ -7,70 +7,70 @@
  ***************************
  *  Technical Information  *
  ***************************
- 
+
  NppExec has advanced "hidden" settings which can be set manually.
  You need to edit NppExec's ini-file: "\Plugins\Config\NppExec.ini".
- 
-  --------------------------------------------------------------------
- |  KEY                             |  DEFAULT VALUE         |  TYPE  |
- |--------------------------------------------------------------------|
- |                                  |                        |        |
- |  [Console]                       |                        |        |
- |  ChildProcess_StartupTimeout_ms  |  240                   |  int   |
- |  ChildProcess_CycleTimeout_ms    |  120                   |  int   |
- |  ChildProcess_ExitTimeout_ms     |  2000                  |  int   |
- |  ChildProcess_KillTimeout_ms     |  500                   |  int   |
- |  ChildScript_SyncTimeout_ms      |  200                   |  int   |
- |  ExitScript_Timeout_ms           |  4000                  |  int   |
- |  Path_AutoDblQuotes              |  0            (FALSE)  |  BOOL  |
- |  CmdHistory_MaxItems             |  256                   |  int   |
- |  Exec_MaxCount                   |  100                   |  int   |
- |  GoTo_MaxCount                   |  10000                 |  int   |
- |  RichEdit_MaxTextLength          |  4194304      (4 MB)   |  int   |
- |  SendMsg_MaxBufLength            |  4194304      (4 MB)   |  int   |
- |  Calc_Precision                  |  0.000001              | float  |
- |  CommentDelimiter                |  //                    | string |
- |  Visible                         |  0            (FALSE)  |  BOOL  |
- |  ShowHelp                        |  0            (FALSE)  |  BOOL  |
- |  NoEmptyVars                     |  1            (TRUE)   |  BOOL  |
- |  SaveCmdHistory                  |  1            (TRUE)   |  BOOL  |
- |  TextColorNormal                 |  00 00 00              |  HEX   |
- |  TextColorError                  |  A0 10 10              |  HEX   |
- |  TextColorMessage                |  20 80 20              |  HEX   |
- |  BackgroundColor                 |  0                     |  HEX   |
- |  Alias_Cmd_NppExec               |  \                     | string |
- |  Key_Enter                       |  \n                    | string |
- |  Console_NulChar                 |  25E6        (0x25E6)  |  HEX   |
- |  NppExec_Cmd_Prefix              |  nppexec:              | string |
- |  UTF8_Detect_Length              |  16384                 |  int   |
- |                                  |                        |        |
- |  [Options]                       |                        |        |
- |  HotKey                          |  F6                    | string |
- |  ToolbarBtn                      |  1                     |  int   |
- |  WatchScriptFile                 |  1            (TRUE)   |  BOOL  |
- |  ScriptNppStart                  |               (empty)  | string |
- |  ScriptNppExit                   |               (empty)  | string |
- |  HelpFile                        | doc\NppExec_Manual.chm | string |
- |  LogsDir                         |               (empty)  | string |
- |  AutoSave_Seconds                |  0                     |  int   |
- |                                  |                        |        |
-  --------------------------------------------------------------------
+
+  ----------------------------------------------------------------------------
+ |  KEY                             |  DEFAULT VALUE                 |  TYPE  |
+ |----------------------------------------------------------------------------|
+ |                                  |                                |        |
+ |  [Console]                       |                                |        |
+ |  ChildProcess_StartupTimeout_ms  |  240                           |  int   |
+ |  ChildProcess_CycleTimeout_ms    |  120                           |  int   |
+ |  ChildProcess_ExitTimeout_ms     |  2000                          |  int   |
+ |  ChildProcess_KillTimeout_ms     |  500                           |  int   |
+ |  ChildScript_SyncTimeout_ms      |  200                           |  int   |
+ |  ExitScript_Timeout_ms           |  4000                          |  int   |
+ |  Path_AutoDblQuotes              |  0                    (FALSE)  |  BOOL  |
+ |  CmdHistory_MaxItems             |  256                           |  int   |
+ |  Exec_MaxCount                   |  100                           |  int   |
+ |  GoTo_MaxCount                   |  10000                         |  int   |
+ |  RichEdit_MaxTextLength          |  4194304              (4 MB)   |  int   |
+ |  SendMsg_MaxBufLength            |  4194304              (4 MB)   |  int   |
+ |  Calc_Precision                  |  0.000001                      | float  |
+ |  CommentDelimiter                |  //                            | string |
+ |  Visible                         |  0                    (FALSE)  |  BOOL  |
+ |  ShowHelp                        |  0                    (FALSE)  |  BOOL  |
+ |  NoEmptyVars                     |  1                    (TRUE)   |  BOOL  |
+ |  SaveCmdHistory                  |  1                    (TRUE)   |  BOOL  |
+ |  TextColorNormal                 |  00 00 00                      |  HEX   |
+ |  TextColorError                  |  A0 10 10                      |  HEX   |
+ |  TextColorMessage                |  20 80 20                      |  HEX   |
+ |  BackgroundColor                 |  0                             |  HEX   |
+ |  Alias_Cmd_NppExec               |  \                             | string |
+ |  Key_Enter                       |  \n                            | string |
+ |  Console_NulChar                 |  25E6                (0x25E6)  |  HEX   |
+ |  NppExec_Cmd_Prefix              |  nppexec:                      | string |
+ |  UTF8_Detect_Length              |  16384                         |  int   |
+ |                                  |                                |        |
+ |  [Options]                       |                                |        |
+ |  HotKey                          |  F6                            | string |
+ |  ToolbarBtn                      |  1                             |  int   |
+ |  WatchScriptFile                 |  1                    (TRUE)   |  BOOL  |
+ |  ScriptNppStart                  |                       (empty)  | string |
+ |  ScriptNppExit                   |                       (empty)  | string |
+ |  HelpFile                        | doc\NppExec\NppExec_Manual.chm | string |
+ |  LogsDir                         |                       (empty)  | string |
+ |  AutoSave_Seconds                |  0                             |  int   |
+ |                                  |                                |        |
+  ----------------------------------------------------------------------------
 
  The purpose of each key is described below.
- You can add specified keys to [Console] or [Options] section of 
+ You can add specified keys to [Console] or [Options] section of
  this ini-file.
  For example, you can modify it in the following way:
- 
+
    [Options]
    HotKey=F6
    ToolbarBtn=1
    WatchScriptFile=1
    ScriptNppStart=
    ScriptNppExit=
-   HelpFile=doc\NppExec_Manual.chm
+   HelpFile=doc\NppExec\NppExec_Manual.chm
    LogsDir=
    AutoSave_Seconds=0
-   
+
    [Console]
    Visible=0
    ShowHelp=0
@@ -102,58 +102,58 @@
    NppExec_Cmd_Prefix=nppexec:
    UTF8_Detect_Length=16384
 
- 
+
  ChildProcess_StartupTimeout_ms
  ------------------------------
    This parameter is important when a child console process is created.
    The child process usually can't be created immediately, therefore
    we must give some time to this process to be started.
    Here is a general implementation of this part of code:
-   
+
        if ( CreateProcess( ... , &ProcInfo ) )
        {
            CloseHandle( ProcInfo.hThread );
            WaitForSingleObject( ProcInfo.hProcess, STARTUP_TIMEOUT );
            ...
        }
- 
+
    When the process is started, WaitForSingleObject returns.
-   But, if the value of STARTUP_TIMEOUT is too low, WaitForSingleObject 
+   But, if the value of STARTUP_TIMEOUT is too low, WaitForSingleObject
    may return before the process is started.
    If default value of ChildProcess_StartupTimeout_ms is not enough for
    your PC, you can increase it. IMHO, it can not exceed 400 ms.
-   
- 
+
+
  ChildProcess_CycleTimeout_ms
  ----------------------------
    The only purpose of this parameter is to decrease the CPU usage.
    The bigger value you set, the less CPU usage you get :-)
    Here is an implementation of this part of code in outline:
-   
+
        do {
            // reading from the process'es pipe
            ...
-       } while ( WaitForSingleObject( ProcInfo.hProcess, 
+       } while ( WaitForSingleObject( ProcInfo.hProcess,
                      CYCLE_TIMEOUT ) == WAIT_TIMEOUT );
-   
+
    Don't forget that actually the value of ChildProcess_CycleTimeout_ms
-   is a pause between requests to the child console process'es output, 
+   is a pause between requests to the child console process'es output,
    so values > 500 ms are not recommened.
 
- 
+
  ChildProcess_ExitTimeout_ms
  ---------------------------
    This parameter is needed when you are about to exit (quit) a running
    child console process by sending the exit command to it.
    For example, cmd.exe is running, but you want to close the Console
-   window or start another NppExec's script. So, you send the exit 
-   command - and NppExec waits for the cmd.exe process to be finished. 
+   window or start another NppExec's script. So, you send the exit
+   command - and NppExec waits for the cmd.exe process to be finished.
    If the child process has been finished before the timeout of
-   ChildProcess_ExitTimeout_ms elapsed, NppExec performs the action 
-   requested previously - closes its Console window or starts another 
+   ChildProcess_ExitTimeout_ms elapsed, NppExec performs the action
+   requested previously - closes its Console window or starts another
    script.
-   Otherwise, if the child process has not been finished during 
-   ChildProcess_ExitTimeout_ms (for example, if "dir" has been sent 
+   Otherwise, if the child process has not been finished during
+   ChildProcess_ExitTimeout_ms (for example, if "dir" has been sent
    instead of "exit"), then NppExec does not close its Console window
    or does not start another script after the child process will be
    finished at last.
@@ -198,37 +198,37 @@
 
  Path_AutoDblQuotes
  ------------------
-   If you enable this option (set it to 1), then path to executable 
-   which contains spaces (for example, "my program 1.exe") will be 
+   If you enable this option (set it to 1), then path to executable
+   which contains spaces (for example, "my program 1.exe") will be
    automatically enclosed in quotes "".
    It is disabled by default because of a bug with executables w/o
    extension. For example, this line
-   
+
      cmd /c calc.exe
-   
+
    will be modified (if this option is enabled) to this one:
-   
+
      "cmd /c calc.exe"
-     
+
    because "cmd" is given without extension ".exe".
    Therefore don't forget to enclose paths with spaces in quotes
    manually, when this option is disabled.
-   
- 
+
+
  CmdHistory_MaxItems
  -------------------
    Specifies maximum number of items in the console commands history.
-   
- 
+
+
  Exec_MaxCount
  -------------
    Specifies maximum number of NPP_EXEC calls within one script.
    This value is needed to prevent the infinite loop of several scripts
    which call each other, e.g.
-   
+
      ::script1
      npp_exec script2
-     
+
      ::script2
      npp_exec script1
 
@@ -241,19 +241,19 @@
      :label1
      goto label1
 
-   Note: 
+   Note:
    You always can close the Console window to stop the running script.
 
- 
- RichEdit_MaxTextLength  
+
+ RichEdit_MaxTextLength
  ----------------------
-   Specifies maximum number of characters which can be stored or 
+   Specifies maximum number of characters which can be stored or
    pasted into the Console dialog's rich edit control.
 
 
  SendMsg_MaxBufLength
  --------------------
-   Specifies maximum number of characters (buffer) allocated for 
+   Specifies maximum number of characters (buffer) allocated for
    string parameter(s) of NPP_SENDMSG or SCI_SENDMSG message.
 
 
@@ -261,7 +261,7 @@
  --------------
    Calc result precision for "set <var> ~ <math expression>".
    The calc result will be rounded according to this value.
-   The precision affects only the result representation, 
+   The precision affects only the result representation,
    whereas all internal operations inside one math expression
    are not rounded.
 
@@ -271,8 +271,8 @@
    Specifies a comment delimiter  :-)  I.e. all characters after
    this delimiter are understood as a comment, and the text line
    (command) is truncated at the position of this delimiter.
-   Exception: 
-   - when the comment delimiter is // then :// is not truncated 
+   Exception:
+   - when the comment delimiter is // then :// is not truncated
    at the position of // (because :// can be a part of http://).
    Note:
    - if you specify empty comment delimiter i.e.
@@ -282,31 +282,31 @@
    then you can not use comments in your commands/scripts because
    there is no comment delimiter in this case.
 
- 
+
  Visible
  -------
    If you enable this option (set it to 1), then the Console window
    will be visible when Notepad++ starts. Otherwise, when this option
    is set to 0 (default value), there will be no Console window opened
    when Notepad++ starts.
- 
- 
+
+
  ShowHelp
  --------
    When this option is enabled (set to 1), the Console window shows
    the Help Info each time Notepad++ starts.
    If this option is disabled (set to 0), the Console window does not
    show the Help Info when Notepad++ starts.
-   
- 
+
+
  NoEmptyVars
  -----------
    When this option is enabled (set to 1), then all empty (uninitialized)
    variables such as "$(var)" will be replaced with "" (empty string).
-   If this option is disabled (set to 0), then empty variable "$(var)" 
+   If this option is disabled (set to 0), then empty variable "$(var)"
    will not be replaced with empty string i.e. it will remain "$(var)".
- 
- 
+
+
  SaveCmdHistory
  --------------
    When this option is enabled (set to 1) and "Console Commands History"
@@ -315,33 +315,33 @@
    is restored from this file when Notepad++ starts.
    If this option is disabled (set to 0), then the console commands
    history is not saved and restored.
- 
- 
+
+
  TextColorNormal
  ---------------
    This option can specify the Console's normal text colour in a form of
    RR GG BB, where RR, GG and BB are HEX values of red, green and blue
    colours.
-   Value of "00 00 00" or "000000" means RR = 00, GG = 00 and BB = 00 
+   Value of "00 00 00" or "000000" means RR = 00, GG = 00 and BB = 00
    i.e. black colour (because values of red, green and blue = 0x00).
-   Value of "FF 00 00" or "FF0000" means RR = FF, GG = 00 and BB = 00 
+   Value of "FF 00 00" or "FF0000" means RR = FF, GG = 00 and BB = 00
    i.e. red colour (red = 0xFF, green and blue = 0x00).
    Value of "0" or any other value which does not contain three values of
    relative intensities of red, green and blue colours means "don't use
    this value, use default colour". I.e. you can specify
-   
+
      TextColorNormal=0
-     
+
    or just
-   
+
      TextColorNormal=
-     
+
    to use the default (internal) colour.
    The same approach is used for TextColorError, TextColorMessage and
    BackgroundColor values.
    If you want to have a "console-style" look (i.e. white text on the
    black background), specify the values similar to:
-   
+
      TextColorNormal=C0 C0 C0
      TextColorError=C0 10 10
      TextColorMessage=20 A0 20
@@ -352,26 +352,26 @@
  --------------
    This option can specify the colour of Console's error messages.
    See TextColorNormal for details.
-   
- 
+
+
  TextColorMessage
  ----------------
    This option can specify the colour of Console's internal messages
    (such as  "Process started >>>",  "======== READY ========"  etc.)
    See TextColorNormal for details.
-   
- 
+
+
  BackgroundColor
  ---------------
    Background color of the Console's output window.
    See TextColorNormal for details.
- 
+
 
  Alias_Cmd_NppExec
  -----------------
-   This alias can be used instead of the "NPP_EXEC " command when you 
-   want to execute some NppExec's script. The alias consists of one 
-   character; only the first character from specified string value is 
+   This alias can be used instead of the "NPP_EXEC " command when you
+   want to execute some NppExec's script. The alias consists of one
+   character; only the first character from specified string value is
    taken. For example,
 
      Alias_Cmd_NppExec=\!?
@@ -434,7 +434,7 @@
 
      Console_NulChar=      ; empty value (no value)
 
-   The value of 00 disables the substitution of the NUL character. I.e. '\0' 
+   The value of 00 disables the substitution of the NUL character. I.e. '\0'
    remains '\0', resulting the end of the null-terminated string.
    The empty value is treated as usage of the default substitute symbol:
    * it is 0x25E6 ("White Bullet") for Unicode version of NppExec;
@@ -469,16 +469,16 @@
  ------
    Specifies the plugin hotkey which calls the "Execute..." dialog.
    Available values are: F1, F2, F3 ... F12.
- 
- 
+
+
  ToolbarBtn
  ----------
    ToolbarBtn = 0  -  no toolbar button;
    ToolbarBtn = 1  -  the toolbar button shows the Console window;
    ToolbarBtn = 2  -  the toolbar button calls the "Execute..." dialog.
    ToolbarBtn = 3  -  the toolbar button directly executes last script.
-   
-   
+
+
  WatchScriptFile
  ---------------
    When this option is enabled (set to 1), the plugin rereads the file
@@ -498,7 +498,7 @@
    Note: if you specify an empty value or non-existent script name for
    this option, no script will be executed when Notepad++ starts.
    See also: ScriptNppExit.
-   
+
 
  ScriptNppExit
  -------------
@@ -508,18 +508,18 @@
    this option, no script will be executed when Notepad++ exits.
    See also: ScriptNppStart.
 
- 
+
  HelpFile
  --------
-   Relative pathname to NppExec's help file (manual). 
+   Relative pathname to NppExec's help file (manual).
    This pathname is relative to location of the "NppExec.dll" file.
    Usually "NppExec.dll" is located somewhere in "...\Notepad++\plugins",
-   and the help file is located in "...\Notepad++\plugins\doc" so its
-   relative pathname is "doc\NppExec_Manual.chm".
+   and the help file is located in "...\Notepad++\plugins\doc\NppExec" so
+   its relative pathname is "doc\NppExec\NppExec_Manual.chm".
    You can specify different file name and/or extension here.
    Also you can specify absolute pathname (e.g. C:\docs\NppExec.chm).
    You can use some of macro-variables as the part of this pathname.
-   The supported macro-variables are: 
+   The supported macro-variables are:
      $(SYS.TEMP)
      $(NPP_DIRECTORY)
      $(PLUGINS_CONFIG_DIR)
@@ -537,24 +537,24 @@
    When full path is specified, NppExec constructs the full path to the
    log files as "<LogsDir>\<NppExecDllName>\<YYYY_MM_DD>".
    You can use some of macro-variables as the part of this pathname.
-   The supported macro-variables are: 
+   The supported macro-variables are:
      $(SYS.TEMP)
      $(NPP_DIRECTORY)
      $(PLUGINS_CONFIG_DIR)
    NOTE:
-   When <LogsDir> is specified, the internal Logger produces some more 
+   When <LogsDir> is specified, the internal Logger produces some more
    information than in its default mode, so you can observe more details.
 
 
  AutoSave_Seconds
  ----------------
    !!! This option is EXPERIMENTAL and therefore disabled by default !!!
-   (Due to its current implementation, there may be issues with today's 
+   (Due to its current implementation, there may be issues with today's
    multi-core processors. For example, some value may be saved during
    the time while it is being modified - thus leading to saving of the
    unexpected content.)
    Specifies the interval in seconds of auto-saving of NppExec's options.
-   For example, the value of 300 means once per 300 seconds (i.e. once per 
+   For example, the value of 300 means once per 300 seconds (i.e. once per
    5 minutes).
    The value of 0 disables the auto-saving.
 
