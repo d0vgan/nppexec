@@ -10,3 +10,4 @@ And don't forget about Plugins -> NppExec -> Help/Manual.
 
 Installation:
 * Just unpack the NppExec zip-archive to the folder "Notepad++\plugins".
+It will extract the file "NppExec.dll" as well as the "doc\NppExec" and "NppExec" subfolders.
