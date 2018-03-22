@@ -253,7 +253,7 @@ const int   DEFAULT_RICHEDIT_MAXTEXTLEN       = 4*1024*1024; // 4 MB
 const int   DEFAULT_SENDMSG_MAXBUFLEN         = 4*1024*1024; // 4 M symbols
 const int   DEFAULT_UTF8_DETECT_LENGTH        = 16384;
 const TCHAR DEFAULT_COMMENTDELIMITER[]        = _T("//");
-const TCHAR DEFAULT_HELPFILE[]                = _T("doc\\NppExec_Manual.chm");
+const TCHAR DEFAULT_HELPFILE[]                = _T("doc\\NppExec\\NppExec_Manual.chm");
 const TCHAR DEFAULT_LOGSDIR[]                 = _T("");
 const TCHAR DEFAULT_SCRIPTSDIR[]              = _T("");
 const int   DEFAULT_AUTOSAVE_SECONDS          = 0; // disabled (example: 5*60 = 5 minutes)
@@ -4245,7 +4245,7 @@ void CNppExec::OnHelpDocs()
     
     tstr doc_file;
     tstr path = getPluginPath();
-    path += _T("\\doc\\");
+    path += _T("\\doc\\NppExec\\");
 
     for ( int i = 0; i < nHelpDocs; i++ )
     {
