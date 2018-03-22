@@ -1392,6 +1392,8 @@ bool isFullPath(const tstr& path);
 bool isFullPath(const TCHAR* path);
 bool createDirectoryTree(const tstr& dir);
 bool createDirectoryTree(const TCHAR* dir);
+bool checkDirectoryExists(const tstr& dir);
+bool checkDirectoryExists(const TCHAR* dir);
 
 extern const TCHAR SCRIPTFILE_SAVED[];
 

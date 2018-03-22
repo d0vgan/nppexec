@@ -3891,6 +3891,9 @@ void CNppExec::Init()
   {
     SendNppMsg( NPPM_GETPLUGINSCONFIGDIR,
       (WPARAM) (FILEPATH_BUFSIZE - 1), (LPARAM) m_szConfigPath );
+
+    if ( !checkDirectoryExists(m_szConfigPath) )
+      createDirectoryTree(m_szConfigPath);
   }
   else
   {
@@ -5198,6 +5201,17 @@ bool createDirectoryTree(const tstr& dir)
 bool createDirectoryTree(const TCHAR* dir)
 {
     return impl_createDirectoryTree(dir);
+}
+
+bool checkDirectoryExists(const tstr& dir)
+{
+    return checkDirectoryExists(dir.c_str());
+}
+
+bool checkDirectoryExists(const TCHAR* dir)
+{
+  DWORD dwAttr = ::GetFileAttributes(dir);
+  return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) != 0));
 }
 
 //-------------------------------------------------------------------------
