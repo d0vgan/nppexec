@@ -4863,10 +4863,18 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSave(const tstr& params)
     
     Runtime::GetLogger().Add(   _T("; saving") );
 
+    // TODO: use Notepad++'s message to check the document's state
+    HWND hSciWnd = m_pNppExec->GetScintillaHandle();
+    BOOL bModified = (BOOL) ::SendMessage(hSciWnd, SCI_GETMODIFY, 0, 0);
+
     if ( !m_pNppExec->SendNppMsg(NPPM_SAVECURRENTFILE, 0, 0) )
     {
-        ScriptError( ET_REPORT, _T("- could not save the file") );
-        nCmdResult = CMDRESULT_FAILED;
+        if ( bModified )
+        {
+            ScriptError( ET_REPORT, _T("- could not save the file") );
+            nCmdResult = CMDRESULT_FAILED;
+        }
+        // else the document is unmodified - nothing to save
     }
 
     return nCmdResult;
