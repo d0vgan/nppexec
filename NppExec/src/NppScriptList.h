@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cpp/CBufT.h"
 #include "cpp/CListT.h"
 #include "cpp/CFileBufT.h"
+#include "NppExecHelpers.h"
 
 typedef CStrT<TCHAR> tstr;
 typedef CListT<tstr> CNppScript;
@@ -35,56 +36,26 @@ private:
   CListT<tstr>        _ScriptNames;
   CListT<PNppScript>  _Scripts;
   bool                _bIsModified;
+  mutable CCriticalSection _csScripts;
 
   void free();
 
 public:
   CNppScriptList();
   ~CNppScriptList();
-  int   GetScriptCount() const  { 
-    return _ScriptNames.GetCount(); 
-  }
-  CListItemT<tstr>* GetFirstScriptNameItemPtr() const  { 
-    return _ScriptNames.GetFirst(); 
-  }
-  CListItemT<PNppScript>* GetFirstScriptItemPtr() const  { 
-    return _Scripts.GetFirst(); 
-  }
-  CListItemT<tstr>* GetLastScriptNameItemPtr() const  { 
-    return _ScriptNames.GetLast(); 
-  }
-  CListItemT<PNppScript>* GetLastScriptItemPtr() const  { 
-    return _Scripts.GetLast(); 
-  }
-  CListItemT<tstr>* GetNextScriptNameItemPtr(const CListItemT<tstr>* item_ptr) const  { 
-    return ( item_ptr ? item_ptr->GetNext() : NULL );
-  }
-  CListItemT<PNppScript>* GetNextScriptItemPtr(const CListItemT<PNppScript>* item_ptr) const  { 
-    return ( item_ptr ? item_ptr->GetNext() : NULL );
-  }
-  CListItemT<tstr>* GetPrevScriptNameItemPtr(const CListItemT<tstr>* item_ptr) const  {
-    return ( item_ptr ? item_ptr->GetPrev() : NULL );
-  }
-  CListItemT<PNppScript>* GetPrevScriptItemPtr(const CListItemT<PNppScript>* item_ptr) const  { 
-    return ( item_ptr ? item_ptr->GetPrev() : NULL ); 
-  }
-  bool  GetScriptNameItem(const CListItemT<tstr>* item_ptr, tstr& name) const  {
-    return ( item_ptr ? (name = item_ptr->GetItem(), true) : false );
-  }
-  bool  GetScriptItem(const CListItemT<PNppScript>* item_ptr, PNppScript& pScript) const  {
-    return ( item_ptr ? (pScript = item_ptr->GetItem(), true) : false );
-  }
-  bool  AddScript(const tstr& ScriptName, const CNppScript& newScript);
-  bool  DeleteScript(const tstr& ScriptName);
-  bool  GetScript(const tstr& ScriptName, CNppScript& outScript);
-  bool  IsModified() const  { return _bIsModified; }
-  void  LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLength = 16384);
-  bool  ModifyScript(const tstr& ScriptName, const CNppScript& newScript);
-  void  SaveToFile(const TCHAR* cszFileName);
-  void  SetModified(bool bIsModified)  { _bIsModified = bIsModified; }
-  bool  IsScriptPresent(const tstr& ScriptName) const {
-    return (_ScriptNames.FindExact(ScriptName) ? true : false);
-  }
+  
+  bool AddScript(const tstr& ScriptName, const CNppScript& newScript);
+  bool DeleteScript(const tstr& ScriptName);
+  bool GetScript(const tstr& ScriptName, CNppScript& outScript);
+  int  GetScriptCount() const;
+  CListT<tstr> GetScriptNames() const;
+  CListT<CNppScript> GetScripts(CListT<tstr>* pScriptNames = NULL) const;
+  bool IsModified() const  { return _bIsModified; }
+  void LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLength = 16384);
+  bool ModifyScript(const tstr& ScriptName, const CNppScript& newScript);
+  void SaveToFile(const TCHAR* cszFileName);
+  void SetModified(bool bIsModified)  { _bIsModified = bIsModified; }
+  bool IsScriptPresent(const tstr& ScriptName) const;
 };
 
 //--------------------------------------------------------------------

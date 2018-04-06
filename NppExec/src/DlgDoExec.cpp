@@ -390,12 +390,13 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
   m_cbScriptNames.AddString(TEMP_SCRIPT_NAME);
   
   tstr              S;
-  CListItemT<tstr>* p = Runtime::GetNppExec().m_ScriptsList.GetFirstScriptNameItemPtr();
+  CListT<tstr>      ScriptNamesList = Runtime::GetNppExec().m_ScriptsList.GetScriptNames();
+  CListItemT<tstr>* p = ScriptNamesList.GetFirst();
   while (p)
   {
-    Runtime::GetNppExec().m_ScriptsList.GetScriptNameItem(p, S);
+    S = p->GetItem();
     m_cbScriptNames.AddString(S.c_str());
-    p = Runtime::GetNppExec().m_ScriptsList.GetNextScriptNameItemPtr(p);
+    p = p->GetNext();
   }
   
   int ind = Runtime::GetNppExec().GetOptions().GetInt(OPTI_SELECTED_SCRIPT);

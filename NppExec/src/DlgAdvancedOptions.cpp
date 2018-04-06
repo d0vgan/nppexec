@@ -221,14 +221,15 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     m_cbScriptNppExit.AddString( _T("") );
     
     tstr              S;
-    CListItemT<tstr>* p = NppExec.m_ScriptsList.GetFirstScriptNameItemPtr();
+    CListT<tstr>      ScriptNamesList = NppExec.m_ScriptsList.GetScriptNames();
+    CListItemT<tstr>* p = ScriptNamesList.GetFirst();
     while (p)
     {
-        NppExec.m_ScriptsList.GetScriptNameItem(p, S);
+        S = p->GetItem();
         m_cbItemScript.AddString( S.c_str() );
         m_cbScriptNppStart.AddString( S.c_str() );
         m_cbScriptNppExit.AddString( S.c_str() );
-        p = NppExec.m_ScriptsList.GetNextScriptNameItemPtr(p);
+        p = p->GetNext();
     }
 
     i = 0;
