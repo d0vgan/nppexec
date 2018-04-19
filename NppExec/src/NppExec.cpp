@@ -3824,7 +3824,7 @@ void CNppExec::InitPluginName(HMODULE hDllModule)
   TCHAR szPath[FILEPATH_BUFSIZE];
 
   szPath[0] = 0;
-  GetModuleFileName(m_hDllModule /*NULL*/ , szPath, FILEPATH_BUFSIZE - 1);
+  GetModuleFileName(hDllModule /*NULL*/ , szPath, FILEPATH_BUFSIZE - 1);
   i = lstrlen(szPath) - 1;
   while (i >= 0 && (ch = szPath[i]) != _T('\\') && ch != _T('/'))  i--;
   if (i > 0)
@@ -3876,7 +3876,7 @@ void CNppExec::InitPluginName(HMODULE hDllModule)
         S = name;
         S.Replace( _T("NppExec"), _T("Console") );
         S.Insert( 0, _T("Show ") );
-        lstrcpy(SHOW_CONSOLE_MENU_ITEM, S.c_str() );
+        lstrcpy( SHOW_CONSOLE_MENU_ITEM, S.c_str() );
 
         // CommandHistory FileName:
         S = name;

@@ -1292,7 +1292,7 @@ public:
   bool CanStartScriptOrCommand(unsigned int nFlags = 0);
   bool TryExitRunningChildProcess(unsigned int nFlags = 0);
 
-  void InitPluginName(HMODULE hDllModule);
+  void InitPluginName(HMODULE hDllModule); // called _before_ Init()
   void Init();
   void Uninit();
   void OnCmdHistory();
