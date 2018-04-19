@@ -28,8 +28,6 @@ const DWORD  PLUGIN_VER_DWORD = NPPEXEC_VER_DWORD;
 #endif
 
 
-extern TCHAR PLUGIN_NAME_DLL[];
-
 namespace NppExecPluginInterface
 {
     tstr CPluginMsg::GenerateUniqueId()

@@ -212,6 +212,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 TCHAR PLUGIN_NAME[MAX_PLUGIN_NAME] = _T("NppExec");
 TCHAR PLUGIN_NAME_DLL[MAX_PLUGIN_NAME + 6] = _T("NppExec.dll");
 TCHAR INI_FILENAME[MAX_PLUGIN_NAME + 6] = _T("NppExec.ini");
+TCHAR CONSOLE_DLG_TITLE[MAX_PLUGIN_NAME + 10] = _T(" Console ");
+TCHAR SHOW_CONSOLE_MENU_ITEM[MAX_PLUGIN_NAME + 10] = _T("Show Console");
 
 const TCHAR SZ_CONSOLE_HELP_INFO[] = _T("NppExec Help Info:") _T_RE_EOL \
   _T("- You can execute commands and scripts directly from the Console window.") _T_RE_EOL \
@@ -1339,7 +1341,7 @@ void globalInitialize()
   // init menu items:
   InitFuncItem(N_DO_EXEC_DLG,     _T("Execute..."),                    do_exec_dlg_func,    &g_funcShortcut[N_DO_EXEC_DLG]);
   InitFuncItem(N_DIRECT_EXEC,     _T("Direct Execute Previous"),       direct_exec_func,    &g_funcShortcut[N_DIRECT_EXEC]);
-  InitFuncItem(N_SHOWCONSOLE,     _T("Show Console Dialog"),           show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
+  InitFuncItem(N_SHOWCONSOLE,     SHOW_CONSOLE_MENU_ITEM,              show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
   InitFuncItem(N_TOGGLECONSOLE,   _T("Toggle Console Dialog"),         toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
   InitFuncItem(N_GOTO_NEXT_ERROR, _T("Go to next error"),              go_to_next_error,    NULL);
   InitFuncItem(N_GOTO_PREV_ERROR, _T("Go to previous error"),          go_to_prev_error,    NULL);
@@ -1429,6 +1431,8 @@ extern "C" BOOL APIENTRY DllMain(
     {
       g_bInitialized = false;
       CNppExec::_bIsNppReady = false;
+
+      Runtime::GetNppExec().InitPluginName((HMODULE) hInstance);
         
       //now in the setInfo:
       //globalInitialize();
@@ -3813,50 +3817,18 @@ void CNppExec::ExpandToFullConfigPath(TCHAR* out_szPath, const TCHAR* cszFileNam
   lstrcat(out_szPath, cszFileName);
 }
 
-static void modifyPluginName()
-{
-  // needed in MustDie9x because GetModuleFileName returns 
-  // capital letters there (stupid M$...)
-
-  tstr name = PLUGIN_NAME;
-  if ( name.length() > 0 )
-  {
-    NppExecHelpers::StrUpper(name);
-    int i = name.Find( _T("NPPEXEC") );
-    if ( i >= 0 )
-    {
-      name.Replace( i, 7, _T("NppExec") );
-      if ( i > 1 )
-      {
-        ::CharLowerBuff( (name.c_str() + 1), i - 1 );
-      }
-      if ( i + 8 < name.length() )
-      {
-        ::CharLowerBuff( (name.c_str() + i + 8), name.length() - i - 8 );
-      }
-      lstrcpy( PLUGIN_NAME, name.c_str() );
-      name.Replace( _T("NppExec"), _T("npec_cmdhistory") );
-      name.Append( _T(".txt") );
-      lstrcpy( CMDHISTORY_FILENAME, name.c_str() );
-    }
-  }
-}
-
-void CNppExec::Init()
+void CNppExec::InitPluginName(HMODULE hDllModule)
 {
   INT   i;
   TCHAR ch;
   TCHAR szPath[FILEPATH_BUFSIZE];
 
-  lstrcpy(m_szPluginDllName, _T("NppExec.dll"));
   szPath[0] = 0;
   GetModuleFileName(m_hDllModule /*NULL*/ , szPath, FILEPATH_BUFSIZE - 1);
   i = lstrlen(szPath) - 1;
   while (i >= 0 && (ch = szPath[i]) != _T('\\') && ch != _T('/'))  i--;
   if (i > 0)
   {
-    lstrcpy(m_szPluginDllName, szPath + i + 1); // "NppExec.dll"
-      
     int j = 0;
     while (j < MAX_PLUGIN_NAME)
     {
@@ -3871,7 +3843,50 @@ void CNppExec::Init()
       PLUGIN_NAME[MAX_PLUGIN_NAME - 1] = 0;
     }
   }
-  modifyPluginName();
+
+  {
+    tstr name = PLUGIN_NAME;
+    if ( name.length() > 0 )
+    {
+      // needed in MustDie9x because GetModuleFileName returns 
+      // capital letters there (stupid M$...)
+      NppExecHelpers::StrUpper(name);
+      i = name.Find( _T("NPPEXEC") );
+      if ( i >= 0 )
+      {
+        name.Replace( i, 7, _T("NppExec") );
+        if ( i > 1 )
+        {
+          ::CharLowerBuff( (name.c_str() + 1), i - 1 );
+        }
+        if ( i + 8 < name.length() )
+        {
+          ::CharLowerBuff( (name.c_str() + i + 8), name.length() - i - 8 );
+        }
+        lstrcpy( PLUGIN_NAME, name.c_str() );
+      
+        // Console Dialog Title:
+        tstr S = name;
+        S.Replace( _T("NppExec"), _T("Console") );
+        S.Insert( 0, _T(' ') );
+        S.Append( _T(' ') );
+        lstrcpy( CONSOLE_DLG_TITLE, S.c_str() );
+
+        // Show Console MenuItem:
+        S = name;
+        S.Replace( _T("NppExec"), _T("Console") );
+        S.Insert( 0, _T("Show ") );
+        lstrcpy(SHOW_CONSOLE_MENU_ITEM, S.c_str() );
+
+        // CommandHistory FileName:
+        S = name;
+        S.Replace( _T("NppExec"), _T("npec_cmdhistory") );
+        S.Append( _T(".txt") );
+        lstrcpy( CMDHISTORY_FILENAME, S.c_str() );
+      }
+    }
+  }
+
   i = lstrlen(szPath) - 1;
   while (i >= 0 && (ch = szPath[i]) != _T('\\') && ch != _T('/'))  i--;
   if (i >= 0)  szPath[i] = 0;
@@ -3884,7 +3899,10 @@ void CNppExec::Init()
 
   lstrcpy( PLUGIN_NAME_DLL, PLUGIN_NAME );
   lstrcat( PLUGIN_NAME_DLL, _T(".dll") );
+}
 
+void CNppExec::Init()
+{
   GetPluginInterfaceImpl().SetPluginName( PLUGIN_NAME_DLL );
 
   if ( m_nppData._nppHandle )
@@ -3897,6 +3915,7 @@ void CNppExec::Init()
   }
   else
   {
+    TCHAR           szPath[FILEPATH_BUFSIZE];
     WIN32_FIND_DATA fdata;
     HANDLE          fhandle = FindFirstFile(szPath, &fdata);
     if ((fhandle == INVALID_HANDLE_VALUE) || !fhandle)

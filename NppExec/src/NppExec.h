@@ -1211,7 +1211,6 @@ private:
   CListT<tstr> m_ScriptCmdList;
 
   TCHAR   m_szPluginPath[FILEPATH_BUFSIZE];
-  TCHAR   m_szPluginDllName[100];
   TCHAR   m_szConfigPath[FILEPATH_BUFSIZE];
   TCHAR   m_szIniFilePathName[FILEPATH_BUFSIZE];
 
@@ -1292,7 +1291,8 @@ public:
   };
   bool CanStartScriptOrCommand(unsigned int nFlags = 0);
   bool TryExitRunningChildProcess(unsigned int nFlags = 0);
-  
+
+  void InitPluginName(HMODULE hDllModule);
   void Init();
   void Uninit();
   void OnCmdHistory();
@@ -1368,7 +1368,6 @@ public:
   void UpdateGoToErrorMenuItem();
 
   LPCTSTR getPluginPath() const  { return m_szPluginPath; }
-  LPCTSTR getPluginDllName() const  { return m_szPluginDllName; }
   LPCTSTR getConfigPath() const  { return m_szConfigPath; }
 
   static void printScriptLog(const TCHAR* str, int len);

@@ -36,7 +36,7 @@ extern int                   g_nUserMenuItems;
 extern FuncItem              g_funcItem[nbFunc + MAX_USERMENU_ITEMS + 1];
 extern ShortcutKey           g_funcShortcut[nbFunc + MAX_USERMENU_ITEMS + 1];
 
-extern TCHAR PLUGIN_NAME[];
+extern TCHAR CONSOLE_DLG_TITLE[];
 extern TCHAR PLUGIN_NAME_DLL[];
 extern TCHAR CMDHISTORY_FILENAME[];
 
@@ -2537,17 +2537,7 @@ void ConsoleDlg::OnInitDialog(HWND hDlg)
   
   // docking
 
-  static tstr conDlgTitle = _T(" Console ");
-  tstr name = PLUGIN_NAME;
-  NppExecHelpers::StrLower(name);
-  int pos = name.Find( _T("nppexec") );
-  if (pos >= 0)
-  {
-    conDlgTitle.Insert(1, PLUGIN_NAME, pos);
-    conDlgTitle.Insert(conDlgTitle.length() - 1, PLUGIN_NAME + pos + 7);
-  }
-
-  RECT           rect;
+  RECT   rect;
   
   rect.left   = 0;
   rect.top    = 0;
@@ -2563,7 +2553,7 @@ void ConsoleDlg::OnInitDialog(HWND hDlg)
       dlgId = -1;
 
   dockData.hClient       = hDlg;
-  dockData.pszName       = conDlgTitle.c_str();
+  dockData.pszName       = CONSOLE_DLG_TITLE;
   dockData.dlgID         = dlgId;
   dockData.uMask         = DWS_DF_CONT_BOTTOM | DWS_ICONTAB;
   dockData.hIconTab      = hTabIcon;
