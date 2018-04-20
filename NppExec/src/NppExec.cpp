@@ -214,6 +214,7 @@ TCHAR PLUGIN_NAME_DLL[MAX_PLUGIN_NAME + 6] = _T("NppExec.dll");
 TCHAR INI_FILENAME[MAX_PLUGIN_NAME + 6] = _T("NppExec.ini");
 TCHAR CONSOLE_DLG_TITLE[MAX_PLUGIN_NAME + 10] = _T(" Console ");
 TCHAR SHOW_CONSOLE_MENU_ITEM[MAX_PLUGIN_NAME + 10] = _T("Show Console");
+TCHAR TOGGLE_CONSOLE_MENU_ITEM[MAX_PLUGIN_NAME + 10] = _T("Toggle Console");
 
 const TCHAR SZ_CONSOLE_HELP_INFO[] = _T("NppExec Help Info:") _T_RE_EOL \
   _T("- You can execute commands and scripts directly from the Console window.") _T_RE_EOL \
@@ -1342,7 +1343,7 @@ void globalInitialize()
   InitFuncItem(N_DO_EXEC_DLG,     _T("Execute..."),                    do_exec_dlg_func,    &g_funcShortcut[N_DO_EXEC_DLG]);
   InitFuncItem(N_DIRECT_EXEC,     _T("Direct Execute Previous"),       direct_exec_func,    &g_funcShortcut[N_DIRECT_EXEC]);
   InitFuncItem(N_SHOWCONSOLE,     SHOW_CONSOLE_MENU_ITEM,              show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
-  InitFuncItem(N_TOGGLECONSOLE,   _T("Toggle Console Dialog"),         toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
+  InitFuncItem(N_TOGGLECONSOLE,   TOGGLE_CONSOLE_MENU_ITEM,            toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
   InitFuncItem(N_GOTO_NEXT_ERROR, _T("Go to next error"),              go_to_next_error,    NULL);
   InitFuncItem(N_GOTO_PREV_ERROR, _T("Go to previous error"),          go_to_prev_error,    NULL);
   InitFuncItem(N_SEPARATOR_1,     _T(""),                              /*empty_func*/NULL,  NULL);
@@ -3820,13 +3821,15 @@ void CNppExec::ExpandToFullConfigPath(TCHAR* out_szPath, const TCHAR* cszFileNam
 void CNppExec::InitPluginName(HMODULE hDllModule)
 {
   INT   i;
+  INT   n;
   TCHAR ch;
   TCHAR szPath[FILEPATH_BUFSIZE];
 
   szPath[0] = 0;
   GetModuleFileName(hDllModule /*NULL*/ , szPath, FILEPATH_BUFSIZE - 1);
-  i = lstrlen(szPath) - 1;
-  while (i >= 0 && (ch = szPath[i]) != _T('\\') && ch != _T('/'))  i--;
+  n = lstrlen(szPath) - 1;
+  while (n >= 0 && (ch = szPath[n]) != _T('\\') && ch != _T('/'))  n--;
+  i = n; // pos of the last '\' or '/'
   if (i > 0)
   {
     int j = 0;
@@ -3865,20 +3868,24 @@ void CNppExec::InitPluginName(HMODULE hDllModule)
         }
         lstrcpy( PLUGIN_NAME, name.c_str() );
       
-        // Console Dialog Title:
+        // Console dialog title:
         tstr S = name;
         S.Replace( _T("NppExec"), _T("Console") );
         S.Insert( 0, _T(' ') );
         S.Append( _T(' ') );
         lstrcpy( CONSOLE_DLG_TITLE, S.c_str() );
 
-        // Show Console MenuItem:
+        // Show Console menu item:
         S = name;
         S.Replace( _T("NppExec"), _T("Console") );
         S.Insert( 0, _T("Show ") );
         lstrcpy( SHOW_CONSOLE_MENU_ITEM, S.c_str() );
 
-        // CommandHistory FileName:
+        // Toggle Console menu item:
+        S.Replace( _T("Show "), _T("Toggle ") );
+        lstrcpy( TOGGLE_CONSOLE_MENU_ITEM, S.c_str() );
+
+        // Command History file name:
         S = name;
         S.Replace( _T("NppExec"), _T("npec_cmdhistory") );
         S.Append( _T(".txt") );
@@ -3887,12 +3894,10 @@ void CNppExec::InitPluginName(HMODULE hDllModule)
     }
   }
 
-  i = lstrlen(szPath) - 1;
-  while (i >= 0 && (ch = szPath[i]) != _T('\\') && ch != _T('/'))  i--;
+  i = n;
   if (i >= 0)  szPath[i] = 0;
   lstrcpy(m_szPluginPath, szPath);
   lstrcpy(m_szConfigPath, szPath);
-  lstrcat(szPath, _T("\\Config\\*.*"));
   
   lstrcpy( INI_FILENAME, PLUGIN_NAME );
   lstrcat( INI_FILENAME, _T(".ini") );
@@ -3915,9 +3920,13 @@ void CNppExec::Init()
   }
   else
   {
-    TCHAR           szPath[FILEPATH_BUFSIZE];
+    HANDLE          fhandle;
     WIN32_FIND_DATA fdata;
-    HANDLE          fhandle = FindFirstFile(szPath, &fdata);
+    TCHAR           szPath[FILEPATH_BUFSIZE];
+
+    lstrcpy(szPath, m_szPluginPath);
+    lstrcat(szPath, _T("\\Config\\*.*"));
+    fhandle = FindFirstFile(szPath, &fdata);
     if ((fhandle == INVALID_HANDLE_VALUE) || !fhandle)
     {
           //ShowWarning("FindFirstFile failed");
