@@ -16,6 +16,20 @@
 </ul>
 <p>The text in italic <I>exactly</I> refers to what is stated in NppExec's Manual, sections 1.3 and 3.1 by &quot;NppExec is not a console emulator&quot;.</p>
 <p>So, by running &quot;python -i -u&quot; in NppExec's Console, you get the interactive Python inside Notepad++.</p>
+<p>Here is an advanced example of NppExec's script to be used to test a Python's program interactively:</p>
+<blockquote>
+  <pre>npp_console -  // disable any output to the Console
+npp_save  // save current file (a .py file is expected)
+cd "$(CURRENT_DIRECTORY)"  // use the current file's dir
+set local @exit_cmd_silent = exit()  // allows to exit Python automatically
+set local PATH_0 = $(SYS.PATH)  // current value of %PATH%
+env_set PATH = $(SYS.PATH);C:\Python27  // use Python 2.7
+npp_console +  // enable output to the Console
+python -i -u "$(FILE_NAME)"  // run Python's program interactively
+npp_console -  // disable any output to the Console
+env_set PATH = $(PATH_0)  // restore the value of %PATH%
+npp_console +  // enable output to the Console</pre>
+</blockquote>
 <blockquote>
   <pre> </pre>
 </blockquote>

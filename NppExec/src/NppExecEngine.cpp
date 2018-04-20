@@ -4426,7 +4426,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
             break;
 
         case PARAM_DISABLE:
-            messageConsole( CMD_NPPCONSOLE, _T("-") );
+            // messageConsole( CMD_NPPCONSOLE, _T("-") );  --  don't output anything
             m_pNppExec->GetConsole().LockConsoleEndPos();
             m_pNppExec->GetConsole().SetOutputEnabled(false);
             break;
