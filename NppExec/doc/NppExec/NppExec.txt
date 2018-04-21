@@ -270,6 +270,7 @@
      https://sourceforge.net/p/npp-plugins/discussion/672146/thread/d6605f76/
      https://sourceforge.net/p/npp-plugins/discussion/672146/thread/19ced17f/
      https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/
+     https://sourceforge.net/p/npp-plugins/discussion/672146/thread/98d3ee49/
    - FAQ section?
 
  - callback scripts? (though, we already have NppEventExec)

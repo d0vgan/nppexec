@@ -1,6 +1,8 @@
 #include "MsgTesterMenu.h"
 #include "MsgTester.h"
 #include "NppExecPluginMsgSender.h"
+#include <list>
+#include <sstream>
 
 
 const TCHAR* const CMsgTesterMenu::cszUniqueIdForExecuteCollateral_Cmd = _T("NPEM_EXECUTE_COLLATERAL - cmd");
@@ -30,7 +32,8 @@ FuncItem CMsgTesterMenu::arrFuncItems[N_NBFUNCITEMS] = {
     { _T("NPEM_EXECUTE"),            funcNpeExecute,           0, false, NULL },
     { _T("NPEM_NPPEXEC"),            funcNpeNppExec,           0, false, NULL },
     { _T("NPEM_EXECUTE_COLLATERAL"), funcNpeExecuteCollateral, 0, false, NULL },
-    { _T("NPEM_EXECUTE_QUEUED"),     funcNpeExecuteQueued,     0, false, NULL }
+    { _T("NPEM_EXECUTE_QUEUED"),     funcNpeExecuteQueued,     0, false, NULL },
+    { _T("NPEM_GETSCRIPTNAMES"),     funcNpeGetScriptNames,    0, false, NULL }
 };
 
 bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread /* = NULL */)
@@ -206,4 +209,54 @@ void CMsgTesterMenu::funcNpeExecuteQueued()
 
     if ( npeMsgr.NpeExecuteQueued(&neqp) != NPE_EXECUTE_QUEUED_OK )
         ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), neqp.szID, MB_OK | MB_ICONERROR);
+}
+
+void CMsgTesterMenu::funcNpeGetScriptNames()
+{
+    NpeGetScriptNamesParam nsn;
+    CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
+    if ( npeMsgr.NpeGetScriptNames(&nsn) != NPE_GETSCRIPTNAMES_OK )
+    {
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_GETSCRIPTNAMES"), MB_OK | MB_ICONERROR);
+        return;
+    }
+
+    // OK, let's get the script names
+    std::list< std::basic_string<TCHAR> > scriptNames;
+    {
+        std::basic_string<TCHAR> scriptName;
+        const TCHAR* pszNames = nsn.pScriptNames;
+        TCHAR ch;
+        while ( (ch = *pszNames) != 0 )
+        {
+            if ( ch == _T('\n') )
+            {
+                scriptNames.push_back(scriptName);
+                scriptName.clear();
+            }
+            else
+            {
+                scriptName += ch;
+            }
+            ++pszNames;
+        }
+        if ( !scriptName.empty() )
+        {
+            scriptNames.push_back(scriptName);
+        }
+    }
+
+    // free the memory allocated by NppExec
+    npeMsgr.NpeFreePtr( nsn.pScriptNames );
+
+    // show the script names
+    std::basic_ostringstream<TCHAR> oss;
+    oss << _T("There are ") << scriptNames.size() << _T(" scripts in NppExec:\n");
+    size_t n = 0;
+    std::list< std::basic_string<TCHAR> >::const_iterator itr;
+    for ( itr = scriptNames.begin(); itr != scriptNames.end(); ++itr )
+    {
+        oss << ++n << _T(". ") << *itr << _T("\n");
+    }
+    ::MessageBox( GetMsgTester().getNppWnd(), oss.str().c_str(), _T("NPEM_GETSCRIPTNAMES"), MB_OK);
 }

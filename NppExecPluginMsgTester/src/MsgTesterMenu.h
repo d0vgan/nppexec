@@ -17,6 +17,7 @@ class CMsgTesterMenu : public CNppPluginMenu
             N_NPE_NPPEXEC,
             N_NPE_EXECUTE_COLLATERAL,
             N_NPE_EXECUTE_QUEUED,
+            N_NPE_GETSCRIPTNAMES,
             
             N_NBFUNCITEMS
         };
@@ -40,6 +41,7 @@ class CMsgTesterMenu : public CNppPluginMenu
         static void funcNpeNppExec();
         static void funcNpeExecuteCollateral();
         static void funcNpeExecuteQueued();
+        static void funcNpeGetScriptNames();
 
 };
 

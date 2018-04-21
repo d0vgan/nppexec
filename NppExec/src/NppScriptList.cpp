@@ -102,9 +102,7 @@ bool CNppScriptList::DeleteScript(const tstr& ScriptName)
   {
     if (p->GetItem() == ScriptName)
     {
-      CNppScript* pScript;
-
-      pScript = p1->GetItem();
+      CNppScript* pScript = p1->GetItem();
       if (pScript)
       {
         pScript->DeleteAll();
@@ -265,9 +263,7 @@ bool CNppScriptList::ModifyScript(const tstr& ScriptName, const CNppScript& newS
     if (p->GetItem() == ScriptName)
     {
       // ScriptName is matched
-      CNppScript* pScript = NULL;
-
-      pScript = p1->GetItem();
+      CNppScript* pScript = p1->GetItem();
       if (pScript)
       {
         // Now let's check if newScript is different than pScript

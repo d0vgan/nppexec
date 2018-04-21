@@ -291,6 +291,50 @@ namespace NppExecPluginInterface
                 break;
             }
 
+            case NPEM_FREEPTR:
+            {
+                TCHAR* p = (TCHAR *) pInfo;
+                if ( p )
+                {
+                    delete [] p;
+                }
+
+                break;
+            }
+
+            case NPEM_GETSCRIPTNAMES:
+            {
+                Runtime::GetLogger().Add_WithoutOutput( _T("; NPEM_GETSCRIPTNAMES") );
+
+                // pInfo is (NpeGetScriptNamesParam* nsn)
+                NpeGetScriptNamesParam* nsn = (NpeGetScriptNamesParam *) pInfo;
+                if ( m_isEnabled )
+                {
+                    CListT<tstr> scriptNames = m_pNppExec->m_ScriptsList.GetScriptNames();
+                    tstr S;
+                    if ( !scriptNames.IsEmpty() )
+                    {
+                        S.Reserve(scriptNames.GetCount() * 20);
+                        for ( CListItemT<tstr>* p = scriptNames.GetFirst(); p != NULL; p = p->GetNext() )
+                        {
+                            if ( !S.IsEmpty() )
+                                S += _T('\n');
+                            S += p->GetItem();
+                        }
+                    }
+                    TCHAR* p = new TCHAR[S.length() + 1];
+                    lstrcpy(p, S.c_str());
+                    nsn->pScriptNames = p; // to be freed by NPEM_FREEPTR
+                    nsn->dwResult = NPE_GETSCRIPTNAMES_OK;
+                }
+                else
+                {
+                    nsn->dwResult = NPE_GETSCRIPTNAMES_FAILED;
+                }
+
+                break;
+            }
+
             case NPEM_SUSPENDEDACTION:
             {
                 /* obsolete */

@@ -541,6 +541,122 @@ typedef struct sPluginResultStruct {
   }
   */
 
+
+#define  NPEM_FREEPTR                   0x0500  // message (NppExec version >= 0x06C1)
+  /*
+  Frees the memory previously allocated by NppExec
+  (e.g. after NPEM_GETSCRIPTNAMES or NPEM_GETSCRIPTBYNAME).
+
+  Example:
+
+  const TCHAR* cszMyPlugin = _T("my_plugin");
+  NpeGetScriptNamesParam nsn;
+  memset(&nsn, 0, sizeof(NpeGetScriptNamesParam));
+  CommunicationInfo ci = { NPEM_GETSCRIPTNAMES, 
+                           cszMyPlugin, 
+                           (void *) &nsn };
+  ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+      (WPARAM) _T("NppExec.dll"), (LPARAM) &ci );
+
+  if ( nsn.dwResult == NPE_GETSCRIPTNAMES_OK )
+  {
+      // ... using nsn.pScriptNames here ...
+
+      // ... finally:
+      CommunicationInfo ci2 = { NPEM_FREEPTR, 
+                                cszMyPlugin, 
+                                (void *) nsn.pScriptNames };
+      ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+          (WPARAM) _T("NppExec.dll"), (LPARAM) &ci2 );
+  }
+  */
+
+
+#define  NPEM_GETSCRIPTNAMES            0x0501  // message (NppExec version >= 0x06C1)
+  #define  NPE_GETSCRIPTNAMES_OK        NPE_STATEREADY
+  #define  NPE_GETSCRIPTNAMES_FAILED    NPE_STATEBUSY
+  typedef struct sNpeGetScriptNamesParam {
+      TCHAR* pScriptNames; // [out] returned pointer to script names
+      DWORD  dwResult;     // [out] NPE_EXECUTE_OK - OK; otherwise failed
+  } NpeGetScriptNamesParam;
+  /*
+  Returns a pointer (string) containing the script names.
+  The script names are separated by '\n'.
+  As pScriptNames is a pointer to a memory block allocated
+  by NppExec, finally it *must* be freed via NPEM_FREEPTR.
+
+  Example:
+
+  const TCHAR* cszMyPlugin = _T("my_plugin");
+  NpeGetScriptNamesParam nsn;
+  memset(&nsn, 0, sizeof(NpeGetScriptNamesParam));
+  CommunicationInfo ci = { NPEM_GETSCRIPTNAMES, 
+                           cszMyPlugin, 
+                           (void *) &nsn };
+  ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+      (WPARAM) _T("NppExec.dll"), (LPARAM) &ci );
+
+  if ( nsn.dwResult == NPE_GETSCRIPTNAMES_OK )
+  {
+      // OK, let's get the script names
+      std::list< std::basic_string<TCHAR> > scriptNames;
+      {
+          std::basic_string<TCHAR> scriptName;
+          const TCHAR* pszNames = nsn.pScriptNames;
+          TCHAR ch;
+          while ( (ch = *pszNames) != 0 )
+          {
+              if ( ch == _T('\n') )
+              {
+                  scriptNames.push_back(scriptName);
+                  scriptName.clear();
+              }
+              else
+              {
+                  scriptName += ch;
+              }
+              ++pszNames;
+          }
+          if ( !scriptName.empty() )
+          {
+              scriptNames.push_back(scriptName);
+          }
+      }
+
+      // free the memory allocated by NppExec
+      CommunicationInfo ci2 = { NPEM_FREEPTR, 
+                                cszMyPlugin, 
+                                (void *) nsn.pScriptNames };
+      ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+          (WPARAM) _T("NppExec.dll"), (LPARAM) &ci2 );
+
+      // do something with scriptNames now...
+  }
+  else
+  {
+      // failed, the plugin is "busy"
+  }
+  */
+
+
+#define NPEM_GETSCRIPTBYNAME            0x0502  // message (NppExec version >= 0x06C1)
+  #define  NPE_GETSCRIPTBYNAME_OK       NPE_STATEREADY
+  #define  NPE_GETSCRIPTBYNAME_FAILED   NPE_STATEBUSY
+  typedef struct sNpeGetScriptByNameParam {
+      const TCHAR* szScriptName;  // script name
+      TCHAR*       pScriptBody;   // [out] returned pointer to the script body
+      DWORD        dwResult;      // [out] NPE_EXECUTE_OK - OK; otherwise failed
+  } NpeGetScriptByNameParam;
+  /*
+  Returns a pointer (string) containing the script body.
+  The lines of the script body are separated by '\n'.
+  As pScriptBody is a pointer to a memory block allocated
+  by NppExec, finally it *must* be freed via NPEM_FREEPTR.
+
+  ... TODO ...
+  */
+
+
 #define  NPEM_INTERNAL         0xFF01  // internal messages, don't use it!
 #define  NPEM_SUSPENDEDACTION  (NPEM_INTERNAL + 1) // <-- obsolete
 
