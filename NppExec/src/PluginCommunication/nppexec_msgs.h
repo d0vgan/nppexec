@@ -551,7 +551,8 @@ typedef struct sPluginResultStruct {
 
   const TCHAR* cszMyPlugin = _T("my_plugin");
   NpeGetScriptNamesParam nsn;
-  memset(&nsn, 0, sizeof(NpeGetScriptNamesParam));
+  nsn.pScriptNames = NULL;
+  nsn.dwResult = 0;
   CommunicationInfo ci = { NPEM_GETSCRIPTNAMES, 
                            cszMyPlugin, 
                            (void *) &nsn };
@@ -589,7 +590,8 @@ typedef struct sPluginResultStruct {
 
   const TCHAR* cszMyPlugin = _T("my_plugin");
   NpeGetScriptNamesParam nsn;
-  memset(&nsn, 0, sizeof(NpeGetScriptNamesParam));
+  nsn.pScriptNames = NULL;
+  nsn.dwResult = 0;
   CommunicationInfo ci = { NPEM_GETSCRIPTNAMES, 
                            cszMyPlugin, 
                            (void *) &nsn };
@@ -653,7 +655,59 @@ typedef struct sPluginResultStruct {
   As pScriptBody is a pointer to a memory block allocated
   by NppExec, finally it *must* be freed via NPEM_FREEPTR.
 
-  ... TODO ...
+  Example:
+
+  const TCHAR* cszMyPlugin = _T("my_plugin");
+  NpeGetScriptByNameParam nsn;
+  nsn.szScriptName = _T("script name");
+  nsn.pScriptBody = NULL;
+  nsn.dwResult = 0;
+  CommunicationInfo ci = { NPEM_GETSCRIPTBYNAME, 
+                           cszMyPlugin, 
+                           (void *) &nsn };
+  ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+      (WPARAM) _T("NppExec.dll"), (LPARAM) &ci );
+
+  if ( nsn.dwResult == NPE_GETSCRIPTBYNAME_OK )
+  {
+      // OK, let's get the script lines
+      std::list< std::basic_string<TCHAR> > scriptLines;
+      {
+          std::basic_string<TCHAR> scriptLine;
+          const TCHAR* pszScriptBody = nsn.pScriptBody;
+          TCHAR ch;
+          while ( (ch = *pszScriptBody) != 0 )
+          {
+              if ( ch == _T('\n') )
+              {
+                  scriptLines.push_back(scriptLine);
+                  scriptLine.clear();
+              }
+              else
+              {
+                  scriptLine += ch;
+              }
+              ++pszScriptBody;
+          }
+          if ( !scriptLine.empty() )
+          {
+              scriptLines.push_back(scriptLine);
+          }
+      }
+
+      // free the memory allocated by NppExec
+      CommunicationInfo ci2 = { NPEM_FREEPTR, 
+                                cszMyPlugin, 
+                                (void *) nsn.pScriptBody };
+      ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+          (WPARAM) _T("NppExec.dll"), (LPARAM) &ci2 );
+
+      // do something with scriptLines now...
+  }
+  else
+  {
+      // failed, the plugin is "busy"
+  }
   */
 
 

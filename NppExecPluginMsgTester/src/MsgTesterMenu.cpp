@@ -33,7 +33,8 @@ FuncItem CMsgTesterMenu::arrFuncItems[N_NBFUNCITEMS] = {
     { _T("NPEM_NPPEXEC"),            funcNpeNppExec,           0, false, NULL },
     { _T("NPEM_EXECUTE_COLLATERAL"), funcNpeExecuteCollateral, 0, false, NULL },
     { _T("NPEM_EXECUTE_QUEUED"),     funcNpeExecuteQueued,     0, false, NULL },
-    { _T("NPEM_GETSCRIPTNAMES"),     funcNpeGetScriptNames,    0, false, NULL }
+    { _T("NPEM_GETSCRIPTNAMES"),     funcNpeGetScriptNames,    0, false, NULL },
+    { _T("NPEM_GETSCRIPTBYNAME"),    funcNpeGetScriptByName,   0, false, NULL }
 };
 
 bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread /* = NULL */)
@@ -77,7 +78,7 @@ namespace
         necp.dwResult = 1; // send a notification when executed
         if ( npeMsgr.NpeExecuteCollateral(&necp) != NPE_EXECUTE_COLLATERAL_OK )
         {
-            ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), necp.szID, MB_OK | MB_ICONERROR);
+            ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), necp.szID, MB_OK | MB_ICONERROR );
             return 1;
         }
 
@@ -89,7 +90,7 @@ namespace
         necp.dwResult = 1; // send a notification when executed
         if ( npeMsgr.NpeExecuteCollateral(&necp) != NPE_EXECUTE_COLLATERAL_OK )
         {
-            ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), necp.szID, MB_OK | MB_ICONERROR);
+            ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), necp.szID, MB_OK | MB_ICONERROR );
             return 1;
         }
 
@@ -104,7 +105,7 @@ void CMsgTesterMenu::funcNpeGetVerDword()
 
     TCHAR str[20];
     ::wsprintf(str, _T("0x%04X"), dwVersion);
-    ::MessageBox( GetMsgTester().getNppWnd(), str, _T("NppExec version (as dword)"), MB_OK);
+    ::MessageBox( GetMsgTester().getNppWnd(), str, _T("NppExec version (as dword)"), MB_OK );
 }
 
 void CMsgTesterMenu::funcNpeGetVerStr()
@@ -113,7 +114,7 @@ void CMsgTesterMenu::funcNpeGetVerStr()
     TCHAR str[NPE_MAXVERSTR];
     npeMsgr.NpeGetVerStr(str);
 
-    ::MessageBox( GetMsgTester().getNppWnd(), str, _T("NppExec version (as string)"), MB_OK);
+    ::MessageBox( GetMsgTester().getNppWnd(), str, _T("NppExec version (as string)"), MB_OK );
 }
 
 void CMsgTesterMenu::funcNpeGetState()
@@ -121,11 +122,11 @@ void CMsgTesterMenu::funcNpeGetState()
     CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
     DWORD dwState = npeMsgr.NpeGetState();
     if ( dwState == NPE_STATEREADY )
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Ready"), _T("NppExec state"), MB_OK);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Ready"), _T("NppExec state"), MB_OK );
     else if ( dwState & NPE_STATEBUSY )
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Busy"), _T("NppExec state"), MB_OK);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Busy"), _T("NppExec state"), MB_OK );
     else
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("UNKNOWN"), _T("NppExec state"), MB_OK);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("UNKNOWN"), _T("NppExec state"), MB_OK );
 }
 
 void CMsgTesterMenu::funcNpePrint()
@@ -133,7 +134,7 @@ void CMsgTesterMenu::funcNpePrint()
     CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
     const TCHAR* cszText = _T("Hello!\nThis is a test message.\r\nAre you happy to see it? ;-)");
     if ( npeMsgr.NpePrint(cszText) != NPE_STATEREADY )
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_PRINT"), MB_OK | MB_ICONERROR);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_PRINT"), MB_OK | MB_ICONERROR );
 }
 
 void CMsgTesterMenu::funcNpeExecute()
@@ -144,7 +145,7 @@ void CMsgTesterMenu::funcNpeExecute()
 
     CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
     if ( npeMsgr.NpeExecute(&nep) != NPE_EXECUTE_OK )
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_EXECUTE"), MB_OK | MB_ICONERROR);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_EXECUTE"), MB_OK | MB_ICONERROR );
 }
 
 void CMsgTesterMenu::funcNpeNppExec()
@@ -157,7 +158,7 @@ void CMsgTesterMenu::funcNpeNppExec()
 
     CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
     if ( npeMsgr.NpeNppExec(&npep) != NPE_NPPEXEC_OK )
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_NPPEXEC"), MB_OK | MB_ICONERROR);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_NPPEXEC"), MB_OK | MB_ICONERROR );
 }
 
 void CMsgTesterMenu::funcNpeExecuteCollateral()
@@ -173,14 +174,14 @@ void CMsgTesterMenu::funcNpeExecuteCollateral()
     CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
     if ( npeMsgr.NpeExecuteCollateral(&necp) != NPE_EXECUTE_COLLATERAL_OK )
     {
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_EXECUTE_COLLATERAL - starting"), MB_OK | MB_ICONERROR);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_EXECUTE_COLLATERAL - starting"), MB_OK | MB_ICONERROR );
         return;
     }
 
     // The rest of the test is in a separate thread to not block Notepad++'s GUI
     if ( !CreateNewThread(NpeExecuteCollateralThreadFunc, NULL) )
     {
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Failed to create a thread"), _T("NPEM_EXECUTE_COLLATERAL - thread"), MB_OK | MB_ICONERROR);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Failed to create a thread"), _T("NPEM_EXECUTE_COLLATERAL - thread"), MB_OK | MB_ICONERROR );
         return;
     }
 }
@@ -199,7 +200,7 @@ void CMsgTesterMenu::funcNpeExecuteQueued()
 
     CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
     if ( npeMsgr.NpeExecuteQueued(&neqp) != NPE_EXECUTE_QUEUED_OK )
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), neqp.szID, MB_OK | MB_ICONERROR);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), neqp.szID, MB_OK | MB_ICONERROR );
 
     neqp.szScriptBody = _T("echo Setting B = A + 20...\n") \
                         _T("set B ~ $(A) + 20\n") \
@@ -208,16 +209,18 @@ void CMsgTesterMenu::funcNpeExecuteQueued()
     neqp.dwResult = 1; // send a notification when executed
 
     if ( npeMsgr.NpeExecuteQueued(&neqp) != NPE_EXECUTE_QUEUED_OK )
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), neqp.szID, MB_OK | MB_ICONERROR);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), neqp.szID, MB_OK | MB_ICONERROR );
 }
 
 void CMsgTesterMenu::funcNpeGetScriptNames()
 {
     NpeGetScriptNamesParam nsn;
+    nsn.pScriptNames = NULL;
+    nsn.dwResult = 0;
     CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
     if ( npeMsgr.NpeGetScriptNames(&nsn) != NPE_GETSCRIPTNAMES_OK )
     {
-        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_GETSCRIPTNAMES"), MB_OK | MB_ICONERROR);
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_GETSCRIPTNAMES"), MB_OK | MB_ICONERROR );
         return;
     }
 
@@ -258,5 +261,95 @@ void CMsgTesterMenu::funcNpeGetScriptNames()
     {
         oss << ++n << _T(". ") << *itr << _T("\n");
     }
-    ::MessageBox( GetMsgTester().getNppWnd(), oss.str().c_str(), _T("NPEM_GETSCRIPTNAMES"), MB_OK);
+    ::MessageBox( GetMsgTester().getNppWnd(), oss.str().c_str(), _T("NPEM_GETSCRIPTNAMES"), MB_OK );
+}
+
+void CMsgTesterMenu::funcNpeGetScriptByName()
+{
+    // 1.1. Let's get the available script names first
+    NpeGetScriptNamesParam nsn0;
+    nsn0.pScriptNames = NULL;
+    nsn0.dwResult = 0;
+    CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
+    if ( npeMsgr.NpeGetScriptNames(&nsn0) != NPE_GETSCRIPTNAMES_OK )
+    {
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed (get script name)"), _T("NPEM_GETSCRIPTBYNAME"), MB_OK | MB_ICONERROR );
+        return;
+    }
+    // 1.2. Get the first script name
+    std::basic_string<TCHAR> firstScriptName;
+    {
+        std::basic_string<TCHAR> scriptName;
+        const TCHAR* pszNames = nsn0.pScriptNames;
+        TCHAR ch;
+        while ( (ch = *pszNames) != 0 )
+        {
+            if ( ch == _T('\n') )
+            {
+                firstScriptName = scriptName;
+                break;
+            }
+            scriptName += ch;
+            ++pszNames;
+        }
+        if ( firstScriptName.empty() && !scriptName.empty() )
+        {
+            firstScriptName = scriptName;
+        }
+    }
+    // 1.3. Free the memory allocated by NppExec
+    npeMsgr.NpeFreePtr( nsn0.pScriptNames );
+    // 1.4. Check if the first script name is empty
+    if ( firstScriptName.empty() )
+    {
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("(No scripts available)"), _T("NPEM_GETSCRIPTBYNAME"), MB_OK );
+        return;
+    }
+
+    // 2.1. Get the script by name
+    NpeGetScriptByNameParam nsn;
+    nsn.szScriptName = firstScriptName.c_str();
+    nsn.pScriptBody = NULL;
+    nsn.dwResult = 0;
+    if ( npeMsgr.NpeGetScriptByName(&nsn) != NPE_GETSCRIPTBYNAME_OK )
+    {
+        ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed (get script body)"), _T("NPEM_GETSCRIPTBYNAME"), MB_OK | MB_ICONERROR );
+        return;
+    }
+    // 2.2. Get the script lines
+    std::list< std::basic_string<TCHAR> > scriptLines;
+    {
+        std::basic_string<TCHAR> scriptLine;
+        const TCHAR* pszScriptBody = nsn.pScriptBody;
+        TCHAR ch;
+        while ( (ch = *pszScriptBody) != 0 )
+        {
+            if ( ch == _T('\n') )
+            {
+                scriptLines.push_back(scriptLine);
+                scriptLine.clear();
+            }
+            else
+            {
+                scriptLine += ch;
+            }
+            ++pszScriptBody;
+        }
+        if ( !scriptLine.empty() )
+        {
+            scriptLines.push_back(scriptLine);
+        }
+    }
+    // 2.3. Free the memory allocated by NppExec
+    npeMsgr.NpeFreePtr( nsn.pScriptBody );
+    // 2.4. Show the script lines
+    std::basic_ostringstream<TCHAR> oss;
+    oss << _T("The script \"") << firstScriptName << _T("\" contains ") << scriptLines.size() << _T(" lines:\n");
+    size_t n = 0;
+    std::list< std::basic_string<TCHAR> >::const_iterator itr;
+    for ( itr = scriptLines.begin(); itr != scriptLines.end(); ++itr )
+    {
+        oss << _T("(") << ++n << _T(") ") << *itr << _T("\n");
+    }
+    ::MessageBox( GetMsgTester().getNppWnd(), oss.str().c_str(), _T("NPEM_GETSCRIPTBYNAME"), MB_OK );
 }

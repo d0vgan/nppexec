@@ -98,8 +98,13 @@ class CNppExecPluginMsgSender : public CNppPluginMsgSender
 
         DWORD NpeGetScriptNames(NpeGetScriptNamesParam* nsn)
         {
-            memset(nsn, 0, sizeof(NpeGetScriptNamesParam));
             SendNpeMsg( NPEM_GETSCRIPTNAMES, (void *) nsn );
+            return nsn->dwResult;
+        }
+
+        DWORD NpeGetScriptByName(NpeGetScriptByNameParam* nsn)
+        {
+            SendNpeMsg( NPEM_GETSCRIPTBYNAME, (void *) nsn );
             return nsn->dwResult;
         }
 

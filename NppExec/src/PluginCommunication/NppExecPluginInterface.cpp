@@ -335,6 +335,39 @@ namespace NppExecPluginInterface
                 break;
             }
 
+            case NPEM_GETSCRIPTBYNAME:
+            {
+                Runtime::GetLogger().Add_WithoutOutput( _T("; NPEM_GETSCRIPTBYNAME") );
+
+                // pInfo is (NpeGetScriptByNameParam* nsn)
+                NpeGetScriptByNameParam* nsn = (NpeGetScriptByNameParam *) pInfo;
+                if ( m_isEnabled )
+                {
+                    tstr S;
+                    CNppScript scriptBody;
+                    if ( m_pNppExec->m_ScriptsList.GetScript(nsn->szScriptName, scriptBody) )
+                    {
+                        S.Reserve(scriptBody.GetCount() * 80);
+                        for ( CListItemT<tstr>* p = scriptBody.GetFirst(); p != NULL; p = p->GetNext() )
+                        {
+                            if ( !S.IsEmpty() )
+                                S += _T('\n');
+                            S += p->GetItem();
+                        }
+                    }
+                    TCHAR* p = new TCHAR[S.length() + 1];
+                    lstrcpy(p, S.c_str());
+                    nsn->pScriptBody = p; // to be freed by NPEM_FREEPTR
+                    nsn->dwResult = NPE_GETSCRIPTBYNAME_OK;
+                }
+                else
+                {
+                    nsn->dwResult = NPE_GETSCRIPTBYNAME_FAILED;
+                }
+
+                break;
+            }
+
             case NPEM_SUSPENDEDACTION:
             {
                 /* obsolete */
