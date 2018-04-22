@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.6 beta 1 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - February 2018
+ * NppExec plugin ver. 0.6 RC1 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - April 2018
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -161,6 +161,13 @@
  *************
  *  HISTORY  *
  *************
+
+ v0.6 RC1
+ ---------------------
+ ! NppExec's help files were moved from "doc\*.*" to "doc\NppExec\*.*"
+ + Plugin Interface: new messages NPEM_GETSCRIPTNAMES,  NPEM_GETSCRIPTBYNAME
+ * various small improvements
+
 
  v0.6 beta 1 - February 2018
  ---------------------------

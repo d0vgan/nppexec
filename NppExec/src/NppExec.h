@@ -496,8 +496,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x06B1
-#define NPPEXEC_VER_STR   _T("0.6 beta 1")
+#define NPPEXEC_VER_DWORD 0x06C1
+#define NPPEXEC_VER_STR   _T("0.6 RC1")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
