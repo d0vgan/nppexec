@@ -1205,7 +1205,7 @@ private:
   CSimpleLogger m_Logger;
   CWarningAnalyzer m_WarningAnalyzer;
   CNppExecCommandExecutor m_CommandExecutor;
-  NppExecPluginInterface::CImpl m_PluginInterfaceImpl;
+  CNppExecPluginInterfaceImpl m_PluginInterfaceImpl;
   CNppExecConsole m_Console;
   CNppExecMacroVars m_MacroVars;
   CListT<tstr> m_ScriptCmdList;
@@ -1376,7 +1376,7 @@ public:
   CNppExecConsole& GetConsole() { return m_Console; }
   CNppExecMacroVars& GetMacroVars() { return m_MacroVars; }
   CNppExecCommandExecutor& GetCommandExecutor() { return m_CommandExecutor; }
-  NppExecPluginInterface::CImpl& GetPluginInterfaceImpl() { return m_PluginInterfaceImpl; }
+  CNppExecPluginInterfaceImpl& GetPluginInterfaceImpl() { return m_PluginInterfaceImpl; }
 
   LRESULT SendNppMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0); // to Notepad++
 };

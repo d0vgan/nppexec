@@ -27,124 +27,122 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class CNppExec;
 
-namespace NppExecPluginInterface
+class CNppExecPluginInterfaceImpl
 {
-    class CPluginMsg
-    {
-        public:
-            enum eState {
-                stateWaiting = 0,
-                stateResultReady,
-                stateResultSent
-            };
+    public:
+        class CPluginMsg
+        {
+            public:
+                enum eState {
+                    stateWaiting = 0,
+                    stateResultReady,
+                    stateResultSent
+                };
 
-            // reflects the tPluginResultStruct
-            struct ResultStruct {
-                DWORD             dwResult;
-                const TCHAR*      szID;
+                // reflects the tPluginResultStruct
+                struct ResultStruct {
+                    DWORD             dwResult;
+                    const TCHAR*      szID;
 
-                ResultStruct() : dwResult(0), szID(0)
-                {
-                }
-            };
-
-        public:
-            tstr              SrcModuleName;
-            tstr              ID;
-            ResultStruct      Result;
-            CommunicationInfo ci;
-
-            CPluginMsg() { }
-            CPluginMsg(const TCHAR* srcModuleName, const tstr& id) : SrcModuleName(srcModuleName), ID(id) { }
-
-            static tstr GenerateUniqueId();
-    };
-    
-    class CImpl
-    {
-        protected:
-            typedef std::map<tstr, CPluginMsg> PluginMsgsType;
-
-            class AsyncCmd
-            {
-                public:
-                    enum eType {
-                        cmdCollateralScript,
-                        cmdQueuedScript
-                    };
-                public:
-                    AsyncCmd(const tstr& id, const tstr& scriptBody, eType type)
-                      : m_id(id)
-                      , m_scriptBody(scriptBody)
-                      , m_type(type)
+                    ResultStruct() : dwResult(0), szID(0)
                     {
                     }
+                };
 
-                    const tstr& GetId() const { return m_id; }
-                    const tstr& GetScriptBody() const { return m_scriptBody; }
-                    eType GetType() const { return m_type; }
-                
-                protected:
-                    tstr  m_id;
-                    tstr  m_scriptBody;
-                    eType m_type;
-            };
+            public:
+                tstr              SrcModuleName;
+                tstr              ID;
+                ResultStruct      Result;
+                CommunicationInfo ci;
 
-        public:
-            CImpl();
-            ~CImpl();
+                CPluginMsg() { }
+                CPluginMsg(const TCHAR* srcModuleName, const tstr& id) : SrcModuleName(srcModuleName), ID(id) { }
 
-            void Enable(bool bEnable);
+                static tstr GenerateUniqueId();
+        };
+    
+    protected:
+        typedef std::map<tstr, CPluginMsg> PluginMsgsType;
 
-            CNppExec* GetNppExec() const { return m_pNppExec; }
-            void SetNppExec(CNppExec* pNppExec) { m_pNppExec = pNppExec; }
+        class AsyncCmd
+        {
+            public:
+                enum eType {
+                    cmdCollateralScript,
+                    cmdQueuedScript
+                };
+            public:
+                AsyncCmd(const tstr& id, const tstr& scriptBody, eType type)
+                  : m_id(id)
+                  , m_scriptBody(scriptBody)
+                  , m_type(type)
+                {
+                }
 
-            void SetPluginName(const TCHAR* szNppExecDll);
+                const tstr& GetId() const { return m_id; }
+                const tstr& GetScriptBody() const { return m_scriptBody; }
+                eType GetType() const { return m_type; }
+            
+            protected:
+                tstr  m_id;
+                tstr  m_scriptBody;
+                eType m_type;
+        };
 
-            void ProcessExternalPluginMsg(long nMsg, const TCHAR* srcModuleName, void* pInfo);
-            void NotifyExternalPluginResult(const tstr& id, DWORD dwResultCode);
+    public:
+        CNppExecPluginInterfaceImpl();
+        ~CNppExecPluginInterfaceImpl();
 
-        protected:
-            void registerAsyncCmd(const tstr& id, const TCHAR* szScriptBody, AsyncCmd::eType type);
-            void registerPluginMsg(const CPluginMsg& msg);
+        void Enable(bool bEnable);
 
-            static DWORD WINAPI BackgroundExecAsyncCmdThreadFunc(LPVOID lpParam);
-            static DWORD WINAPI BackgroundSendMsgThreadFunc(LPVOID lpParam);
+        CNppExec* GetNppExec() const { return m_pNppExec; }
+        void SetNppExec(CNppExec* pNppExec) { m_pNppExec = pNppExec; }
 
-            void initExecAsyncCmdThread();
-            void stopExecAsyncCmdThread();
+        void SetPluginName(const TCHAR* szNppExecDll);
 
-            void initSendMsgThread();
-            void stopSendMsgThread();
+        void ProcessExternalPluginMsg(long nMsg, const TCHAR* srcModuleName, void* pInfo);
+        void NotifyExternalPluginResult(const tstr& id, DWORD dwResultCode);
 
-            DWORD npemGetState() const;
-            void  npemExecuteScript(const tstr& id, const TCHAR* szScriptBody);
-            void  npemExecuteCollateralScript(const tstr& id, const TCHAR* szScriptBody);
-            void  npemExecuteQueuedScript(const tstr& id, const TCHAR* szScriptBody);
-            void  npemPrint(const TCHAR* szText);
+    protected:
+        void registerAsyncCmd(const tstr& id, const TCHAR* szScriptBody, AsyncCmd::eType type);
+        void registerPluginMsg(const CPluginMsg& msg);
 
-            static void addCommand(CListT<tstr>& CmdList, tstr& Cmd);
-            static void getCmdListFromScriptBody(CListT<tstr>& CmdList, const TCHAR* szScriptBody);
-            void conPrintLine(tstr& Line);
+        static DWORD WINAPI BackgroundExecAsyncCmdThreadFunc(LPVOID lpParam);
+        static DWORD WINAPI BackgroundSendMsgThreadFunc(LPVOID lpParam);
 
-        protected:
-            CNppExec* m_pNppExec;
-            HANDLE m_hBackgroundExecAsyncCmdThread;
-            HANDLE m_hBackgroundSendMsgThread;
-            CEvent m_StopEvent; // used for both the ExecAsyncCmd and SendMsg
-            CEvent m_ExecAsyncCmdEvent;
-            CEvent m_ExecAsyncCmdThreadDoneEvent;
-            CEvent m_SendMsgEvent;
-            CEvent m_SendMsgThreadDoneEvent;
-            PluginMsgsType m_PluginMsgs;
-            CListT<AsyncCmd> m_ExecAsyncCmdQueue;
-            CListT<tstr> m_SendMsgQueue;
-            CCriticalSection m_csExecAsyncCmds;
-            CCriticalSection m_csPluginMsgs;
-            tstr m_sNppExecDll;
-            bool m_isEnabled;
-    };
-}
+        void initExecAsyncCmdThread();
+        void stopExecAsyncCmdThread();
+
+        void initSendMsgThread();
+        void stopSendMsgThread();
+
+        DWORD npemGetState() const;
+        void  npemExecuteScript(const tstr& id, const TCHAR* szScriptBody);
+        void  npemExecuteCollateralScript(const tstr& id, const TCHAR* szScriptBody);
+        void  npemExecuteQueuedScript(const tstr& id, const TCHAR* szScriptBody);
+        void  npemPrint(const TCHAR* szText);
+
+        static void addCommand(CListT<tstr>& CmdList, tstr& Cmd);
+        static void getCmdListFromScriptBody(CListT<tstr>& CmdList, const TCHAR* szScriptBody);
+        void conPrintLine(tstr& Line);
+
+    protected:
+        CNppExec* m_pNppExec;
+        HANDLE m_hBackgroundExecAsyncCmdThread;
+        HANDLE m_hBackgroundSendMsgThread;
+        CEvent m_StopEvent; // used for both the ExecAsyncCmd and SendMsg
+        CEvent m_ExecAsyncCmdEvent;
+        CEvent m_ExecAsyncCmdThreadDoneEvent;
+        CEvent m_SendMsgEvent;
+        CEvent m_SendMsgThreadDoneEvent;
+        PluginMsgsType m_PluginMsgs;
+        CListT<AsyncCmd> m_ExecAsyncCmdQueue;
+        CListT<tstr> m_SendMsgQueue;
+        CCriticalSection m_csExecAsyncCmds;
+        CCriticalSection m_csPluginMsgs;
+        tstr m_sNppExecDll;
+        bool m_isEnabled;
+};
 
 //---------------------------------------------------------------------------
 #endif
