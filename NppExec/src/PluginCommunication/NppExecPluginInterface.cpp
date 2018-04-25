@@ -291,11 +291,7 @@ void CNppExecPluginInterfaceImpl::ProcessExternalPluginMsg(long nMsg, const TCHA
 
         case NPEM_FREEPTR:
         {
-            TCHAR* p = (TCHAR *) pInfo;
-            if ( p )
-            {
-                delete [] p;
-            }
+            npemFreePtr( pInfo );
 
             break;
         }
@@ -308,21 +304,7 @@ void CNppExecPluginInterfaceImpl::ProcessExternalPluginMsg(long nMsg, const TCHA
             NpeGetScriptNamesParam* nsn = (NpeGetScriptNamesParam *) pInfo;
             if ( m_isEnabled )
             {
-                CListT<tstr> scriptNames = m_pNppExec->m_ScriptsList.GetScriptNames();
-                tstr S;
-                if ( !scriptNames.IsEmpty() )
-                {
-                    S.Reserve(scriptNames.GetCount() * 20);
-                    for ( CListItemT<tstr>* p = scriptNames.GetFirst(); p != NULL; p = p->GetNext() )
-                    {
-                        if ( !S.IsEmpty() )
-                            S += _T('\n');
-                        S += p->GetItem();
-                    }
-                }
-                TCHAR* p = new TCHAR[S.length() + 1];
-                lstrcpy(p, S.c_str());
-                nsn->pScriptNames = p; // to be freed by NPEM_FREEPTR
+                nsn->pScriptNames = npemGetScriptNames(); // to be freed by NPEM_FREEPTR
                 nsn->dwResult = NPE_GETSCRIPTNAMES_OK;
             }
             else
@@ -341,21 +323,7 @@ void CNppExecPluginInterfaceImpl::ProcessExternalPluginMsg(long nMsg, const TCHA
             NpeGetScriptByNameParam* nsn = (NpeGetScriptByNameParam *) pInfo;
             if ( m_isEnabled )
             {
-                tstr S;
-                CNppScript scriptBody;
-                if ( m_pNppExec->m_ScriptsList.GetScript(nsn->szScriptName, scriptBody) )
-                {
-                    S.Reserve(scriptBody.GetCount() * 80);
-                    for ( CListItemT<tstr>* p = scriptBody.GetFirst(); p != NULL; p = p->GetNext() )
-                    {
-                        if ( !S.IsEmpty() )
-                            S += _T('\n');
-                        S += p->GetItem();
-                    }
-                }
-                TCHAR* p = new TCHAR[S.length() + 1];
-                lstrcpy(p, S.c_str());
-                nsn->pScriptBody = p; // to be freed by NPEM_FREEPTR
+                nsn->pScriptBody = npemGetScriptByName(nsn->szScriptName); // to be freed by NPEM_FREEPTR
                 nsn->dwResult = NPE_GETSCRIPTBYNAME_OK;
             }
             else
@@ -699,4 +667,50 @@ void CNppExecPluginInterfaceImpl::npemPrint(const TCHAR* szText)
 
     m_pNppExec->_consoleCommandIsRunning = false;
     m_pNppExec->_consoleCommandBreak = false;
+}
+
+void CNppExecPluginInterfaceImpl::npemFreePtr(void* p)
+{
+    if ( p )
+    {
+        delete [] p;
+    }
+}
+
+TCHAR* CNppExecPluginInterfaceImpl::npemGetScriptNames()
+{
+    CListT<tstr> scriptNames = m_pNppExec->m_ScriptsList.GetScriptNames();
+    tstr S;
+    if ( !scriptNames.IsEmpty() )
+    {
+        S.Reserve(scriptNames.GetCount() * 20);
+        for ( CListItemT<tstr>* p = scriptNames.GetFirst(); p != NULL; p = p->GetNext() )
+        {
+            if ( !S.IsEmpty() )
+                S += _T('\n');
+            S += p->GetItem();
+        }
+    }
+    TCHAR* p = new TCHAR[S.length() + 1];
+    lstrcpy(p, S.c_str());
+    return p; // to be freed by npemFreePtr()
+}
+
+TCHAR* CNppExecPluginInterfaceImpl::npemGetScriptByName(const TCHAR* szScriptName)
+{
+    tstr S;
+    CNppScript scriptBody;
+    if ( m_pNppExec->m_ScriptsList.GetScript(szScriptName, scriptBody) )
+    {
+        S.Reserve(scriptBody.GetCount() * 80);
+        for ( CListItemT<tstr>* p = scriptBody.GetFirst(); p != NULL; p = p->GetNext() )
+        {
+            if ( !S.IsEmpty() )
+                S += _T('\n');
+            S += p->GetItem();
+        }
+    }
+    TCHAR* p = new TCHAR[S.length() + 1];
+    lstrcpy(p, S.c_str());
+    return p; // to be freed by npemFreePtr()
 }

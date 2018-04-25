@@ -116,11 +116,14 @@ class CNppExecPluginInterfaceImpl
         void initSendMsgThread();
         void stopSendMsgThread();
 
-        DWORD npemGetState() const;
-        void  npemExecuteScript(const tstr& id, const TCHAR* szScriptBody);
-        void  npemExecuteCollateralScript(const tstr& id, const TCHAR* szScriptBody);
-        void  npemExecuteQueuedScript(const tstr& id, const TCHAR* szScriptBody);
-        void  npemPrint(const TCHAR* szText);
+        DWORD  npemGetState() const;
+        void   npemExecuteScript(const tstr& id, const TCHAR* szScriptBody);
+        void   npemExecuteCollateralScript(const tstr& id, const TCHAR* szScriptBody);
+        void   npemExecuteQueuedScript(const tstr& id, const TCHAR* szScriptBody);
+        void   npemPrint(const TCHAR* szText);
+        void   npemFreePtr(void* p);
+        TCHAR* npemGetScriptNames();
+        TCHAR* npemGetScriptByName(const TCHAR* szScriptName);
 
         static void addCommand(CListT<tstr>& CmdList, tstr& Cmd);
         static void getCmdListFromScriptBody(CListT<tstr>& CmdList, const TCHAR* szScriptBody);
