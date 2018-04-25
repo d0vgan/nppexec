@@ -106,6 +106,7 @@ const TCHAR CMD_NPPSAVE[]               = _T("NPP_SAVE");
 const TCHAR CMD_NPPSAVEAS[]             = _T("NPP_SAVEAS");
 const TCHAR CMD_NPPSAVEALL[]            = _T("NPP_SAVEALL");
 const TCHAR CMD_NPPSWITCH[]             = _T("NPP_SWITCH");
+const TCHAR CMD_NPPSETFOCUS[]           = _T("NPP_SETFOCUS");
 const TCHAR CMD_NPECMDALIAS[]           = _T("NPE_CMDALIAS");
 const TCHAR CMD_NPECONSOLE[]            = _T("NPE_CONSOLE");
 const TCHAR CMD_NPEDEBUGLOG[]           = _T("NPE_DEBUGLOG");
@@ -1145,6 +1146,8 @@ static FParserWrapper g_fp;
  * npp_switch <file> 
  *   - switches to specified file (if it's opened in Notepad++)
  *   - works with a partial file path/name
+ * npp_setfocus
+ *    - sets the keyboard focus
  * npp_sendmsg <msg>
  *   - sends a message (msg) to Notepad++
  * npp_sendmsg <msg> <wparam>
@@ -1294,6 +1297,7 @@ CScriptEngine::CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, co
     m_DoFunc[CMDTYPE_SCIREPLACE]     = &CScriptEngine::DoSciReplace;
     m_DoFunc[CMDTYPE_TEXTLOADFROM]   = &CScriptEngine::DoTextLoadFrom;
     m_DoFunc[CMDTYPE_TEXTSAVETO]     = &CScriptEngine::DoTextSaveTo;
+    m_DoFunc[CMDTYPE_NPPSETFOCUS]    = &CScriptEngine::DoNppSetFocus;
 
     Runtime::GetLogger().AddEx_WithoutOutput( _T("; CScriptEngine - create (instance = %s)"), GetInstanceStr() );
 }
@@ -1778,6 +1782,7 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd,
         { CMD_NPPSAVEAS,      CMDTYPE_NPPSAVEAS      },
         { CMD_NPPSAVEALL,     CMDTYPE_NPPSAVEALL     },
         { CMD_NPPSWITCH,      CMDTYPE_NPPSWITCH      },
+        { CMD_NPPSETFOCUS,    CMDTYPE_NPPSETFOCUS    },
         { CMD_NPPSENDMSG,     CMDTYPE_NPPSENDMSG     },
         { CMD_NPPSENDMSGEX,   CMDTYPE_NPPSENDMSGEX   },
         { CMD_NPPMENUCOMMAND, CMDTYPE_NPPMENUCOMMAND },
@@ -4928,6 +4933,61 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSwitch(const tstr& params)
     {
         ScriptError( ET_REPORT, _T("- no such file opened") );
         nCmdResult = CMDRESULT_FAILED;
+    }
+
+    return nCmdResult;
+}
+
+CScriptEngine::eCmdResult CScriptEngine::DoNppSetFocus(const tstr& params)
+{
+    if ( !reportCmdAndParams( CMD_NPPSETFOCUS, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+        return CMDRESULT_INVALIDPARAM;
+
+    eCmdResult nCmdResult = CMDRESULT_FAILED;
+    tstr type = params;
+    NppExecHelpers::StrUpper(type);
+
+    if ( type == _T("CON") )
+    {
+        HWND hConDlg = m_pNppExec->GetConsole().GetDialogWnd();
+        if ( ::IsWindowVisible(hConDlg) )
+        {
+            // Note: since this code is executed in the scope of
+            // CNppExecCommandExecutor::BackgroundExecuteThreadFunc,
+            // it is not straightforward to set the focus
+            HWND hCon = m_pNppExec->GetConsole().GetConsoleWnd();
+            HWND hFocused = ::GetFocus(); // most likely returns NULL
+            if ( hFocused != hCon && hFocused != hConDlg )
+            {
+                //m_pNppExec->SendNppMsg(NPPM_DMMSHOW, 0, (LPARAM) hConDlg);
+                ::SetFocus(hConDlg);
+                ::SendMessage(hConDlg, WM_SETFOCUS, 0, 0);
+            }
+            m_pNppExec->m_hFocusedWindowBeforeScriptStarted = hCon;
+            nCmdResult = CMDRESULT_SUCCEEDED;
+        }
+    }
+    else if ( type == _T("SCI") )
+    {
+        HWND hSci = m_pNppExec->GetScintillaHandle();
+        if ( ::IsWindowVisible(hSci) )
+        {
+            // Note: since this code is executed in the scope of
+            // CNppExecCommandExecutor::BackgroundExecuteThreadFunc,
+            // it is not straightforward to set the focus
+            HWND hFocused = ::GetFocus(); // most likely returns NULL
+            if ( hFocused != hSci )
+                ::SendMessage(hSci, SCI_SETFOCUS, 1, 0);
+            m_pNppExec->m_hFocusedWindowBeforeScriptStarted = hSci;
+            nCmdResult = CMDRESULT_SUCCEEDED;
+        }
+    }
+    else
+    {
+        tstr Err = _T("- unknown parameter: ");
+        Err += params;
+        ScriptError( ET_REPORT, Err.c_str() );
+        nCmdResult = CMDRESULT_INVALIDPARAM;
     }
 
     return nCmdResult;

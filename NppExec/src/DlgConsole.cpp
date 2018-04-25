@@ -160,6 +160,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("npp_saveas <file>  -  save current file with a new (path)name") _T_RE_EOL \
   _T("npp_saveall  -  save all modified files") _T_RE_EOL \
   _T("npp_switch <file>  -  switch to specified opened file") _T_RE_EOL \
+  _T("npp_setfocus  -  set the keyboard focus") _T_RE_EOL \
   _T("npp_sendmsg <msg>  -  send a message (msg) to Notepad++") _T_RE_EOL \
   _T("npp_sendmsg <msg> <wparam>  -  message with parameter (wparam)") _T_RE_EOL \
   _T("npp_sendmsg <msg> <wparam> <lparam>  -  msg to Notepad++") _T_RE_EOL \
@@ -798,6 +799,20 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  npp_switch awk    // activates a first file which contains \"awk\" in its name") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  npp_open, npp_close, npp_save") _T_RE_EOL
+  },
+
+  // NPP_SETFOCUS
+  {
+      CMD_NPPSETFOCUS,
+      _T("COMMAND:  npp_setfocus") _T_RE_EOL \
+      _T("USAGE:") _T_RE_EOL \
+      _T("  npp_setfocus con") _T_RE_EOL \
+      _T("  npp_setfocus sci") _T_RE_EOL \
+      _T("DESCRIPTION:") _T_RE_EOL \
+      _T("  Sets the keyboard focus (to the Console or to Scintilla's editing window)") _T_RE_EOL \
+      _T("EXAMPLES:") _T_RE_EOL \
+      _T("  npp_setfocus con  // sets the focus to NppExec's Console") _T_RE_EOL \
+      _T("  npp_setfocus sci  // sets the focus to the current Scintilla") _T_RE_EOL
   },
 
   // NPP_SENDMSG
@@ -4550,6 +4565,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( CMD_SCIFIND );
   CmdVarsList.Add( CMD_PROCSIGNAL );
   CmdVarsList.Add( CMD_NPPSWITCH );
+  CmdVarsList.Add( CMD_NPPSETFOCUS );
   CmdVarsList.Add( CMD_NPPSENDMSGEX );
   CmdVarsList.Add( CMD_NPPSENDMSG );
   CmdVarsList.Add( CMD_NPPSAVEAS );

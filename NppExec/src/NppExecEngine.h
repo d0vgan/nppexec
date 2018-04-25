@@ -89,6 +89,7 @@ class CScriptEngine : public IScriptEngine
             CMDTYPE_SCIREPLACE,
             CMDTYPE_TEXTLOADFROM,
             CMDTYPE_TEXTSAVETO,
+            CMDTYPE_NPPSETFOCUS,
 
             CMDTYPE_TOTAL_COUNT
         };
@@ -165,6 +166,7 @@ class CScriptEngine : public IScriptEngine
         eCmdResult DoNppSaveAll(const tstr& params);
         eCmdResult DoNppSendMsg(const tstr& params);
         eCmdResult DoNppSendMsgEx(const tstr& params);
+        eCmdResult DoNppSetFocus(const tstr& params);
         eCmdResult DoNppSwitch(const tstr& params);
         eCmdResult DoProcSignal(const tstr& params);
         eCmdResult DoSleep(const tstr& params);
@@ -519,6 +521,7 @@ extern const TCHAR CMD_NPPSAVE[];
 extern const TCHAR CMD_NPPSAVEAS[];
 extern const TCHAR CMD_NPPSAVEALL[];
 extern const TCHAR CMD_NPPSWITCH[];
+extern const TCHAR CMD_NPPSETFOCUS[];
 extern const TCHAR CMD_NPECMDALIAS[];
 extern const TCHAR CMD_NPECONSOLE[];
 extern const TCHAR CMD_NPEDEBUGLOG[];

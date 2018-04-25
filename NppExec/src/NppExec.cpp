@@ -100,6 +100,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        npp_saveas <file> - save current file with a new (path)name
  *        npp_saveall - save all modified files
  *        npp_switch <file> - switch to specified opened file              (*)
+ *        npp_setfocus - set the keyboard focus
  *        npp_sendmsg <msg> - send a message (msg) to Notepad++
  *        npp_sendmsg <msg> <wparam> - message with parameter (wparam)
  *        npp_sendmsg <msg> <wparam> <lparam> - msg to Notepad++
