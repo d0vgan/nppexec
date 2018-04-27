@@ -24,8 +24,8 @@ cd "$(CURRENT_DIRECTORY)"  // use the current file's dir
 set local @exit_cmd_silent = exit()  // allows to exit Python automatically
 set local PATH_0 = $(SYS.PATH)  // current value of %PATH%
 env_set PATH = $(SYS.PATH);C:\Python27  // use Python 2.7
-npp_console +  // enable output to the Console
 npp_setfocus con  // set the focus to the Console
+npp_console +  // enable output to the Console
 python -i -u "$(FILE_NAME)"  // run Python's program interactively
 npp_console -  // disable any output to the Console
 env_set PATH = $(PATH_0)  // restore the value of %PATH%
