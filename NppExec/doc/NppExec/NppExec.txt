@@ -1,7 +1,7 @@
 
  ****************************************************************************
  * NppExec plugin ver. 0.6 RC1 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - April 2018
+ * by DV <dvv81 @ ukr.net>, December 2006 - May 2018
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -163,8 +163,8 @@
  *  HISTORY  *
  *************
 
- v0.6 RC1
- ---------------------
+ v0.6 RC1 - May 2018
+ -------------------
  ! NppExec's help files were moved from "doc\*.*" to "doc\NppExec\*.*"
  + new command: npp_setfocus
  + Plugin Interface: new messages NPEM_GETSCRIPTNAMES,  NPEM_GETSCRIPTBYNAME

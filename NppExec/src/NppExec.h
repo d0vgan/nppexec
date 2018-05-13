@@ -20,6 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.6 RC1 - May 2018
+ -------------------
+ ! NppExec's help files were moved from "doc\*.*" to "doc\NppExec\*.*"
+ + new command: npp_setfocus
+ + Plugin Interface: new messages NPEM_GETSCRIPTNAMES,  NPEM_GETSCRIPTBYNAME
+ * various small improvements
+
+
  v0.6 beta 1 - February 2018
  ---------------------------
  * changed: now the Execute dialog's auto-completion pop-up uses the same upper/lower case
