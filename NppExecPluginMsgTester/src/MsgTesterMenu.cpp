@@ -215,7 +215,9 @@ void CMsgTesterMenu::funcNpeExecuteQueued()
 void CMsgTesterMenu::funcNpeGetScriptNames()
 {
     NpeGetScriptNamesParam nsn;
-    nsn.pScriptNames = NULL;
+    // 1. Let's get the required size of the script names buffer
+    nsn.pszScriptNamesBuffer = NULL;
+    nsn.dwScriptNamesBufferSize = 0;
     nsn.dwResult = 0;
     CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
     if ( npeMsgr.NpeGetScriptNames(&nsn) != NPE_GETSCRIPTNAMES_OK )
@@ -224,11 +226,22 @@ void CMsgTesterMenu::funcNpeGetScriptNames()
         return;
     }
 
-    // OK, let's get the script names
     std::list< std::basic_string<TCHAR> > scriptNames;
+    // 2. Let's get the script names
+    if ( nsn.dwScriptNamesBufferSize != 0 )
     {
+        // allocate a buffer for the script names
+        nsn.pszScriptNamesBuffer = new TCHAR[nsn.dwScriptNamesBufferSize];
+        nsn.dwResult = 0;
+        if ( npeMsgr.NpeGetScriptNames(&nsn) != NPE_GETSCRIPTNAMES_OK )
+        {
+            ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed"), _T("NPEM_GETSCRIPTNAMES"), MB_OK | MB_ICONERROR );
+            delete [] nsn.pszScriptNamesBuffer;
+            return;
+        }
+
         std::basic_string<TCHAR> scriptName;
-        const TCHAR* pszNames = nsn.pScriptNames;
+        const TCHAR* pszNames = nsn.pszScriptNamesBuffer;
         TCHAR ch;
         while ( (ch = *pszNames) != 0 )
         {
@@ -247,10 +260,10 @@ void CMsgTesterMenu::funcNpeGetScriptNames()
         {
             scriptNames.push_back(scriptName);
         }
-    }
 
-    // free the memory allocated by NppExec
-    npeMsgr.NpeFreePtr( nsn.pScriptNames );
+        // free the buffer for the script names
+        delete [] nsn.pszScriptNamesBuffer;
+    }
 
     // show the script names
     std::basic_ostringstream<TCHAR> oss;
@@ -268,7 +281,8 @@ void CMsgTesterMenu::funcNpeGetScriptByName()
 {
     // 1.1. Let's get the available script names first
     NpeGetScriptNamesParam nsn0;
-    nsn0.pScriptNames = NULL;
+    nsn0.pszScriptNamesBuffer = NULL;
+    nsn0.dwScriptNamesBufferSize = 0;
     nsn0.dwResult = 0;
     CNppExecPluginMsgSender npeMsgr( GetMsgTester().getNppWnd(), GetMsgTester().getDllFileName() );
     if ( npeMsgr.NpeGetScriptNames(&nsn0) != NPE_GETSCRIPTNAMES_OK )
@@ -278,9 +292,20 @@ void CMsgTesterMenu::funcNpeGetScriptByName()
     }
     // 1.2. Get the first script name
     std::basic_string<TCHAR> firstScriptName;
+    if ( nsn0.dwScriptNamesBufferSize != 0 )
     {
+        // allocate a buffer for the script names
+        nsn0.pszScriptNamesBuffer = new TCHAR[nsn0.dwScriptNamesBufferSize];
+        nsn0.dwResult = 0;
+        if ( npeMsgr.NpeGetScriptNames(&nsn0) != NPE_GETSCRIPTNAMES_OK )
+        {
+            ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed (get script name)"), _T("NPEM_GETSCRIPTBYNAME"), MB_OK | MB_ICONERROR );
+            delete [] nsn0.pszScriptNamesBuffer;
+            return;
+        }
+
         std::basic_string<TCHAR> scriptName;
-        const TCHAR* pszNames = nsn0.pScriptNames;
+        const TCHAR* pszNames = nsn0.pszScriptNamesBuffer;
         TCHAR ch;
         while ( (ch = *pszNames) != 0 )
         {
@@ -296,10 +321,11 @@ void CMsgTesterMenu::funcNpeGetScriptByName()
         {
             firstScriptName = scriptName;
         }
+
+        // free the buffer for the script names
+        delete [] nsn0.pszScriptNamesBuffer;
     }
-    // 1.3. Free the memory allocated by NppExec
-    npeMsgr.NpeFreePtr( nsn0.pScriptNames );
-    // 1.4. Check if the first script name is empty
+    // 1.3. Check if the first script name is empty
     if ( firstScriptName.empty() )
     {
         ::MessageBox( GetMsgTester().getNppWnd(), _T("(No scripts available)"), _T("NPEM_GETSCRIPTBYNAME"), MB_OK );
@@ -309,7 +335,8 @@ void CMsgTesterMenu::funcNpeGetScriptByName()
     // 2.1. Get the script by name
     NpeGetScriptByNameParam nsn;
     nsn.szScriptName = firstScriptName.c_str();
-    nsn.pScriptBody = NULL;
+    nsn.pszScriptBodyBuffer = NULL;
+    nsn.dwScriptBodyBufferSize = 0;
     nsn.dwResult = 0;
     if ( npeMsgr.NpeGetScriptByName(&nsn) != NPE_GETSCRIPTBYNAME_OK )
     {
@@ -318,9 +345,20 @@ void CMsgTesterMenu::funcNpeGetScriptByName()
     }
     // 2.2. Get the script lines
     std::list< std::basic_string<TCHAR> > scriptLines;
+    if ( nsn.dwScriptBodyBufferSize != 0 )
     {
+        // allocate a buffer for the script body
+        nsn.pszScriptBodyBuffer = new TCHAR[nsn.dwScriptBodyBufferSize];
+        nsn.dwResult = 0;
+        if ( npeMsgr.NpeGetScriptByName(&nsn) != NPE_GETSCRIPTBYNAME_OK )
+        {
+            ::MessageBox( GetMsgTester().getNppWnd(), _T("Operation failed (get script body)"), _T("NPEM_GETSCRIPTBYNAME"), MB_OK | MB_ICONERROR );
+            delete [] nsn.pszScriptBodyBuffer;
+            return;
+        }
+
         std::basic_string<TCHAR> scriptLine;
-        const TCHAR* pszScriptBody = nsn.pScriptBody;
+        const TCHAR* pszScriptBody = nsn.pszScriptBodyBuffer;
         TCHAR ch;
         while ( (ch = *pszScriptBody) != 0 )
         {
@@ -339,10 +377,11 @@ void CMsgTesterMenu::funcNpeGetScriptByName()
         {
             scriptLines.push_back(scriptLine);
         }
+
+        // free the buffer for the script body
+        delete [] nsn.pszScriptBodyBuffer;
     }
-    // 2.3. Free the memory allocated by NppExec
-    npeMsgr.NpeFreePtr( nsn.pScriptBody );
-    // 2.4. Show the script lines
+    // 2.3. Show the script lines
     std::basic_ostringstream<TCHAR> oss;
     oss << _T("The script \"") << firstScriptName << _T("\" contains ") << scriptLines.size() << _T(" lines:\n");
     size_t n = 0;

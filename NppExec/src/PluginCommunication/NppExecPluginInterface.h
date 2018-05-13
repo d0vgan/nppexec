@@ -121,9 +121,8 @@ class CNppExecPluginInterfaceImpl
         void   npemExecuteCollateralScript(const tstr& id, const TCHAR* szScriptBody);
         void   npemExecuteQueuedScript(const tstr& id, const TCHAR* szScriptBody);
         void   npemPrint(const TCHAR* szText);
-        void   npemFreePtr(void* p);
-        TCHAR* npemGetScriptNames();
-        TCHAR* npemGetScriptByName(const TCHAR* szScriptName);
+        void   npemGetScriptNames(NpeGetScriptNamesParam* nsn);
+        void   npemGetScriptByName(NpeGetScriptByNameParam* nsn);
 
         static void addCommand(CListT<tstr>& CmdList, tstr& Cmd);
         static void getCmdListFromScriptBody(CListT<tstr>& CmdList, const TCHAR* szScriptBody);
