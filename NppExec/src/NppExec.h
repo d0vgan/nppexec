@@ -24,7 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  -------------------
  ! NppExec's help files were moved from "doc\*.*" to "doc\NppExec\*.*"
  + new command: npp_setfocus
- + Plugin Interface: new messages NPEM_GETSCRIPTNAMES,  NPEM_GETSCRIPTBYNAME
+ + Plugin Interface: new messages NPEM_GETSCRIPTNAMES, NPEM_GETSCRIPTBYNAME
+ * now the actual name of NppExec.dll affects the "NppExec" submenu and its "Show Console" item name
  * various small improvements
 
 
