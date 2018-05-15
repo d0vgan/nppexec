@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../NppExec.h"
 #include "NppExecPluginInterface.h"
-#include "../c_base/str_func.h"
 
 
 const DWORD  PLUGIN_VER_DWORD = NPPEXEC_VER_DWORD;
@@ -290,6 +289,13 @@ void CNppExecPluginInterfaceImpl::ProcessExternalPluginMsg(long nMsg, const TCHA
             break;
         }
 
+        case NPEM_FREEPTR:
+        {
+            npemFreePtr( pInfo );
+
+            break;
+        }
+
         case NPEM_GETSCRIPTNAMES:
         {
             Runtime::GetLogger().Add_WithoutOutput( _T("; NPEM_GETSCRIPTNAMES") );
@@ -298,7 +304,7 @@ void CNppExecPluginInterfaceImpl::ProcessExternalPluginMsg(long nMsg, const TCHA
             NpeGetScriptNamesParam* nsn = (NpeGetScriptNamesParam *) pInfo;
             if ( m_isEnabled )
             {
-                npemGetScriptNames(nsn);
+                nsn->pScriptNames = npemGetScriptNames(); // to be freed by NPEM_FREEPTR
                 nsn->dwResult = NPE_GETSCRIPTNAMES_OK;
             }
             else
@@ -317,7 +323,7 @@ void CNppExecPluginInterfaceImpl::ProcessExternalPluginMsg(long nMsg, const TCHA
             NpeGetScriptByNameParam* nsn = (NpeGetScriptByNameParam *) pInfo;
             if ( m_isEnabled )
             {
-                npemGetScriptByName(nsn);
+                nsn->pScriptBody = npemGetScriptByName(nsn->szScriptName); // to be freed by NPEM_FREEPTR
                 nsn->dwResult = NPE_GETSCRIPTBYNAME_OK;
             }
             else
@@ -663,7 +669,15 @@ void CNppExecPluginInterfaceImpl::npemPrint(const TCHAR* szText)
     m_pNppExec->_consoleCommandBreak = false;
 }
 
-void CNppExecPluginInterfaceImpl::npemGetScriptNames(NpeGetScriptNamesParam* nsn)
+void CNppExecPluginInterfaceImpl::npemFreePtr(void* p)
+{
+    if ( p )
+    {
+        delete [] p;
+    }
+}
+
+TCHAR* CNppExecPluginInterfaceImpl::npemGetScriptNames()
 {
     CListT<tstr> scriptNames = m_pNppExec->m_ScriptsList.GetScriptNames();
     tstr S;
@@ -677,24 +691,16 @@ void CNppExecPluginInterfaceImpl::npemGetScriptNames(NpeGetScriptNamesParam* nsn
             S += p->GetItem();
         }
     }
-    if ( nsn->pszScriptNamesBuffer )
-    {
-        if ( nsn->dwScriptNamesBufferSize != 0 )
-        {
-            nsn->dwScriptNamesBufferSize = c_base::_tstr_safe_cpyn(nsn->pszScriptNamesBuffer, S.c_str(), nsn->dwScriptNamesBufferSize - 1) + 1;
-        }
-    }
-    else
-    {
-        nsn->dwScriptNamesBufferSize = S.length() + 1;
-    }
+    TCHAR* p = new TCHAR[S.length() + 1];
+    lstrcpy(p, S.c_str());
+    return p; // to be freed by npemFreePtr()
 }
 
-void CNppExecPluginInterfaceImpl::npemGetScriptByName(NpeGetScriptByNameParam* nsn)
+TCHAR* CNppExecPluginInterfaceImpl::npemGetScriptByName(const TCHAR* szScriptName)
 {
     tstr S;
     CNppScript scriptBody;
-    if ( m_pNppExec->m_ScriptsList.GetScript(nsn->szScriptName, scriptBody) )
+    if ( m_pNppExec->m_ScriptsList.GetScript(szScriptName, scriptBody) )
     {
         S.Reserve(scriptBody.GetCount() * 80);
         for ( CListItemT<tstr>* p = scriptBody.GetFirst(); p != NULL; p = p->GetNext() )
@@ -704,15 +710,7 @@ void CNppExecPluginInterfaceImpl::npemGetScriptByName(NpeGetScriptByNameParam* n
             S += p->GetItem();
         }
     }
-    if ( nsn->pszScriptBodyBuffer )
-    {
-        if ( nsn->dwScriptBodyBufferSize != 0 )
-        {
-            nsn->dwScriptBodyBufferSize = c_base::_tstr_safe_cpyn(nsn->pszScriptBodyBuffer, S.c_str(), nsn->dwScriptBodyBufferSize - 1) + 1;
-        }
-    }
-    else
-    {
-        nsn->dwScriptBodyBufferSize = S.length() + 1;
-    }
+    TCHAR* p = new TCHAR[S.length() + 1];
+    lstrcpy(p, S.c_str());
+    return p; // to be freed by npemFreePtr()
 }

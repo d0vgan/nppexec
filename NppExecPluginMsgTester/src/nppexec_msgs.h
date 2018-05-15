@@ -542,32 +542,16 @@ typedef struct sPluginResultStruct {
   */
 
 
-#define  NPEM_GETSCRIPTNAMES            0x0501  // message (NppExec version >= 0x06C1)
-  #define  NPE_GETSCRIPTNAMES_OK        NPE_STATEREADY
-  #define  NPE_GETSCRIPTNAMES_FAILED    NPE_STATEBUSY
-  typedef struct sNpeGetScriptNamesParam {
-      TCHAR* pszScriptNamesBuffer;    // [in/out] script names buffer
-      DWORD  dwScriptNamesBufferSize; // [in/out] size of the script names buffer
-      DWORD  dwResult;                // [out] NPE_EXECUTE_OK - OK; otherwise failed
-  } NpeGetScriptNamesParam;
+#define  NPEM_FREEPTR                   0x0500  // message (NppExec version >= 0x06C1)
   /*
-  When [in] pszScriptNamesBuffer is NULL, the returned value of
-  [out] dwScriptNamesBufferSize is the size of the buffer required
-  to contain all the script names.
-  With non-NULL [in] pszScriptNamesBuffer, this buffer is expected to
-  have the size passed as the [in] dwScriptNamesBufferSize parameter -
-  and the returned [out] dwScriptNamesBufferSize will be the size
-  (number of characters + the trailing '\0') actually copied to the
-  [out] pszScriptNamesBuffer.
-  The script names are separated by '\n'.
+  Frees the memory previously allocated by NppExec
+  (e.g. after NPEM_GETSCRIPTNAMES or NPEM_GETSCRIPTBYNAME).
 
   Example:
 
   const TCHAR* cszMyPlugin = _T("my_plugin");
   NpeGetScriptNamesParam nsn;
-  // 1. Let's get the required size of the script names buffer
-  nsn.pszScriptNamesBuffer = NULL;
-  nsn.dwScriptNamesBufferSize = 0;
+  nsn.pScriptNames = NULL;
   nsn.dwResult = 0;
   CommunicationInfo ci = { NPEM_GETSCRIPTNAMES, 
                            cszMyPlugin, 
@@ -577,49 +561,76 @@ typedef struct sPluginResultStruct {
 
   if ( nsn.dwResult == NPE_GETSCRIPTNAMES_OK )
   {
+      // ... using nsn.pScriptNames here ...
+
+      // ... finally:
+      CommunicationInfo ci2 = { NPEM_FREEPTR, 
+                                cszMyPlugin, 
+                                (void *) nsn.pScriptNames };
+      ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+          (WPARAM) _T("NppExec.dll"), (LPARAM) &ci2 );
+  }
+  */
+
+
+#define  NPEM_GETSCRIPTNAMES            0x0501  // message (NppExec version >= 0x06C1)
+  #define  NPE_GETSCRIPTNAMES_OK        NPE_STATEREADY
+  #define  NPE_GETSCRIPTNAMES_FAILED    NPE_STATEBUSY
+  typedef struct sNpeGetScriptNamesParam {
+      TCHAR* pScriptNames; // [out] returned pointer to script names
+      DWORD  dwResult;     // [out] NPE_EXECUTE_OK - OK; otherwise failed
+  } NpeGetScriptNamesParam;
+  /*
+  Returns a pointer (string) containing the script names.
+  The script names are separated by '\n'.
+  As pScriptNames is a pointer to a memory block allocated
+  by NppExec, finally it *must* be freed via NPEM_FREEPTR.
+
+  Example:
+
+  const TCHAR* cszMyPlugin = _T("my_plugin");
+  NpeGetScriptNamesParam nsn;
+  nsn.pScriptNames = NULL;
+  nsn.dwResult = 0;
+  CommunicationInfo ci = { NPEM_GETSCRIPTNAMES, 
+                           cszMyPlugin, 
+                           (void *) &nsn };
+  ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+      (WPARAM) _T("NppExec.dll"), (LPARAM) &ci );
+
+  if ( nsn.dwResult == NPE_GETSCRIPTNAMES_OK )
+  {
+      // OK, let's get the script names
       std::list< std::basic_string<TCHAR> > scriptNames;
-
-      // 2. Let's get the script names
-      if ( nsn.dwScriptNamesBufferSize != 0 )
       {
-          // allocate a buffer for the script names
-          nsn.pszScriptNamesBuffer = new TCHAR[nsn.dwScriptNamesBufferSize];
-          nsn.dwResult = 0;
-
-          ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
-              (WPARAM) _T("NppExec.dll"), (LPARAM) &ci );
-          
-          if ( nsn.dwResult == NPE_GETSCRIPTNAMES_OK )
+          std::basic_string<TCHAR> scriptName;
+          const TCHAR* pszNames = nsn.pScriptNames;
+          TCHAR ch;
+          while ( (ch = *pszNames) != 0 )
           {
-              std::basic_string<TCHAR> scriptName;
-              const TCHAR* pszNames = nsn.pszScriptNamesBuffer;
-              TCHAR ch;
-              while ( (ch = *pszNames) != 0 )
-              {
-                  if ( ch == _T('\n') )
-                  {
-                      scriptNames.push_back(scriptName);
-                      scriptName.clear();
-                  }
-                  else
-                  {
-                      scriptName += ch;
-                  }
-                  ++pszNames;
-              }
-              if ( !scriptName.empty() )
+              if ( ch == _T('\n') )
               {
                   scriptNames.push_back(scriptName);
+                  scriptName.clear();
               }
+              else
+              {
+                  scriptName += ch;
+              }
+              ++pszNames;
           }
-          else
+          if ( !scriptName.empty() )
           {
-              // failed, the plugin is "busy"
+              scriptNames.push_back(scriptName);
           }
-
-          // free the buffer for the script names
-          delete [] nsn.pszScriptNamesBuffer;
       }
+
+      // free the memory allocated by NppExec
+      CommunicationInfo ci2 = { NPEM_FREEPTR, 
+                                cszMyPlugin, 
+                                (void *) nsn.pScriptNames };
+      ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+          (WPARAM) _T("NppExec.dll"), (LPARAM) &ci2 );
 
       // do something with scriptNames now...
   }
@@ -634,30 +645,22 @@ typedef struct sPluginResultStruct {
   #define  NPE_GETSCRIPTBYNAME_OK       NPE_STATEREADY
   #define  NPE_GETSCRIPTBYNAME_FAILED   NPE_STATEBUSY
   typedef struct sNpeGetScriptByNameParam {
-      const TCHAR* szScriptName;           // script name
-      TCHAR*       pszScriptBodyBuffer;    // [in/out] script body buffer
-      DWORD        dwScriptBodyBufferSize; // [in/out] size of the script body buffer
-      DWORD        dwResult;               // [out] NPE_EXECUTE_OK - OK; otherwise failed
+      const TCHAR* szScriptName;  // script name
+      TCHAR*       pScriptBody;   // [out] returned pointer to the script body
+      DWORD        dwResult;      // [out] NPE_EXECUTE_OK - OK; otherwise failed
   } NpeGetScriptByNameParam;
   /*
-  When [in] pszScriptBodyBuffer is NULL, the returned value of
-  [out] dwScriptBodyBufferSize is the size of the buffer required
-  to contain all the lines of the script body.
-  With non-NULL [in] pszScriptBodyBuffer, this buffer is expected to
-  have the size passed as the [in] dwScriptBodyBufferSize parameter -
-  and the returned [out] dwScriptBodyBufferSize will be the size
-  (number of characters + the trailing '\0') actually copied to the
-  [out] pszScriptBodyBuffer.
+  Returns a pointer (string) containing the script body.
   The lines of the script body are separated by '\n'.
+  As pScriptBody is a pointer to a memory block allocated
+  by NppExec, finally it *must* be freed via NPEM_FREEPTR.
 
   Example:
 
   const TCHAR* cszMyPlugin = _T("my_plugin");
   NpeGetScriptByNameParam nsn;
-  // 1. Let's get the required size of the script body buffer
   nsn.szScriptName = _T("script name");
-  nsn.pszScriptBodyBuffer = NULL;
-  nsn.dwScriptBodyBufferSize = 0;
+  nsn.pScriptBody = NULL;
   nsn.dwResult = 0;
   CommunicationInfo ci = { NPEM_GETSCRIPTBYNAME, 
                            cszMyPlugin, 
@@ -667,49 +670,37 @@ typedef struct sPluginResultStruct {
 
   if ( nsn.dwResult == NPE_GETSCRIPTBYNAME_OK )
   {
+      // OK, let's get the script lines
       std::list< std::basic_string<TCHAR> > scriptLines;
-
-      // 2. Let's get the script lines
-      if ( nsn.dwScriptBodyBufferSize != 0 )
       {
-          // allocate a buffer for the script body
-          nsn.pszScriptBodyBuffer = new TCHAR[nsn.dwScriptBodyBufferSize];
-          nsn.dwResult = 0;
-
-          ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
-              (WPARAM) _T("NppExec.dll"), (LPARAM) &ci );
-          
-          if ( nsn.dwResult == NPE_GETSCRIPTBYNAME_OK )
+          std::basic_string<TCHAR> scriptLine;
+          const TCHAR* pszScriptBody = nsn.pScriptBody;
+          TCHAR ch;
+          while ( (ch = *pszScriptBody) != 0 )
           {
-              std::basic_string<TCHAR> scriptLine;
-              const TCHAR* pszScriptBody = nsn.pScriptBody;
-              TCHAR ch;
-              while ( (ch = *pszScriptBody) != 0 )
-              {
-                  if ( ch == _T('\n') )
-                  {
-                      scriptLines.push_back(scriptLine);
-                      scriptLine.clear();
-                  }
-                  else
-                  {
-                      scriptLine += ch;
-                  }
-                  ++pszScriptBody;
-              }
-              if ( !scriptLine.empty() )
+              if ( ch == _T('\n') )
               {
                   scriptLines.push_back(scriptLine);
+                  scriptLine.clear();
               }
+              else
+              {
+                  scriptLine += ch;
+              }
+              ++pszScriptBody;
           }
-          else
+          if ( !scriptLine.empty() )
           {
-              // failed, the plugin is "busy"
+              scriptLines.push_back(scriptLine);
           }
-
-          // free the buffer for the script body
-          delete [] nsn.pszScriptBodyBuffer;
       }
+
+      // free the memory allocated by NppExec
+      CommunicationInfo ci2 = { NPEM_FREEPTR, 
+                                cszMyPlugin, 
+                                (void *) nsn.pScriptBody };
+      ::SendMessage( hNppWnd, NPPM_MSGTOPLUGIN,
+          (WPARAM) _T("NppExec.dll"), (LPARAM) &ci2 );
 
       // do something with scriptLines now...
   }

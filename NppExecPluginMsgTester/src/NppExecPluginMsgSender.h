@@ -91,6 +91,11 @@ class CNppExecPluginMsgSender : public CNppPluginMsgSender
             return neqp->dwResult;
         }
 
+        void NpeFreePtr(void* ptr)
+        {
+            SendNpeMsg( NPEM_FREEPTR, ptr );
+        }
+
         DWORD NpeGetScriptNames(NpeGetScriptNamesParam* nsn)
         {
             SendNpeMsg( NPEM_GETSCRIPTNAMES, (void *) nsn );
