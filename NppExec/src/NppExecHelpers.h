@@ -162,6 +162,7 @@ private:
 // CConcurrentObjectT, it most likely need to use shared_ptr
 // at least for the m_lock, but it looks like too much overhead
 // comparing to a simple pair of (object + lock).
+/*
 template<class ObjectType> class CConcurrentObjectT
 {
 public:
@@ -270,8 +271,11 @@ protected:
     mutable CCriticalSection m_lock;
     ObjectType m_obj;
 };
+*/
 
 // another interesting concept, this time inspired by boost::variant
+// but we don't need it since std::variant and std::any
+/*
 class CValue
 {
 public:
@@ -358,6 +362,7 @@ protected:
         sStr s;
     } m_data;
 };
+*/
 
 namespace NppExecHelpers
 {

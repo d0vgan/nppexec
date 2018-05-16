@@ -291,7 +291,7 @@ void CNppExecPluginInterfaceImpl::ProcessExternalPluginMsg(long nMsg, const TCHA
 
         case NPEM_FREEPTR:
         {
-            npemFreePtr( pInfo );
+            npemFreePtr( (TCHAR *) pInfo );
 
             break;
         }
@@ -669,7 +669,7 @@ void CNppExecPluginInterfaceImpl::npemPrint(const TCHAR* szText)
     m_pNppExec->_consoleCommandBreak = false;
 }
 
-void CNppExecPluginInterfaceImpl::npemFreePtr(void* p)
+void CNppExecPluginInterfaceImpl::npemFreePtr(TCHAR* p)
 {
     if ( p )
     {

@@ -1,5 +1,6 @@
 #include "NppExecHelpers.h"
 
+/*
 CValue::CValue() : m_type(vtNone)
 {
 }
@@ -372,6 +373,7 @@ void CValue::clearData()
         }
     }
 }
+*/
 
 //-------------------------------------------------------------------------
 
