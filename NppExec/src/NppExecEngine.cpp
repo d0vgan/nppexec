@@ -1365,7 +1365,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                 // in the parent script. So copying is safer.
             }
         }
-        else if ( m_nRunFlags & rfConsoleLocalVars )
+        else if ( m_nRunFlags & rfConsoleLocalVarsRead )
         {
             // inheriting Console's local variables
             CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
@@ -1592,7 +1592,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
             m_pParentScriptEngine->GetExecState().GetCurrentScriptContext().LocalMacroVars.swap(currentScript.LocalMacroVars);
         }
     }
-    else if ( m_nRunFlags & rfConsoleLocalVars )
+    else if ( m_nRunFlags & rfConsoleLocalVarsWrite )
     {
         ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
         CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());

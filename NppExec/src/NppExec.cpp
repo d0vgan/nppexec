@@ -1078,7 +1078,7 @@ extern CFileModificationChecker g_scriptFileChecker;
 void empty_func()           { /* empty function */ }
 void cmdhistory_func()      { Runtime::GetNppExec().OnCmdHistory(); }
 void do_exec_dlg_func()     { Runtime::GetNppExec().OnDoExecDlg(); }
-void direct_exec_func()     { Runtime::GetNppExec().OnDirectExec(tstr(), true, CScriptEngine::rfConsoleLocalVars); }
+void direct_exec_func()     { Runtime::GetNppExec().OnDirectExec(tstr(), true, CScriptEngine::rfConsoleLocalVarsRead); }
 void show_console_func()    { Runtime::GetNppExec().OnShowConsoleDlg(); }
 void toggle_console_func()  { Runtime::GetNppExec().OnToggleConsoleDlg(); }
 void go_to_next_error()     { ConsoleDlg::GoToError(1); }

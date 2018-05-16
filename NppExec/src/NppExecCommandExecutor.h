@@ -120,13 +120,15 @@ public:
 
     enum eRunFlags : unsigned int
     {
-        rfShareLocalVars    = 0x0001, // can't be mixed with rfConsoleLocalVars
-        rfConsoleLocalVars  = 0x0002, // can't be mixed with rfShareLocalVars
-        rfShareConsoleState = 0x0004, // share the OutputEnabled state
-        rfCollateralScript  = 0x0010, // is running as a collateral script
-        rfStartScript       = 0x0020, // is running on start (NPPN_READY)
-        rfExitScript        = 0x0040, // is running on exit (NPPN_SHUTDOWN)
-        rfExternal          = 0x0100  // initiated by external plugin
+        rfShareLocalVars        = 0x0001, // can't be mixed with rfConsoleLocalVars
+        rfConsoleLocalVarsRead  = 0x0002, // can't be mixed with rfShareLocalVars
+        rfConsoleLocalVarsWrite = 0x0004, // can't be mixed with rfShareLocalVars
+        rfConsoleLocalVars      = (rfConsoleLocalVarsRead | rfConsoleLocalVarsWrite),
+        rfShareConsoleState     = 0x0008, // share the OutputEnabled state
+        rfCollateralScript      = 0x0010, // is running as a collateral script
+        rfStartScript           = 0x0020, // is running on start (NPPN_READY)
+        rfExitScript            = 0x0040, // is running on exit (NPPN_SHUTDOWN)
+        rfExternal              = 0x0100  // initiated by external plugin
     };
 
 public:
