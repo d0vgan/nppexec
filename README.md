@@ -11,3 +11,8 @@ And don't forget about Plugins -> NppExec -> Help/Manual.
 Installation:
 * Just unpack the NppExec zip-archive to the folder "Notepad++\plugins".
 It will extract the file "NppExec.dll" as well as the "doc\NppExec" and "NppExec" subfolders.
+
+Note:
+If you see just blank pages inside the NppExec Manual or see messages similar to "This web content was blocked" or "This web page could not be shown", please follow the instructions below:
+* Unblocking CHM files for XP : http://support.microsoft.com/kb/902225
+* Unblocking CHM files for Windows 7 : http://support.microsoft.com/kb/2021383
