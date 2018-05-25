@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <cstddef>
 #include <iterator>
 #include <algorithm>
+#include <functional>
 
 typedef CStrT<TCHAR> tstr;
 
@@ -367,6 +368,8 @@ protected:
 namespace NppExecHelpers
 {
     bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread = NULL);
+
+    bool GetClipboardText(std::function<void(LPCTSTR pszClipboardText)> handler);
 
     tstr GetInstanceAsString(const void* pInstance);
 

@@ -80,6 +80,7 @@ const TCHAR MACRO_MSG_LPARAM[]          = _T("$(MSG_LPARAM)");
 const TCHAR MACRO_EXIT_CMD[]            = _T("$(@EXIT_CMD)");
 const TCHAR MACRO_EXIT_CMD_SILENT[]     = _T("$(@EXIT_CMD_SILENT)");
 const TCHAR MACRO_LAST_CMD_RESULT[]     = _T("$(LAST_CMD_RESULT)");
+const TCHAR MACRO_CLIPBOARD_TEXT[]      = _T("$(CLIPBOARD_TEXT)");
 const TCHAR CMD_CLS[]                   = _T("CLS");
 const TCHAR CMD_CD[]                    = _T("CD");
 const TCHAR CMD_DIR[]                   = _T("DIR");
@@ -1211,6 +1212,7 @@ static FParserWrapper g_fp;
  * $(RIGHT_VIEW_FILE)    : current file path-name in second (right) view
  * $(PLUGINS_CONFIG_DIR) : full path of the plugins configuration directory
  * $(CWD)                : current working directory of NppExec (use "cd" to change it)
+ * $(CLIPBOARD_TEXT)     : text from the clipboard
  * $(ARGC)               : number of arguments passed to the NPP_EXEC command
  * $(ARGV)               : all arguments passed to the NPP_EXEC command after the script name
  * $(ARGV[0])            : script name - first parameter of the NPP_EXEC command
@@ -6652,12 +6654,16 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
     tstr Cmd = S;
     NppExecHelpers::StrUpper(Cmd);
 
+    tstr      sub;
+    int       len;
+    int       pos;
+    bool      bMacroOK;
     const int MACRO_SIZE = 0x200;
     TCHAR     szMacro[MACRO_SIZE];
 
-    bool bMacroOK = false;
-    int len = lstrlen(MACRO_DOCNUMBER); // "$(#"
-    int pos = 0;
+    bMacroOK = false;
+    len = lstrlen(MACRO_DOCNUMBER); // "$(#"
+    pos = 0;
     while ((pos = Cmd.Find(MACRO_DOCNUMBER, pos)) >= 0)
     {
       int   k;
@@ -6710,7 +6716,7 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
 
     }
 
-    tstr sub;
+    sub.Clear();
     len = lstrlen(MACRO_SYSVAR);
     pos = 0;
     while ((pos = Cmd.Find(MACRO_SYSVAR, pos)) >= 0)
@@ -6787,14 +6793,14 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
     pos = 0;
     while ((pos = Cmd.Find(MACRO_CURRENT_WORKING_DIR, pos)) >= 0)
     {
-        TCHAR szPath[FILEPATH_BUFSIZE];
-        DWORD dwLen;
+      TCHAR szPath[FILEPATH_BUFSIZE];
+      DWORD dwLen;
 
-        szPath[0] = 0;
-        dwLen = GetCurrentDirectory(FILEPATH_BUFSIZE - 1, szPath);
-        Cmd.Replace(pos, len, szPath);
-        S.Replace(pos, len, szPath);
-        pos += (int) dwLen;
+      szPath[0] = 0;
+      dwLen = GetCurrentDirectory(FILEPATH_BUFSIZE - 1, szPath);
+      Cmd.Replace(pos, len, szPath);
+      S.Replace(pos, len, szPath);
+      pos += (int) dwLen;
     }
     
     len = lstrlen(MACRO_PLUGINS_CONFIG_DIR);
@@ -6804,6 +6810,25 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       Cmd.Replace(pos, len, m_pNppExec->getConfigPath());
       S.Replace(pos, len, m_pNppExec->getConfigPath());
       pos += lstrlen(m_pNppExec->getConfigPath());
+    }
+
+    sub.Clear(); // clipboard text will be here
+    bMacroOK = false;
+    len = lstrlen(MACRO_CLIPBOARD_TEXT);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_CLIPBOARD_TEXT, pos)) >= 0)
+    {
+      if (!bMacroOK)
+      {
+        NppExecHelpers::GetClipboardText(
+          [&sub](LPCTSTR pszClipboardText) { sub = pszClipboardText; }
+        );
+        bMacroOK = true;
+      }
+
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
     }
 
   }

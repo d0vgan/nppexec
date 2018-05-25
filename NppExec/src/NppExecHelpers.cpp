@@ -407,6 +407,34 @@ namespace NppExecHelpers
         return true;
     }
 
+    bool GetClipboardText(std::function<void(LPCTSTR pszClipboardText)> handler)
+    {
+        bool bSucceeded = false;
+
+        if ( ::OpenClipboard(NULL) )
+        {
+          #ifdef UNICODE
+            const UINT uClipboardFormat = CF_UNICODETEXT;
+          #else
+            const UINT uClipboardFormat = CF_TEXT;
+          #endif
+            HANDLE hClipboardTextData = ::GetClipboardData(uClipboardFormat);
+            if ( hClipboardTextData )
+            {
+                LPTSTR pszText = (LPTSTR) ::GlobalLock(hClipboardTextData);
+                if ( pszText )
+                {
+                    handler(pszText);
+                    ::GlobalUnlock(pszText);
+                    bSucceeded = true;
+                }
+            }
+            ::CloseClipboard();
+        }
+
+        return bSucceeded;
+    }
+
     tstr GetInstanceAsString(const void* pInstance)
     {
         tstr S;

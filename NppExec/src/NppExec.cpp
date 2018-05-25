@@ -151,6 +151,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(RIGHT_VIEW_FILE)    : current file path-name in second (right) view
  *        $(PLUGINS_CONFIG_DIR) : full path of the plugins configuration directory
  *        $(CWD)                : current working directory of NppExec (use "cd" to change it)
+ *        $(CLIPBOARD_TEXT)     : text from the clipboard
  *        $(ARGC)               : number of arguments passed to the NPP_EXEC command
  *        $(ARGV)               : all arguments passed to the NPP_EXEC command after the script name
  *        $(ARGV[0])            : script name - first parameter of the NPP_EXEC command

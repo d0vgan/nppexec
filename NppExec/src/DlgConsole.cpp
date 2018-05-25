@@ -202,6 +202,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(RIGHT_VIEW_FILE)  :  current file path-name in secondary (right) view") _T_RE_EOL \
   _T("$(PLUGINS_CONFIG_DIR)  :  full path of the plugins configuration directory") _T_RE_EOL \
   _T("$(CWD)  :  current working directory of NppExec (use \"cd\" to change it)") _T_RE_EOL \
+  _T("$(CLIPBOARD_TEXT)  :  text from the clipboard") _T_RE_EOL \
   _T("$(ARGC)  :  number of arguments passed to the NPP_EXEC command") _T_RE_EOL \
   _T("$(ARGV)  :  all arguments passed to the NPP_EXEC command after the script name") _T_RE_EOL \
   _T("$(ARGV[0])  :  script name - first parameter of the NPP_EXEC command") _T_RE_EOL \
@@ -2848,25 +2849,9 @@ bool ConsoleDlg::GoToLineIfWarningAnalyzerMatch(CAnyRichEdit& Edit, const int nL
 
 INT_PTR ConsoleDlg::OnPaste(CAnyRichEdit& Edit, MSGFILTER* lpmsgf)
 {
-    if ( ::OpenClipboard(NULL) )
-    {
-      #ifdef UNICODE
-        const UINT uClipboardFormat = CF_UNICODETEXT;
-      #else
-        const UINT uClipboardFormat = CF_TEXT;
-      #endif
-        HANDLE hClipboardTextData = ::GetClipboardData(uClipboardFormat);
-        if ( hClipboardTextData )
-        {
-            LPTSTR pszText = (LPTSTR) ::GlobalLock(hClipboardTextData);
-            if ( pszText )
-            {
-                Edit.ReplaceSelText(pszText, TRUE);
-                ::GlobalUnlock(pszText);
-            }
-        }
-        ::CloseClipboard();
-    }
+    NppExecHelpers::GetClipboardText( 
+        [&Edit](LPCTSTR pszClipboardText) { Edit.ReplaceSelText(pszClipboardText, TRUE); }
+    );
     lpmsgf->wParam = 0;
     return 1;
 }
@@ -4544,6 +4529,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_CURRENT_LINE );        //  $(CURRENT_LINE)
   CmdVarsList.Add( MACRO_FILE_DIRPATH );        //  $(CURRENT_DIRECTORY)
   CmdVarsList.Add( MACRO_CURRENT_COLUMN );      //  $(CURRENT_COLUMN)
+  CmdVarsList.Add( MACRO_CLIPBOARD_TEXT );      //  $(CLIPBOARD_TEXT)
   CmdVarsList.Add( _T("$(ARGV[1])") );          //  $(ARGV[1])
   CmdVarsList.Add( _T("$(ARGV)") );             //  $(ARGV)
   CmdVarsList.Add( MACRO_ARGC );                //  $(ARGC)
