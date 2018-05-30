@@ -407,11 +407,11 @@ namespace NppExecHelpers
         return true;
     }
 
-    bool GetClipboardText(std::function<void(LPCTSTR pszClipboardText)> handler)
+    bool GetClipboardText(std::function<void(LPCTSTR pszClipboardText)> handler, HWND hWndOwner )
     {
         bool bSucceeded = false;
 
-        if ( ::OpenClipboard(NULL) )
+        if ( ::OpenClipboard(hWndOwner) )
         {
           #ifdef UNICODE
             const UINT uClipboardFormat = CF_UNICODETEXT;
@@ -427,6 +427,38 @@ namespace NppExecHelpers
                     handler(pszText);
                     ::GlobalUnlock(pszText);
                     bSucceeded = true;
+                }
+            }
+            ::CloseClipboard();
+        }
+
+        return bSucceeded;
+    }
+
+    bool SetClipboardText(const tstr& text, HWND hWndOwner )
+    {
+        bool bSucceeded = false;
+
+        if ( ::OpenClipboard(hWndOwner) )
+        {
+            HGLOBAL hTextMem = ::GlobalAlloc( GMEM_MOVEABLE, (text.length() + 1)*sizeof(TCHAR) );
+            if ( hTextMem != NULL )
+            {
+                LPTSTR pszText = (LPTSTR) ::GlobalLock(hTextMem);
+                if ( pszText != NULL )
+                {
+                    lstrcpy(pszText, text.c_str());
+                    ::GlobalUnlock(hTextMem);
+
+                    ::EmptyClipboard();
+
+                  #ifdef UNICODE
+                    const UINT uClipboardFormat = CF_UNICODETEXT;
+                  #else
+                    const UINT uClipboardFormat = CF_TEXT;
+                  #endif
+                    if ( ::SetClipboardData(uClipboardFormat, hTextMem) != NULL )
+                        bSucceeded = true;
                 }
             }
             ::CloseClipboard();

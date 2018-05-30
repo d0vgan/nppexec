@@ -142,6 +142,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("text_saveto <file>  -  save the whole text to a file") _T_RE_EOL \
   _T("text_saveto <file> : <encoding>  -  save the whole text to a file") _T_RE_EOL \
   _T("text_save <file> : <encoding>  -  see \"text_saveto\"") _T_RE_EOL \
+  _T("clip_settext <text>  -  set the clipboard text") _T_RE_EOL \
   _T("npp_exec <script>  -  execute commands from specified NppExec\'s script") _T_RE_EOL \
   _T("npp_exec <file>  -  execute commands from specified NppExec\'s file") _T_RE_EOL \
   _T("npp_exec <script/file> <args>  -  passes additional arguments <args>") _T_RE_EOL \
@@ -358,7 +359,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // CLS
   {
-    CMD_CLS,
+    CScriptEngine::DoClsCommand::Name(),
     _T("COMMAND:  cls") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  cls") _T_RE_EOL \
@@ -368,7 +369,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // CD
   {
-    CMD_CD,
+    CScriptEngine::DoCdCommand::Name(),
     _T("COMMAND:  cd") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  cd") _T_RE_EOL \
@@ -389,7 +390,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // DIR
   {
-    CMD_DIR,
+    CScriptEngine::DoDirCommand::Name(),
     _T("COMMAND:  dir") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  dir") _T_RE_EOL \
@@ -411,7 +412,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // ECHO
   {
-    CMD_ECHO,
+    CScriptEngine::DoEchoCommand::Name(),
     _T("COMMAND:  echo") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  echo <text>") _T_RE_EOL \
@@ -425,7 +426,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // CON_COLOUR
   {
-    CMD_CONCOLOUR,
+    CScriptEngine::DoConColourCommand::Name(),
     _T("COMMAND:  con_colour") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  con_colour") _T_RE_EOL \
@@ -463,7 +464,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // CON_FILTER
   {
-    CMD_CONFILTER,
+    CScriptEngine::DoConFilterCommand::Name(),
     _T("COMMAND:  con_filter") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  con_filter +x5/-x5 +i1/-i1 +fr4/-fr4 +frc1/-frc1 +h10/-h10") _T_RE_EOL \
@@ -510,7 +511,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // CON_LOADFROM
   {
-    CMD_CONLOADFROM,
+    CScriptEngine::DoConLoadFromCommand::Name(),
     _T("COMMAND:  con_loadfrom") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  con_loadfrom <file>") _T_RE_EOL \
@@ -527,7 +528,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // CON_SAVETO
   {
-    CMD_CONSAVETO,
+    CScriptEngine::DoConSaveToCommand::Name(),
     _T("COMMAND:  con_saveto") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  con_saveto <file>") _T_RE_EOL \
@@ -544,7 +545,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
                    
   // NPP_CLOSE
   {
-    CMD_NPPCLOSE,
+    CScriptEngine::DoNppCloseCommand::Name(),
     _T("COMMAND:  npp_close") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_close") _T_RE_EOL \
@@ -562,7 +563,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_CONSOLE
   {
-    CMD_NPPCONSOLE,
+    CScriptEngine::DoNppConsoleCommand::Name(),
     _T("COMMAND:  npp_console") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_console <on/off/keep>") _T_RE_EOL \
@@ -611,7 +612,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
   
   // NPP_EXEC
   {
-    CMD_NPPEXEC,
+    CScriptEngine::DoNppExecCommand::Name(),
     _T("COMMAND:  npp_exec") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_exec <script>") _T_RE_EOL \
@@ -651,7 +652,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_MENUCOMMAND
   {
-    CMD_NPPMENUCOMMAND,
+    CScriptEngine::DoNppMenuCommandCommand::Name(),
     _T("COMMAND:  npp_menucommand") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_menucommand <full name of menu item>") _T_RE_EOL \
@@ -686,7 +687,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_OPEN
   {
-    CMD_NPPOPEN,
+    CScriptEngine::DoNppOpenCommand::Name(),
     _T("COMMAND:  npp_open") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_open <file>") _T_RE_EOL \
@@ -708,7 +709,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_RUN
   {
-    CMD_NPPRUN,
+    CScriptEngine::DoNppRunCommand::Name(),
     _T("COMMAND:  npp_run") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_run <command>") _T_RE_EOL \
@@ -740,7 +741,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_SAVE
   {
-    CMD_NPPSAVE,
+    CScriptEngine::DoNppSaveCommand::Name(),
     _T("COMMAND:  npp_save") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_save") _T_RE_EOL \
@@ -759,7 +760,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_SAVEALL
   {
-    CMD_NPPSAVEALL,
+    CScriptEngine::DoNppSaveAllCommand::Name(),
     _T("COMMAND:  npp_saveall") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_saveall") _T_RE_EOL \
@@ -773,7 +774,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_SAVEAS
   {
-    CMD_NPPSAVEAS,
+    CScriptEngine::DoNppSaveAsCommand::Name(),
     _T("COMMAND:  npp_saveas") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_saveas <file>") _T_RE_EOL \
@@ -788,7 +789,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_SWITCH
   {
-    CMD_NPPSWITCH,
+    CScriptEngine::DoNppSwitchCommand::Name(),
     _T("COMMAND:  npp_switch") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_switch <file>") _T_RE_EOL \
@@ -804,21 +805,21 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_SETFOCUS
   {
-      CMD_NPPSETFOCUS,
-      _T("COMMAND:  npp_setfocus") _T_RE_EOL \
-      _T("USAGE:") _T_RE_EOL \
-      _T("  npp_setfocus con") _T_RE_EOL \
-      _T("  npp_setfocus sci") _T_RE_EOL \
-      _T("DESCRIPTION:") _T_RE_EOL \
-      _T("  Sets the keyboard focus (to the Console or to Scintilla's editing window)") _T_RE_EOL \
-      _T("EXAMPLES:") _T_RE_EOL \
-      _T("  npp_setfocus con  // sets the focus to NppExec's Console") _T_RE_EOL \
-      _T("  npp_setfocus sci  // sets the focus to the current Scintilla") _T_RE_EOL
+    CScriptEngine::DoNppSetFocusCommand::Name(),
+    _T("COMMAND:  npp_setfocus") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_setfocus con") _T_RE_EOL \
+    _T("  npp_setfocus sci") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Sets the keyboard focus (to the Console or to Scintilla's editing window)") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_setfocus con  // sets the focus to NppExec's Console") _T_RE_EOL \
+    _T("  npp_setfocus sci  // sets the focus to the current Scintilla") _T_RE_EOL
   },
 
   // NPP_SENDMSG
   {
-    CMD_NPPSENDMSG,
+    CScriptEngine::DoNppSendMsgCommand::Name(),
     _T("COMMAND:  npp_sendmsg") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_sendmsg <msg>") _T_RE_EOL \
@@ -880,7 +881,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPP_SENDMSGEX
   {
-    CMD_NPPSENDMSGEX,
+    CScriptEngine::DoNppSendMsgExCommand::Name(),
     _T("COMMAND:  npp_sendmsgex") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npp_sendmsgex <hwnd> <msg>") _T_RE_EOL \
@@ -903,7 +904,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // SCI_SENDMSG
   {
-    CMD_SCISENDMSG,
+    CScriptEngine::DoSciSendMsgCommand::Name(),
     _T("COMMAND:  sci_sendmsg") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  sci_sendmsg <msg>") _T_RE_EOL \
@@ -950,7 +951,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // SCI_FIND
   {
-    CMD_SCIFIND,
+    CScriptEngine::DoSciFindCommand::Name(),
     _T("COMMAND:  sci_find") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  sci_find <flags> <find_what>") _T_RE_EOL \
@@ -999,7 +1000,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // SCI_REPLACE
   {
-    CMD_SCIREPLACE,
+    CScriptEngine::DoSciReplaceCommand::Name(),
     _T("COMMAND:  sci_replace") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  sci_replace <flags> <find_what> <replace_with>") _T_RE_EOL \
@@ -1075,7 +1076,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // SET
   {
-    CMD_SET,
+    CScriptEngine::DoSetCommand::Name(),
     _T("COMMAND:  set/unset") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  set") _T_RE_EOL \
@@ -1201,7 +1202,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
   
   // ENV_SET
   {
-    CMD_ENVSET,
+    CScriptEngine::DoEnvSetCommand::Name(),
     _T("COMMAND:  env_set/env_unset") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  env_set <var>") _T_RE_EOL \
@@ -1246,7 +1247,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
   
   // INPUTBOX
   {
-    CMD_INPUTBOX,
+    CScriptEngine::DoInputBoxCommand::Name(),
     _T("COMMAND:  inputbox") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  inputbox \"message\"") _T_RE_EOL \
@@ -1301,7 +1302,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
   
   // NPE_CMDALIAS
   {
-    CMD_NPECMDALIAS,
+    CScriptEngine::DoNpeCmdAliasCommand::Name(),
     _T("COMMAND:  npe_cmdalias") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_cmdalias") _T_RE_EOL \
@@ -1358,7 +1359,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
   
   // NPE_CONSOLE
   {
-    CMD_NPECONSOLE,
+    CScriptEngine::DoNpeConsoleCommand::Name(),
     _T("COMMAND:  npe_console") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_console") _T_RE_EOL \
@@ -1445,7 +1446,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPE_DEBUGLOG
   {
-    CMD_NPEDEBUGLOG,
+    CScriptEngine::DoNpeDebugLogCommand::Name(),
     _T("COMMAND:  npe_debuglog") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_debuglog") _T_RE_EOL \
@@ -1461,7 +1462,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPE_NOEMPTYVARS
   {
-    CMD_NPENOEMPTYVARS,
+    CScriptEngine::DoNpeNoEmptyVarsCommand::Name(),
     _T("COMMAND:  npe_noemptyvars") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_noemptyvars") _T_RE_EOL \
@@ -1487,7 +1488,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // NPE_QUEUE
   {
-    CMD_NPEQUEUE,
+    CScriptEngine::DoNpeQueueCommand::Name(),
     _T("COMMAND:  npe_queue") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_queue <command>") _T_RE_EOL \
@@ -1572,7 +1573,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // SEL_LOADFROM
   {
-    CMD_SELLOADFROM,
+    CScriptEngine::DoSelLoadFromCommand::Name(),
     _T("COMMAND:  sel_loadfrom") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  sel_loadfrom <file>") _T_RE_EOL \
@@ -1591,7 +1592,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
   
   // SEL_SAVETO
   {
-    CMD_SELSAVETO,
+    CScriptEngine::DoSelSaveToCommand::Name(),
     _T("COMMAND:  sel_saveto") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  sel_saveto <file>") _T_RE_EOL \
@@ -1618,7 +1619,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // SEL_SETTEXT
   {
-    CMD_SELSETTEXT,
+    CScriptEngine::DoSelSetTextCommand::Name(),
     _T("COMMAND:  sel_settext, sel_settext+") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  sel_settext <text>") _T_RE_EOL \
@@ -1653,7 +1654,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // TEXT_LOADFROM
   {
-    CMD_TEXTLOADFROM,
+    CScriptEngine::DoTextLoadFromCommand::Name(),
     _T("COMMAND:  text_loadfrom") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  text_loadfrom <file>") _T_RE_EOL \
@@ -1672,7 +1673,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // TEXT_SAVETO
   {
-    CMD_TEXTSAVETO,
+    CScriptEngine::DoTextSaveToCommand::Name(),
     _T("COMMAND:  text_saveto") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  text_saveto <file>") _T_RE_EOL \
@@ -1697,9 +1698,23 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  text_loadfrom, sel_saveto") _T_RE_EOL
   },
 
+  // CLIP_SETTEXT
+  {
+    CScriptEngine::DoClipSetTextCommand::Name(),
+    _T("COMMAND:  clip_settext") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  clip_settext <text>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Sets the Clipboard text") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  echo Text in the Clipboard (was): $(CLIPBOARD_TEXT)") _T_RE_EOL
+    _T("  clip_settext This is the new Clipboard text") _T_RE_EOL \
+    _T("  echo Text in the Clipboard (now): $(CLIPBOARD_TEXT)") _T_RE_EOL
+  },
+
   // IF
   {
-    CMD_IF,
+    CScriptEngine::DoIfCommand::Name(),
     _T("COMMAND:  if") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  1. if <condition> goto <label>") _T_RE_EOL \
@@ -1833,7 +1848,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // LABEL
   {
-    CMD_LABEL,
+    CScriptEngine::DoLabelCommand::Name(),
     _T("COMMAND:  label, :") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  label <LabelName>") _T_RE_EOL \
@@ -1867,7 +1882,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // GOTO
   {
-    CMD_GOTO,
+    CScriptEngine::DoGoToCommand::Name(),
     _T("COMMAND:  goto") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  goto <LabelName>") _T_RE_EOL \
@@ -1915,7 +1930,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // ELSE
   {
-    CMD_ELSE,
+    CScriptEngine::DoElseCommand::Name(),
     _T("COMMAND:  else") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  if <condition>") _T_RE_EOL \
@@ -1939,7 +1954,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // ENDIF
   {
-    CMD_ENDIF,
+    CScriptEngine::DoEndIfCommand::Name(),
     _T("COMMAND:  endif") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  if <condition>") _T_RE_EOL \
@@ -1955,7 +1970,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // PROC_SIGNAL
   {
-    CMD_PROCSIGNAL,
+    CScriptEngine::DoProcSignalCommand::Name(),
     _T("COMMAND:  proc_signal") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  proc_signal <signal>") _T_RE_EOL \
@@ -1990,7 +2005,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
 
   // SLEEP
   {
-    CMD_SLEEP,
+    CScriptEngine::DoSleepCommand::Name(),
     _T("COMMAND:  sleep") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  sleep <ms>") _T_RE_EOL \
@@ -3602,7 +3617,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     S = S1; // without the prefix, if any
                     NppExecHelpers::StrUpper(S1);
 
-                    if (S1 == CMD_CLS)
+                    if (S1 == CScriptEngine::DoClsCommand::Name())
                     {
                         Runtime::GetNppExec().GetConsole().ClearText(true);
                         bCommandEntered = true;
@@ -4421,28 +4436,30 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
           }
           else
           {
-            if (S1 == CMD_CONSAVE)
-              S1 = CMD_CONSAVETO;
-            else if (S1 == CMD_CONLOAD)
-              S1 = CMD_CONLOADFROM;
-            else if (S1 == CMD_UNSET)
-              S1 = CMD_SET;
-            else if (S1 == CMD_ENVUNSET || S1 == CMD_SETENV || S1 == CMD_UNSETENV)
-              S1 = CMD_ENVSET;
-            else if (S1 == CMD_NPEDEBUG)
-              S1 = CMD_NPEDEBUGLOG;
-            else if (S1 == CMD_SELLOAD)
-              S1 = CMD_SELLOADFROM;
-            else if (S1 == CMD_SELSAVE)
-              S1 = CMD_SELSAVETO;
-            else if (S1 == CMD_SELSETTEXTEX)
-              S1 = CMD_SELSETTEXT;
-            else if (S1 == CMD_TEXTLOAD)
-              S1 = CMD_TEXTLOADFROM;
-            else if (S1 == CMD_TEXTSAVE)
-              S1 = CMD_TEXTSAVETO;
-            else if (S1 == CMD_CONCOLOR)
-              S1 = CMD_CONCOLOUR;
+            if (S1 == CScriptEngine::DoConSaveToCommand::AltName())
+              S1 = CScriptEngine::DoConSaveToCommand::Name();
+            else if (S1 == CScriptEngine::DoConLoadFromCommand::AltName())
+              S1 = CScriptEngine::DoConLoadFromCommand::Name();
+            else if (S1 == CScriptEngine::DoUnsetCommand::Name())
+              S1 = CScriptEngine::DoSetCommand::Name();
+            else if (S1 == CScriptEngine::DoEnvUnsetCommand::Name() || 
+                     S1 == CScriptEngine::DoEnvSetCommand::AltName() || 
+                     S1 == CScriptEngine::DoEnvUnsetCommand::AltName())
+              S1 = CScriptEngine::DoEnvSetCommand::Name();
+            else if (S1 == CScriptEngine::DoNpeDebugLogCommand::AltName())
+              S1 = CScriptEngine::DoNpeDebugLogCommand::Name();
+            else if (S1 == CScriptEngine::DoSelLoadFromCommand::AltName())
+              S1 = CScriptEngine::DoSelLoadFromCommand::Name();
+            else if (S1 == CScriptEngine::DoSelSaveToCommand::AltName())
+              S1 = CScriptEngine::DoSelSaveToCommand::Name();
+            else if (S1 == CScriptEngine::DoSelSetTextExCommand::Name())
+              S1 = CScriptEngine::DoSelSetTextCommand::Name();
+            else if (S1 == CScriptEngine::DoTextLoadFromCommand::AltName())
+              S1 = CScriptEngine::DoTextLoadFromCommand::Name();
+            else if (S1 == CScriptEngine::DoTextSaveToCommand::AltName())
+              S1 = CScriptEngine::DoTextSaveToCommand::Name();
+            else if (S1 == CScriptEngine::DoConColourCommand::AltName())
+              S1 = CScriptEngine::DoConColourCommand::Name();
             else if (S1 == _T("STRLENUTF8") || S1 == _T("STRLENU")    ||
                      S1 == _T("STRLENA")    || S1 == _T("STRLEN")     || 
                      S1 == _T("STRUPPER")   || S1 == _T("STRLOWER")   || 
@@ -4450,9 +4467,9 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
                      S1 == _T("STRFIND")    || S1 == _T("STRRFIND")   ||
                      S1 == _T("STRREPLACE") || S1 == _T("STRRPLC")    ||
                      S1 == _T("STRFROMHEX") || S1 == _T("STRTOHEX"))
-              S1 = CMD_SET;
+              S1 = CScriptEngine::DoSetCommand::Name();
             else if (S1.GetAt(0) == DEFAULT_ALIAS_CMD_LABEL && S1.GetAt(1) == 0)
-              S1 = CMD_LABEL;
+              S1 = CScriptEngine::DoLabelCommand::Name();
             else if (S1 == _T("EXIT_CMD")     || S1 == _T("EXIT_CMD_SILENT")   ||
                      S1 == _T("@EXIT_CMD")    || S1 == _T("@EXIT_CMD_SILENT")  ||
                      S1 == _T("$(@EXIT_CMD)") || S1 == _T("$(@EXIT_CMD_SILENT)"))
@@ -4536,46 +4553,23 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_EXIT_CMD_SILENT );     //  $(@EXIT_CMD_SILENT)
   CmdVarsList.Add( MACRO_EXIT_CMD );            //  $(@EXIT_CMD)
   CmdVarsList.Add( _T("$(#1)") );               //  $(#1)
+  
   // commands in reverse order
-  CmdVarsList.Add( CMD_UNSET );
-  CmdVarsList.Add( CMD_TEXTSAVETO );
-  CmdVarsList.Add( CMD_TEXTLOADFROM );
-  CmdVarsList.Add( CMD_SLEEP );
-  CmdVarsList.Add( CMD_SET );
-  CmdVarsList.Add( CMD_SELSETTEXTEX );
-  CmdVarsList.Add( CMD_SELSETTEXT );
-  CmdVarsList.Add( CMD_SELSAVETO );
-  CmdVarsList.Add( CMD_SELLOADFROM );
-  CmdVarsList.Add( CMD_SCISENDMSG );
-  CmdVarsList.Add( CMD_SCIREPLACE );
-  CmdVarsList.Add( CMD_SCIFIND );
-  CmdVarsList.Add( CMD_PROCSIGNAL );
-  CmdVarsList.Add( CMD_NPPSWITCH );
-  CmdVarsList.Add( CMD_NPPSETFOCUS );
-  CmdVarsList.Add( CMD_NPPSENDMSGEX );
-  CmdVarsList.Add( CMD_NPPSENDMSG );
-  CmdVarsList.Add( CMD_NPPSAVEAS );
-  CmdVarsList.Add( CMD_NPPSAVEALL );
-  CmdVarsList.Add( CMD_NPPSAVE );
-  CmdVarsList.Add( CMD_NPPRUN );
-  CmdVarsList.Add( CMD_NPPOPEN );
-  CmdVarsList.Add( CMD_NPPMENUCOMMAND );
-  CmdVarsList.Add( CMD_NPPEXEC );
-  CmdVarsList.Add( CMD_NPPCONSOLE );
-  CmdVarsList.Add( CMD_NPPCLOSE );
-  CmdVarsList.Add( CMD_NPEQUEUE );
-  CmdVarsList.Add( CMD_NPENOEMPTYVARS );
-  CmdVarsList.Add( CMD_NPEDEBUGLOG );
-  CmdVarsList.Add( CMD_NPECONSOLE );
-  CmdVarsList.Add( CMD_NPECMDALIAS );
-  CmdVarsList.Add( CMD_INPUTBOX );
-  CmdVarsList.Add( CMD_ENVUNSET );
-  CmdVarsList.Add( CMD_ENVSET );
-  CmdVarsList.Add( CMD_ECHO );
-  CmdVarsList.Add( CMD_CONSAVETO );
-  CmdVarsList.Add( CMD_CONLOADFROM );
-  CmdVarsList.Add( CMD_CONFILTER );
-  CmdVarsList.Add( CMD_CONCOLOUR );
+  const auto& CommandsList = CScriptEngine::GetCommandRegistry().GetSortedCmdNames();
+  for ( auto itr = CommandsList.rbegin(); itr != CommandsList.rend(); ++itr )
+  {
+    const tstr& S = *itr;
+    if ( S.length() < 3 )
+      continue;
+    
+    if ( S == CScriptEngine::DoGoToCommand::Name() ||
+         S == CScriptEngine::DoElseCommand::Name() ||
+         S == CScriptEngine::DoEndIfCommand::Name() ||
+         S == CScriptEngine::DoLabelCommand::Name() )
+      continue;
+
+    CmdVarsList.Add( S );
+  }
 }
 
 void ConsoleDlg::loadCmdHistory()

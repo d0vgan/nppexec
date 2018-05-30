@@ -82,6 +82,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        text_saveto <file> - save the whole text to a file
  *        text_saveto <file> : <encoding> - save the whole text to a file
  *        text_save <file> : <encoding> - see "text_saveto"
+ *        clip_settext <text> : set the clipboard text
  *        npp_exec <script> - execute commands from specified NppExec's script
  *        npp_exec <file> - execute commands from specified NppExec's file (*)
  *        npp_close - close current file in Notepad++

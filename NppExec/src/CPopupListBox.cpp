@@ -21,44 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NppExecEngine.h"
 
 
-const TCHAR* CommandsList[] = {
-  CMD_CONCOLOUR,
-  CMD_CONFILTER,
-  CMD_CONLOADFROM,
-  CMD_CONSAVETO,
-  CMD_ENVSET,
-  CMD_ENVUNSET,
-  CMD_INPUTBOX,
-  CMD_NPECMDALIAS,
-  CMD_NPECONSOLE,
-  CMD_NPEDEBUGLOG,
-  CMD_NPENOEMPTYVARS,
-  CMD_NPEQUEUE,
-  CMD_NPPCLOSE,
-  CMD_NPPCONSOLE,
-  CMD_NPPEXEC,
-  CMD_NPPMENUCOMMAND,
-  CMD_NPPOPEN,
-  CMD_NPPRUN,
-  CMD_NPPSAVE,
-  CMD_NPPSAVEALL,
-  CMD_NPPSAVEAS,
-  CMD_NPPSENDMSG,
-  CMD_NPPSENDMSGEX,
-  CMD_NPPSETFOCUS,
-  CMD_NPPSWITCH,
-  CMD_PROCSIGNAL,
-  CMD_SCIFIND,
-  CMD_SCIREPLACE,
-  CMD_SCISENDMSG,
-  CMD_SELLOADFROM,
-  CMD_SELSAVETO,
-  CMD_SELSETTEXT,
-  CMD_SELSETTEXTEX,
-  CMD_SLEEP,
-  CMD_TEXTLOADFROM,
-  CMD_TEXTSAVETO,
-
+const TCHAR* NpeSearchFlagsList[] = {
   // search flags:
   _T("NPE_SF_MATCHCASE"),
   _T("NPE_SF_WHOLEWORD"),
@@ -177,37 +140,68 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
            WordUpper.StartsWith(_T("NPE")) ||
            WordUpper.StartsWith(_T("SCI")) )) 
       || ((nLen >= 3) &&
-          (WordUpper.StartsWith(_T("INP")) ||
-           WordUpper.StartsWith(_T("PRO")) ||
-           WordUpper.StartsWith(_T("SLE")) ))
+          (WordUpper.StartsWith(_T("INP")) ||  // INPUTBOX
+           WordUpper.StartsWith(_T("PRO")) ||  // PROC_
+           WordUpper.StartsWith(_T("SLE")) ))  // SLEEP
       || ((nLen >= 3) &&
-          (WordUpper.StartsWith(_T("TEX")) ))
+          (WordUpper.StartsWith(_T("TEX")) ||  // TEXT_
+           WordUpper.StartsWith(_T("CLI")) ))  // CLIP_
        )
     {
       bExactMatch = false;
-      for (const TCHAR* const& cmd : CommandsList)
+      const auto& CommandsList = CScriptEngine::GetCommandRegistry().GetSortedCmdNames();
+      for (const auto& cmd : CommandsList)
       {
         S = cmd;
+        if (S.length() < 4)
+          continue;
+
+        if (S == CScriptEngine::DoEchoCommand::Name() ||
+            S == CScriptEngine::DoGoToCommand::Name() ||
+            S == CScriptEngine::DoElseCommand::Name() ||
+            S == CScriptEngine::DoEndIfCommand::Name() ||
+            S == CScriptEngine::DoUnsetCommand::Name() ||
+            S == CScriptEngine::DoLabelCommand::Name())
+          continue;
+
         if (S.StartsWith(WordUpper))
         {
           if (S != WordUpper)
           {
-            bool bAdd = true;
             const TCHAR ch = szCurrentWord[0];
             if ((ch >= _T('a')) && (ch <= _T('z')))
             {
-              if (S.StartsWith(_T("NPE_SF_")))
-                bAdd = false; // flags can be in upper case only
-              else
-                NppExecHelpers::StrLower(S); // preserve lower case
+              NppExecHelpers::StrLower(S); // preserve lower case
             }
-            if (bAdd)
-              AddString(S.c_str());
+            AddString(S.c_str());
           }
           else
           {
             bExactMatch = true;
             break;
+          }
+        }
+      }
+      if (!bExactMatch)
+      {
+        for (const TCHAR* const& cmd : NpeSearchFlagsList)
+        {
+          S = cmd;
+          if (S.StartsWith(WordUpper))
+          {
+            if (S != WordUpper)
+            {
+              const TCHAR ch = szCurrentWord[0];
+              if ((ch >= _T('A')) && (ch <= _T('Z')))
+              {
+                AddString(S.c_str());; // flags can be in upper case only
+              }
+            }
+            else
+            {
+              bExactMatch = true;
+              break;
+            }
           }
         }
       }

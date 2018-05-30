@@ -81,63 +81,6 @@ const TCHAR MACRO_EXIT_CMD[]            = _T("$(@EXIT_CMD)");
 const TCHAR MACRO_EXIT_CMD_SILENT[]     = _T("$(@EXIT_CMD_SILENT)");
 const TCHAR MACRO_LAST_CMD_RESULT[]     = _T("$(LAST_CMD_RESULT)");
 const TCHAR MACRO_CLIPBOARD_TEXT[]      = _T("$(CLIPBOARD_TEXT)");
-const TCHAR CMD_CLS[]                   = _T("CLS");
-const TCHAR CMD_CD[]                    = _T("CD");
-const TCHAR CMD_DIR[]                   = _T("DIR");
-const TCHAR CMD_ECHO[]                  = _T("ECHO");
-const TCHAR CMD_CONCOLOR[]              = _T("CON_COLOR");
-const TCHAR CMD_CONCOLOUR[]             = _T("CON_COLOUR");
-const TCHAR CMD_CONFILTER[]             = _T("CON_FILTER");
-const TCHAR CMD_CONLOADFROM[]           = _T("CON_LOADFROM");
-const TCHAR CMD_CONLOAD[]               = _T("CON_LOAD");
-const TCHAR CMD_CONSAVETO[]             = _T("CON_SAVETO");
-const TCHAR CMD_CONSAVE[]               = _T("CON_SAVE");
-const TCHAR CMD_NPPCLOSE[]              = _T("NPP_CLOSE");
-const TCHAR CMD_NPPCONSOLE[]            = _T("NPP_CONSOLE");
-const TCHAR CMD_NPPEXEC[]               = _T("NPP_EXEC");
-const TCHAR CMD_NPPSENDMSG[]            = _T("NPP_SENDMSG");
-const TCHAR CMD_NPPSENDMSGEX[]          = _T("NPP_SENDMSGEX");
-const TCHAR CMD_SCISENDMSG[]            = _T("SCI_SENDMSG");
-const TCHAR CMD_SCIFIND[]               = _T("SCI_FIND");
-const TCHAR CMD_SCIREPLACE[]            = _T("SCI_REPLACE");
-const TCHAR CMD_NPPMENUCOMMAND[]        = _T("NPP_MENUCOMMAND");
-const TCHAR CMD_NPPOPEN[]               = _T("NPP_OPEN");
-const TCHAR CMD_NPPRUN[]                = _T("NPP_RUN");
-const TCHAR CMD_NPPSAVE[]               = _T("NPP_SAVE");
-const TCHAR CMD_NPPSAVEAS[]             = _T("NPP_SAVEAS");
-const TCHAR CMD_NPPSAVEALL[]            = _T("NPP_SAVEALL");
-const TCHAR CMD_NPPSWITCH[]             = _T("NPP_SWITCH");
-const TCHAR CMD_NPPSETFOCUS[]           = _T("NPP_SETFOCUS");
-const TCHAR CMD_NPECMDALIAS[]           = _T("NPE_CMDALIAS");
-const TCHAR CMD_NPECONSOLE[]            = _T("NPE_CONSOLE");
-const TCHAR CMD_NPEDEBUGLOG[]           = _T("NPE_DEBUGLOG");
-const TCHAR CMD_NPEDEBUG[]              = _T("NPE_DEBUG");
-const TCHAR CMD_NPENOEMPTYVARS[]        = _T("NPE_NOEMPTYVARS");
-const TCHAR CMD_NPEQUEUE[]              = _T("NPE_QUEUE");
-const TCHAR CMD_SET[]                   = _T("SET");
-const TCHAR CMD_UNSET[]                 = _T("UNSET");
-const TCHAR CMD_ENVSET[]                = _T("ENV_SET");
-const TCHAR CMD_ENVUNSET[]              = _T("ENV_UNSET");
-const TCHAR CMD_SETENV[]                = _T("SET_ENV");
-const TCHAR CMD_UNSETENV[]              = _T("UNSET_ENV");
-const TCHAR CMD_INPUTBOX[]              = _T("INPUTBOX");
-const TCHAR CMD_SELLOADFROM[]           = _T("SEL_LOADFROM");
-const TCHAR CMD_SELLOAD[]               = _T("SEL_LOAD");
-const TCHAR CMD_SELSAVETO[]             = _T("SEL_SAVETO");
-const TCHAR CMD_SELSAVE[]               = _T("SEL_SAVE");
-const TCHAR CMD_SELSETTEXT[]            = _T("SEL_SETTEXT");
-const TCHAR CMD_SELSETTEXTEX[]          = _T("SEL_SETTEXT+");
-const TCHAR CMD_TEXTLOADFROM[]          = _T("TEXT_LOADFROM");
-const TCHAR CMD_TEXTLOAD[]              = _T("TEXT_LOAD");
-const TCHAR CMD_TEXTSAVETO[]            = _T("TEXT_SAVETO");
-const TCHAR CMD_TEXTSAVE[]              = _T("TEXT_SAVE");
-const TCHAR CMD_IF[]                    = _T("IF");
-const TCHAR CMD_LABEL[]                 = _T("LABEL");
-const TCHAR CMD_GOTO[]                  = _T("GOTO");
-const TCHAR CMD_ELSE[]                  = _T("ELSE");
-const TCHAR CMD_ENDIF[]                 = _T("ENDIF");
-const TCHAR CMD_PROCSIGNAL[]            = _T("PROC_SIGNAL");
-const TCHAR CMD_SLEEP[]                 = _T("SLEEP");
 
 // NppExec's Search Flags for sci_find and sci_replace:
 #define NPE_SF_MATCHCASE    0x00000001 // "text" finds only "text", not "Text" or "TEXT"
@@ -1106,6 +1049,8 @@ static FParserWrapper g_fp;
  *   - save the whole text (in specified encoding) to a file
  * text_save <file> : <encoding>
  *   - see "text_saveto"
+ * clip_settext <text>
+ *   - set the clipboard text
  * npp_exec <script>
  *   - executes commands from specified NppExec's script
  * npp_exec <file>
@@ -1237,6 +1182,7 @@ static FParserWrapper g_fp;
  *
  */
 
+CScriptEngine::CScriptCommandRegistry CScriptEngine::m_CommandRegistry;
 
 CScriptEngine::CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, const tstr& id)
 {
@@ -1251,55 +1197,6 @@ CScriptEngine::CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, co
     m_dwThreadId = 0;
     m_bTriedExitCmd = false;
     m_isClosingConsole = false;
-
-    m_DoFunc[CMDTYPE_UNKNOWN]        = &CScriptEngine::Do;
-    m_DoFunc[CMDTYPE_NPPEXEC]        = &CScriptEngine::DoNppExec;
-    m_DoFunc[CMDTYPE_NPPOPEN]        = &CScriptEngine::DoNppOpen;
-    m_DoFunc[CMDTYPE_NPPRUN]         = &CScriptEngine::DoNppRun;
-    m_DoFunc[CMDTYPE_NPPSAVE]        = &CScriptEngine::DoNppSave;
-    m_DoFunc[CMDTYPE_NPPSWITCH]      = &CScriptEngine::DoNppSwitch;
-    m_DoFunc[CMDTYPE_CLS]            = &CScriptEngine::DoCls;
-    m_DoFunc[CMDTYPE_CD]             = &CScriptEngine::DoCd;
-    m_DoFunc[CMDTYPE_DIR]            = &CScriptEngine::DoDir;
-    m_DoFunc[CMDTYPE_NPPSAVEALL]     = &CScriptEngine::DoNppSaveAll;
-    m_DoFunc[CMDTYPE_CONLOADFROM]    = &CScriptEngine::DoConLoadFrom;
-    m_DoFunc[CMDTYPE_CONSAVETO]      = &CScriptEngine::DoConSaveTo;
-    m_DoFunc[CMDTYPE_ECHO]           = &CScriptEngine::DoEcho;
-    m_DoFunc[CMDTYPE_NPEDEBUGLOG]    = &CScriptEngine::DoNpeDebugLog;
-    m_DoFunc[CMDTYPE_SET]            = &CScriptEngine::DoSet;
-    m_DoFunc[CMDTYPE_UNSET]          = &CScriptEngine::DoUnset;
-    m_DoFunc[CMDTYPE_NPENOEMPTYVARS] = &CScriptEngine::DoNpeNoEmptyVars;
-    m_DoFunc[CMDTYPE_SELSAVETO]      = &CScriptEngine::DoSelSaveTo;
-    m_DoFunc[CMDTYPE_NPPCLOSE]       = &CScriptEngine::DoNppClose;
-    m_DoFunc[CMDTYPE_INPUTBOX]       = &CScriptEngine::DoInputBox;
-    m_DoFunc[CMDTYPE_NPPCONSOLE]     = &CScriptEngine::DoNppConsole;
-    m_DoFunc[CMDTYPE_ENVSET]         = &CScriptEngine::DoEnvSet;
-    m_DoFunc[CMDTYPE_ENVUNSET]       = &CScriptEngine::DoEnvUnset;
-    m_DoFunc[CMDTYPE_NPECONSOLE]     = &CScriptEngine::DoNpeConsole;
-    m_DoFunc[CMDTYPE_SELLOADFROM]    = &CScriptEngine::DoSelLoadFrom;
-    m_DoFunc[CMDTYPE_SELSETTEXT]     = &CScriptEngine::DoSelSetText;
-    m_DoFunc[CMDTYPE_SELSETTEXTEX]   = &CScriptEngine::DoSelSetTextEx;
-    m_DoFunc[CMDTYPE_NPECMDALIAS]    = &CScriptEngine::DoNpeCmdAlias;
-    m_DoFunc[CMDTYPE_NPPSENDMSG]     = &CScriptEngine::DoNppSendMsg;
-    m_DoFunc[CMDTYPE_SCISENDMSG]     = &CScriptEngine::DoSciSendMsg;
-    m_DoFunc[CMDTYPE_NPPSENDMSGEX]   = &CScriptEngine::DoNppSendMsgEx;
-    m_DoFunc[CMDTYPE_NPPMENUCOMMAND] = &CScriptEngine::DoNppMenuCommand;
-    m_DoFunc[CMDTYPE_CONCOLOUR]      = &CScriptEngine::DoConColour;
-    m_DoFunc[CMDTYPE_CONFILTER]      = &CScriptEngine::DoConFilter;
-    m_DoFunc[CMDTYPE_IF]             = &CScriptEngine::DoIf;
-    m_DoFunc[CMDTYPE_LABEL]          = &CScriptEngine::DoLabel;
-    m_DoFunc[CMDTYPE_GOTO]           = &CScriptEngine::DoGoTo;
-    m_DoFunc[CMDTYPE_NPPSAVEAS]      = &CScriptEngine::DoNppSaveAs;
-    m_DoFunc[CMDTYPE_ELSE]           = &CScriptEngine::DoElse;
-    m_DoFunc[CMDTYPE_ENDIF]          = &CScriptEngine::DoEndIf;
-    m_DoFunc[CMDTYPE_PROCSIGNAL]     = &CScriptEngine::DoProcSignal;
-    m_DoFunc[CMDTYPE_SLEEP]          = &CScriptEngine::DoSleep;
-    m_DoFunc[CMDTYPE_NPEQUEUE]       = &CScriptEngine::DoNpeQueue;
-    m_DoFunc[CMDTYPE_SCIFIND]        = &CScriptEngine::DoSciFind;
-    m_DoFunc[CMDTYPE_SCIREPLACE]     = &CScriptEngine::DoSciReplace;
-    m_DoFunc[CMDTYPE_TEXTLOADFROM]   = &CScriptEngine::DoTextLoadFrom;
-    m_DoFunc[CMDTYPE_TEXTSAVETO]     = &CScriptEngine::DoTextSaveTo;
-    m_DoFunc[CMDTYPE_NPPSETFOCUS]    = &CScriptEngine::DoNppSetFocus;
 
     Runtime::GetLogger().AddEx_WithoutOutput( _T("; CScriptEngine - create (instance = %s)"), GetInstanceStr() );
 }
@@ -1448,7 +1345,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                 if ( isSkippingThisCommandDueToIfState(nCmdType, ifState) )
                 {
                     Runtime::GetLogger().AddEx( _T("; skipping - waiting for %s"),
-                        (ifState == IF_WANT_ENDIF || ifState == IF_WANT_SILENT_ENDIF || ifState == IF_EXECUTING) ? CMD_ENDIF : CMD_ELSE );
+                        (ifState == IF_WANT_ENDIF || ifState == IF_WANT_SILENT_ENDIF || ifState == IF_EXECUTING) ? DoEndIfCommand::Name() : DoElseCommand::Name() );
                 
                     if ( nCmdType == CMDTYPE_IF )
                     {
@@ -1520,7 +1417,8 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                         }
 
                         m_sCmdParams = S;
-                        nCmdResult = (this->*m_DoFunc[m_nCmdType])(S);
+                        EXECFUNC pCmdExecFunc = m_CommandRegistry.GetCmdExecFunc(m_nCmdType);
+                        nCmdResult = pCmdExecFunc(this, S);
                     }
 
                     // The same currentScript object is used here to handle NPP_EXEC as well
@@ -1760,72 +1658,6 @@ CScriptEngine::eNppExecCmdPrefix CScriptEngine::checkNppExecCmdPrefix(CNppExec* 
 
 CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd, unsigned int nFlags)
 {
-    typedef struct stCmdType {
-        const TCHAR* szCmd;
-        eCmdType     nCmdType;
-    } tCmdType;
-
-    static const tCmdType CmdTypes[] = 
-    {
-        { CMD_CLS,            CMDTYPE_CLS            },
-        { CMD_CD,             CMDTYPE_CD             },
-        { CMD_DIR,            CMDTYPE_DIR            },
-        { CMD_ECHO,           CMDTYPE_ECHO           },
-        { CMD_CONLOADFROM,    CMDTYPE_CONLOADFROM    },
-        { CMD_CONLOAD,        CMDTYPE_CONLOADFROM    },
-        { CMD_CONSAVETO,      CMDTYPE_CONSAVETO      },
-        { CMD_CONSAVE,        CMDTYPE_CONSAVETO      },
-        { CMD_NPPCLOSE,       CMDTYPE_NPPCLOSE       },
-        { CMD_NPPCONSOLE,     CMDTYPE_NPPCONSOLE     },
-        { CMD_NPPEXEC,        CMDTYPE_NPPEXEC        },
-        { CMD_NPPOPEN,        CMDTYPE_NPPOPEN        },
-        { CMD_NPPRUN,         CMDTYPE_NPPRUN         },
-        { CMD_NPPSAVE,        CMDTYPE_NPPSAVE        },
-        { CMD_NPPSAVEAS,      CMDTYPE_NPPSAVEAS      },
-        { CMD_NPPSAVEALL,     CMDTYPE_NPPSAVEALL     },
-        { CMD_NPPSWITCH,      CMDTYPE_NPPSWITCH      },
-        { CMD_NPPSETFOCUS,    CMDTYPE_NPPSETFOCUS    },
-        { CMD_NPPSENDMSG,     CMDTYPE_NPPSENDMSG     },
-        { CMD_NPPSENDMSGEX,   CMDTYPE_NPPSENDMSGEX   },
-        { CMD_NPPMENUCOMMAND, CMDTYPE_NPPMENUCOMMAND },
-        { CMD_SCISENDMSG,     CMDTYPE_SCISENDMSG     },
-        { CMD_SCIFIND,        CMDTYPE_SCIFIND        },
-        { CMD_SCIREPLACE,     CMDTYPE_SCIREPLACE     },
-        { CMD_SET,            CMDTYPE_SET            },
-        { CMD_UNSET,          CMDTYPE_UNSET          },
-        { CMD_ENVSET,         CMDTYPE_ENVSET         },
-        { CMD_ENVUNSET,       CMDTYPE_ENVUNSET       },
-        { CMD_SETENV,         CMDTYPE_ENVSET         },
-        { CMD_UNSETENV,       CMDTYPE_ENVUNSET       },
-        { CMD_INPUTBOX,       CMDTYPE_INPUTBOX       },
-        { CMD_SELLOADFROM,    CMDTYPE_SELLOADFROM    },
-        { CMD_SELLOAD,        CMDTYPE_SELLOADFROM    },
-        { CMD_SELSAVETO,      CMDTYPE_SELSAVETO      },
-        { CMD_SELSAVE,        CMDTYPE_SELSAVETO      },
-        { CMD_SELSETTEXTEX,   CMDTYPE_SELSETTEXTEX   },
-        { CMD_SELSETTEXT,     CMDTYPE_SELSETTEXT     },
-        { CMD_TEXTLOADFROM,   CMDTYPE_TEXTLOADFROM   },
-        { CMD_TEXTLOAD,       CMDTYPE_TEXTLOADFROM   },
-        { CMD_TEXTSAVETO,     CMDTYPE_TEXTSAVETO     },
-        { CMD_TEXTSAVE,       CMDTYPE_TEXTSAVETO     },
-        { CMD_NPECONSOLE,     CMDTYPE_NPECONSOLE     },
-        { CMD_NPEDEBUGLOG,    CMDTYPE_NPEDEBUGLOG    },
-        { CMD_NPEDEBUG,       CMDTYPE_NPEDEBUGLOG    },
-        { CMD_NPENOEMPTYVARS, CMDTYPE_NPENOEMPTYVARS },
-        { CMD_NPECMDALIAS,    CMDTYPE_NPECMDALIAS    },
-        { CMD_NPEQUEUE,       CMDTYPE_NPEQUEUE       },
-        { CMD_IF,             CMDTYPE_IF             },
-        { CMD_ELSE,           CMDTYPE_ELSE           },
-        { CMD_ENDIF,          CMDTYPE_ENDIF          },
-        { CMD_LABEL,          CMDTYPE_LABEL          },
-        { CMD_GOTO,           CMDTYPE_GOTO           },
-        { CMD_CONCOLOR,       CMDTYPE_CONCOLOUR      },
-        { CMD_CONCOLOUR,      CMDTYPE_CONCOLOUR      },
-        { CMD_CONFILTER,      CMDTYPE_CONFILTER      },
-        { CMD_PROCSIGNAL,     CMDTYPE_PROCSIGNAL     },
-        { CMD_SLEEP,          CMDTYPE_SLEEP          }
-    };
-
     const bool useLogging = ((nFlags & ctfUseLogging) != 0);
     const bool ignorePrefix = ((nFlags & ctfIgnorePrefix) != 0);
     
@@ -1878,7 +1710,7 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd,
 
                 if ( useLogging )
                 {
-                    Runtime::GetLogger().AddEx( _T("[ret] 0x%X (%s)"), CMDTYPE_NPPEXEC, CMD_NPPEXEC );
+                    Runtime::GetLogger().AddEx( _T("[ret] 0x%X (%s)"), CMDTYPE_NPPEXEC, DoNppExecCommand::Name() );
                     Runtime::GetLogger().DecIndentLevel();
                     Runtime::GetLogger().Add(   _T("}") );
                 }
@@ -1910,7 +1742,7 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd,
 
         if ( useLogging )
         {
-            Runtime::GetLogger().AddEx( _T("[ret] 0x%X (%s)"), CMDTYPE_LABEL, CMD_LABEL );
+            Runtime::GetLogger().AddEx( _T("[ret] 0x%X (%s)"), CMDTYPE_LABEL, DoLabelCommand::Name() );
             Runtime::GetLogger().DecIndentLevel();
             Runtime::GetLogger().Add(   _T("}") );
         }
@@ -1922,36 +1754,32 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd,
     NppExecHelpers::StrUpper(S);
   
     eCmdType nCmdType = CMDTYPE_UNKNOWN;
-    for (const tCmdType& ct : CmdTypes)
+    if ( S.StartsWith(DoCdCommand::Name()) )
     {
-        const TCHAR* cmd_str = ct.szCmd;
-        if (S.StartsWith(cmd_str))
+        int i = lstrlen(DoCdCommand::Name());
+        const TCHAR next_ch = S.GetAt(i);
+        if ( IsTabSpaceOrEmptyChar(next_ch) || next_ch == _T('\\') || next_ch == _T('/') || next_ch == _T('.') )
         {
-            int i = lstrlen(cmd_str);
-
-            const TCHAR    next_ch = S.GetAt(i);
-            const eCmdType cmd_type = ct.nCmdType;
-
-            if ( IsTabSpaceOrEmptyChar(next_ch) || 
-                 ((cmd_type == CMDTYPE_CD) && 
-                  (next_ch == _T('\\') || next_ch == _T('/') || next_ch == _T('.'))) )
-            {
-                nCmdType = cmd_type;
-                Cmd.Delete(0, i);
-
-                if ( useLogging )
-                {
-                    Runtime::GetLogger().AddEx( _T("[ret] 0x%X (%s)"), cmd_type, cmd_str );
-                }
-
-                break;
-            }
+            nCmdType = DoCdCommand::Type();
+            Cmd.Delete(0, i);
         }
     }
-  
+    if ( nCmdType == CMDTYPE_UNKNOWN )
+    {
+        int i = S.FindOneOf(_T(" \t"));
+        S.Delete(i);
+        nCmdType = m_CommandRegistry.GetCmdTypeByName(S);
+        if ( nCmdType != CMDTYPE_UNKNOWN )
+            Cmd.Delete(0, i);
+    }
+
     if ( useLogging )
     {
-        if (nCmdType == CMDTYPE_UNKNOWN)
+        if ( nCmdType != CMDTYPE_UNKNOWN )
+        {
+            Runtime::GetLogger().AddEx( _T("[ret] 0x%X (%s)"), nCmdType, m_CommandRegistry.GetCmdNameByType(nCmdType) );
+        }
+        else
         {
             Runtime::GetLogger().AddEx( _T("[ret] 0x%X (unknown)"), nCmdType );
         }
@@ -2410,7 +2238,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoCd(const tstr& params)
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     TCHAR szPath[FILEPATH_BUFSIZE];
 
-    reportCmdAndParams( CMD_CD, params, fMessageToConsole );
+    reportCmdAndParams( DoCdCommand::Name(), params, fMessageToConsole );
 
     // changing current directory
 
@@ -2515,7 +2343,7 @@ static BOOL getColorFromStr(const TCHAR* szColor, COLORREF* pColor)
 
 CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
 {
-    reportCmdAndParams( CMD_CONCOLOUR, params, fMessageToConsole );
+    reportCmdAndParams( DoConColourCommand::Name(), params, fMessageToConsole );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
 
@@ -2624,7 +2452,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_CONFILTER, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoConFilterCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     // +(-)i1..5    Include
@@ -2797,7 +2625,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoConLoadFrom(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_CONLOADFROM, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoConLoadFromCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
@@ -2813,7 +2641,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoConLoadFrom(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoConSaveTo(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_CONSAVETO, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoConSaveToCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
         
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
@@ -2841,7 +2669,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoConSaveTo(const tstr& params)
 CScriptEngine::eCmdResult CScriptEngine::DoDir(const tstr& params)
 {
     const TCHAR* cszPathAndFilter = params.IsEmpty() ? _T("*") : params.c_str();
-    reportCmdAndParams( CMD_DIR, cszPathAndFilter, fMessageToConsole );
+    reportCmdAndParams( DoDirCommand::Name(), cszPathAndFilter, fMessageToConsole );
 
     tstr Path;
     tstr Filter;
@@ -2856,7 +2684,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoDir(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoEcho(const tstr& params)
 {
-    reportCmdAndParams( CMD_ECHO, params, 0 );
+    reportCmdAndParams( DoEchoCommand::Name(), params, 0 );
      
     m_pNppExec->GetConsole().PrintMessage( params.c_str(), false );
 
@@ -2872,7 +2700,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
     unsigned int uFlags = 0;
     if ( ifState == IF_NONE || ifState == IF_WANT_ELSE || ifState == IF_MAYBE_ELSE )
         uFlags |= fMessageToConsole;
-    reportCmdAndParams( CMD_ELSE, params, uFlags );
+    reportCmdAndParams( DoElseCommand::Name(), params, uFlags );
     
     if ( ifState == IF_NONE )
     {
@@ -2935,7 +2763,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoEndIf(const tstr& params)
 {
-    reportCmdAndParams( CMD_ENDIF, params, fMessageToConsole );
+    reportCmdAndParams( DoEndIfCommand::Name(), params, fMessageToConsole );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
 
@@ -2965,7 +2793,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoEndIf(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_ENVSET, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoEnvSetCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
@@ -3090,7 +2918,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoEnvUnset(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_ENVUNSET, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoEnvUnsetCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     // removes the value of environment variable, restores the initial value
@@ -3161,7 +2989,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvUnset(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_GOTO, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoGoToCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     tstr labelName = params;
@@ -3230,7 +3058,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
             _T("%s was performed more than %d times.\n") \
             _T("Abort execution of this script?\n") \
             _T("(Press Yes to abort or No to continue execution)"),
-            CMD_GOTO,
+            DoGoToCommand::Name(),
             m_execState.nGoToMaxCount
         );
         if (::MessageBox(m_pNppExec->m_nppData._nppHandle, szMsg, 
@@ -3561,7 +3389,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
         IF_THEN
     };
 
-    if ( !reportCmdAndParams( CMD_IF, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoIfCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     tstr paramsUpperCase = params;
@@ -3694,7 +3522,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
 
 CScriptEngine::eCmdResult CScriptEngine::DoInputBox(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_INPUTBOX, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoInputBoxCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     runInputBox(this, params.c_str());
@@ -3704,7 +3532,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoInputBox(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoLabel(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_LABEL, params, fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoLabelCommand::Name(), params, fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     tstr labelName = params;
@@ -3795,7 +3623,7 @@ static void appendEnc(unsigned int enc_opt, bool bInput, tstr& S1, tstr& S2)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
 {
-    reportCmdAndParams( CMD_NPECMDALIAS, params, fMessageToConsole );
+    reportCmdAndParams( DoNpeCmdAliasCommand::Name(), params, fMessageToConsole );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     tstr aliasName;
@@ -3968,7 +3796,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
 {
-    reportCmdAndParams( CMD_NPECONSOLE, params, fMessageToConsole );
+    reportCmdAndParams( DoNpeConsoleCommand::Name(), params, fMessageToConsole );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     bool isSilent = false;
@@ -4264,7 +4092,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNpeDebugLog(const tstr& params)
 {
-    reportCmdAndParams( CMD_NPEDEBUGLOG, params, fMessageToConsole );
+    reportCmdAndParams( DoNpeDebugLogCommand::Name(), params, fMessageToConsole );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     int nParam = getOnOffParam(params);
@@ -4293,7 +4121,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeDebugLog(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNpeNoEmptyVars(const tstr& params)
 {
-    reportCmdAndParams( CMD_NPENOEMPTYVARS, params, fMessageToConsole );
+    reportCmdAndParams( DoNpeNoEmptyVarsCommand::Name(), params, fMessageToConsole );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     int nParam = getOnOffParam(params);
@@ -4321,7 +4149,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeNoEmptyVars(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNpeQueue(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_NPEQUEUE, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoNpeQueueCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     // command to be queued
@@ -4353,7 +4181,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppClose(const tstr& params)
 {
     TCHAR szFileName[FILEPATH_BUFSIZE];
 
-    reportCmdAndParams( CMD_NPPCLOSE, params, 0 );
+    reportCmdAndParams( DoNppCloseCommand::Name(), params, 0 );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     bool bCurrentFile = params.IsEmpty();
@@ -4370,7 +4198,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppClose(const tstr& params)
         Runtime::GetLogger().Add(   _T("; retrieving full file name") );
     }
 
-    messageConsole( CMD_NPPCLOSE, bCurrentFile ? szFileName : params.c_str() );
+    messageConsole( DoNppCloseCommand::Name(), bCurrentFile ? szFileName : params.c_str() );
 
     if ( bCurrentFile || m_pNppExec->nppSwitchToDocument(params.c_str(), true) )
     {
@@ -4387,24 +4215,24 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppClose(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
 {
-    reportCmdAndParams( CMD_NPPCONSOLE, params, 0 );
+    reportCmdAndParams( DoNppConsoleCommand::Name(), params, 0 );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
 
     switch ( getOnOffParam(params) )
     {
         case PARAM_EMPTY:
-            errorCmdNoParam(CMD_NPPCONSOLE);
+            errorCmdNoParam(DoNppConsoleCommand::Name());
             nCmdResult = CMDRESULT_INVALIDPARAM;
             break;
 
         case PARAM_ON:
-            messageConsole( CMD_NPPCONSOLE, _T("On") );
+            messageConsole( DoNppConsoleCommand::Name(), _T("On") );
             m_pNppExec->showConsoleDialog(CNppExec::showIfHidden, CNppExec::scfCmdNppConsole);
             break;
 
         case PARAM_OFF:
-            messageConsole( CMD_NPPCONSOLE, _T("Off") );
+            messageConsole( DoNppConsoleCommand::Name(), _T("Off") );
             //m_pNppExec->verifyConsoleDialogExists();
             if ( m_pNppExec->isConsoleDialogVisible() )
             {
@@ -4417,7 +4245,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
             break;
 
         case PARAM_KEEP:
-            messageConsole( CMD_NPPCONSOLE, _T("?") );
+            messageConsole( DoNppConsoleCommand::Name(), _T("?") );
             //m_pNppExec->verifyConsoleDialogExists();
             if ( !m_pNppExec->isConsoleDialogVisible() )
             {
@@ -4427,13 +4255,13 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
             break;
 
         case PARAM_ENABLE:
-            messageConsole( CMD_NPPCONSOLE, _T("+") );
+            messageConsole( DoNppConsoleCommand::Name(), _T("+") );
             m_pNppExec->GetConsole().SetOutputEnabled(true);
             m_pNppExec->GetConsole().LockConsoleEndPos();
             break;
 
         case PARAM_DISABLE:
-            // messageConsole( CMD_NPPCONSOLE, _T("-") );  --  don't output anything
+            // messageConsole( DoNppConsoleCommand::Name(), _T("-") );  --  don't output anything
             m_pNppExec->GetConsole().LockConsoleEndPos();
             m_pNppExec->GetConsole().SetOutputEnabled(false);
             break;
@@ -4457,7 +4285,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_NPPEXEC, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoNppExecCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     // inserting commands from a script or a file into m_pNppExec->m_CmdList
@@ -4492,7 +4320,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
                 _T("%s was performed more than %d times.\n") \
                 _T("Abort execution of this script?\n") \
                 _T("(Press Yes to abort or No to continue execution)"),
-                CMD_NPPEXEC,
+                DoNppExecCommand::Name(),
                 m_execState.nExecMaxCount
             );
             if (::MessageBox(m_pNppExec->m_nppData._nppHandle, szMsg, 
@@ -4647,7 +4475,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppMenuCommand(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_NPPMENUCOMMAND, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoNppMenuCommandCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
@@ -4681,7 +4509,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppMenuCommand(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppOpen(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_NPPOPEN, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoNppOpenCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     // opening a file in Notepad++
@@ -4752,7 +4580,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppOpen(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppRun(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_NPPRUN, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoNppRunCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     // run a command
@@ -4840,7 +4668,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSave(const tstr& params)
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     TCHAR szFileName[FILEPATH_BUFSIZE];
 
-    reportCmdAndParams( CMD_NPPSAVE, params, 0 );
+    reportCmdAndParams( DoNppSaveCommand::Name(), params, 0 );
           
     // save a file
     bool bCurrentFile = params.IsEmpty();
@@ -4866,7 +4694,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSave(const tstr& params)
         }
     }
         
-    messageConsole( CMD_NPPSAVE, bCurrentFile ? szFileName : params.c_str() );
+    messageConsole( DoNppSaveCommand::Name(), bCurrentFile ? szFileName : params.c_str() );
     
     Runtime::GetLogger().Add(   _T("; saving") );
 
@@ -4889,7 +4717,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSave(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppSaveAs(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_NPPSAVEAS, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoNppSaveAsCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
@@ -4907,7 +4735,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSaveAs(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppSaveAll(const tstr& params)
 {
-    reportCmdAndParams( CMD_NPPSAVEALL, params, 0 );
+    reportCmdAndParams( DoNppSaveAllCommand::Name(), params, 0 );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
 
@@ -4917,7 +4745,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSaveAll(const tstr& params)
         nCmdResult = CMDRESULT_INVALIDPARAM;
     }
           
-    m_pNppExec->GetConsole().PrintMessage(CMD_NPPSAVEALL);
+    m_pNppExec->GetConsole().PrintMessage(DoNppSaveAllCommand::Name());
     if ( !m_pNppExec->nppSaveAllFiles() )
         nCmdResult = CMDRESULT_FAILED;
 
@@ -4926,7 +4754,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSaveAll(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppSwitch(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_NPPSWITCH, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoNppSwitchCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
@@ -4942,7 +4770,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSwitch(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppSetFocus(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_NPPSETFOCUS, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoNppSetFocusCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     eCmdResult nCmdResult = CMDRESULT_FAILED;
@@ -5019,17 +4847,17 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
     switch ( cmdType )
     {
         case CMDTYPE_NPPSENDMSG:
-            cmdName = CMD_NPPSENDMSG;
+            cmdName = DoNppSendMsgCommand::Name();
             hWnd = m_pNppExec->m_nppData._nppHandle;
             break;
 
         case CMDTYPE_SCISENDMSG:
-            cmdName = CMD_SCISENDMSG;
+            cmdName = DoSciSendMsgCommand::Name();
             hWnd = m_pNppExec->GetScintillaHandle();
             break;
 
         case CMDTYPE_NPPSENDMSGEX:
-            cmdName = CMD_NPPSENDMSGEX;
+            cmdName = DoNppSendMsgExCommand::Name();
             isMsgEx = true;
             break;
 
@@ -5489,9 +5317,9 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
     return CMDRESULT_SUCCEEDED;
 }
 
-CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, int cmdType)
+CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eCmdType cmdType)
 {
-    if ( !reportCmdAndParams( (cmdType == CMDTYPE_SCIFIND) ? CMD_SCIFIND : CMD_SCIREPLACE, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( GetCommandRegistry().GetCmdNameByType(cmdType), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     // 1. Preparing the arguments...
@@ -5502,7 +5330,7 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, in
     {
         TCHAR szErr[64];
         wsprintf(szErr, _T("not enough parameters: %s expected, %d given"), (cmdType == CMDTYPE_SCIFIND) ? _T("2") : _T("at least 2"), nArgs );
-        errorCmdNotEnoughParams( (cmdType == CMDTYPE_SCIFIND) ? CMD_SCIFIND : CMD_SCIREPLACE, szErr );
+        errorCmdNotEnoughParams( GetCommandRegistry().GetCmdNameByType(cmdType), szErr );
         return CMDRESULT_INVALIDPARAM;
     }
 
@@ -5920,7 +5748,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSciReplace(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoProcSignal(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_PROCSIGNAL, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoProcSignalCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     if ( !m_pNppExec->GetCommandExecutor().IsChildProcessRunning() )
@@ -5993,7 +5821,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoProcSignal(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoSleep(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_SLEEP, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( DoSleepCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     CStrSplitT<TCHAR> args;
@@ -6024,10 +5852,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoSleep(const tstr& params)
     return CMDRESULT_SUCCEEDED;
 }
 
-CScriptEngine::eCmdResult CScriptEngine::doTextLoad(const tstr& params, int cmdType)
+CScriptEngine::eCmdResult CScriptEngine::doTextLoad(const tstr& params, eCmdType cmdType)
 {
     bool bSelectionOnly = (cmdType == CMDTYPE_SELLOADFROM);
-    if ( !reportCmdAndParams( bSelectionOnly ? CMD_SELLOADFROM : CMD_TEXTLOADFROM, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( GetCommandRegistry().GetCmdNameByType(cmdType), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
@@ -6041,10 +5869,10 @@ CScriptEngine::eCmdResult CScriptEngine::doTextLoad(const tstr& params, int cmdT
     return nCmdResult;
 }
 
-CScriptEngine::eCmdResult CScriptEngine::doTextSave(const tstr& params, int cmdType)
+CScriptEngine::eCmdResult CScriptEngine::doTextSave(const tstr& params, eCmdType cmdType)
 {
     bool bSelectionOnly = (cmdType == CMDTYPE_SELSAVETO);
-    if ( !reportCmdAndParams( bSelectionOnly ? CMD_SELSAVETO : CMD_TEXTSAVETO, params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( GetCommandRegistry().GetCmdNameByType(cmdType), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     tstr  S;
@@ -6086,7 +5914,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSelSaveTo(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoSelSetText(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_SELSETTEXT, params, fMessageToConsole ) )
+    if ( !reportCmdAndParams( DoSelSetTextCommand::Name(), params, fMessageToConsole ) )
         return CMDRESULT_INVALIDPARAM;
 
     m_pNppExec->textSetText( params.c_str(), true );
@@ -6096,7 +5924,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSelSetText(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoSelSetTextEx(const tstr& params)
 {
-    if ( !reportCmdAndParams( CMD_SELSETTEXTEX, params, fMessageToConsole ) )
+    if ( !reportCmdAndParams( DoSelSetTextExCommand::Name(), params, fMessageToConsole ) )
         return CMDRESULT_INVALIDPARAM;
 
     int  pos = params.Find( _T('\\') );
@@ -6146,9 +5974,18 @@ CScriptEngine::eCmdResult CScriptEngine::DoTextSaveTo(const tstr& params)
     return doTextSave(params, CMDTYPE_TEXTSAVETO);
 }
 
+CScriptEngine::eCmdResult CScriptEngine::DoClipSetText(const tstr& params)
+{
+    if ( !reportCmdAndParams( DoClipSetTextCommand::Name(), params, fMessageToConsole ) )
+        return CMDRESULT_INVALIDPARAM;
+
+    HWND hWndOwner = m_pNppExec->m_nppData._nppHandle;
+    return NppExecHelpers::SetClipboardText(params, hWndOwner) ? CMDRESULT_SUCCEEDED : CMDRESULT_FAILED;
+}
+
 CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
 {
-    reportCmdAndParams( CMD_SET, params, fMessageToConsole );
+    reportCmdAndParams( DoSetCommand::Name(), params, fMessageToConsole );
     
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
 
@@ -6263,7 +6100,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoUnset(const tstr& params)
 {
-    reportCmdAndParams( CMD_UNSET, params, fMessageToConsole );
+    reportCmdAndParams( DoUnsetCommand::Name(), params, fMessageToConsole );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
 
@@ -6279,7 +6116,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoUnset(const tstr& params)
     
     if ( CmdParams.IsEmpty() )
     {
-        errorCmdNoParam(CMD_UNSET);
+        errorCmdNoParam(DoUnsetCommand::Name());
         nCmdResult = CMDRESULT_INVALIDPARAM;
     }
 
@@ -6851,7 +6688,7 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
   if ( nCmdType == CScriptEngine::CMDTYPE_SET )
   {
     
-    Runtime::GetLogger().AddEx( _T("; %s command found"), CMD_SET );
+    Runtime::GetLogger().AddEx( _T("; %s command found"), CScriptEngine::DoSetCommand::Name() );
       
     const TCHAR* DEF_OP  = _T("=");
     const TCHAR* CALC_OP = _T("~");
@@ -6919,7 +6756,7 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
   else if ( nCmdType == CScriptEngine::CMDTYPE_UNSET )
   {
     
-    Runtime::GetLogger().AddEx( _T("; %s command found"), CMD_UNSET );
+    Runtime::GetLogger().AddEx( _T("; %s command found"), CScriptEngine::DoUnsetCommand::Name() );
 
     tstr varName = S;
     int k = varName.Find( _T("=") );

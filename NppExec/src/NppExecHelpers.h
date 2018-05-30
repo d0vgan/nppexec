@@ -369,7 +369,8 @@ namespace NppExecHelpers
 {
     bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread = NULL);
 
-    bool GetClipboardText(std::function<void(LPCTSTR pszClipboardText)> handler);
+    bool GetClipboardText(std::function<void(LPCTSTR pszClipboardText)> handler, HWND hWndOwner = NULL);
+    bool SetClipboardText(const tstr& text, HWND hWndOwner = NULL);
 
     tstr GetInstanceAsString(const void* pInstance);
 
