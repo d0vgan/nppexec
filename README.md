@@ -10,7 +10,7 @@ And don't forget about Plugins -> NppExec -> Help/Manual.
 
 Installation:
 * Just unpack the NppExec zip-archive to the folder "Notepad++\plugins".
-It will extract the file "NppExec.dll" as well as the "doc\NppExec" and "NppExec" subfolders.
+It will extract the file "NppExec.dll" as well as the "doc\NppExec" and "NppExec" subfolders (the latter one contains header files used by NppExec at runtime).
 
 Note:
 If you see just blank pages inside the NppExec Manual or see messages similar to "This web content was blocked" or "This web page could not be shown", please follow the instructions below:
