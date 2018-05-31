@@ -194,6 +194,7 @@ class CScriptEngine : public IScriptEngine
         struct DoCommand
         {
             static const TCHAR* const Name() { return _T(""); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_UNKNOWN; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->Do(params); }
         };
@@ -201,6 +202,7 @@ class CScriptEngine : public IScriptEngine
         struct DoCdCommand
         {
             static const TCHAR* const Name() { return _T("CD"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_CD; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoCd(params); }
         };
@@ -208,6 +210,7 @@ class CScriptEngine : public IScriptEngine
         struct DoClsCommand
         {
             static const TCHAR* const Name() { return _T("CLS"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_CLS; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoCls(params); }
         };
@@ -215,6 +218,7 @@ class CScriptEngine : public IScriptEngine
         struct DoClipSetTextCommand
         {
             static const TCHAR* const Name() { return _T("CLIP_SETTEXT"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_CLIPSETTEXT; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoClipSetText(params); }
         };
@@ -230,6 +234,7 @@ class CScriptEngine : public IScriptEngine
         struct DoConFilterCommand
         {
             static const TCHAR* const Name() { return _T("CON_FILTER"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_CONFILTER; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoConFilter(params); }
         };
@@ -253,6 +258,7 @@ class CScriptEngine : public IScriptEngine
         struct DoDirCommand
         {
             static const TCHAR* const Name() { return _T("DIR"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_DIR; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoDir(params); }
         };
@@ -260,6 +266,7 @@ class CScriptEngine : public IScriptEngine
         struct DoEchoCommand
         {
             static const TCHAR* const Name() { return _T("ECHO"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_ECHO; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoEcho(params); }
         };
@@ -267,6 +274,7 @@ class CScriptEngine : public IScriptEngine
         struct DoElseCommand
         {
             static const TCHAR* const Name() { return _T("ELSE"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_ELSE; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoElse(params); }
         };
@@ -274,6 +282,7 @@ class CScriptEngine : public IScriptEngine
         struct DoEndIfCommand
         {
             static const TCHAR* const Name() { return _T("ENDIF"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_ENDIF; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoEndIf(params); }
         };
@@ -297,6 +306,7 @@ class CScriptEngine : public IScriptEngine
         struct DoGoToCommand
         {
             static const TCHAR* const Name() { return _T("GOTO"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_GOTO; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoGoTo(params); }
         };
@@ -304,6 +314,7 @@ class CScriptEngine : public IScriptEngine
         struct DoIfCommand
         {
             static const TCHAR* const Name() { return _T("IF"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_IF; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoIf(params); }
         };
@@ -311,6 +322,7 @@ class CScriptEngine : public IScriptEngine
         struct DoInputBoxCommand
         {
             static const TCHAR* const Name() { return _T("INPUTBOX"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_INPUTBOX; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoInputBox(params); }
         };
@@ -318,6 +330,7 @@ class CScriptEngine : public IScriptEngine
         struct DoLabelCommand
         {
             static const TCHAR* const Name() { return _T("LABEL"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_LABEL; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoLabel(params); }
         };
@@ -325,6 +338,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNpeCmdAliasCommand
         {
             static const TCHAR* const Name() { return _T("NPE_CMDALIAS"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPECMDALIAS; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNpeCmdAlias(params); }
         };
@@ -332,6 +346,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNpeConsoleCommand
         {
             static const TCHAR* const Name() { return _T("NPE_CONSOLE"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPECONSOLE; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNpeConsole(params); }
         };
@@ -347,6 +362,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNpeNoEmptyVarsCommand
         {
             static const TCHAR* const Name() { return _T("NPE_NOEMPTYVARS"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPENOEMPTYVARS; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNpeNoEmptyVars(params); }
         };
@@ -354,6 +370,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNpeQueueCommand
         {
             static const TCHAR* const Name() { return _T("NPE_QUEUE"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPEQUEUE; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNpeQueue(params); }
         };
@@ -361,6 +378,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppCloseCommand
         {
             static const TCHAR* const Name() { return _T("NPP_CLOSE"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPCLOSE; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppClose(params); }
         };
@@ -368,6 +386,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppConsoleCommand
         {
             static const TCHAR* const Name() { return _T("NPP_CONSOLE"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPCONSOLE; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppConsole(params); }
         };
@@ -375,6 +394,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppExecCommand
         {
             static const TCHAR* const Name() { return _T("NPP_EXEC"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPEXEC; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppExec(params); }
         };
@@ -382,6 +402,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppMenuCommandCommand
         {
             static const TCHAR* const Name() { return _T("NPP_MENUCOMMAND"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPMENUCOMMAND; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppMenuCommand(params); }
         };
@@ -389,6 +410,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppOpenCommand
         {
             static const TCHAR* const Name() { return _T("NPP_OPEN"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPOPEN; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppOpen(params); }
         };
@@ -396,6 +418,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppRunCommand
         {
             static const TCHAR* const Name() { return _T("NPP_RUN"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPRUN; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppRun(params); }
         };
@@ -403,6 +426,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppSaveCommand
         {
             static const TCHAR* const Name() { return _T("NPP_SAVE"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPSAVE; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppSave(params); }
         };
@@ -410,6 +434,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppSaveAsCommand
         {
             static const TCHAR* const Name() { return _T("NPP_SAVEAS"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPSAVEAS; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppSaveAs(params); }
         };
@@ -417,6 +442,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppSaveAllCommand
         {
             static const TCHAR* const Name() { return _T("NPP_SAVEALL"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPSAVEALL; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppSaveAll(params); }
         };
@@ -424,6 +450,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppSendMsgCommand
         {
             static const TCHAR* const Name() { return _T("NPP_SENDMSG"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPSENDMSG; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppSendMsg(params); }
         };
@@ -431,6 +458,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppSendMsgExCommand
         {
             static const TCHAR* const Name() { return _T("NPP_SENDMSGEX"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPSENDMSGEX; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppSendMsgEx(params); }
         };
@@ -438,6 +466,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppSetFocusCommand
         {
             static const TCHAR* const Name() { return _T("NPP_SETFOCUS"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPSETFOCUS; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppSetFocus(params); }
         };
@@ -445,6 +474,7 @@ class CScriptEngine : public IScriptEngine
         struct DoNppSwitchCommand
         {
             static const TCHAR* const Name() { return _T("NPP_SWITCH"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPSWITCH; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppSwitch(params); }
         };
@@ -452,6 +482,7 @@ class CScriptEngine : public IScriptEngine
         struct DoProcSignalCommand
         {
             static const TCHAR* const Name() { return _T("PROC_SIGNAL"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_PROCSIGNAL; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoProcSignal(params); }
         };
@@ -459,6 +490,7 @@ class CScriptEngine : public IScriptEngine
         struct DoSleepCommand
         {
             static const TCHAR* const Name() { return _T("SLEEP"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_SLEEP; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoSleep(params); }
         };
@@ -466,6 +498,7 @@ class CScriptEngine : public IScriptEngine
         struct DoSciFindCommand
         {
             static const TCHAR* const Name() { return _T("SCI_FIND"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_SCIFIND; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoSciFind(params); }
         };
@@ -473,6 +506,7 @@ class CScriptEngine : public IScriptEngine
         struct DoSciReplaceCommand
         {
             static const TCHAR* const Name() { return _T("SCI_REPLACE"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_SCIREPLACE; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoSciReplace(params); }
         };
@@ -480,6 +514,7 @@ class CScriptEngine : public IScriptEngine
         struct DoSciSendMsgCommand
         {
             static const TCHAR* const Name() { return _T("SCI_SENDMSG"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_SCISENDMSG; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoSciSendMsg(params); }
         };
@@ -503,6 +538,7 @@ class CScriptEngine : public IScriptEngine
         struct DoSelSetTextCommand
         {
             static const TCHAR* const Name() { return _T("SEL_SETTEXT"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_SELSETTEXT; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoSelSetText(params); }
         };
@@ -510,6 +546,7 @@ class CScriptEngine : public IScriptEngine
         struct DoSelSetTextExCommand
         {
             static const TCHAR* const Name() { return _T("SEL_SETTEXT+"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_SELSETTEXTEX; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoSelSetTextEx(params); }
         };
@@ -517,6 +554,7 @@ class CScriptEngine : public IScriptEngine
         struct DoSetCommand
         {
             static const TCHAR* const Name() { return _T("SET"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_SET; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoSet(params); }
         };
@@ -540,6 +578,7 @@ class CScriptEngine : public IScriptEngine
         struct DoUnsetCommand
         {
             static const TCHAR* const Name() { return _T("UNSET"); }
+            static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_UNSET; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoUnset(params); }
         };
@@ -606,17 +645,17 @@ class CScriptEngine : public IScriptEngine
             protected:
                 template<class C> void registerCommand()
                 {
-                    eCmdType cmdType = C::Type();
                     const TCHAR* const cmdName = C::Name();
+                    const TCHAR* const cmdAltName = C::AltName();
+                    const eCmdType cmdType = C::Type();
                     m_CommandExecFunc[cmdType] = &C::Exec;
                     m_CommandNameByType[cmdType] = cmdName;
                     m_CommandTypeByName[cmdName] = cmdType;
-                    m_SortedCommandNames.push_back(cmdName);
-                }
-
-                template<class C> void registerAltName()
-                {
-                    m_CommandTypeByName[C::AltName()] = C::Type();
+                    if ( cmdAltName != nullptr )
+                    {
+                        m_CommandTypeByName[cmdAltName] = cmdType;
+                    }
+                    m_SortedCommandNames.push_back(cmdName); // does _not_ include cmdAltName!
                 }
 
                 void initialize()
@@ -672,19 +711,7 @@ class CScriptEngine : public IScriptEngine
                     registerCommand<DoTextSaveToCommand>();
                     registerCommand<DoUnsetCommand>();
 
-                    // 2. register alt names
-                    registerAltName<DoConColourCommand>();
-                    registerAltName<DoConLoadFromCommand>();
-                    registerAltName<DoConSaveToCommand>();
-                    registerAltName<DoEnvSetCommand>();
-                    registerAltName<DoEnvUnsetCommand>();
-                    registerAltName<DoNpeDebugLogCommand>();
-                    registerAltName<DoSelLoadFromCommand>();
-                    registerAltName<DoSelSaveToCommand>();
-                    registerAltName<DoTextLoadFromCommand>();
-                    registerAltName<DoTextSaveToCommand>();
-
-                    // 3. sort names
+                    // 2. sort names
                     m_SortedCommandNames.sort();
                 }
 
