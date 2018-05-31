@@ -586,12 +586,14 @@ class CScriptEngine : public IScriptEngine
         class CScriptCommandRegistry
         {
             public:
-                CScriptCommandRegistry() : m_isConstructed(false)
+                CScriptCommandRegistry()
                 {
-                    CCriticalSectionLockGuard lock(m_csConstruct);
+                    CCriticalSectionLockGuard lock(m_csConstruct); // just in case
 
-                    if ( !m_isConstructed )
+                    if ( m_CommandTypeByName.empty() )
                     {
+                        // initialize() was not called
+
                       #ifdef _DEBUG
                         for ( auto& p : m_CommandExecFunc )
                         {
@@ -616,8 +618,6 @@ class CScriptEngine : public IScriptEngine
                             assert( n != nullptr );
                         }
                       #endif
-                    
-                        m_isConstructed = true;
                     }
                 }
 
@@ -717,7 +717,6 @@ class CScriptEngine : public IScriptEngine
 
             protected:
                 CCriticalSection m_csConstruct;
-                bool m_isConstructed;
                 EXECFUNC m_CommandExecFunc[CMDTYPE_TOTAL_COUNT];
                 const TCHAR* m_CommandNameByType[CMDTYPE_TOTAL_COUNT];
                 std::map<tstr, eCmdType> m_CommandTypeByName;
