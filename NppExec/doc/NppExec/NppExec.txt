@@ -169,6 +169,7 @@
  --------
  + new environment variable: $(CLIPBOARD_TEXT)
  + new command: clip_settext
+ * internal improvements
 
 
  v0.6 RC1 - May 2018
@@ -289,6 +290,8 @@
      https://sourceforge.net/p/npp-plugins/discussion/672146/thread/19ced17f/
      https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/
      https://sourceforge.net/p/npp-plugins/discussion/672146/thread/98d3ee49/
+     https://github.com/d0vgan/nppexec/issues/4
+     https://notepad-plus-plus.org/community/topic/15804/macro-delete-lines-that-contains-text-in-clipboard
    - FAQ section?
 
  - callback scripts? (though, we already have NppEventExec)
