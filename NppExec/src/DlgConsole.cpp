@@ -101,6 +101,9 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("set <var> ~ <math expression>  -  calculates the math expression") _T_RE_EOL \
   _T("set <var> ~ strlen <string>  -  calculates the string length") _T_RE_EOL \
   _T("set <var> ~ strlenutf8 <string>  -  calculates the UTF-8 string length") _T_RE_EOL \
+  _T("set <var> ~ strlenu <string>  -  the same as strlenutf8") _T_RE_EOL \
+  _T("set <var> ~ strlensci <string>  -  string length, using Scintilla's encoding") _T_RE_EOL \
+  _T("set <var> ~ strlens <string>  -  the same as strlensci") _T_RE_EOL \
   _T("set <var> ~ strupper <string>  -  returns the string in upper case") _T_RE_EOL \
   _T("set <var> ~ strlower <string>  -  returns the string in lower case") _T_RE_EOL \
   _T("set <var> ~ substr <pos> <len> <string>  -  returns the substring") _T_RE_EOL \
@@ -1086,6 +1089,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set <var> ~ <math expression>") _T_RE_EOL \
     _T("  set <var> ~ strlen <string>") _T_RE_EOL \
     _T("  set <var> ~ strlenutf8 <string>") _T_RE_EOL \
+    _T("  set <var> ~ strlensci <string>") _T_RE_EOL \
     _T("  set <var> ~ strupper <string>") _T_RE_EOL \
     _T("  set <var> ~ strlower <string>") _T_RE_EOL \
     _T("  set <var> ~ substr <pos> <len> <string>") _T_RE_EOL \
@@ -1108,14 +1112,16 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  4. Calculates the math expression (\"set <var> ~ <math expr>\")") _T_RE_EOL \
     _T("  5a. Calculates the string length (\"set <var> ~ strlen <string>\")") _T_RE_EOL \
     _T("  5b. Calculates the UTF-8 string length (\"set <var> ~ strlenutf8 <s>\")") _T_RE_EOL \
-    _T("  5c. Returns the string in upper case (\"set <var> ~ strupper <s>\")") _T_RE_EOL \
-    _T("  5d. Returns the string in lower case (\"set <var> ~ strlower <s>\")") _T_RE_EOL \
-    _T("  5e. Returns the substring (\"substr <pos> <len> <s>\")") _T_RE_EOL \
-    _T("  5f. Returns the position of first <sfind> in <string>") _T_RE_EOL \
-    _T("  5g. Returns the position of last <sfind> in <string>") _T_RE_EOL \
-    _T("  5h. Replaces all <sfind> with <sreplace> in <string>") _T_RE_EOL \
-    _T("  5i. Returns a string from the <hexstring>") _T_RE_EOL \
-    _T("  5j. Returns a hex-string from the <string>") _T_RE_EOL \
+    _T("  5c. Calculates Scintilla's string length (\"set <var> ~ strlensci <s>\")") _T_RE_EOL \
+    _T("      (depending on Scintilla's encoding, equals to strlen or strlenutf8)") _T_RE_EOL \
+    _T("  5d. Returns the string in upper case (\"set <var> ~ strupper <s>\")") _T_RE_EOL \
+    _T("  5e. Returns the string in lower case (\"set <var> ~ strlower <s>\")") _T_RE_EOL \
+    _T("  5f. Returns the substring (\"substr <pos> <len> <s>\")") _T_RE_EOL \
+    _T("  5g. Returns the position of first <sfind> in <string>") _T_RE_EOL \
+    _T("  5h. Returns the position of last <sfind> in <string>") _T_RE_EOL \
+    _T("  5i. Replaces all <sfind> with <sreplace> in <string>") _T_RE_EOL \
+    _T("  5j. Returns a string from the <hexstring>") _T_RE_EOL \
+    _T("  5k. Returns a hex-string from the <string>") _T_RE_EOL \
     _T("  6.  Shows/sets the value of local variable (\"set local <var> ...\")") _T_RE_EOL \
     _T("  7.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
     _T("  8.  Removes the local variable <var> (\"unset local <var>\")") _T_RE_EOL \
@@ -1139,6 +1145,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set n ~ strlen \"  ABC \"  // sets n=8 (including spaces & double quotes)") _T_RE_EOL \
     _T("  // in case of non-Latin characters, strlenutf8 may differ from strlen:") _T_RE_EOL \
     _T("  set n ~ strlenutf8 ") _T_STRLEN_CYRILLIC _T("  // sets n=12 (number of UTF-8 bytes)") _T_RE_EOL \
+    _T("  set n ~ strlensci ") _T_STRLEN_CYRILLIC _T("  // sets n=6 for Scintilla with multibyte encoding") _T_RE_EOL \
+    _T("  set n ~ strlensci ") _T_STRLEN_CYRILLIC _T("  // sets n=12 for Scintilla with UTF-8 encoding") _T_RE_EOL \
     _T("  // strupper/strlower:") _T_RE_EOL \
     _T("  set s = Text") _T_RE_EOL \
     _T("  set t = $(s)           // t = Text") _T_RE_EOL \
@@ -4460,7 +4468,8 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
               S1 = CScriptEngine::DoTextSaveToCommand::Name();
             else if (S1 == CScriptEngine::DoConColourCommand::AltName())
               S1 = CScriptEngine::DoConColourCommand::Name();
-            else if (S1 == _T("STRLENUTF8") || S1 == _T("STRLENU")    ||
+            else if (S1 == _T("STRLENUTF8") || S1 == _T("STRLENU")    || 
+                     S1 == _T("STRLENSCI")  || S1 == _T("STRLENS")    || 
                      S1 == _T("STRLENA")    || S1 == _T("STRLEN")     || 
                      S1 == _T("STRUPPER")   || S1 == _T("STRLOWER")   || 
                      S1 == _T("SUBSTR")     || 

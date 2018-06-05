@@ -1156,6 +1156,7 @@ public:
             CT_FPARSER = 0,
             CT_STRLEN,
             CT_STRLENUTF8,
+            CT_STRLENSCI,
             CT_STRUPPER,
             CT_STRLOWER,
             CT_SUBSTR,

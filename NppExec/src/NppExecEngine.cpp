@@ -973,6 +973,8 @@ static FParserWrapper g_fp;
  *   - calculates the string length
  * set <var> ~ strlenutf8 <string>
  *   - calculates the UTF-8 string length
+ * set <var> ~ strlensci <string>
+ *   - string length, using Scintilla's encoding
  * set <var> ~ strupper <string>
  *   - returns the string in upper case
  * set <var> ~ strlower <string>
@@ -6998,6 +7000,8 @@ void CNppExecMacroVars::StrCalc::Process()
         } tCalcType;
 
         static const tCalcType arrCalcType[] = {
+            { _T("STRLENSCI"),  CT_STRLENSCI  },
+            { _T("STRLENS"),    CT_STRLENSCI  },
             { _T("STRLENUTF8"), CT_STRLENUTF8 },
             { _T("STRLENU"),    CT_STRLENUTF8 },
             { _T("STRLENA"),    CT_STRLEN     },
@@ -7032,6 +7036,7 @@ void CNppExecMacroVars::StrCalc::Process()
             break;
         case CT_STRLEN:
         case CT_STRLENUTF8:
+        case CT_STRLENSCI:
             calcStrLen();
             break;
         case CT_STRUPPER:
@@ -7080,6 +7085,18 @@ void CNppExecMacroVars::StrCalc::calcStrLen()
 
     if ( *m_pVar )
     {
+        if ( m_calcType == CT_STRLENSCI )
+        {
+            HWND hSci = m_pNppExec->GetScintillaHandle();
+            int nSciCodePage = (int) ::SendMessage(hSci, SCI_GETCODEPAGE, 0, 0);
+            if ( nSciCodePage == SC_CP_UTF8 )
+                m_calcType = CT_STRLENUTF8;
+            else
+                m_calcType = CT_STRLEN;
+
+            Runtime::GetLogger().AddEx( _T("; scintilla's encoding: %d"), nSciCodePage );
+        }
+
         if ( m_calcType == CT_STRLEN )
         {
             len = GetStrUnsafeLength(m_pVar);

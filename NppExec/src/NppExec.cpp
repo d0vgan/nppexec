@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /****************************************************************************
- * NppExec plugin ver. 0.6 RC1 for Notepad++
+ * NppExec plugin ver. 0.6 RC2 for Notepad++
  * by DV <dvv81 @ ukr.net>, December 2006 - May 2018
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
@@ -44,6 +44,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        set <var> ~ <math expression> - calculates the math expression
  *        set <var> ~ strlen <string> - calculates the string length
  *        set <var> ~ strlenutf8 <string> - calculates the UTF-8 string length
+ *        set <var> ~ strlenu <string> - the same as strlenutf8
+ *        set <var> ~ strlensci <string> - string length, using Scintilla's encoding
+ *        set <var> ~ strlens <string> - the same as strlensci
  *        set <var> ~ strupper <string> - returns the string in upper case
  *        set <var> ~ strlower <string> - returns the string in lower case
  *        set <var> ~ substr <pos> <len> <string> - returns the substring
@@ -120,6 +123,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        npe_cmdalias <alias> = <command> - sets the command alias
  *        npe_console <options> - set/modify Console options/mode
  *        npe_debuglog <on/off> - enable/disable Debug Log
+ *        npe_debug <1/0> - see "npe_debuglog"
  *        npe_noemptyvars <1/0> - enable/disable replacement of empty vars
  *        npe_queue <command> - queue NppExec's command to be executed
  *        nppexec: - prefix for NppExec's commands (e.g. "nppexec:npp_console off")
