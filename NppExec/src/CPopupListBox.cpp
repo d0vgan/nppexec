@@ -65,6 +65,7 @@ const TCHAR* VariablesList[] = {
   MACRO_MSG_WPARAM,          //  $(MSG_WPARAM)
   MACRO_FILE_NAMEONLY,       //  $(NAME_PART)
   MACRO_NPP_DIRECTORY,       //  $(NPP_DIRECTORY)
+  MACRO_NPP_HWND,            //  $(NPP_HWND)
   MACRO_OUTPUT,              //  $(OUTPUT)
   MACRO_OUTPUT1,             //  $(OUTPUT1)
   MACRO_OUTPUTL,             //  $(OUTPUTL)
@@ -73,6 +74,7 @@ const TCHAR* VariablesList[] = {
   _T("$(RARGV)"),            //  $(RARGV)
   _T("$(RARGV[1])"),         //  $(RARGV[1])
   MACRO_RIGHT_VIEW_FILE,     //  $(RIGHT_VIEW_FILE)
+  MACRO_SCI_HWND,            //  $(SCI_HWND)
   _T("$(SYS.PATH)")          //  $(SYS.PATH)
 };
 

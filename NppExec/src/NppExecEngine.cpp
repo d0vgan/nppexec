@@ -81,6 +81,8 @@ const TCHAR MACRO_EXIT_CMD[]            = _T("$(@EXIT_CMD)");
 const TCHAR MACRO_EXIT_CMD_SILENT[]     = _T("$(@EXIT_CMD_SILENT)");
 const TCHAR MACRO_LAST_CMD_RESULT[]     = _T("$(LAST_CMD_RESULT)");
 const TCHAR MACRO_CLIPBOARD_TEXT[]      = _T("$(CLIPBOARD_TEXT)");
+const TCHAR MACRO_NPP_HWND[]            = _T("$(NPP_HWND)");
+const TCHAR MACRO_SCI_HWND[]            = _T("$(SCI_HWND)");
 
 // NppExec's Search Flags for sci_find and sci_replace:
 #define NPE_SF_MATCHCASE    0x00000001 // "text" finds only "text", not "Text" or "TEXT"
@@ -1153,13 +1155,13 @@ static FParserWrapper g_fp;
  *
  * Additional environment variables:
  * ---------------------------------
+ * $(CLIPBOARD_TEXT)     : text from the clipboard
  * $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  * $(#N), N=1,2,3...     : full path of the Nth opened document
  * $(LEFT_VIEW_FILE)     : current file path-name in primary (left) view
  * $(RIGHT_VIEW_FILE)    : current file path-name in second (right) view
  * $(PLUGINS_CONFIG_DIR) : full path of the plugins configuration directory
  * $(CWD)                : current working directory of NppExec (use "cd" to change it)
- * $(CLIPBOARD_TEXT)     : text from the clipboard
  * $(ARGC)               : number of arguments passed to the NPP_EXEC command
  * $(ARGV)               : all arguments passed to the NPP_EXEC command after the script name
  * $(ARGV[0])            : script name - first parameter of the NPP_EXEC command
@@ -1178,6 +1180,8 @@ static FParserWrapper g_fp;
  * $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  * $(MSG_WPARAM)         : wParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  * $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
+ * $(NPP_HWND)           : Notepad++'s main window handle
+ * $(SCI_HWND)           : current Scintilla's window handle
  * $(SYS.<var>)          : system's environment variable, e.g. $(SYS.PATH)
  * $(@EXIT_CMD)          : a callback exit command for a child process
  * $(@EXIT_CMD_SILENT)   : a silent (non-printed) callback exit command
@@ -6670,6 +6674,51 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       pos += sub.length();
     }
 
+    sub.Clear(); // hwnd will be here
+    bMacroOK = false;
+    len = lstrlen(MACRO_NPP_HWND);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_NPP_HWND, pos)) >= 0)
+    {
+      if (!bMacroOK)
+      {
+        #ifdef _WIN64
+          c_base::_tuint64_to_strhex((unsigned __int64)(UINT_PTR)(m_pNppExec->m_nppData._nppHandle), szMacro);
+        #else
+          c_base::_tuint2strhex((unsigned int)(UINT_PTR)(m_pNppExec->m_nppData._nppHandle), szMacro);
+        #endif
+        sub = _T("0x");
+        sub += szMacro;
+        bMacroOK = true;
+      }
+
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
+    }
+
+    sub.Clear(); // hwnd will be here
+    bMacroOK = false;
+    len = lstrlen(MACRO_SCI_HWND);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_SCI_HWND, pos)) >= 0)
+    {
+      if (!bMacroOK)
+      {
+        #ifdef _WIN64
+          c_base::_tuint64_to_strhex((unsigned __int64)(UINT_PTR)(m_pNppExec->GetScintillaHandle()), szMacro);
+        #else
+          c_base::_tuint2strhex((unsigned int)(UINT_PTR)(m_pNppExec->GetScintillaHandle()), szMacro);
+        #endif
+        sub = _T("0x");
+        sub += szMacro;
+        bMacroOK = true;
+      }
+
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
+    }
   }
 
   Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );

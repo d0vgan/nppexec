@@ -95,36 +95,40 @@ int int64_to_str(__int64 value, char* out_str);
 int uint64_to_str(unsigned __int64 value, char* out_str);
 int int64_to_strw(__int64 value, wchar_t* out_strw);
 int uint64_to_strw(unsigned __int64 value, wchar_t* out_strw);
+int uint64_to_strhex(unsigned __int64 value, char* out_str);
+int uint64_to_strhexw(unsigned __int64 value, wchar_t* out_strw);
 
 /////////////////////////////////////////////////////////////////////////////
 // definitions
 /////////////////////////////////////////////////////////////////////////////
 #ifdef UNICODE
-  #define _tint2str       int2strw
-  #define _tint2strbin    int2strbinw
-  #define _tint2strdec    int2strdecw
-  #define _tint2strhex    int2strhexw
-  #define _tint2stroct    int2stroctw
-  #define _tuint2str      uint2strw
-  #define _tuint2strbin   uint2strbinw
-  #define _tuint2strdec   uint2strdecw
-  #define _tuint2strhex   uint2strhexw
-  #define _tuint2stroct   uint2stroctw
-  #define _tint64_to_str  int64_to_strw
-  #define _tuint64_to_str uint64_to_strw
+  #define _tint2str          int2strw
+  #define _tint2strbin       int2strbinw
+  #define _tint2strdec       int2strdecw
+  #define _tint2strhex       int2strhexw
+  #define _tint2stroct       int2stroctw
+  #define _tuint2str         uint2strw
+  #define _tuint2strbin      uint2strbinw
+  #define _tuint2strdec      uint2strdecw
+  #define _tuint2strhex      uint2strhexw
+  #define _tuint2stroct      uint2stroctw
+  #define _tint64_to_str     int64_to_strw
+  #define _tuint64_to_str    uint64_to_strw
+  #define _tuint64_to_strhex uint64_to_strhexw
 #else
-  #define _tint2str       int2str
-  #define _tint2strbin    int2strbin
-  #define _tint2strdec    int2strdec
-  #define _tint2strhex    int2strhex
-  #define _tint2stroct    int2stroct
-  #define _tuint2str      uint2str
-  #define _tuint2strbin   uint2strbin
-  #define _tuint2strdec   uint2strdec
-  #define _tuint2strhex   uint2strhex
-  #define _tuint2stroct   uint2stroct
-  #define _tint64_to_str  int64_to_str
-  #define _tuint64_to_str uint64_to_str
+  #define _tint2str          int2str
+  #define _tint2strbin       int2strbin
+  #define _tint2strdec       int2strdec
+  #define _tint2strhex       int2strhex
+  #define _tint2stroct       int2stroct
+  #define _tuint2str         uint2str
+  #define _tuint2strbin      uint2strbin
+  #define _tuint2strdec      uint2strdec
+  #define _tuint2strhex      uint2strhex
+  #define _tuint2stroct      uint2stroct
+  #define _tint64_to_str     int64_to_str
+  #define _tuint64_to_str    uint64_to_str
+  #define _tuint64_to_strhex uint64_to_strhex
 #endif // !UNICODE
 
 

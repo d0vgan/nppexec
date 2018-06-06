@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        dir - lists subdirs and files
  *        dir <mask> - lists subdirs and files matched the mask
  *        dir <path\mask> - lists subdirs and files matched the mask
- *        echo <text> - prints a text in the Console 
+ *        echo <text> - prints a text in the Console
  *        if <condition> goto <label> - jumps to the label if the condition is true
  *        if ... else if ... else ... endif - conditional execution
  *        goto <label> - jumps to the label
@@ -140,23 +140,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        CTRL+BREAK     - kill (via Ctrl+Break) or terminate current child process
  *        CTRL+Z         - send ^Z to current child process
  *   6) All Notepad++ environment variables are supported:
- *        $(FULL_CURRENT_PATH)  : E:\my Web\main\welcome.html 
+ *        $(FULL_CURRENT_PATH)  : E:\my Web\main\welcome.html
  *        $(CURRENT_DIRECTORY)  : E:\my Web\main
- *        $(FILE_NAME)          : welcome.html 
- *        $(NAME_PART)          : welcome 
+ *        $(FILE_NAME)          : welcome.html
+ *        $(NAME_PART)          : welcome
  *        $(EXT_PART)           : .html
  *        $(NPP_DIRECTORY)      : the full path of notepad++'s directory
  *        $(CURRENT_WORD)       : word(s) you selected in Notepad++
  *        $(CURRENT_LINE)       : current line number
  *        $(CURRENT_COLUMN)     : current column number
  *   7) Additional environment variables:
+ *        $(CLIPBOARD_TEXT)     : text from the clipboard
  *        $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  *        $(#N), N=1,2,3...     : full path of the Nth opened document
  *        $(LEFT_VIEW_FILE)     : current file path-name in primary (left) view
  *        $(RIGHT_VIEW_FILE)    : current file path-name in second (right) view
  *        $(PLUGINS_CONFIG_DIR) : full path of the plugins configuration directory
  *        $(CWD)                : current working directory of NppExec (use "cd" to change it)
- *        $(CLIPBOARD_TEXT)     : text from the clipboard
  *        $(ARGC)               : number of arguments passed to the NPP_EXEC command
  *        $(ARGV)               : all arguments passed to the NPP_EXEC command after the script name
  *        $(ARGV[0])            : script name - first parameter of the NPP_EXEC command
@@ -175,6 +175,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  *        $(MSG_WPARAM)         : wParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  *        $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
+ *        $(NPP_HWND)           : Notepad++'s main window handle
+ *        $(SCI_HWND)           : current Scintilla's window handle
  *        $(SYS.<var>)          : system's environment variable, e.g. $(SYS.PATH)
  *        $(@EXIT_CMD)          : a callback exit command for a child process
  *        $(@EXIT_CMD_SILENT)   : a silent (non-printed) callback exit command

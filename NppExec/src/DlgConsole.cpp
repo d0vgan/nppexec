@@ -200,13 +200,13 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(CURRENT_WORD)  :  word(s) you selected in Notepad++") _T_RE_EOL \
   _T("$(CURRENT_LINE)  :  current line number") _T_RE_EOL \
   _T("$(CURRENT_COLUMN)  :  current column number") _T_RE_EOL \
+  _T("$(CLIPBOARD_TEXT)  :  text from the clipboard") _T_RE_EOL \
   _T("$(#N)  :  full path of the Nth opened document (N=1,2,3...)") _T_RE_EOL \
   _T("$(#0)  :  full path to notepad++.exe") _T_RE_EOL \
   _T("$(LEFT_VIEW_FILE)  :  current file path-name in primary (left) view") _T_RE_EOL \
   _T("$(RIGHT_VIEW_FILE)  :  current file path-name in secondary (right) view") _T_RE_EOL \
   _T("$(PLUGINS_CONFIG_DIR)  :  full path of the plugins configuration directory") _T_RE_EOL \
   _T("$(CWD)  :  current working directory of NppExec (use \"cd\" to change it)") _T_RE_EOL \
-  _T("$(CLIPBOARD_TEXT)  :  text from the clipboard") _T_RE_EOL \
   _T("$(ARGC)  :  number of arguments passed to the NPP_EXEC command") _T_RE_EOL \
   _T("$(ARGV)  :  all arguments passed to the NPP_EXEC command after the script name") _T_RE_EOL \
   _T("$(ARGV[0])  :  script name - first parameter of the NPP_EXEC command") _T_RE_EOL \
@@ -225,6 +225,8 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(MSG_RESULT)  :  result of \'npp_sendmsg[ex]\' or \'sci_sendmsg\'") _T_RE_EOL \
   _T("$(MSG_WPARAM)  :  wParam (output) of \'npp_sendmsg[ex]\' or \'sci_sendmsg\'") _T_RE_EOL \
   _T("$(MSG_LPARAM)  :  lParam (output) of \'npp_sendmsg[ex]\' or \'sci_sendmsg\'") _T_RE_EOL \
+  _T("$(NPP_HWND)  :  Notepad++'s main window handle") _T_RE_EOL \
+  _T("$(SCI_HWND)  :  current Scintilla's window handle") _T_RE_EOL \
   _T("$(SYS.<var>)  :  system\'s environment variable, e.g. $(SYS.PATH)") _T_RE_EOL \
   _T("$(@EXIT_CMD)  :  a callback exit command for a child process") _T_RE_EOL \
   _T("$(@EXIT_CMD_SILENT)  :  a silent (non-printed) callback exit command") _T_RE_EOL \
@@ -4529,6 +4531,7 @@ void ConsoleDlg::loadCmdVarsList()
 {
   // environment variables in reverse order
   CmdVarsList.Add( _T("$(SYS.PATH)") );         //  $(SYS.PATH)
+  CmdVarsList.Add( MACRO_SCI_HWND );            //  $(SCI_HWND)
   CmdVarsList.Add( MACRO_RIGHT_VIEW_FILE );     //  $(RIGHT_VIEW_FILE)
   CmdVarsList.Add( _T("$(RARGV[1])") );         //  $(RARGV[1])
   CmdVarsList.Add( _T("$(RARGV)") );            //  $(RARGV)
@@ -4537,6 +4540,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_OUTPUTL );             //  $(OUTPUTL)
   CmdVarsList.Add( MACRO_OUTPUT1 );             //  $(OUTPUT1)
   CmdVarsList.Add( MACRO_OUTPUT );              //  $(OUTPUT)
+  CmdVarsList.Add( MACRO_NPP_HWND );            //  $(NPP_HWND)
   CmdVarsList.Add( MACRO_NPP_DIRECTORY );       //  $(NPP_DIRECTORY)
   CmdVarsList.Add( MACRO_FILE_NAMEONLY );       //  $(NAME_PART)
   CmdVarsList.Add( MACRO_MSG_WPARAM );          //  $(MSG_WPARAM)

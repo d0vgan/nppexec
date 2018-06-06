@@ -1047,6 +1047,8 @@ extern const TCHAR MACRO_EXIT_CMD[];
 extern const TCHAR MACRO_EXIT_CMD_SILENT[];
 extern const TCHAR MACRO_LAST_CMD_RESULT[];
 extern const TCHAR MACRO_CLIPBOARD_TEXT[];
+extern const TCHAR MACRO_NPP_HWND[];
+extern const TCHAR MACRO_SCI_HWND[];
 
 //---------------------------------------------------------------------------
 #endif

@@ -1,9 +1,9 @@
 /****************************************************************************
  *
- * int2str Lib ver. 1.1
+ * int2str Lib ver. 1.2
  * --------------------
  *
- * (C) Jul 2007, DV
+ * (C) Jul 2018, DV
  *
  ***************************************************************************/
 
@@ -27,6 +27,20 @@ static int get_max_hex_pos_from_uint(const unsigned int value)
     ++pos;
   }
   return pos;
+}
+
+static int get_max_hex_pos_from_uint64(const unsigned __int64 value)
+{
+    unsigned __int64 cmp_val = 0x0F;
+    int              pos = 0;
+
+    while (value > cmp_val)
+    {
+        cmp_val <<= 4;
+        cmp_val |= 0x0F;
+        ++pos;
+    }
+    return pos;
 }
 
 static int get_max_oct_pos_from_uint(const unsigned int value)
@@ -119,6 +133,26 @@ int uint2strhex(unsigned int value, char* out_str)
   }
   out_str[len] = 0;
   return len;
+}
+
+// size of out_str can be up to (2*sizeof(__int64) + 1)
+int uint64_to_strhex(unsigned __int64 value, char* out_str)
+{
+    unsigned int bt;
+    int          pos;
+    int          len;
+
+    pos = get_max_hex_pos_from_uint64(value);
+    len = pos + 1;
+    while (pos >= 0)
+    {
+        bt = (unsigned int) (value & 0x0F);
+        out_str[pos] = (char)((bt < 10) ? (L'0' + bt) : (L'A' + (bt - 10)));
+        value >>= 4;
+        --pos;
+    }
+    out_str[len] = 0;
+    return len;
 }
 
 // size of out_str can be up to (3*sizeof(int) + 1)
@@ -278,6 +312,26 @@ int uint2strhexw(unsigned int value, wchar_t* out_strw)
   }
   out_strw[len] = 0;
   return len;
+}
+
+// size of out_strw can be up to (2*sizeof(__int64) + 1)
+int uint64_to_strhexw(unsigned __int64 value, wchar_t* out_strw)
+{
+    unsigned int bt;
+    int          pos;
+    int          len;
+
+    pos = get_max_hex_pos_from_uint64(value);
+    len = pos + 1;
+    while (pos >= 0)
+    {
+        bt = (unsigned int) (value & 0x0F);
+        out_strw[pos] = (wchar_t)((bt < 10) ? (L'0' + bt) : (L'A' + (bt - 10)));
+        value >>= 4;
+        --pos;
+    }
+    out_strw[len] = 0;
+    return len;
 }
 
 // size of out_strw can be up to (3*sizeof(int) + 1)
