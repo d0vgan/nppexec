@@ -50,6 +50,9 @@
  *        inputbox "message" - shows InputBox, sets $(INPUT)
  *        inputbox "message" : initial_value - InputBox, sets $(INPUT)
  *        inputbox "message" : "value_name" : initial_value - InputBox customization
+ *        messagebox "text" - shows a simple MessageBox
+ *        messagebox "text" : "title" - shows a MessageBox with a custom title
+ *        messagebox "text" : "title" : type - shows a MessageBox of a given type
  *        con_colour <colours> - sets the Console's colours
  *        con_filter <filters> - enables/disables the Console's output filters
  *        con_loadfrom <file> - loads a file's content to the Console
@@ -174,7 +177,7 @@
  v0.6 RC2
  --------
  + new environment variables: $(CLIPBOARD_TEXT), $(NPP_HWND), $(SCI_HWND)
- + new command: clip_settext
+ + new commands: clip_settext, messagebox
  + set <var> ~ strlensci <string>
  * internal improvements
 

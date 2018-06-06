@@ -93,6 +93,7 @@ class CScriptEngine : public IScriptEngine
             CMDTYPE_TEXTSAVETO,
             CMDTYPE_NPPSETFOCUS,
             CMDTYPE_CLIPSETTEXT,
+            CMDTYPE_MESSAGEBOX,
 
             CMDTYPE_TOTAL_COUNT
         };
@@ -159,6 +160,7 @@ class CScriptEngine : public IScriptEngine
         eCmdResult DoIf(const tstr& params);
         eCmdResult DoInputBox(const tstr& params);
         eCmdResult DoLabel(const tstr& params);
+        eCmdResult DoMessageBox(const tstr& params);
         eCmdResult DoNpeCmdAlias(const tstr& params);
         eCmdResult DoNpeConsole(const tstr& params);
         eCmdResult DoNpeDebugLog(const tstr& params);
@@ -333,6 +335,14 @@ class CScriptEngine : public IScriptEngine
             static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_LABEL; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoLabel(params); }
+        };
+
+        struct DoMessageBoxCommand
+        {
+            static const TCHAR* const Name() { return _T("MESSAGEBOX"); }
+            static const TCHAR* const AltName() { return nullptr; }
+            static eCmdType           Type() { return CMDTYPE_MESSAGEBOX; }
+            static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoMessageBox(params); }
         };
 
         struct DoNpeCmdAliasCommand
@@ -679,6 +689,7 @@ class CScriptEngine : public IScriptEngine
                     registerCommand<DoIfCommand>();
                     registerCommand<DoInputBoxCommand>();
                     registerCommand<DoLabelCommand>();
+                    registerCommand<DoMessageBoxCommand>();
                     registerCommand<DoNpeCmdAliasCommand>();
                     registerCommand<DoNpeConsoleCommand>();
                     registerCommand<DoNpeDebugLogCommand>();

@@ -143,6 +143,7 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
            WordUpper.StartsWith(_T("SCI")) )) 
       || ((nLen >= 3) &&
           (WordUpper.StartsWith(_T("INP")) ||  // INPUTBOX
+           WordUpper.StartsWith(_T("MES")) ||  // MESSAGEBOX
            WordUpper.StartsWith(_T("PRO")) ||  // PROC_
            WordUpper.StartsWith(_T("SLE")) ))  // SLEEP
       || ((nLen >= 3) &&

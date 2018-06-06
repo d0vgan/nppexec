@@ -127,6 +127,9 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("inputbox \"message\"  -  shows InputBox, sets $(INPUT)") _T_RE_EOL \
   _T("inputbox \"message\" : initial_value  -  shows InputBox, sets $(INPUT)") _T_RE_EOL \
   _T("inputbox \"message\" : \"value_name\" : initial_value  -  InputBox customization") _T_RE_EOL \
+  _T("messagebox \"text\"  -  shows a simple MessageBox") _T_RE_EOL \
+  _T("messagebox \"text\" : \"title\"  -  shows a MessageBox with a custom title") _T_RE_EOL \
+  _T("messagebox \"text\" : \"title\" : type  -  shows a MessageBox of a given type") _T_RE_EOL \
   _T("con_colour <colours>  -  sets the Console\'s colours") _T_RE_EOL \
   _T("con_filter <filters>  -  enables/disables the Console\'s output filters") _T_RE_EOL \
   _T("con_loadfrom <file>  -  loads a file\'s content to the Console") _T_RE_EOL \
@@ -1301,13 +1304,49 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  except $(ARGC), $(ARGV), $(ARGV[N]), $(RARGV) and $(RARGV[N]).") _T_RE_EOL \
     _T("  To use values of $(ARGV) or $(RARGV) inside the input value,") _T_RE_EOL \
     _T("  you can SET some variable and use this variable in the InputBox e.g.") _T_RE_EOL \
-    _T("      SET local arg1 = $(ARGV[1])") _T_RE_EOL \
-    _T("      INPUTBOX \"Input A:\"") _T_RE_EOL \
-    _T("      // ... the InputBox is shown, you can type: $(arg1)") _T_RE_EOL \
-    _T("      SET local a = $(INPUT)") _T_RE_EOL \
-    _T("      // ... $(a) becomes $(arg1) i.e. $(ARGV[1])") _T_RE_EOL \
+    _T("    SET local arg1 = $(ARGV[1])") _T_RE_EOL \
+    _T("    INPUTBOX \"Input A:\"") _T_RE_EOL \
+    _T("    // ... the InputBox is shown, you can type: $(arg1)") _T_RE_EOL \
+    _T("    SET local a = $(INPUT)") _T_RE_EOL \
+    _T("    // ... $(a) becomes $(arg1) i.e. $(ARGV[1])") _T_RE_EOL \
+    _T("  To set the keyboard focus to the Console after the InputBox is shown,") _T_RE_EOL \
+    _T("  use the following command:") _T_RE_EOL \
+    _T("    npp_setfocus con") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  set, unset, if") _T_RE_EOL
+    _T("  set, unset, if, messagebox") _T_RE_EOL
+  },
+
+  // MESSAGEBOX
+  {
+    CScriptEngine::DoMessageBoxCommand::Name(),
+    _T("COMMAND:  messagebox") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  messagebox \"text\"") _T_RE_EOL \
+    _T("  messagebox \"text\" : \"title\"") _T_RE_EOL \
+    _T("  messagebox \"text\" : \"title\" : type") _T_RE_EOL \
+    _T("  messagebox \"text\" : : type") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  1. Shows a MessageBox with a text \'text\' and default title;") _T_RE_EOL \
+    _T("  2. Shows a MessageBox with a text \'text\' and a title \'title\';") _T_RE_EOL \
+    _T("  3. Shows a MessageBox of the given type with a text \'text\' and a title \'title\';") _T_RE_EOL \
+    _T("  4. Shows a MessageBox of the given type with a text \'text\' and default title;") _T_RE_EOL \
+    _T("  The type can be:") _T_RE_EOL \
+    _T("    0 or \"msg\"  - a message") _T_RE_EOL \
+    _T("    1 or \"warn\" - a warning") _T_RE_EOL \
+    _T("    2 or \"err\"  - an error") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  messagebox \"This is a simple message\"") _T_RE_EOL \
+    _T("  messagebox \"This is a simple message\" :: 0 // the same") _T_RE_EOL \
+    _T("  messagebox \"This is a simple message\" : : msg // the same") _T_RE_EOL \
+    _T("  messagebox \"This is an error!\" :: err") _T_RE_EOL \
+    _T("  messagebox \"This is a custom error!\" : \"ERROR\" : 2") _T_RE_EOL \
+    _T("  messagebox \"This is a custom warning!\" : \"WARNING\" : warn") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  To set the keyboard focus to the Console after the MessageBox is shown,") _T_RE_EOL \
+    _T("  use the following command:") _T_RE_EOL \
+    _T("    npp_setfocus con") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  inputbox") _T_RE_EOL
   },
   
   // NPE_CMDALIAS

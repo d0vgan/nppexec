@@ -141,7 +141,8 @@ static int  FileFilterPos(const TCHAR* szFilePath);
 static void GetPathAndFilter(const TCHAR* szPathAndFilter, int nFilterPos, tstr& out_Path, tstr& out_Filter);
 static void GetFilePathNamesList(const TCHAR* szPath, const TCHAR* szFilter, CListT<tstr>& FilesList);
 static bool PrintDirContent(CNppExec* pNppExec, const TCHAR* szPath, const TCHAR* szFilter);
-static void runInputBox(CScriptEngine* pScriptEngine, const TCHAR* szMessage);
+static void runInputBox(CScriptEngine* pScriptEngine, const tstr& msg);
+static CScriptEngine::eCmdResult runMessageBox(CScriptEngine* pScriptEngine, const tstr& params);
 
 
 class PrintMacroVarFunc
@@ -1017,6 +1018,12 @@ static FParserWrapper g_fp;
  *   - shows InputBox with specified initial value, sets $(INPUT)
  * inputbox "message" : "value_name" : initial_value
  *   - InputBox customization
+ * messagebox "text"
+ *   - shows a simple MessageBox
+ * messagebox "text" : "title"
+ *   - shows a MessageBox with a custom title
+ * messagebox "text" : "title" : type
+ *   - shows a MessageBox of a given type
  * con_colour <colours>
  *   - sets the Console's colours
  * con_filter <filters>
@@ -1953,7 +1960,8 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
               (nCmdType != CMDTYPE_NPPEXEC) &&
               (nCmdType != CMDTYPE_ECHO) &&
               (nCmdType != CMDTYPE_SELSAVETO) &&
-              (nCmdType != CMDTYPE_INPUTBOX) )
+              (nCmdType != CMDTYPE_INPUTBOX) &&
+              (nCmdType != CMDTYPE_MESSAGEBOX) )
     {
         NppExecHelpers::StrUnquote(Cmd);
 
@@ -3531,9 +3539,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoInputBox(const tstr& params)
     if ( !reportCmdAndParams( DoInputBoxCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
-    runInputBox(this, params.c_str());
+    runInputBox(this, params);
 
     return CMDRESULT_SUCCEEDED;
+}
+
+CScriptEngine::eCmdResult CScriptEngine::DoMessageBox(const tstr& params)
+{
+    if ( !reportCmdAndParams( DoMessageBoxCommand::Name(), params, fMessageToConsole ) )
+        return CMDRESULT_INVALIDPARAM;
+
+    return runMessageBox(this, params);
 }
 
 CScriptEngine::eCmdResult CScriptEngine::DoLabel(const tstr& params)
@@ -7581,7 +7597,7 @@ bool PrintDirContent(CNppExec* pNppExec, const TCHAR* szPath, const TCHAR* szFil
     return true;
 }
 
-void runInputBox(CScriptEngine* pScriptEngine, const TCHAR* szMessage)
+void runInputBox(CScriptEngine* pScriptEngine, const tstr& msg)
 {
     const int MAX_VAR_FIELDS = 20;
 
@@ -7593,10 +7609,10 @@ void runInputBox(CScriptEngine* pScriptEngine, const TCHAR* szMessage)
     Runtime::GetLogger().Add(   _T("runInputBox()") );
     Runtime::GetLogger().Add(   _T("{") );
     Runtime::GetLogger().IncIndentLevel();
-    Runtime::GetLogger().AddEx( _T("[in]  %s"), szMessage );
+    Runtime::GetLogger().AddEx( _T("[in]  %s"), msg.c_str() );
     
     // init the InputBox dialog values
-    InputBoxDlg.m_InputMessage = szMessage;
+    InputBoxDlg.m_InputMessage = msg;
     InputBoxDlg.m_InputVarName = MACRO_INPUT;
     InputBoxDlg.m_InputVarName += _T(" =");
     InputBoxDlg.setInputBoxType(CInputBoxDlg::IBT_INPUTBOX);
@@ -7671,6 +7687,70 @@ void runInputBox(CScriptEngine* pScriptEngine, const TCHAR* szMessage)
             pNppExec->SendNppMsg(NPPM_DMMSHOW, 0, (LPARAM) pNppExec->GetConsole().GetDialogWnd());
         }
     }
+}
+
+CScriptEngine::eCmdResult runMessageBox(CScriptEngine* pScriptEngine, const tstr& params)
+{
+    Runtime::GetLogger().Add(   _T("runMessageBox()") );
+    Runtime::GetLogger().Add(   _T("{") );
+    Runtime::GetLogger().IncIndentLevel();
+    Runtime::GetLogger().AddEx( _T("[in]  %s"), params.c_str() );
+
+    if ( CNppExec::_bIsNppShutdown )
+    {
+        Runtime::GetLogger().Add(   _T("; MessageBox suppressed as Notepad++ is exiting") );
+        Runtime::GetLogger().DecIndentLevel();
+        Runtime::GetLogger().Add(   _T("}") );
+
+        return CScriptEngine::CMDRESULT_SUCCEEDED;
+    }
+
+    tstr text, title, type;
+    CStrSplitT<TCHAR> args;
+    int n = args.SplitAsArgs(params, _T(':'), 3);
+    if ( n > 0 )  text  = args.GetArg(0);
+    if ( n > 1 )  title = args.GetArg(1);
+    if ( n > 2 )  type  = args.GetArg(2);
+
+    n = -1;
+    NppExecHelpers::StrLower(type);
+    if ( type.IsEmpty() || type == _T("0") || type == _T("msg") )
+    {
+        n = MB_OK;
+        type = _T("msg");
+        if ( title.IsEmpty() )  title = _T("NppExec - Message");
+    }
+    else if ( type == _T("1") || type == _T("warn") )
+    {
+        n = MB_OK | MB_ICONWARNING;
+        type = _T("warn");
+        if ( title.IsEmpty() )  title = _T("NppExec - Warning");
+    }
+    else if ( type == _T("2") || type == _T("err") )
+    {
+        n = MB_OK | MB_ICONERROR;
+        type = _T("err");
+        if ( title.IsEmpty() )  title = _T("NppExec - Error");
+    }
+
+    if ( n == -1 )
+    {
+        pScriptEngine->ScriptError( IScriptEngine::ET_REPORT, _T("- unknown type of MessageBox specified") );
+
+        Runtime::GetLogger().DecIndentLevel();
+        Runtime::GetLogger().Add(   _T("}") );
+
+        return CScriptEngine::CMDRESULT_INVALIDPARAM;
+    }
+
+    Runtime::GetLogger().AddEx( _T("; type: %s"), type.c_str() );
+
+    ::MessageBox( pScriptEngine->GetNppExec()->m_nppData._nppHandle, text.c_str(), title.c_str(), n );
+
+    Runtime::GetLogger().DecIndentLevel();
+    Runtime::GetLogger().Add(   _T("}") );
+
+    return CScriptEngine::CMDRESULT_SUCCEEDED;
 }
 
 char* SciTextFromLPCTSTR(LPCTSTR pText, HWND hSci, int* pnLen )
