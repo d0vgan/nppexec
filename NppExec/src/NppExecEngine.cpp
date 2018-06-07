@@ -964,6 +964,10 @@ static FParserWrapper g_fp;
  *   - conditional execution
  * goto <label>
  *   - jumps to the label
+ * exit
+ *   - exits the current NppExec's script
+ * exit <type>
+ *   - exits the NppExec's script
  * set 
  *   - shows all user's variables
  * set <var> 
@@ -3001,6 +3005,41 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvUnset(const tstr& params)
     return nCmdResult;
 }
 
+CScriptEngine::eCmdResult CScriptEngine::DoExit(const tstr& params)
+{
+    reportCmdAndParams( DoExitCommand::Name(), params, fMessageToConsole );
+
+    bool bHardExit = false;
+    if ( params.IsEmpty() || params == _T("0") )
+    {
+        bHardExit = false;
+    }
+    else if ( params == _T("-1") )
+    {
+        bHardExit = true;
+    }
+    else
+    {
+        ScriptError( ET_REPORT, _T("- unknown exit argument; assuming \"exit -1\"") );
+        bHardExit = true;
+    }
+
+    if ( bHardExit || !m_execState.GetCurrentScriptContext().IsNppExeced )
+    {
+        // stop the whole script
+        m_execState.pScriptLineNext = NULL;
+        m_eventAbortTheScript.Set();
+    }
+    else
+    {
+        // stop only the npp_exec'ed part of the script
+        m_execState.pScriptLineNext = m_execState.GetCurrentScriptContext().CmdRange.pEnd;
+    }
+
+    return CMDRESULT_SUCCEEDED;
+}
+
+
 CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
 {
     if ( !reportCmdAndParams( DoGoToCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
@@ -4977,7 +5016,11 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
         Runtime::GetLogger().AddEx( _T("; wType = %s,  wParam = \"0\""), STR_PARAMTYPE[PT_INT] );
         Runtime::GetLogger().AddEx( _T("; lType = %s,  lParam = \"0\""), STR_PARAMTYPE[PT_INT] );
 
+        Runtime::GetLogger().Add(   _T("; calling SendMessage ...") );
+
         LRESULT lResult = ::SendMessage( hWnd, uMsg, 0, 0 );
+
+        Runtime::GetLogger().Add(   _T("; ... SendMessage has been called") );
         
         // RESULT
         tstr varName;
@@ -5214,7 +5257,11 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
         }
     }
 
+    Runtime::GetLogger().Add(   _T("; calling SendMessage ...") );
+
     LRESULT lResult = ::SendMessage( hWnd, uMsg, wParam, lParam );
+
+    Runtime::GetLogger().Add(   _T("; ... SendMessage has been called") );
 
     for ( int n = 0; n < 2; n++ )
     {

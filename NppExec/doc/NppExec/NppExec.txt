@@ -21,6 +21,8 @@
  *        if <condition> goto <label> - jumps to the label if the condition is true
  *        if ... else if ... else ... endif - conditional execution
  *        goto <label> - jumps to the label
+ *        exit - exits the current NppExec's script
+ *        exit <type> - exits the NppExec's script
  *        set - shows all user's variables
  *        set <var> - shows the value of user's variable <var>
  *        set <var> = <value> - sets the value of user's variable <var>
@@ -177,7 +179,7 @@
  v0.6 RC2
  --------
  + new environment variables: $(CLIPBOARD_TEXT), $(NPP_HWND), $(SCI_HWND)
- + new commands: clip_settext, messagebox
+ + new commands: clip_settext, messagebox, exit
  + set <var> ~ strlensci <string>
  * internal improvements
 

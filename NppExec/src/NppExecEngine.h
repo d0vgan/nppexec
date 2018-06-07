@@ -94,6 +94,7 @@ class CScriptEngine : public IScriptEngine
             CMDTYPE_NPPSETFOCUS,
             CMDTYPE_CLIPSETTEXT,
             CMDTYPE_MESSAGEBOX,
+            CMDTYPE_EXIT,
 
             CMDTYPE_TOTAL_COUNT
         };
@@ -156,6 +157,7 @@ class CScriptEngine : public IScriptEngine
         eCmdResult DoEndIf(const tstr& params);
         eCmdResult DoEnvSet(const tstr& params);
         eCmdResult DoEnvUnset(const tstr& params);
+        eCmdResult DoExit(const tstr& params);
         eCmdResult DoGoTo(const tstr& params);
         eCmdResult DoIf(const tstr& params);
         eCmdResult DoInputBox(const tstr& params);
@@ -303,6 +305,14 @@ class CScriptEngine : public IScriptEngine
             static const TCHAR* const AltName() { return _T("UNSET_ENV"); }
             static eCmdType           Type() { return CMDTYPE_ENVUNSET; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoEnvUnset(params); }
+        };
+
+        struct DoExitCommand
+        {
+            static const TCHAR* const Name() { return _T("EXIT"); }
+            static const TCHAR* const AltName() { return nullptr; }
+            static eCmdType           Type() { return CMDTYPE_EXIT; }
+            static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoExit(params); }
         };
 
         struct DoGoToCommand
@@ -685,6 +695,7 @@ class CScriptEngine : public IScriptEngine
                     registerCommand<DoEndIfCommand>();
                     registerCommand<DoEnvSetCommand>();
                     registerCommand<DoEnvUnsetCommand>();
+                    registerCommand<DoExitCommand>();
                     registerCommand<DoGoToCommand>();
                     registerCommand<DoIfCommand>();
                     registerCommand<DoInputBoxCommand>();

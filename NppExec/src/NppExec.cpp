@@ -38,6 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        if <condition> goto <label> - jumps to the label if the condition is true
  *        if ... else if ... else ... endif - conditional execution
  *        goto <label> - jumps to the label
+ *        exit - exits the current NppExec's script
+ *        exit <type> - exits the NppExec's script
  *        set - shows all user's variables
  *        set <var> - shows the value of user's variable <var>
  *        set <var> = <value> - sets the value of user's variable <var>

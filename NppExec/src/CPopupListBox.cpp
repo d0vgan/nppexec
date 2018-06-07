@@ -163,6 +163,7 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
             S == CScriptEngine::DoGoToCommand::Name() ||
             S == CScriptEngine::DoElseCommand::Name() ||
             S == CScriptEngine::DoEndIfCommand::Name() ||
+            S == CScriptEngine::DoExitCommand::Name() ||
             S == CScriptEngine::DoUnsetCommand::Name() ||
             S == CScriptEngine::DoLabelCommand::Name())
           continue;

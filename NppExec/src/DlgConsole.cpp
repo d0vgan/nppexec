@@ -95,6 +95,8 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("if <condition> goto <label>  -  jumps to the label if the condition is true") _T_RE_EOL \
   _T("if ... else if ... else ... endif  -  conditional execution") _T_RE_EOL \
   _T("goto <label>  -  jumps to the label") _T_RE_EOL \
+  _T("exit  -  exits the current NppExec's script") _T_RE_EOL \
+  _T("exit <type>  -  exits the NppExec's script") _T_RE_EOL \
   _T("set  -  shows all user\'s variables") _T_RE_EOL \
   _T("set <var>  -  shows the value of user\'s variable <var>") _T_RE_EOL \
   _T("set <var> = <value>  -  sets the value of user\'s variable <var>") _T_RE_EOL \
@@ -1974,7 +1976,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  whereas any declared variable is visible and exists everywhere - unless") _T_RE_EOL \
     _T("  it is a local variable, of course.)") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  label, if") _T_RE_EOL
+    _T("  label, if, exit") _T_RE_EOL
   },
 
   // ELSE
@@ -2015,6 +2017,65 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  see: if, else") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  if, else") _T_RE_EOL
+  },
+
+  // EXIT
+  {
+    CScriptEngine::DoExitCommand::Name(),
+    _T("COMMAND:  exit") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  exit") _T_RE_EOL \
+    _T("  exit 0") _T_RE_EOL \
+    _T("  exit -1") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Exits (aborts) the current NppExec's script.") _T_RE_EOL \
+    _T("  The \'exit\' and \'exit 0\' mean \"soft exit\": when such command is located in") _T_RE_EOL \
+    _T("  NppExec's script being NPP_EXEC-ed, it aborts only this NPP_EXEC-ed script.") _T_RE_EOL \
+    _T("  The \'exit -1\' means \"hard exit\": when this command is located in NppExec's") _T_RE_EOL \
+    _T("  script being NPP_EXEC-ed, it aborts the root script.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  // To illustrate the difference between \"soft\" and \"hard\" exit,") _T_RE_EOL \
+    _T("  // let's look at the following 2 scripts:") _T_RE_EOL \
+    _T("  //") _T_RE_EOL \
+    _T("  // :: This is Script-1 ::") _T_RE_EOL \
+    _T("  echo Script-1 : before Script-2") _T_RE_EOL \
+    _T("  npp_exec \"Script-2\"") _T_RE_EOL \
+    _T("  echo Script-1 : after Script-2") _T_RE_EOL \
+    _T("  //") _T_RE_EOL \
+    _T("  // :: This is Script-2 ::") _T_RE_EOL \
+    _T("  echo Script-2 : before \'exit\'") _T_RE_EOL \
+    _T("  exit  // \"soft\" exit") _T_RE_EOL \
+    _T("  echo Script-2 : after \'exit\'") _T_RE_EOL \
+    _T("  //") _T_RE_EOL \
+    _T("  // Now let's run the Script-1.") _T_RE_EOL \
+    _T("  // It prints:") _T_RE_EOL \
+    _T("  //   Script-1 : before Script-2") _T_RE_EOL \
+    _T("  //   Script-2 : before \'exit\'") _T_RE_EOL \
+    _T("  //   Script-1 : after Script-2") _T_RE_EOL \
+    _T("  // i.e. only the Script-2 exited, whereas the Script-1 continued.") _T_RE_EOL \
+    _T("  // Now let's modify the Script-2 to use the exit type of -1:") _T_RE_EOL \
+    _T("  //") _T_RE_EOL \
+    _T("  // :: This is Script-2 ::") _T_RE_EOL \
+    _T("  echo Script-2 : before \'exit\'") _T_RE_EOL \
+    _T("  exit -1  // \"hard\" exit") _T_RE_EOL \
+    _T("  echo Script-2 : after \'exit\'") _T_RE_EOL \
+    _T("  //") _T_RE_EOL \
+    _T("  // Now let's run the Script-1.") _T_RE_EOL \
+    _T("  // It prints:") _T_RE_EOL \
+    _T("  //   Script-1 : before Script-2") _T_RE_EOL \
+    _T("  //   Script-2 : before \'exit\'") _T_RE_EOL \
+    _T("  // and that's all.") _T_RE_EOL \
+    _T("  // I.e. the \'exit -1\' has aborted the Script-1 as well.") _T_RE_EOL \
+    _T("  //") _T_RE_EOL \
+    _T("  // Usage example:") _T_RE_EOL \
+    _T("  set local error = Some error") _T_RE_EOL \
+    _T("  if \"$(error)\" != \"\"") _T_RE_EOL \
+    _T("    messagebox \"$(error)\" :: err") _T_RE_EOL \
+    _T("    exit") _T_RE_EOL \
+    _T("  endif") _T_RE_EOL \
+    _T("  echo There was no error, continuing...") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  goto, if") _T_RE_EOL
   },
 
   // PROC_SIGNAL
