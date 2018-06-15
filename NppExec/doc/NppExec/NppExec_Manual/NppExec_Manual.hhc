@@ -173,6 +173,10 @@
 				<param name="Name" value="4.6.9. Send several commands to external tool">
 				<param name="Local" value="4.6.9.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.10. Running Lua">
+				<param name="Local" value="4.6.10.html">
+				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="4.7. Compiling">
@@ -193,6 +197,19 @@
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="4.7.4. Compiling ANY source file">
 				<param name="Local" value="4.7.4.html">
+				</OBJECT>
+		</UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.8. Advanced details">
+			</OBJECT>
+		<UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.8.1. Logging">
+				<param name="Local" value="4.8.1.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.8.2. Collateral scripts">
+				<param name="Local" value="4.8.2.html">
 				</OBJECT>
 		</UL>
 	</UL>

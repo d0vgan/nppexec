@@ -24,5 +24,26 @@ SEL_SAVETO $(TEMP_FILE) :a
 cmd /c echo. | &quot;$(PS_EXE)&quot; -nologo &quot;$(TEMP_FILE)&quot;</pre>
 </blockquote>
 
+<p>Note:</p>
+<p>If PowerShell unexpectedly says something like</p>
+<blockquote>
+  <pre>File &quot;test.ps1&quot; cannot be loaded because running scripts is disabled on this system</pre>
+</blockquote>
+<p>it could be related to the fact that there are 32-bit and 64-bit instances on 64-bit systems, and they can have different settings. According to https://stackoverflow.com/questions/4037939/powershell-says-execution-of-scripts-is-disabled-on-this-system , the following should help:</p>
+<blockquote>
+  <pre>x86 (32 bit)
+Open &quot;C:\Windows\SysWOW64\cmd.exe&quot;
+Run the command: &quot;powershell Set-ExecutionPolicy RemoteSigned&quot;
+
+x64 (64 bit)
+Open &quot;C:\Windows\system32\cmd.exe&quot;
+Run the command: &quot;powershell Set-ExecutionPolicy RemoteSigned&quot;
+
+You can check the bitness using
+- In CMD: echo %PROCESSOR_ARCHITECTURE%
+- In Powershell: [Environment]::Is64BitProcess
+</pre>
+</blockquote>
+
 </BODY>
 </HTML>

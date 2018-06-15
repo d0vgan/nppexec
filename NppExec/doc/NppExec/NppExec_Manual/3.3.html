@@ -51,6 +51,11 @@ command &quot;time /t&quot; in NppExec's Console - i.e. it shows current time.</
 </blockquote>
 <p>to start the &quot;cmd.exe&quot; in its own
 window.</p>
+<p>(Note: it's possible to start an application in its own window and make NppExec to wait until the application has been executed. To do that, type:</p>
+<blockquote>
+  <pre>cmd /c start /wait application.exe</pre>
+</blockquote>
+<p>In this case, NppExec waits for 'cmd' to be executed, while 'cmd' itself starts the 'application.exe' in its own separate window and waits until it has been executed. So &quot;npp_run &quot; is not needed here.)</p>
 <p>Also you can use &quot;npp_run &quot; to open specified file in its associated program. For example, &quot;npp_run index.htm&quot; opens
 the .htm file in your default internet browser.</p>
 </BODY>
