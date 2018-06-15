@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /****************************************************************************
  * NppExec plugin ver. 0.6 RC2 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - May 2018
+ * by DV <dvv81 @ ukr.net>, December 2006 - June 2018
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -131,6 +131,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        npe_debug <1/0> - see "npe_debuglog"
  *        npe_noemptyvars <1/0> - enable/disable replacement of empty vars
  *        npe_queue <command> - queue NppExec's command to be executed
+ *        npe_sendmsgbuflen <max_len> - set npp/sci_sendmsg's buffer length
  *        nppexec: - prefix for NppExec's commands (e.g. "nppexec:npp_console off")
  *        nppexec:: - always executes a command in a collateral (parallel) script
  *        (*) these commands work with a partial file path/name also
@@ -314,10 +315,10 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTB_CONSOLE_SAVECMDHISTORY, OPTT_INT | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("SaveCmdHistory"), -1, NULL },
 
-    { OPTI_RICHEDIT_MAXTEXTLEN, OPTT_INT | OPTF_READWRITE,
+    { OPTI_RICHEDIT_MAXTEXTLEN, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("RichEdit_MaxTextLength"),
       DEFAULT_RICHEDIT_MAXTEXTLEN, NULL },
-    { OPTI_SENDMSG_MAXBUFLEN, OPTT_INT | OPTF_READWRITE,
+    { OPTI_SENDMSG_MAXBUFLEN, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("SendMsg_MaxBufLength"),
       DEFAULT_SENDMSG_MAXBUFLEN, NULL },
     { OPTS_CALC_PRECISION, OPTT_STR | OPTF_READWRITE,

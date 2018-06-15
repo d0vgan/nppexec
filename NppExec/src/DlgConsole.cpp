@@ -191,6 +191,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("npe_debug <1/0>  -  see \"npe_debuglog\"") _T_RE_EOL \
   _T("npe_noemptyvars <1/0>  -  enable/disable replacement of empty vars") _T_RE_EOL \
   _T("npe_queue <command>  -  queue NppExec's command to be executed") _T_RE_EOL \
+  _T("npe_sendmsgbuflen <max_len>  -  set npp/sci_sendmsg's buffer length") _T_RE_EOL \
   DEFAULT_ALIAS_CMD_NPPEXEC _T("<script/file>  -  the same as  npp_exec <script/file>") _T_RE_EOL \
   DEFAULT_ALIAS_CMD_NPPEXEC _T("<script/file> <args>  -  the same as  npp_exec <script/file> <args>") _T_RE_EOL \
   DEFAULT_NPPEXEC_CMD_PREFIX _T("  -  prefix for NppExec's commands (e.g. \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("npp_console off\")") _T_RE_EOL \
@@ -303,7 +304,6 @@ typedef struct sCmdItemInfo {
   _T("    NPE_SF_PRINTALL    = 0x20000000") _T_RE_EOL \
   _T("      - print all the occurrences from the current pos to the end")
 
-// in the same order as in CMD_ITEMS
 const tCmdItemInfo CONSOLE_CMD_INFO[] = {
   // HELP
   {
@@ -886,7 +886,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  //  @[FF 02 0C]   - pointer to buffer") _T_RE_EOL \
     _T("  //  Use it with care!)") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  sci_sendmsg, npp_sendmsgex, set") _T_RE_EOL
+    _T("  sci_sendmsg, npp_sendmsgex, npe_sendmsgbuflen, set") _T_RE_EOL
   },
 
   // NPP_SENDMSGEX
@@ -909,7 +909,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set local hwnd = $(MSG_RESULT)  // hwnd of NppExec\'s Console") _T_RE_EOL \
     _T("  npp_sendmsgex $(hwnd) WM_COMMAND 1154 0  // Word-Wrap checkbox") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  npp_sendmsg, sci_sendmsg, set") _T_RE_EOL
+    _T("  npp_sendmsg, sci_sendmsg, npe_sendmsgbuflen, set") _T_RE_EOL
   },
 
   // SCI_SENDMSG
@@ -956,7 +956,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  sci_sendmsg SCI_GETLINE $(MSG_RESULT) @\"\"") _T_RE_EOL \
     _T("  echo $(MSG_LPARAM)  // prints the string pointed by lParam") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  npp_sendmsg, npp_sendmsgex, set") _T_RE_EOL
+    _T("  npp_sendmsg, npp_sendmsgex, npe_sendmsgbuflen, set") _T_RE_EOL
   },
 
   // SCI_FIND
@@ -1620,6 +1620,25 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  Well, I hope you enjoy it :)") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  npe_cmdalias") _T_RE_EOL
+  },
+
+  {
+    CScriptEngine::DoNpeSendMsgBufLenCommand::Name(),
+    _T("COMMAND:  npe_sendmsgbuflen") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npe_sendmsgbuflen <max_length>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Sets npp_sendmsg/sci_sendmsg's maximum buffer length") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npe_sendmsgbuflen  // current buffer length") _T_RE_EOL \
+    _T("  npe_sendmsgbuflen 1048576  // 1 MB") _T_RE_EOL \
+    _T("  npe_sendmsgbuflen 8M  // 8 MB") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  If the specified value is less than 65536, NppExec sets it to 65536.") _T_RE_EOL \
+    _T("  This value is not saved when Notepad++ exits.") _T_RE_EOL \
+    _T("  To set this value permanently, refer to \"NppExec_TechInfo.txt\".") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_sendmsg, npp_sendmsgex, sci_sendmsg") _T_RE_EOL
   },
 
   // SEL_LOADFROM

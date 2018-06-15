@@ -1,7 +1,7 @@
 
  ****************************************************************************
  * NppExec plugin ver. 0.6 RC2 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - May 2018
+ * by DV <dvv81 @ ukr.net>, December 2006 - June 2018
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -114,6 +114,7 @@
  *        npe_debug <1/0> - see "npe_debuglog"
  *        npe_noemptyvars <1/0> - enable/disable replacement of empty vars
  *        npe_queue <command> - queue NppExec's command to be executed
+ *        npe_sendmsgbuflen <max_len> - set npp/sci_sendmsg's buffer length
  *        nppexec: - prefix for NppExec's commands (e.g. "nppexec:npp_console off")
  *        nppexec:: - always executes a command in a collateral (parallel) script
  *        (*) these commands work with a partial file path/name also
@@ -179,9 +180,10 @@
  v0.6 RC2
  --------
  + new environment variables: $(CLIPBOARD_TEXT), $(NPP_HWND), $(SCI_HWND)
- + new commands: clip_settext, messagebox, exit
+ + new commands: clip_settext, messagebox, exit, npe_sendmsgbuflen
  + set <var> ~ strlensci <string>
  * internal improvements
+ + the NppExec Manual has been updated
 
 
  v0.6 RC1 - May 2018
@@ -288,20 +290,12 @@
  - update the NppExec Manual (currently it's incomplete, see below)
 
  - NppExec Manual - add info about opening files ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/ )
-   and testing the highlight masks (via echo + NPE_DEBUG 1);
    - add info about @exit_cmd ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/da49de3c/
                                 https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/
                               )
-   - add info about Python interactive ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/ )
    - add info about NppExec Console colours ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/ )
-   - add info about collateral scripts/commands (e.g. "nppexec:cmd" while a child process is running)
-   - add info about the "nppexec:" prefix (with examples: NppExec's commands, python + cmd)
-   - add info about enabling the log files (from the NppExec_TechInfo.txt + more details)
    - other interesting info:
-     https://sourceforge.net/p/npp-plugins/discussion/672146/thread/d6605f76/
-     https://sourceforge.net/p/npp-plugins/discussion/672146/thread/19ced17f/
      https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/
-     https://sourceforge.net/p/npp-plugins/discussion/672146/thread/98d3ee49/
      https://github.com/d0vgan/nppexec/issues/4
      https://notepad-plus-plus.org/community/topic/15804/macro-delete-lines-that-contains-text-in-clipboard
    - FAQ section?

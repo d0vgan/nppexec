@@ -95,6 +95,7 @@ class CScriptEngine : public IScriptEngine
             CMDTYPE_CLIPSETTEXT,
             CMDTYPE_MESSAGEBOX,
             CMDTYPE_EXIT,
+            CMDTYPE_NPESENDMSGBUFLEN,
 
             CMDTYPE_TOTAL_COUNT
         };
@@ -168,6 +169,7 @@ class CScriptEngine : public IScriptEngine
         eCmdResult DoNpeDebugLog(const tstr& params);
         eCmdResult DoNpeNoEmptyVars(const tstr& params);
         eCmdResult DoNpeQueue(const tstr& params);
+        eCmdResult DoNpeSendMsgBufLen(const tstr& params);
         eCmdResult DoNppClose(const tstr& params);
         eCmdResult DoNppConsole(const tstr& params);
         eCmdResult DoNppExec(const tstr& params);
@@ -393,6 +395,14 @@ class CScriptEngine : public IScriptEngine
             static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPEQUEUE; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNpeQueue(params); }
+        };
+
+        struct DoNpeSendMsgBufLenCommand
+        {
+            static const TCHAR* const Name() { return _T("NPE_SENDMSGBUFLEN"); }
+            static const TCHAR* const AltName() { return nullptr; }
+            static eCmdType           Type() { return CMDTYPE_NPESENDMSGBUFLEN; }
+            static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNpeSendMsgBufLen(params); }
         };
 
         struct DoNppCloseCommand
@@ -706,6 +716,7 @@ class CScriptEngine : public IScriptEngine
                     registerCommand<DoNpeDebugLogCommand>();
                     registerCommand<DoNpeNoEmptyVarsCommand>();
                     registerCommand<DoNpeQueueCommand>();
+                    registerCommand<DoNpeSendMsgBufLenCommand>();
                     registerCommand<DoNppCloseCommand>();
                     registerCommand<DoNppConsoleCommand>();
                     registerCommand<DoNppExecCommand>();

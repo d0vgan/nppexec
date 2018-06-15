@@ -1149,6 +1149,8 @@ static FParserWrapper g_fp;
  *   - enable/disable replacement of empty vars
  * npe_queue <command>
  *   - queue NppExec's command to be executed
+ * npe_sendmsgbuflen <max_len>
+ *   - set npp_sendmsg/sci_sendmsg's buffer length
  *
  * Internal Macros (environment variables):
  * ----------------------------------------
@@ -4236,6 +4238,60 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeQueue(const tstr& params)
     }
 
     return CMDRESULT_SUCCEEDED;
+}
+
+CScriptEngine::eCmdResult CScriptEngine::DoNpeSendMsgBufLen(const tstr& params)
+{
+    reportCmdAndParams( DoNpeSendMsgBufLenCommand::Name(), params, fMessageToConsole );
+
+    eCmdResult nCmdResult = CMDRESULT_INVALIDPARAM;
+    int nBufLen = -1;
+    TCHAR szMsg[64];
+
+    if ( params.IsEmpty() )
+    {
+        nBufLen = m_pNppExec->GetOptions().GetInt(OPTI_SENDMSG_MAXBUFLEN);
+        nCmdResult = CMDRESULT_SUCCEEDED;
+    }
+    else
+    {
+        if ( !c_base::_tis_dec_value(params.c_str()) )
+        {
+            ScriptError( ET_REPORT, _T("- must be an integer value") );
+        }
+        else
+        {
+            nBufLen = c_base::_tstr2int(params.c_str());
+            if ( nBufLen < 0 )
+            {
+                ScriptError( ET_REPORT, _T("- must be a non-negative integer value") );
+            }
+            else if ( nBufLen == 0 )
+            {
+                ScriptError( ET_REPORT, _T("- must be a non-zero integer value") );
+            }
+            else
+            {
+                if ( nBufLen < 0x10000 )
+                {
+                    nBufLen = 0x10000;
+    
+                    Runtime::GetLogger().AddEx( _T("; BufLen adjusted to %d"), nBufLen );
+                }
+
+                m_pNppExec->GetOptions().SetInt(OPTI_SENDMSG_MAXBUFLEN, nBufLen);
+                nCmdResult = CMDRESULT_SUCCEEDED;
+            }
+        }
+    }
+
+    if ( nCmdResult == CMDRESULT_SUCCEEDED )
+    {
+        wsprintf(szMsg, _T("SendMsgBufLen = %d"), nBufLen);
+        m_pNppExec->GetConsole().PrintMessage(szMsg, false);
+    }
+
+    return nCmdResult;
 }
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppClose(const tstr& params)
