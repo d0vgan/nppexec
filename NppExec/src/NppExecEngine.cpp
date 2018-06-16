@@ -4244,49 +4244,42 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeSendMsgBufLen(const tstr& params)
 {
     reportCmdAndParams( DoNpeSendMsgBufLenCommand::Name(), params, fMessageToConsole );
 
-    eCmdResult nCmdResult = CMDRESULT_INVALIDPARAM;
-    int nBufLen = -1;
-    TCHAR szMsg[64];
+    eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
+    int nBufLen = 0;
 
     if ( params.IsEmpty() )
     {
         nBufLen = m_pNppExec->GetOptions().GetInt(OPTI_SENDMSG_MAXBUFLEN);
-        nCmdResult = CMDRESULT_SUCCEEDED;
     }
     else
     {
-        if ( !c_base::_tis_dec_value(params.c_str()) )
+        nBufLen = c_base::_tstr2int(params.c_str());
+        if ( nBufLen > 0 )
         {
-            ScriptError( ET_REPORT, _T("- must be an integer value") );
-        }
-        else
-        {
-            nBufLen = c_base::_tstr2int(params.c_str());
-            if ( nBufLen < 0 )
+            if ( nBufLen < 0x10000 )
             {
-                ScriptError( ET_REPORT, _T("- must be a non-negative integer value") );
-            }
-            else if ( nBufLen == 0 )
-            {
-                ScriptError( ET_REPORT, _T("- must be a non-zero integer value") );
-            }
-            else
-            {
-                if ( nBufLen < 0x10000 )
-                {
-                    nBufLen = 0x10000;
-    
-                    Runtime::GetLogger().AddEx( _T("; BufLen adjusted to %d"), nBufLen );
-                }
+                nBufLen = 0x10000;
 
-                m_pNppExec->GetOptions().SetInt(OPTI_SENDMSG_MAXBUFLEN, nBufLen);
-                nCmdResult = CMDRESULT_SUCCEEDED;
+                Runtime::GetLogger().AddEx( _T("; BufLen adjusted to %d"), nBufLen );
             }
+
+            m_pNppExec->GetOptions().SetInt(OPTI_SENDMSG_MAXBUFLEN, nBufLen);
+        }
+        else if ( nBufLen == 0 )
+        {
+            ScriptError( ET_REPORT, _T("- must be a non-zero integer value") );
+            nCmdResult = CMDRESULT_INVALIDPARAM;
+        }
+        else if ( nBufLen < 0 )
+        {
+            ScriptError( ET_REPORT, _T("- must be a non-negative integer value") );
+            nCmdResult = CMDRESULT_INVALIDPARAM;
         }
     }
 
     if ( nCmdResult == CMDRESULT_SUCCEEDED )
     {
+        TCHAR szMsg[64];
         wsprintf(szMsg, _T("SendMsgBufLen = %d"), nBufLen);
         m_pNppExec->GetConsole().PrintMessage(szMsg, false);
     }

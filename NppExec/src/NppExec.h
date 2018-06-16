@@ -20,6 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.6 RC2 - June 2018
+ --------------------
+ + new environment variables: $(CLIPBOARD_TEXT), $(NPP_HWND), $(SCI_HWND)
+ + new commands: clip_settext, messagebox, exit, npe_sendmsgbuflen
+ + set <var> ~ strlensci <string>
+ * internal improvements
+ + the NppExec Manual has been updated
+
+
  v0.6 RC1 - May 2018
  -------------------
  ! NppExec's help files were moved from "doc\*.*" to "doc\NppExec\*.*"

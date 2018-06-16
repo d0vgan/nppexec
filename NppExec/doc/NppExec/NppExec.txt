@@ -177,8 +177,8 @@
  *  HISTORY  *
  *************
 
- v0.6 RC2
- --------
+ v0.6 RC2 - June 2018
+ --------------------
  + new environment variables: $(CLIPBOARD_TEXT), $(NPP_HWND), $(SCI_HWND)
  + new commands: clip_settext, messagebox, exit, npe_sendmsgbuflen
  + set <var> ~ strlensci <string>
