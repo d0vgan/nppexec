@@ -1,0 +1,89 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Internet Assistant for Word Version 3.0">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.8.1. Logging</title>
+</HEAD>
+<BODY>
+<h3>4.8.1. Logging</h3>
+<p>According to &quot;doc\NppExec\NppExec_TechInfo.txt&quot;, NppExec's logging can be enabled by specifying a 'LogsDir' parameter under the [Options] section of the &quot;NppExec.ini&quot;.</p>
+<p>The full path to the &quot;NppExec.ini&quot; configuration file can be obtained via</p>
+<blockquote>
+  <pre>echo $(PLUGINS_CONFIG_DIR)</pre>
+</blockquote>
+<p>or even</p>
+<blockquote>
+  <pre>npp_open $(PLUGINS_CONFIG_DIR)\NppExec.ini</pre>
+</blockquote>
+<p>To enable the logging, just add something similar to</p>
+<blockquote>
+  <pre>LogsDir=&quot;NppExecLogs&quot;</pre>
+</blockquote>
+<p>under the [Options] section of the &quot;NppExec.ini&quot;.</p>
+<p>Once it's done, restart Notepad++ and go to the folder &quot;%TEMP%\NppExecLogs&quot;. It will contain a subfolder &quot;NppExec&quot; and a subfolder with the current date under it. You'll find the NppExec's log files there.</p>
+<p>Here is a typical beginning of NppExec's log file:</p>
+<blockquote>
+  <pre>22:00:17.618  7388  Log start &gt;&gt;
+22:00:17.618  7388  ; CNppExec::ReadOptions - start
+22:00:17.619  7388  ; CNppExec::ReadOptions - end
+22:00:17.619  7388  ; CNppExecCommandExecutor - started
+22:00:17.699  7388  ; NPPN_READY - start</pre>
+</blockquote>
+<p>The first column is the time in the format of hours:minutes:seconds.milliseconds. 
+The second column is the thread identifier (NppExec uses different threads to perform different activities, such as processing GUI commands, running collateral scripts, etc).</p>
+<p>Here is a typical ending of NppExec's log file:</p>
+<blockquote>
+  <pre>22:01:26.454  7388  ; NPPN_SHUTDOWN - end
+22:01:26.465  7388  ; CNppExecCommandExecutor: waiting for the ExecuteThreadDoneEvent...
+22:01:26.465  7388  ; CNppExecCommandExecutor - stopped
+22:01:26.467  7388  Log exit.</pre>
+</blockquote>
+<p>The absence of &quot;Log exit.&quot; at the end of NppExec's log file (assuming Notepad++ had exited) would mean that either NppExec itself or Notepad++ in whole hung or crashed. 
+Such crash or hang could be caused by some other Notepad++'s plugin or, in more rare cases, by NppExec or Notepad++ itself.
+If it was NppExec's fault, the last line of the log file at least shows the last successful activity before the hang or crash.</p>
+<p>Note: NppExec's logger internally calls fflush() after each logged line. It may look excessive, but in case of a hang or a crash it helps to ensure that the log file does contain everything that could have been logged.
+So it would definitely help with the investigation.</p>
+<p>In general, NppExec's logging is a great help when something goes wrong or does not go as it was expected.
+That is why there is a special command NPE_DEBUGLOG that enables NppExec's &quot;logging&quot; directly into NppExec's Console window.
+This command does not create an output log file (unless the 'LogsDir' parameter is specified in the &quot;NppExec.ini&quot;) - instead it prints detailed information about each NppExec's command activity to NppExec's Console.
+This information is quite similar to what is (or would be) written to NppExec's log file, though NppExec's log file usually contains a little bit more information.</p>
+<p>To enable this &quot;debug logging&quot;, use</p>
+<blockquote>
+  <pre>npe_debuglog on</pre>
+</blockquote>
+<p>or just</p>
+<blockquote>
+  <pre>npe_debug 1</pre>
+</blockquote>
+<p>In this mode, NppExec also shows additional information when NppExec's hot-key is pressed and also when a line in NppExec's Console is double-clicked.
+The latter allows to &quot;debug&quot; the Console Highlight Filters - as it shows the matched filter (if any) for the double-clicked line.</p>
+<p>Example:</p>
+<ol>
+  <li>in Plugins -&gt; NppExec -&gt; Console Output Filters, specify e.g. &quot;*error* : %FILE%&quot; as one of the HighLight masks, check it to enable it, and press OK;</li>
+  <li>type &quot;echo Some error : Some file name&quot; in NppExec's Console and press Enter;</li>
+  <li>type &quot;npe_debug 1&quot; in NppExec's Console and press Enter;</li>
+  <li>double-click the previously printed line &quot;Some error : Some file name&quot;.</li>
+</ol>
+<p>As the result, Notepad++ says that the file &quot;Some file name&quot; does not exist and proposes to create it. 
+Obviously you don't need to create this file as it was just a test :) 
+And here is what NppExec's Console shows:</p>
+<blockquote>
+  <pre>; Console's line double-clicked
+; WarningAnalyzer info
+; {
+;    Input line: "Some error : Some file name"
+;    Match result: true
+;    Active filter: "*error* : %FILE%"
+;    * Parsed File Name: "Some file name"
+;    * Parsed Line Number: <none>
+;    * Parsed Char Position: <none>
+; }</pre>
+</blockquote>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>
