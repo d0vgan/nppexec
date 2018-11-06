@@ -8,7 +8,7 @@
 
 <BODY>
 <h3>4.7.3. Using Visual Studio's compiler (cl.exe)</h3>
-<p>If you want to run 'cl.exe' from NppExec, it requires some additional environment. Such environment can be set using a batch file or using NppExec's command ENV_SET [4.2].</p>
+<p>If you want to run 'cl.exe' from NppExec, it requires some additional environment. Such environment can be set using a batch file or using NppExec's command ENV_SET <a href="4.2.html">[4.2]</a>.</p>
 <p>1. Using a batch file</p>
 <p>To use a batch file, create a file 'cl.cmd' with similar text: </p>
 
@@ -63,10 +63,10 @@ ENV_SET LIB = $(LIB_0)</pre>
 <p>Don't forget that ENV_SET does not
     understand
 such form of existing environment variables as &quot;%PATH%&quot; because NppExec does not accept such declaration. &quot;$(SYS.PATH)&quot; should be used instead of &quot;%PATH%&quot;.</p>
-<p>In general, it's not a good idea to set and then restore the environment every time it is needed by some tool. Instead, you can set all the required environment in NppExec's start-up script [4.2]. Such approach would allow you to use any of your tools without further specifying of full paths or additional environment variables.</p>
+<p>In general, it's not a good idea to set and then restore the environment every time it is needed by some tool. Instead, you can set all the required environment in NppExec's start-up script <a href="4.2.html">[4.2]</a>. Such approach would allow you to use any of your tools without further specifying of full paths or additional environment variables.</p>
 <p>3. Using ENV_SET, VS 10 + clang</p>
 <p><em>[The text below was originally posted by Suman Kar in NppExec's forum.]</em></p>
-<p>I have spent a good couple of hours getting this to work. Finally, I was able to coax NppExec, clang and Visual Studio to work together and let me compile my C snippets. The following script (along with &quot;compile_or_run&quot; described in the documentation [4.7.4]) worked for me:</p>
+<p>I have spent a good couple of hours getting this to work. Finally, I was able to coax NppExec, clang and Visual Studio to work together and let me compile my C snippets. The following script (along with &quot;compile_or_run&quot; described in the documentation <a href="4.7.4.html">[4.7.4]</a>) worked for me:</p>
 <blockquote>
 <pre>// run@.cpp.txt
 

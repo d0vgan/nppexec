@@ -8,7 +8,7 @@
 <BODY>
 <h3>4.0. Introduction to compiling/interpreting/etc.</h3>
 <p>As you are starting to read about compiling/interpreting, you should know that programmers usually count from 0 instead of 1 -- that's why the number of this section is 4.0 instead of 4.1 :) But let's proceed. </p>
-<p>So, you want to compile or run something using NppExec. Great, that's the purpose of this plugin. But, before you start to do it, you  must understand the principles of NppExec. Let's refer to the section [1.3] of this manual: </p>
+<p>So, you want to compile or run something using NppExec. Great, that's the purpose of this plugin. But, before you start to do it, you  must understand the principles of NppExec. Let's refer to the section <a href="1.3.html">[1.3]</a> of this manual: </p>
 <blockquote>
   <pre>NppExec is not a compiler. NppExec allows you to use external tools 
 and compilers to process/compile your current file, but it has no 
@@ -25,7 +25,7 @@ ability to do it by itself. No magic here :)</pre>
 <p>OK, but you may ask: why, for example, when I'm double-clicking my GhostScript file (or NSIS file, or Python file, or JavaScript file, whatever) in Windows Explorer, it becomes to be executed - but it does not happen in NppExec? The system seems to know how to run the file, right? - so why isn't it executed from within NppExec? </p>
 <p>The answer is simple: double-clicking a file in Windows Explorer is not the same as trying to run this file directly. Let me explain: when you double-click a file, Windows Explorer tries to run it using the system file associations. For example, when you double-click a .doc or .docx file, Windows Explorer detects that this file is associated with Microsoft Office - and asks Microsoft Office to open this file. In the same way, if Python files are associated with some Python IDE, Windows Explorer will try to run or open these file using Python IDE. </p>
 <p>On the other hand, when you want NppExec to run a file, it tells the system: run this file as if it can be executed by itself (without any associated program). That's the difference. The system file associations are not used in this case. </p>
-<p>But NppExec also has the ability to run a file using the system file associations. I'm talking about &quot;NPP_RUN &lt;file&gt;&quot;. In this case NppExec will tell the system: run this file using the system file associations. It will have the same effect as double-clicking in Windows Explorer. The very same effect - so you will not have any output in NppExec's Console because the file will not be executed inside the Console in this case. Refer to the section [3.3] for more details. </p>
+<p>But NppExec also has the ability to run a file using the system file associations. I'm talking about &quot;NPP_RUN &lt;file&gt;&quot;. In this case NppExec will tell the system: run this file using the system file associations. It will have the same effect as double-clicking in Windows Explorer. The very same effect - so you will not have any output in NppExec's Console because the file will not be executed inside the Console in this case. Refer to the section <a href="3.3.html">[3.3]</a> for more details. </p>
 <blockquote>
   <pre> </pre>
 </blockquote>
@@ -45,8 +45,8 @@ ability to do it by itself. No magic here :)</pre>
 </blockquote>
 <p>Phew! It was a long way so far, isn't it? ;) But let's proceed. </p>
 <p>Now you already have (or at least I hope so) a general vision regarding what's needed to interpret/compile/run your source file. </p>
-<p>Let's take into account one more thing: NppExec is NOT cmd.exe. NppExec allows you to run something and see the console output, but it is NOT a system's command interpreter (cmd.exe) itself and DOES NOT invoke cmd.exe if you did not call it explicitly. Thus you may encounter different behaviour of NppExec's Console and the system's console (cmd.exe). Refer to the section [1.3] for more details. </p>
-<p>Anyway, you can &quot;ask&quot; cmd.exe to do something for you by calling it from NppExec explicitly. Refer to the section [4.4] for more details. </p>
+<p>Let's take into account one more thing: NppExec is NOT cmd.exe. NppExec allows you to run something and see the console output, but it is NOT a system's command interpreter (cmd.exe) itself and DOES NOT invoke cmd.exe if you did not call it explicitly. Thus you may encounter different behaviour of NppExec's Console and the system's console (cmd.exe). Refer to the section <a href="1.3.html">[1.3]</a> for more details. </p>
+<p>Anyway, you can &quot;ask&quot; cmd.exe to do something for you by calling it from NppExec explicitly. Refer to the section <a href="4.4.html">[4.4]</a> for more details. </p>
 <blockquote>
   <pre> </pre>
 </blockquote>
@@ -136,7 +136,7 @@ Hello!
   <pre> </pre>
 </blockquote>
 <p>Phew!.. Are you still here, with me? ;)</p>
-<p>What else to say?.. Not much, actually. Often it's better to write some NppExec's script [3.7] for running/compiling purposes, because a lot of actions (commands) may be required for this. You can see several examples under the sections [4.6] and [4.7].</p>
+<p>What else to say?.. Not much, actually. Often it's better to write some NppExec's script <a href="3.7.html">[3.7]</a> for running/compiling purposes, because a lot of actions (commands) may be required for this. You can see several examples under the sections <a href="4.6.1.html">[4.6]</a> and <a href="4.7.1.html">[4.7]</a>.</p>
 <p>And here is one more useful advice. Starting from NppExec v0.4.2, you can use run-time variables in your command aliases. For example, you can define the following alias:</p>
 <blockquote>
   <pre>npe_cmdalias g = &quot;C:\tools\GAWK\gawk.exe&quot; -f &quot;$(FULL_CURRENT_PATH)&quot;</pre>
