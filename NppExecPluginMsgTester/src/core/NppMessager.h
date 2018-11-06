@@ -2,8 +2,8 @@
 #define _npp_messager_h_
 //---------------------------------------------------------------------------
 #include "base.h"
-#include "npp_stuff/PluginInterface.h"
-#include "npp_stuff/menuCmdID.h"
+#include "npp_files/PluginInterface.h"
+#include "npp_files/menuCmdID.h"
 
 class CNppMessager
 {

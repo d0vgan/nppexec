@@ -313,14 +313,16 @@
     <ClInclude Include="src\DlgDoExec.h" />
     <ClInclude Include="src\DlgHelpAbout.h" />
     <ClInclude Include="src\DlgInputBox.h" />
-    <ClInclude Include="src\Docking.h" />
     <ClInclude Include="src\encodings\SysUniConv.h" />
     <ClInclude Include="src\fparser\extrasrc\fpaux.hh" />
     <ClInclude Include="src\fparser\extrasrc\fptypes.hh" />
     <ClInclude Include="src\fparser\fparser.hh" />
     <ClInclude Include="src\fparser\fpconfig.hh" />
-    <ClInclude Include="src\menuCmdID.h" />
-    <ClInclude Include="src\Notepad_plus_msgs.h" />
+    <ClInclude Include="src\npp_files\Docking.h" />
+    <ClInclude Include="src\npp_files\menuCmdID.h" />
+    <ClInclude Include="src\npp_files\Notepad_plus_msgs.h" />
+    <ClInclude Include="src\npp_files\PluginInterface.h" />
+    <ClInclude Include="src\npp_files\Scintilla.h" />
     <ClInclude Include="src\NppExec.h" />
     <ClInclude Include="src\NppExecCommandExecutor.h" />
     <ClInclude Include="src\NppExecEngine.h" />
@@ -328,9 +330,7 @@
     <ClInclude Include="src\NppScriptList.h" />
     <ClInclude Include="src\PluginCommunication\NppExecPluginInterface.h" />
     <ClInclude Include="src\PluginCommunication\nppexec_msgs.h" />
-    <ClInclude Include="src\PluginInterface.h" />
     <ClInclude Include="src\resource.h" />
-    <ClInclude Include="src\Scintilla.h" />
     <ClInclude Include="src\WarningAnalyzer.h" />
   </ItemGroup>
   <ItemGroup>

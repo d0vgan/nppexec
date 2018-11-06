@@ -2,7 +2,7 @@
 #define _npp_plugin_msg_sender_h_
 //---------------------------------------------------------------------------
 #include "base.h"
-#include "npp_stuff/PluginInterface.h"
+#include "npp_files/PluginInterface.h"
 #include <string>
 
 class CNppPluginMsgSender

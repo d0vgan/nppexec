@@ -191,7 +191,7 @@
     <ClInclude Include="src\DlgInputBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Docking.h">
+    <ClInclude Include="src\npp_files\Docking.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\c_base\HexStr.h">
@@ -206,10 +206,10 @@
     <ClInclude Include="src\c_base\max_int.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\menuCmdID.h">
+    <ClInclude Include="src\npp_files\menuCmdID.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Notepad_plus_msgs.h">
+    <ClInclude Include="src\npp_files\Notepad_plus_msgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\NppExec.h">
@@ -230,13 +230,13 @@
     <ClInclude Include="src\c_base\PackDataStr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\PluginInterface.h">
+    <ClInclude Include="src\npp_files\PluginInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Scintilla.h">
+    <ClInclude Include="src\npp_files\Scintilla.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\c_base\str2int.h">

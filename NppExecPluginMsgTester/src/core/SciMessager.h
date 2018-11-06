@@ -2,7 +2,7 @@
 #define _sci_messager_h_
 //---------------------------------------------------------------------------
 #include "base.h"
-#include "npp_stuff/Scintilla.h"
+#include "npp_files/Scintilla.h"
 
 class CSciMessager
 {

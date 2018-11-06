@@ -307,7 +307,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit26]
-FileName=src\Docking.h
+FileName=src\npp_files\Docking.h
 CompileCpp=1
 Folder=NppExec
 Compile=1
@@ -317,7 +317,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit27]
-FileName=src\Notepad_plus_msgs.h
+FileName=src\npp_files\Notepad_plus_msgs.h
 CompileCpp=1
 Folder=NppExec
 Compile=1
@@ -396,7 +396,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit35]
-FileName=src\PluginInterface.h
+FileName=src\npp_files\PluginInterface.h
 CompileCpp=1
 Folder=NppExec
 Compile=1
@@ -416,7 +416,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit37]
-FileName=src\Scintilla.h
+FileName=src\npp_files\Scintilla.h
 CompileCpp=1
 Folder=NppExec
 Compile=1
@@ -773,7 +773,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit70]
-FileName=src\menuCmdID.h
+FileName=src\npp_files\menuCmdID.h
 CompileCpp=1
 Folder=NppExec
 Compile=1

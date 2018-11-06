@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _npp_exec_plugin_interface_h_
 //---------------------------------------------------------------------------
 #include "../base.h"
-#include "../Notepad_plus_msgs.h"
+#include "../npp_files/Notepad_plus_msgs.h"
 #include "../NppExecHelpers.h"
 #include "nppexec_msgs.h"
 #include <map>

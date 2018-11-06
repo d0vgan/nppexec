@@ -209,9 +209,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "c_base/str_func.h"
 #include "c_base/int2str.h"
 
-#include "PluginInterface.h"  // docking feature
-#include "Docking.h"          // docking feature
-#include "menuCmdID.h"
+#include "npp_files/PluginInterface.h"  // docking feature
+#include "npp_files/Docking.h"          // docking feature
+#include "npp_files/menuCmdID.h"
 
 #ifndef __MINGW32__
   #include <HtmlHelp.h>

@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CSimpleLogger.h"
 #include "DirFileLister.h"
 #include "fparser/fparser.hh"
-#include "menuCmdID.h"
+#include "npp_files/menuCmdID.h"
 #include <stdio.h>
 #include <shellapi.h>
 #include <limits>

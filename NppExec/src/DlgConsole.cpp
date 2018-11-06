@@ -19,8 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DlgConsole.h"
 #include "NppExec.h"
 #include "NppExecEngine.h"
-#include "PluginInterface.h"  // docking feature
-#include "Docking.h"          // docking feature
+#include "npp_files/PluginInterface.h"  // docking feature
+#include "npp_files/Docking.h"          // docking feature
 #include "WarningAnalyzer.h"
 #include "CSimpleLogger.h"
 #include "DirFileLister.h"

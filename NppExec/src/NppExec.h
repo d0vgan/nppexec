@@ -495,7 +495,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "base.h"
 
 #include "NppExecCommandExecutor.h"
-#include "PluginInterface.h"
+#include "npp_files/PluginInterface.h"
 #include "CAnyWindow.h"
 #include "CAnyRichEdit.h"
 #include "cpp/CListT.h"
