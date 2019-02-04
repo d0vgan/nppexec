@@ -1412,6 +1412,11 @@ bool createDirectoryTree(const tstr& dir);
 bool createDirectoryTree(const TCHAR* dir);
 bool checkDirectoryExists(const tstr& dir);
 bool checkDirectoryExists(const TCHAR* dir);
+bool checkFileExists(const tstr& filename);
+bool checkFileExists(const TCHAR* filename);
+
+tstr getEnvironmentVariable(const TCHAR* szVarName);
+tstr getEnvironmentVariable(const tstr& sVarName);
 
 extern const TCHAR SCRIPTFILE_SAVED[];
 

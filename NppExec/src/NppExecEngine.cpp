@@ -2846,21 +2846,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
                     if ( itrGVar == g_GlobalEnvVars.end() )
                     {
                         // not in the Global Env Vars List; but maybe it's Global?
-                        DWORD nLen = GetEnvironmentVariable(varName.c_str(), NULL, 0);
-                        if ( nLen > 0 )
+                        tstr sValue = getEnvironmentVariable(varName);
+                        if ( !sValue.IsEmpty() )
                         {
-                            // is Global Env Var
-                            TCHAR* pStr = new TCHAR[nLen + 2];
-                            if ( pStr )
-                            {
-                                nLen = GetEnvironmentVariable(varName.c_str(), pStr, nLen + 1);
-                                if (nLen > 0)
-                                {
-                                    g_GlobalEnvVars[varName] = pStr;
-                                    itrGVar = g_GlobalEnvVars.find(varName);
-                                }
-                                delete [] pStr;
-                            }
+                            g_GlobalEnvVars[varName] = sValue;
+                            itrGVar = g_GlobalEnvVars.find(varName);
                         }
                         if ( itrGVar == g_GlobalEnvVars.end() )
                         {
@@ -2892,32 +2882,23 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
         NppExecHelpers::StrUpper(varName);
             
         bool  bSysVarOK = false;
-        DWORD nLen = GetEnvironmentVariable(varName.c_str(), NULL, 0);
-        if ( nLen > 0 )
+        tstr sValue = getEnvironmentVariable(varName);
+        if ( !sValue.IsEmpty() )
         {
-            TCHAR* pStr = new TCHAR[nLen + 2];
-            if ( pStr )
+            tstr S = _T("$(SYS.");
+            S += varName;
+            S += _T(") = ");
+            if ( sValue.length() > MAX_VAR_LENGTH2SHOW )
             {
-                nLen = GetEnvironmentVariable(varName.c_str(), pStr, nLen + 1);
-                if ( nLen > 0 )
-                {
-                    tstr S = _T("$(SYS.");
-                    S += varName;
-                    S += _T(") = ");
-                    if ( nLen > MAX_VAR_LENGTH2SHOW )
-                    {
-                        S.Append( pStr, MAX_VAR_LENGTH2SHOW - 5 );
-                        S += _T("(...)");
-                    }
-                    else
-                    {
-                        S += pStr;
-                    }
-                    m_pNppExec->GetConsole().PrintMessage( S.c_str(), isInternal );
-                    bSysVarOK = true;
-                }
-                delete [] pStr;
+                S.Append( sValue.c_str(), MAX_VAR_LENGTH2SHOW - 5 );
+                S += _T("(...)");
             }
+            else
+            {
+                S += sValue;
+            }
+            m_pNppExec->GetConsole().PrintMessage( S.c_str(), isInternal );
+            bSysVarOK = true;
         }
         if ( !bSysVarOK )
         {
@@ -6683,22 +6664,13 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       sub.Copy(Cmd.c_str() + i1, i2 - i1);
       if (sub.length() > 0)
       {
-        DWORD nLen = GetEnvironmentVariable(sub.c_str(), NULL, 0);
-        if (nLen > 0)
+        tstr sValue = getEnvironmentVariable(sub);
+        if (!sValue.IsEmpty())
         {
-          TCHAR* pStr = new TCHAR[nLen + 2];
-          if (pStr)
-          {
-            nLen = GetEnvironmentVariable(sub.c_str(), pStr, nLen + 1);
-            if (nLen > 0)
-            {
-              Cmd.Replace(pos, i2 - pos + 1, pStr, nLen);
-              S.Replace(pos, i2 - pos + 1, pStr, nLen);
-              pos += nLen;
-              bSysVarOK = true;
-            }
-            delete [] pStr;
-          }
+          Cmd.Replace(pos, i2 - pos + 1, sValue);
+          S.Replace(pos, i2 - pos + 1, sValue);
+          pos += sValue.length();
+          bSysVarOK = true;
         }
       }
       if (!bSysVarOK)

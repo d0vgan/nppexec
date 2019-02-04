@@ -186,6 +186,7 @@ public:
   int   Replace(const T* pSubStrOld, const T* pSubStrNew);
   int   Replace(int nPos, int nCharacters, const T* pSubStrNew, int nLength = -1);
           // nCharacters = -1 means all characters till '\0'
+  int   Replace(int nPos, int nCharacters, const CStrT& SubStrNew);
   int   RFind(const T ch, int nStartPos = -1) const;
   int   RFind(const T* pStr, int nStartPos = -1) const;
   int   RFind(const CStrT& Str, int nStartPos = -1) const;
@@ -787,6 +788,12 @@ template <class T> int CStrT<T>::Replace(int nPos, int nCharacters,
         }
     }
     return 0;
+}
+
+template <class T> int CStrT<T>::Replace(int nPos, int nCharacters, 
+  const CStrT& SubStrNew)
+{
+    return Replace(nPos, nCharacters, SubStrNew.c_str(), SubStrNew.length());
 }
 
 template <class T> int CStrT<T>::RFind(const T ch, int nStartPos ) const

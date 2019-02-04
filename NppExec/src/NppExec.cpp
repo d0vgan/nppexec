@@ -2730,6 +2730,96 @@ const TCHAR* CChildProcess::GetInstanceStr() const
     return m_strInstance.c_str();
 }
 
+void CChildProcess::ModifyCmdLineIfNoExtension(tstr& sCmdLine)
+{
+    CStrSplitT<TCHAR> args;
+    if ( args.SplitToArgs(sCmdLine, 2) == 0 )
+        return; // empty sCmdLine, nothing to do
+
+    const tstr sFileName = args.Arg(0);
+
+    tstr sExtensions = getEnvironmentVariable( _T("PATHEXT") );
+    if ( !sExtensions.IsEmpty() )
+        ::CharLower( sExtensions.c_str() );
+    else
+        sExtensions = _T(".com;.exe;.bat;.cmd");
+
+    CListT<tstr> exts;
+    if ( StrSplitAsArgs(sExtensions.c_str(), exts, _T(';')) == 0 )
+        return; // no extensions to check, nothing to do
+    
+    auto findMatchingExtension = [](const tstr& fileName, const CListT<tstr>& exts, const auto& Predicate)
+                            {
+                                for ( const CListItemT<tstr>* pExt = exts.GetFirst(); pExt != NULL; pExt = pExt->GetNext() )
+                                {
+                                    const tstr& ext = pExt->GetItem();
+                                    if ( Predicate(fileName, ext) )
+                                        return ext;
+                                }
+                                return tstr();
+                            };
+    
+    auto endsWithExt = [](const tstr& fileName, const tstr& ext)
+                            {
+                                return fileName.EndsWith(ext);
+                            };
+
+    auto fexistsWithExt = [](const tstr& fileName, const tstr& ext)
+                            {
+                                tstr fileNameExt = fileName;
+                                fileNameExt += ext;
+                                return checkFileExists(fileNameExt);
+                            };
+
+    tstr ext = findMatchingExtension(sFileName, exts, endsWithExt);
+    if ( !ext.IsEmpty() )
+        return; // the extension is specified explicitly
+
+    if ( isFullPath(sFileName) )
+    {
+        // full path specified - check the file extensions...
+        ext = findMatchingExtension(sFileName, exts, fexistsWithExt);
+    }
+    else
+    {
+        // no path specified - check the paths and file extensions...
+        tstr sPaths = getEnvironmentVariable( _T("PATH") );
+        CListT<tstr> paths;
+        if ( !sPaths.IsEmpty() )
+        {
+            StrSplitAsArgs(sPaths.c_str(), paths, _T(';'));
+        }
+
+        TCHAR szCurDir[FILEPATH_BUFSIZE];
+        szCurDir[0] = 0;
+        ::GetCurrentDirectory( FILEPATH_BUFSIZE - 1, szCurDir );
+        if ( szCurDir[0] != 0 )
+        {
+            paths.InsertFirst(szCurDir);
+        }
+
+        for ( const CListItemT<tstr>* pPath = paths.GetFirst(); pPath != NULL; pPath = pPath->GetNext() )
+        {
+            tstr sPathName = pPath->GetItem();
+            if ( !sPathName.EndsWith(_T('\\')) && !sPathName.EndsWith(_T('/')) )
+                sPathName += _T('\\');
+            sPathName += sFileName;
+            ext = findMatchingExtension(sPathName, exts, fexistsWithExt);
+            if ( !ext.IsEmpty() )
+                break;
+        }
+    }
+
+    if ( ext.IsEmpty() )
+        return; // no existing full path found - nothing to do
+
+    tstr sFileNameExt = sFileName;
+    sFileNameExt += ext;
+
+    int nPos = sCmdLine.Find(sFileName);
+    sCmdLine.Replace(nPos, sFileName.length(), sFileNameExt);
+}
+
 // cszCommandLine must be transformed by ModifyCommandLine(...) already
 bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
 {
@@ -2815,6 +2905,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     si.hStdError = m_hStdOutWritePipe;
 
     sCmdLine = cszCommandLine;
+    ModifyCmdLineIfNoExtension(sCmdLine);
 
     if ( ::CreateProcess(
             NULL,
@@ -5255,6 +5346,41 @@ bool checkDirectoryExists(const TCHAR* dir)
 {
   DWORD dwAttr = ::GetFileAttributes(dir);
   return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) != 0));
+}
+
+bool checkFileExists(const tstr& filename)
+{
+  return checkFileExists(filename.c_str());
+}
+
+bool checkFileExists(const TCHAR* filename)
+{
+  DWORD dwAttr = ::GetFileAttributes(filename);
+  return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == 0));
+}
+
+tstr getEnvironmentVariable(const TCHAR* szVarName)
+{
+    tstr sValue;
+    DWORD nLen = ::GetEnvironmentVariable(szVarName, NULL, 0);
+    if ( nLen > 0 )
+    {
+        if ( sValue.Reserve(nLen + 1) )
+        {
+            nLen = ::GetEnvironmentVariable(szVarName, sValue.c_str(), nLen + 1);
+            if ( nLen > 0 )
+            {
+                sValue.SetLengthValue(nLen);
+            }
+        }
+    }
+
+    return sValue;
+}
+
+tstr getEnvironmentVariable(const tstr& sVarName)
+{
+    return getEnvironmentVariable(sVarName.c_str());
 }
 
 //-------------------------------------------------------------------------

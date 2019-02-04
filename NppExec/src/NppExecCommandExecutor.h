@@ -83,6 +83,7 @@ class CChildProcess
 
     protected:
         static bool IsWindowsNT();
+        static void ModifyCmdLineIfNoExtension(tstr& sCmdLine);
 
         void  reset();
         bool  isBreaking() const;
