@@ -87,6 +87,7 @@ public:
   bool           DeleteFirst();
   bool           DeleteLast();
   CListItemT<T>* FindExact(const T& item, const CListItemT<T>* pStartItemPtr = NULL) const;
+  template<class Pred> CListItemT<T>* Find(Pred pred) const;
   int            GetCount() const  { return m_nCount; }
   CListItemT<T>* GetFirst() const  { return m_pFirstItem; }
   CListItemT<T>* GetLast() const  { return m_pLastItem; }
@@ -348,6 +349,16 @@ template <class T> CListItemT<T>* CListT<T>::FindExact(
             }
             return ( (CListItemT<T>*) pStartItemPtr );
         }
+    }
+    return NULL;
+}
+
+template <class T> template <class Pred> CListItemT<T>* CListT<T>::Find(Pred pred) const
+{
+    for ( CListItemT<T>* pItem = m_pFirstItem; pItem != NULL; pItem = pItem->GetNext() )
+    {
+        if ( pred(pItem->GetItem()) )
+            return pItem;
     }
     return NULL;
 }

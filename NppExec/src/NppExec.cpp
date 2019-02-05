@@ -2740,7 +2740,7 @@ void CChildProcess::ModifyCmdLineIfNoExtension(tstr& sCmdLine)
 
     tstr sExtensions = getEnvironmentVariable( _T("PATHEXT") );
     if ( !sExtensions.IsEmpty() )
-        ::CharLower( sExtensions.c_str() );
+        NppExecHelpers::StrLower(sExtensions);
     else
         sExtensions = _T(".com;.exe;.bat;.cmd");
 
@@ -2795,7 +2795,13 @@ void CChildProcess::ModifyCmdLineIfNoExtension(tstr& sCmdLine)
         ::GetCurrentDirectory( FILEPATH_BUFSIZE - 1, szCurDir );
         if ( szCurDir[0] != 0 )
         {
-            paths.InsertFirst(szCurDir);
+            const tstr sCurDir = szCurDir;
+            CListItemT<tstr>* pItem = paths.Find( [&sCurDir](const tstr& path) { return (NppExecHelpers::StrCmpNoCase(path, sCurDir) == 0); } );
+            if ( pItem )
+            {
+                paths.Delete(pItem);
+            }
+            paths.InsertFirst(sCurDir);
         }
 
         for ( const CListItemT<tstr>* pPath = paths.GetFirst(); pPath != NULL; pPath = pPath->GetNext() )

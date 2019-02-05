@@ -3234,10 +3234,7 @@ template<typename T> class OperandComparator
 
 template<> bool OperandComparator<tstr>::eq_i() const
 {
-    return ( ::CompareString(
-        LOCALE_USER_DEFAULT, NORM_IGNORECASE, 
-        m_t1.c_str(), m_t1.length(), 
-        m_t2.c_str(), m_t2.length() ) == CSTR_EQUAL );
+    return ( NppExecHelpers::StrCmpNoCase(m_t1, m_t2) == 0 );
 }
 
 class CondOperand

@@ -381,6 +381,11 @@ namespace NppExecHelpers
 
     void StrUnquote(tstr& S); // removes the starting and trailing '\"'
 
+    int StrCmpNoCase(const tstr& S1, const tstr& S2); // comparing case-insensitively
+    int StrCmpNoCase(const tstr& S1, const TCHAR* S2); // comparing case-insensitively
+    int StrCmpNoCase(const TCHAR* S1, const tstr& S2); // comparing case-insensitively
+    int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2); // comparing case-insensitively
+
     inline bool IsTabSpaceChar(char ch) { return ((ch == ' ') || (ch == '\t')); }
     inline bool IsTabSpaceChar(wchar_t ch) { return ((ch == L' ') || (ch == L'\t')); }
 

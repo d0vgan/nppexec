@@ -377,6 +377,17 @@ void CValue::clearData()
 
 //-------------------------------------------------------------------------
 
+namespace
+{
+    // Compares two strings case-insensitively.
+    // Returns 0 when equal; 1 when S1 > S2; -1 when S1 < S2.
+    inline int strCompareNoCase(const TCHAR* s1, int len1, const TCHAR* s2, int len2)
+    {
+        int ret = ::CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, s1, len1, s2, len2);
+        return (ret - CSTR_EQUAL);
+    }
+}
+
 namespace NppExecHelpers
 {
     bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread /* = NULL */)
@@ -506,6 +517,30 @@ namespace NppExecHelpers
             S.DeleteLastChar();
             S.DeleteFirstChar();
         }
+    }
+
+    int StrCmpNoCase(const tstr& S1, const tstr& S2)
+    {
+        return strCompareNoCase( S1.c_str(), S1.length(), 
+                                 S2.c_str(), S2.length() );
+    }
+
+    int StrCmpNoCase(const tstr& S1, const TCHAR* S2)
+    {
+        return strCompareNoCase( S1.c_str(), S1.length(), 
+                                 S2 ? S2 : _T(""), GetStrSafeLength(S2) );
+    }
+
+    int StrCmpNoCase(const TCHAR* S1, const tstr& S2)
+    {
+        return strCompareNoCase( S1 ? S1 : _T(""), GetStrSafeLength(S1), 
+                                 S2.c_str(), S2.length() );
+    }
+
+    int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2)
+    {
+        return strCompareNoCase( S1 ? S1 : _T(""), GetStrSafeLength(S1), 
+                                 S2 ? S2 : _T(""), GetStrSafeLength(S2) );
     }
 
     void StrDelLeadingTabSpaces(CStrT<char>& S)
