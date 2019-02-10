@@ -1,4 +1,404 @@
 #include "NppExecHelpers.h"
+#include <shlwapi.h>
+
+namespace
+{
+    // Compares two strings case-insensitively.
+    // Returns 0 when equal; 1 when S1 > S2; -1 when S1 < S2.
+    inline int strCompareNoCase(const TCHAR* s1, int len1, const TCHAR* s2, int len2)
+    {
+        int ret = ::CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, s1, len1, s2, len2);
+        return (ret - CSTR_EQUAL);
+    }
+
+    inline bool isPathSep(const TCHAR ch)
+    {
+        return (ch == _T('\\') || ch == _T('/'));
+    }
+
+    inline bool isNullOrPathSep(const TCHAR ch)
+    {
+        return (ch == 0 || ch == _T('\\') || ch == _T('/'));
+    }
+
+    inline int findPathSep(const tstr& path, int nStartPos = 0)
+    {
+        return path.FindOneOf(_T("\\/"), nStartPos);
+    }
+
+    inline int rfindPathSep(const tstr& path, int nStartPos = -1)
+    {
+        return path.RFindOneOf(_T("\\/"), nStartPos);
+    }
+
+    bool impl_createDir(const TCHAR* dir)
+    {
+        if ( !::CreateDirectory(dir, NULL) )
+        {
+            if ( ::GetLastError() != ERROR_ALREADY_EXISTS )
+                return false;
+        }
+        return true;
+    }
+
+    bool impl_createDirectoryTree(const tstr& dir)
+    {
+        tstr inter_dir = dir;
+        inter_dir.Replace( _T('/'), _T('\\') );
+        int n = inter_dir.Find( _T('\\'), 3 ); // skip "C:\"
+        while ( n >= 0 )
+        {
+            inter_dir[n] = 0;
+            if ( !impl_createDir(inter_dir.c_str()) )
+                return false;
+
+            inter_dir[n] = _T('\\');
+            n = inter_dir.Find( _T('\\'), n + 1 );
+        }
+        return impl_createDir(inter_dir.c_str());
+    }
+}
+
+namespace NppExecHelpers
+{
+    bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread /* = NULL */)
+    {
+        DWORD  dwThreadID;
+        HANDLE hThread;
+
+        hThread = ::CreateThread(
+            NULL,
+            0,
+            lpFunc,
+            lpParam,
+            CREATE_SUSPENDED,
+            &dwThreadID);
+
+        if ( hThread == NULL )
+            return false;
+
+        ::ResumeThread(hThread);
+        if ( !lphThread )
+        {
+            ::CloseHandle(hThread);
+        }
+        else
+        {
+            *lphThread = hThread;
+        }
+        return true;
+    }
+
+    tstr GetClipboardText(HWND hWndOwner )
+    {
+        tstr sText;
+
+        if ( ::OpenClipboard(hWndOwner) )
+        {
+          #ifdef UNICODE
+            const UINT uClipboardFormat = CF_UNICODETEXT;
+          #else
+            const UINT uClipboardFormat = CF_TEXT;
+          #endif
+            HANDLE hClipboardTextData = ::GetClipboardData(uClipboardFormat);
+            if ( hClipboardTextData )
+            {
+                LPTSTR pszText = (LPTSTR) ::GlobalLock(hClipboardTextData);
+                if ( pszText )
+                {
+                    sText = pszText;
+                    ::GlobalUnlock(pszText);
+                }
+            }
+            ::CloseClipboard();
+        }
+
+        return sText;
+    }
+
+    bool SetClipboardText(const tstr& text, HWND hWndOwner )
+    {
+        bool bSucceeded = false;
+
+        if ( ::OpenClipboard(hWndOwner) )
+        {
+            HGLOBAL hTextMem = ::GlobalAlloc( GMEM_MOVEABLE, (text.length() + 1)*sizeof(TCHAR) );
+            if ( hTextMem != NULL )
+            {
+                LPTSTR pszText = (LPTSTR) ::GlobalLock(hTextMem);
+                if ( pszText != NULL )
+                {
+                    lstrcpy(pszText, text.c_str());
+                    ::GlobalUnlock(hTextMem);
+
+                    ::EmptyClipboard();
+
+                  #ifdef UNICODE
+                    const UINT uClipboardFormat = CF_UNICODETEXT;
+                  #else
+                    const UINT uClipboardFormat = CF_TEXT;
+                  #endif
+                    if ( ::SetClipboardData(uClipboardFormat, hTextMem) != NULL )
+                        bSucceeded = true;
+                }
+            }
+            ::CloseClipboard();
+        }
+
+        return bSucceeded;
+    }
+
+    tstr GetEnvironmentVariable(const TCHAR* szVarName)
+    {
+        tstr sValue;
+        DWORD nLen = ::GetEnvironmentVariable(szVarName, NULL, 0);
+        if ( nLen > 0 )
+        {
+            if ( sValue.Reserve(nLen + 1) )
+            {
+                nLen = ::GetEnvironmentVariable(szVarName, sValue.c_str(), nLen + 1);
+                if ( nLen > 0 )
+                {
+                    sValue.SetLengthValue(nLen);
+                }
+            }
+        }
+
+        return sValue;
+    }
+
+    tstr GetEnvironmentVariable(const tstr& sVarName)
+    {
+        return GetEnvironmentVariable(sVarName.c_str());
+    }
+
+    bool IsFullPath(const tstr& path)
+    {
+        return IsFullPath( path.c_str() );
+    }
+
+    bool IsFullPath(const TCHAR* path)
+    {
+        if ( path[0] )  // not empty
+        {
+            switch ( path[1] )
+            {
+            case _T(':') :
+                return true;                  // "X:..."
+            case _T('\\') :
+            case _T('/') :
+                return (path[0] == path[1]);  // "\\..." or "//..."
+            }
+        }
+        return false;
+    }
+
+    tstr GetFileNamePart(const TCHAR* path, eFileNamePart whichPart)
+    {
+        const TCHAR* p1;
+        const TCHAR* p2;
+        int n;
+
+        switch ( whichPart )
+        {
+            case fnpDrive:   // "C" in "C:\User\Docs\name.ext"
+                n = ::PathGetDriveNumber(path);
+                if ( n >= 0 )
+                {
+                    return tstr(_T('A') + n);
+                }
+                break;
+
+            case fnpPath:    // "C:\User\Docs\" in "C:\User\Docs\name.ext"
+                p1 = path;
+                p2 = ::PathFindFileName(p1);
+                if ( p2 > p1 )
+                {
+                    return tstr(p1, static_cast<int>(p2 - p1));
+                }
+                else if ( ::PathIsRoot(p1) || ::PathIsDirectory(p1) )
+                {
+                    return tstr(p1);
+                }
+                break;
+
+            case fnpNameExt: // "name.ext" in "C:\User\Docs\name.ext"
+                p1 = ::PathFindFileName(path);
+                if ( !::PathIsRoot(p1) && !::PathIsDirectory(p1) )
+                {
+                    return tstr(p1);
+                }
+                break;
+
+            case fnpName:    // "name" in "C:\User\Docs\name.ext"
+                p1 = ::PathFindFileName(path);
+                if ( !::PathIsRoot(p1) && !::PathIsDirectory(p1) )
+                {
+                    p2 = ::PathFindExtension(path);
+                    return ((p2 > p1) ? tstr(p1, static_cast<int>(p2 - p1)) : tstr(p1));
+                }
+                break;
+
+            case fnpExt:     // ".ext" in "C:\User\Docs\name.ext"
+                return tstr(::PathFindExtension(path));
+        }
+
+        return tstr(); // empty
+    }
+
+    tstr GetFileNamePart(const tstr& path, eFileNamePart whichPart)
+    {
+        return GetFileNamePart(path.c_str(), whichPart);
+    }
+
+    bool CreateDirectoryTree(const tstr& dir)
+    {
+        return impl_createDirectoryTree(dir);
+    }
+
+    bool CreateDirectoryTree(const TCHAR* dir)
+    {
+        return impl_createDirectoryTree(dir);
+    }
+
+    bool CheckDirectoryExists(const tstr& dir)
+    {
+        return CheckDirectoryExists(dir.c_str());
+    }
+
+    bool CheckDirectoryExists(const TCHAR* dir)
+    {
+        DWORD dwAttr = ::GetFileAttributes(dir);
+        return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) != 0));
+    }
+
+    bool CheckFileExists(const tstr& filename)
+    {
+        return CheckFileExists(filename.c_str());
+    }
+
+    bool CheckFileExists(const TCHAR* filename)
+    {
+        DWORD dwAttr = ::GetFileAttributes(filename);
+        return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == 0));
+    }
+
+    tstr GetInstanceAsString(const void* pInstance)
+    {
+        tstr S;
+        SYSTEMTIME t;
+
+        ::GetLocalTime(&t);
+        S.Format(60, _T("0x%X @ %02d:%02d:%02d.%03d"), pInstance, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds);
+        return S;
+    }
+
+    void StrLower(tstr& S)
+    {
+        if ( S.length() != 0 )
+            ::CharLower( S.c_str() );
+    }
+
+    void StrLower(TCHAR* S)
+    {
+        ::CharLower( S );
+    }
+
+    void StrUpper(tstr& S)
+    {
+        if ( S.length() != 0 )
+            ::CharUpper( S.c_str() );
+    }
+
+    void StrUpper(TCHAR* S)
+    {
+        ::CharUpper( S );
+    }
+
+    void StrQuote(tstr& S)
+    {
+        if ( (S.GetFirstChar() != _T('\"')) || (S.GetLastChar() != _T('\"')) )
+        {
+            S.Insert( 0, _T('\"') );
+            S.Append( _T('\"') );
+        }
+    }
+
+    void StrUnquote(tstr& S)
+    {
+        if ( (S.GetFirstChar() == _T('\"')) && (S.GetLastChar() == _T('\"')) )
+        {
+            S.DeleteLastChar();
+            S.DeleteFirstChar();
+        }
+    }
+
+    int StrCmpNoCase(const tstr& S1, const tstr& S2)
+    {
+        return strCompareNoCase( S1.c_str(), S1.length(), 
+                                 S2.c_str(), S2.length() );
+    }
+
+    int StrCmpNoCase(const tstr& S1, const TCHAR* S2)
+    {
+        return strCompareNoCase( S1.c_str(), S1.length(), 
+                                 S2 ? S2 : _T(""), GetStrSafeLength(S2) );
+    }
+
+    int StrCmpNoCase(const TCHAR* S1, const tstr& S2)
+    {
+        return strCompareNoCase( S1 ? S1 : _T(""), GetStrSafeLength(S1), 
+                                 S2.c_str(), S2.length() );
+    }
+
+    int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2)
+    {
+        return strCompareNoCase( S1 ? S1 : _T(""), GetStrSafeLength(S1), 
+                                 S2 ? S2 : _T(""), GetStrSafeLength(S2) );
+    }
+
+    void StrDelLeadingTabSpaces(CStrT<char>& S)
+    {
+        int i = 0;
+        while ( IsTabSpaceChar(S.GetAt(i)) )
+        {
+            ++i;
+        }
+        S.Delete(0, i);
+    }
+
+    void StrDelLeadingTabSpaces(CStrT<wchar_t>& S)
+    {
+        int i = 0;
+        while ( IsTabSpaceChar(S.GetAt(i)) )
+        {
+            ++i;
+        }
+        S.Delete(0, i);
+    }
+
+    void StrDelTrailingTabSpaces(CStrT<char>& S)
+    {
+        int i = S.length() - 1;
+        while ( IsTabSpaceChar(S.GetAt(i)) )
+        {
+            --i;
+        }
+        S.Delete(i + 1, -1);
+    }
+
+    void StrDelTrailingTabSpaces(CStrT<wchar_t>& S)
+    {
+        int i = S.length() - 1;
+        while ( IsTabSpaceChar(S.GetAt(i)) )
+        {
+            --i;
+        }
+        S.Delete(i + 1, -1);
+    }
+}
+
+//-------------------------------------------------------------------------
 
 /*
 CValue::CValue() : m_type(vtNone)
@@ -377,211 +777,3 @@ void CValue::clearData()
 
 //-------------------------------------------------------------------------
 
-namespace
-{
-    // Compares two strings case-insensitively.
-    // Returns 0 when equal; 1 when S1 > S2; -1 when S1 < S2.
-    inline int strCompareNoCase(const TCHAR* s1, int len1, const TCHAR* s2, int len2)
-    {
-        int ret = ::CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, s1, len1, s2, len2);
-        return (ret - CSTR_EQUAL);
-    }
-}
-
-namespace NppExecHelpers
-{
-    bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread /* = NULL */)
-    {
-        DWORD  dwThreadID;
-        HANDLE hThread;
-
-        hThread = ::CreateThread(
-            NULL,
-            0,
-            lpFunc,
-            lpParam,
-            CREATE_SUSPENDED,
-            &dwThreadID);
-
-        if ( hThread == NULL )
-            return false;
-
-        ::ResumeThread(hThread);
-        if ( !lphThread )
-        {
-            ::CloseHandle(hThread);
-        }
-        else
-        {
-            *lphThread = hThread;
-        }
-        return true;
-    }
-
-    bool GetClipboardText(std::function<void(LPCTSTR pszClipboardText)> handler, HWND hWndOwner )
-    {
-        bool bSucceeded = false;
-
-        if ( ::OpenClipboard(hWndOwner) )
-        {
-          #ifdef UNICODE
-            const UINT uClipboardFormat = CF_UNICODETEXT;
-          #else
-            const UINT uClipboardFormat = CF_TEXT;
-          #endif
-            HANDLE hClipboardTextData = ::GetClipboardData(uClipboardFormat);
-            if ( hClipboardTextData )
-            {
-                LPTSTR pszText = (LPTSTR) ::GlobalLock(hClipboardTextData);
-                if ( pszText )
-                {
-                    handler(pszText);
-                    ::GlobalUnlock(pszText);
-                    bSucceeded = true;
-                }
-            }
-            ::CloseClipboard();
-        }
-
-        return bSucceeded;
-    }
-
-    bool SetClipboardText(const tstr& text, HWND hWndOwner )
-    {
-        bool bSucceeded = false;
-
-        if ( ::OpenClipboard(hWndOwner) )
-        {
-            HGLOBAL hTextMem = ::GlobalAlloc( GMEM_MOVEABLE, (text.length() + 1)*sizeof(TCHAR) );
-            if ( hTextMem != NULL )
-            {
-                LPTSTR pszText = (LPTSTR) ::GlobalLock(hTextMem);
-                if ( pszText != NULL )
-                {
-                    lstrcpy(pszText, text.c_str());
-                    ::GlobalUnlock(hTextMem);
-
-                    ::EmptyClipboard();
-
-                  #ifdef UNICODE
-                    const UINT uClipboardFormat = CF_UNICODETEXT;
-                  #else
-                    const UINT uClipboardFormat = CF_TEXT;
-                  #endif
-                    if ( ::SetClipboardData(uClipboardFormat, hTextMem) != NULL )
-                        bSucceeded = true;
-                }
-            }
-            ::CloseClipboard();
-        }
-
-        return bSucceeded;
-    }
-
-    tstr GetInstanceAsString(const void* pInstance)
-    {
-        tstr S;
-        SYSTEMTIME t;
-
-        ::GetLocalTime(&t);
-        S.Format(60, _T("0x%X @ %02d:%02d:%02d.%03d"), pInstance, t.wHour, t.wMinute, t.wSecond, t.wMilliseconds);
-        return S;
-    }
-
-    void StrLower(tstr& S)
-    {
-        if ( S.length() != 0 )
-            ::CharLower( S.c_str() );
-    }
-
-    void StrLower(TCHAR* S)
-    {
-        ::CharLower( S );
-    }
-
-    void StrUpper(tstr& S)
-    {
-        if ( S.length() != 0 )
-            ::CharUpper( S.c_str() );
-    }
-
-    void StrUpper(TCHAR* S)
-    {
-        ::CharUpper( S );
-    }
-
-    void StrUnquote(tstr& S)
-    {
-        if ( (S.GetFirstChar() == _T('\"')) && (S.GetLastChar() == _T('\"')) )
-        {
-            S.DeleteLastChar();
-            S.DeleteFirstChar();
-        }
-    }
-
-    int StrCmpNoCase(const tstr& S1, const tstr& S2)
-    {
-        return strCompareNoCase( S1.c_str(), S1.length(), 
-                                 S2.c_str(), S2.length() );
-    }
-
-    int StrCmpNoCase(const tstr& S1, const TCHAR* S2)
-    {
-        return strCompareNoCase( S1.c_str(), S1.length(), 
-                                 S2 ? S2 : _T(""), GetStrSafeLength(S2) );
-    }
-
-    int StrCmpNoCase(const TCHAR* S1, const tstr& S2)
-    {
-        return strCompareNoCase( S1 ? S1 : _T(""), GetStrSafeLength(S1), 
-                                 S2.c_str(), S2.length() );
-    }
-
-    int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2)
-    {
-        return strCompareNoCase( S1 ? S1 : _T(""), GetStrSafeLength(S1), 
-                                 S2 ? S2 : _T(""), GetStrSafeLength(S2) );
-    }
-
-    void StrDelLeadingTabSpaces(CStrT<char>& S)
-    {
-        int i = 0;
-        while ( IsTabSpaceChar(S.GetAt(i)) )
-        {
-            ++i;
-        }
-        S.Delete(0, i);
-    }
-
-    void StrDelLeadingTabSpaces(CStrT<wchar_t>& S)
-    {
-        int i = 0;
-        while ( IsTabSpaceChar(S.GetAt(i)) )
-        {
-            ++i;
-        }
-        S.Delete(0, i);
-    }
-
-    void StrDelTrailingTabSpaces(CStrT<char>& S)
-    {
-        int i = S.length() - 1;
-        while ( IsTabSpaceChar(S.GetAt(i)) )
-        {
-            --i;
-        }
-        S.Delete(i + 1, -1);
-    }
-
-    void StrDelTrailingTabSpaces(CStrT<wchar_t>& S)
-    {
-        int i = S.length() - 1;
-        while ( IsTabSpaceChar(S.GetAt(i)) )
-        {
-            --i;
-        }
-        S.Delete(i + 1, -1);
-    }
-}
-
-//-------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.6 RC2 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - June 2018
+ * NppExec plugin ver. 0.6 RC3 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - ... 2019
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -177,6 +177,13 @@
  *  HISTORY  *
  *************
 
+ v0.6 RC3 - ... 2019
+ -------------------
+ + new advanced option "ChildProcess_RunPolicy" (see "NppExec_TechInfo.txt")
+ * internal improvements
+ + the NppExec Manual has been updated
+ 
+ 
  v0.6 RC2 - June 2018
  --------------------
  + new environment variables: $(CLIPBOARD_TEXT), $(NPP_HWND), $(SCI_HWND)

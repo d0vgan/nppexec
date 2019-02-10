@@ -1,6 +1,6 @@
  ****************************************************************************
- * NppExec plugin ver. 0.6 RC2 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - June 2018
+ * NppExec plugin ver. 0.6 RC3 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - ... 2019
  ****************************************************************************
 
 
@@ -20,6 +20,7 @@
  |  ChildProcess_CycleTimeout_ms    |  120                           |  int   |
  |  ChildProcess_ExitTimeout_ms     |  2000                          |  int   |
  |  ChildProcess_KillTimeout_ms     |  500                           |  int   |
+ |  ChildProcess_RunPolicy          |  0                             |  int   |
  |  ChildScript_SyncTimeout_ms      |  200                           |  int   |
  |  ExitScript_Timeout_ms           |  4000                          |  int   |
  |  Path_AutoDblQuotes              |  0                    (FALSE)  |  BOOL  |
@@ -80,6 +81,7 @@
    ChildProcess_CycleTimeout_ms=120
    ChildProcess_ExitTimeout_ms=2000
    ChildProcess_KillTimeout_ms=500
+   ChildProcess_RunPolicy=0
    ChildScript_SyncTimeout_ms=200
    ExitScript_Timeout_ms=4000
    Path_AutoDblQuotes=0
@@ -169,6 +171,42 @@
    another kill method will be tried.
    If the attempts to kill the process did not succeed, the process will be
    terminated.
+
+
+ ChildProcess_RunPolicy
+ --------------------------
+   This parameter specifies the policy used to run a child process.
+   The following values are available:
+
+   0 - pass the given command line to CreateProcess() as is.
+       This policy has no overhead, but file extensions such as ".bat" or ".js"
+       must be specified explicitly - or the "cmd /C" prefix should be used.
+       Otherwise CreateProcess() does not know how to execute such files.
+
+   1 - always obtain the file extension before passing the given command line
+       to CreateProcess(). NppExec takes the first argument of the given
+       command line and examines whether it already contains a file extension.
+       If the file extension is not specified, NppExec examines the paths in
+       the %PATH% environment variable, searching for a file with a given name
+       and with an extension from the %PATHEXT% environment variable.
+       This policy adds the overhead of searching for a file using the two
+       loops: the outer loop of "for path in %PATH%" and the inner loop of
+       "for ext in %PATHEXT%" each time you run a child process in NppExec.
+       This implicit searching allows to execute files with extensions such as
+       ".bat" or ".js" (without specifying their extension explicitly in the
+       command line) by means of CreateProcess() - as the obtained file
+       extension is implicitly added by NppExec.
+
+   2 - always add the "cmd /C" prefix - unless "cmd" is explicitly specified.
+       NppExec tries to use the %ComSpec% environment variable first and uses
+       the hard-coded value of "cmd" only if %ComSpec% is empty.
+       This policy adds the overhead of running the "cmd.exe" each time you
+       run a child process in NppExec. This implicit invocation of "cmd.exe"
+       allows executables and batch files to be run (started) in NppExec in the
+       very same way as these files are run (started) in cmd's console. Also
+       it allows to execute any cmd-specific command such as "time /t" or
+       "for %f in (*.txt) do @echo %f" without the explicit "cmd /C" prefix
+       as this prefix is added implicitly.
 
 
  ChildScript_SyncTimeout_ms

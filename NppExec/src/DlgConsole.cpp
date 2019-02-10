@@ -2993,9 +2993,8 @@ bool ConsoleDlg::GoToLineIfWarningAnalyzerMatch(CAnyRichEdit& Edit, const int nL
 
 INT_PTR ConsoleDlg::OnPaste(CAnyRichEdit& Edit, MSGFILTER* lpmsgf)
 {
-    NppExecHelpers::GetClipboardText( 
-        [&Edit](LPCTSTR pszClipboardText) { Edit.ReplaceSelText(pszClipboardText, TRUE); }
-    );
+    tstr sText = NppExecHelpers::GetClipboardText();
+    Edit.ReplaceSelText(sText.c_str(), TRUE);
     lpmsgf->wParam = 0;
     return 1;
 }
@@ -4047,7 +4046,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                                     ++nPos2;
                                 }
                             
-                                bFullPath = isFullPath(cmdLine);
+                                bFullPath = NppExecHelpers::IsFullPath(cmdLine);
                                 if ( !bFullPath )
                                 {
                                     int   nPathLen;

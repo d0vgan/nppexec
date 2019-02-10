@@ -577,6 +577,7 @@ enum EPluginOptions {
     OPTU_CHILDP_CYCLETIMEOUT_MS,
     OPTU_CHILDP_EXITTIMEOUT_MS,
     OPTU_CHILDP_KILLTIMEOUT_MS,
+    OPTU_CHILDP_RUNPOLICY,
     OPTU_CHILDS_SYNCTIMEOUT_MS,
     OPTU_EXITS_TIMEOUT_MS,
     OPTB_PATH_AUTODBLQUOTES,
@@ -1405,18 +1406,6 @@ namespace Runtime
     CNppExec& GetNppExec();
     CSimpleLogger& GetLogger();
 };
-
-bool isFullPath(const tstr& path);
-bool isFullPath(const TCHAR* path);
-bool createDirectoryTree(const tstr& dir);
-bool createDirectoryTree(const TCHAR* dir);
-bool checkDirectoryExists(const tstr& dir);
-bool checkDirectoryExists(const TCHAR* dir);
-bool checkFileExists(const tstr& filename);
-bool checkFileExists(const TCHAR* filename);
-
-tstr getEnvironmentVariable(const TCHAR* szVarName);
-tstr getEnvironmentVariable(const tstr& sVarName);
 
 extern const TCHAR SCRIPTFILE_SAVED[];
 

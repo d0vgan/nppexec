@@ -20,7 +20,7 @@ ResourceIncludes=
 MakeIncludes=
 Compiler=-DUNICODE_@@_-D_UNICODE_@@_
 CppCompiler=-DUNICODE_@@_-D_UNICODE_@@_-std=gnu++11_@@_
-Linker=-lcomctl32_@@_-lcomdlg32_@@_-lgdi32_@@_
+Linker=-lcomctl32_@@_-lcomdlg32_@@_-lgdi32_@@_-lshlwapi_@@_
 Icon=
 ExeOutput=
 ObjectOutput=

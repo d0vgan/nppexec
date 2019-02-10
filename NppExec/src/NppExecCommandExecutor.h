@@ -83,7 +83,13 @@ class CChildProcess
 
     protected:
         static bool IsWindowsNT();
-        static void ModifyCmdLineIfNoExtension(tstr& sCmdLine);
+
+        enum eCommandLinePolicy {
+            clpNone = 0, // do nothing
+            clpPathExt,  // try %PATH% and extensions from %PATHEXT%
+            clpComSpec   // start with "%COMSPEC% /C" or "cmd /C"
+        };
+        static void applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mode);
 
         void  reset();
         bool  isBreaking() const;

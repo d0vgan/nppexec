@@ -261,6 +261,7 @@ const int   DEFAULT_CHILDP_STARTUPTIMEOUT_MS  = 240;
 const int   DEFAULT_CHILDP_CYCLETIMEOUT_MS    = 120;
 const int   DEFAULT_CHILDP_EXITTIMEOUT_MS     = 2000;
 const int   DEFAULT_CHILDP_KILLTIMEOUT_MS     = 500;
+const int   DEFAULT_OPTU_CHILDP_RUNPOLICY     = 0;
 const int   DEFAULT_CHILDS_SYNCTIMEOUT_MS     = 200;
 const int   DEFAULT_EXITS_TIMEOUT_MS          = 4000;
 const int   DEFAULT_PATH_AUTODBLQUOTES        = 0;
@@ -1004,6 +1005,9 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTU_CHILDP_KILLTIMEOUT_MS, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("ChildProcess_KillTimeout_ms"),
       DEFAULT_CHILDP_KILLTIMEOUT_MS, NULL },
+    { OPTU_CHILDP_RUNPOLICY, OPTT_INT | OPTF_READONLY,
+      INI_SECTION_CONSOLE, _T("ChildProcess_RunPolicy"),
+      DEFAULT_OPTU_CHILDP_RUNPOLICY, NULL },
     { OPTU_CHILDS_SYNCTIMEOUT_MS, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("ChildScript_SyncTimeout_ms"),
       DEFAULT_CHILDS_SYNCTIMEOUT_MS, NULL },
@@ -2342,7 +2346,7 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGe
   // <-- nightmare ends
 
   int nFileLevel = 0;
-  bool bFullPath = isFullPath(S1);
+  bool bFullPath = NppExecHelpers::IsFullPath(S1);
   if (!bFullPath)
   {
     for (int j = 0; j < S1.length(); ++j)
@@ -2418,7 +2422,7 @@ int CNppExec::nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames)
     
     Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), fileName.c_str() );  
       
-    if (!isFullPath(fileName))
+    if (!NppExecHelpers::IsFullPath(fileName))
     {
       int i = findFileNameIndexInNppOpenFileNames(fileName, bGetOpenFileNames);
       if (i != -1)
@@ -2649,7 +2653,7 @@ bool CNppExec::nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames)
   Runtime::GetLogger().IncIndentLevel();
   Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), fileName.c_str() );
     
-  if (!isFullPath(fileName))
+  if (!NppExecHelpers::IsFullPath(fileName))
   {
     int i = findFileNameIndexInNppOpenFileNames(fileName, bGetOpenFileNames);
     if (i != -1)
@@ -2730,15 +2734,37 @@ const TCHAR* CChildProcess::GetInstanceStr() const
     return m_strInstance.c_str();
 }
 
-void CChildProcess::ModifyCmdLineIfNoExtension(tstr& sCmdLine)
+void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mode)
 {
+    if ( mode == clpNone )
+        return; // nothing to do
+
     CStrSplitT<TCHAR> args;
     if ( args.SplitToArgs(sCmdLine, 2) == 0 )
         return; // empty sCmdLine, nothing to do
 
     const tstr sFileName = args.Arg(0);
 
-    tstr sExtensions = getEnvironmentVariable( _T("PATHEXT") );
+    if ( mode == clpComSpec )
+    {
+        tstr sComSpec = NppExecHelpers::GetEnvironmentVariable( _T("COMSPEC") );
+        if ( sComSpec.IsEmpty() )
+            sComSpec = _T("cmd");
+
+        const tstr sComSpecNamePart = NppExecHelpers::GetFileNamePart(sComSpec, NppExecHelpers::fnpName);
+        const tstr sFileNamePart = NppExecHelpers::GetFileNamePart(sFileName, NppExecHelpers::fnpName);
+        if ( NppExecHelpers::StrCmpNoCase(sComSpecNamePart, sFileNamePart) == 0 )
+            return; // sCmdLine already starts with "cmd"
+
+        if ( sComSpec.Find(_T(' ')) >= 0 )
+            NppExecHelpers::StrQuote(sComSpec);
+        
+        sComSpec += _T(" /C "); // to have "cmd /C" at the beginning
+        sCmdLine.Insert(0, sComSpec);
+        return;
+    }
+
+    tstr sExtensions = NppExecHelpers::GetEnvironmentVariable( _T("PATHEXT") );
     if ( !sExtensions.IsEmpty() )
         NppExecHelpers::StrLower(sExtensions);
     else
@@ -2768,14 +2794,14 @@ void CChildProcess::ModifyCmdLineIfNoExtension(tstr& sCmdLine)
                             {
                                 tstr fileNameExt = fileName;
                                 fileNameExt += ext;
-                                return checkFileExists(fileNameExt);
+                                return NppExecHelpers::CheckFileExists(fileNameExt);
                             };
 
     tstr ext = findMatchingExtension(sFileName, exts, endsWithExt);
     if ( !ext.IsEmpty() )
         return; // the extension is specified explicitly
 
-    if ( isFullPath(sFileName) )
+    if ( NppExecHelpers::IsFullPath(sFileName) )
     {
         // full path specified - check the file extensions...
         ext = findMatchingExtension(sFileName, exts, fexistsWithExt);
@@ -2783,7 +2809,7 @@ void CChildProcess::ModifyCmdLineIfNoExtension(tstr& sCmdLine)
     else
     {
         // no path specified - check the paths and file extensions...
-        tstr sPaths = getEnvironmentVariable( _T("PATH") );
+        tstr sPaths = NppExecHelpers::GetEnvironmentVariable( _T("PATH") );
         CListT<tstr> paths;
         if ( !sPaths.IsEmpty() )
         {
@@ -2829,7 +2855,6 @@ void CChildProcess::ModifyCmdLineIfNoExtension(tstr& sCmdLine)
 // cszCommandLine must be transformed by ModifyCommandLine(...) already
 bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
 {
-    tstr                sCmdLine;
     SECURITY_DESCRIPTOR sd;
     SECURITY_ATTRIBUTES sa;
     STARTUPINFO         si;
@@ -2910,8 +2935,18 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     si.hStdOutput = m_hStdOutWritePipe;
     si.hStdError = m_hStdOutWritePipe;
 
-    sCmdLine = cszCommandLine;
-    ModifyCmdLineIfNoExtension(sCmdLine);
+    eCommandLinePolicy mode = clpNone;
+    switch ( m_pNppExec->GetOptions().GetInt(OPTU_CHILDP_RUNPOLICY) )
+    {
+        case clpPathExt:
+            mode = clpPathExt;
+            break;
+        case clpComSpec:
+            mode = clpComSpec;
+            break;
+    };
+    tstr sCmdLine = cszCommandLine;
+    applyCommandLinePolicy(sCmdLine, mode);
 
     if ( ::CreateProcess(
             NULL,
@@ -4027,8 +4062,8 @@ void CNppExec::Init()
     SendNppMsg( NPPM_GETPLUGINSCONFIGDIR,
       (WPARAM) (FILEPATH_BUFSIZE - 1), (LPARAM) m_szConfigPath );
 
-    if ( !checkDirectoryExists(m_szConfigPath) )
-      createDirectoryTree(m_szConfigPath);
+    if ( !NppExecHelpers::CheckDirectoryExists(m_szConfigPath) )
+      NppExecHelpers::CreateDirectoryTree(m_szConfigPath);
   }
   else
   {
@@ -4361,7 +4396,7 @@ void CNppExec::OnHelpManual()
         GetMacroVars().CheckNppMacroVars(sHelpFile);
 
         sHelpFile.Replace( _T('/'), _T('\\') );
-        if ( !isFullPath(sHelpFile) )
+        if ( !NppExecHelpers::IsFullPath(sHelpFile) )
         {
             // sHelpFile is a relative pathname
             if ( sHelpFile.GetFirstChar() != _T('\\') )
@@ -4453,7 +4488,7 @@ void CNppExec::ReadOptions()
     GetMacroVars().CheckNppMacroVars(sLogsDir);
 
     sLogsDir.Replace( _T('/'), _T('\\') );
-    if ( !isFullPath(sLogsDir) )
+    if ( !NppExecHelpers::IsFullPath(sLogsDir) )
     {
       tstr sBaseDir = _T("$(SYS.TEMP)");
       GetMacroVars().CheckPluginMacroVars(sBaseDir);
@@ -4477,7 +4512,7 @@ void CNppExec::ReadOptions()
     ::_tcsftime(buf, 15, _T("%Y_%m_%d"), timeInfo); // 2013_09_28
     sLogsDir += buf;
 
-    createDirectoryTree(sLogsDir);
+    NppExecHelpers::CreateDirectoryTree(sLogsDir);
     
     tstr sLogFile = sLogsDir;
     if ( sLogFile.GetLastChar() != _T('\\') )
@@ -4507,11 +4542,15 @@ void CNppExec::ReadOptions()
   }
   if (GetOptions().GetInt(OPTU_CHILDP_KILLTIMEOUT_MS) < 0)
   {
-      GetOptions().SetUint(OPTU_CHILDP_KILLTIMEOUT_MS, DEFAULT_CHILDP_KILLTIMEOUT_MS);
+    GetOptions().SetUint(OPTU_CHILDP_KILLTIMEOUT_MS, DEFAULT_CHILDP_KILLTIMEOUT_MS);
+  }
+  if (GetOptions().GetInt(OPTU_CHILDP_RUNPOLICY) < 0)
+  {
+    GetOptions().SetUint(OPTU_CHILDP_RUNPOLICY, DEFAULT_OPTU_CHILDP_RUNPOLICY);
   }
   if (GetOptions().GetInt(OPTU_CHILDS_SYNCTIMEOUT_MS) < 0)
   {
-      GetOptions().SetUint(OPTU_CHILDS_SYNCTIMEOUT_MS, DEFAULT_CHILDS_SYNCTIMEOUT_MS);
+    GetOptions().SetUint(OPTU_CHILDS_SYNCTIMEOUT_MS, DEFAULT_CHILDS_SYNCTIMEOUT_MS);
   }
   {
     int nChildProcExitTimeout = GetOptions().GetInt(OPTU_CHILDP_EXITTIMEOUT_MS);
@@ -5281,112 +5320,6 @@ INT_PTR CNppExec::PluginDialogBox(UINT idDlg, DLGPROC lpDlgProc)
 LRESULT CNppExec::SendNppMsg(UINT uMsg, WPARAM wParam, LPARAM lParam) // to Notepad++
 {
     return ::SendMessage(m_nppData._nppHandle, uMsg, wParam, lParam);
-}
-
-//-------------------------------------------------------------------------
-
-bool isFullPath(const tstr& path)
-{
-    return isFullPath( path.c_str() );
-}
-
-bool isFullPath(const TCHAR* path)
-{
-    if ( path[0] )  // not empty
-    {
-        switch ( path[1] )
-        {
-            case _T(':') :
-                return true;                  // "X:..."
-            case _T('\\') :
-            case _T('/') :
-                return (path[0] == path[1]);  // "\\..." or "//..."
-        }
-    }
-    return false;
-}
-
-static bool impl_createDir(const TCHAR* dir)
-{
-    if ( !::CreateDirectory(dir, NULL) )
-    {
-        if ( ::GetLastError() != ERROR_ALREADY_EXISTS )
-            return false;
-    }
-    return true;
-}
-
-static bool impl_createDirectoryTree(const tstr& dir)
-{
-    tstr inter_dir = dir;
-    inter_dir.Replace( _T('/'), _T('\\') );
-    int n = inter_dir.Find( _T('\\'), 3 ); // skip "C:\"
-    while ( n >= 0 )
-    {
-        inter_dir[n] = 0;
-        if ( !impl_createDir(inter_dir.c_str()) )
-            return false;
-
-        inter_dir[n] = _T('\\');
-        n = inter_dir.Find( _T('\\'), n + 1 );
-    }
-    return impl_createDir(inter_dir.c_str());
-}
-
-bool createDirectoryTree(const tstr& dir)
-{
-    return impl_createDirectoryTree(dir);
-}
-
-bool createDirectoryTree(const TCHAR* dir)
-{
-    return impl_createDirectoryTree(dir);
-}
-
-bool checkDirectoryExists(const tstr& dir)
-{
-    return checkDirectoryExists(dir.c_str());
-}
-
-bool checkDirectoryExists(const TCHAR* dir)
-{
-  DWORD dwAttr = ::GetFileAttributes(dir);
-  return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) != 0));
-}
-
-bool checkFileExists(const tstr& filename)
-{
-  return checkFileExists(filename.c_str());
-}
-
-bool checkFileExists(const TCHAR* filename)
-{
-  DWORD dwAttr = ::GetFileAttributes(filename);
-  return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == 0));
-}
-
-tstr getEnvironmentVariable(const TCHAR* szVarName)
-{
-    tstr sValue;
-    DWORD nLen = ::GetEnvironmentVariable(szVarName, NULL, 0);
-    if ( nLen > 0 )
-    {
-        if ( sValue.Reserve(nLen + 1) )
-        {
-            nLen = ::GetEnvironmentVariable(szVarName, sValue.c_str(), nLen + 1);
-            if ( nLen > 0 )
-            {
-                sValue.SetLengthValue(nLen);
-            }
-        }
-    }
-
-    return sValue;
-}
-
-tstr getEnvironmentVariable(const tstr& sVarName)
-{
-    return getEnvironmentVariable(sVarName.c_str());
 }
 
 //-------------------------------------------------------------------------

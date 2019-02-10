@@ -137,6 +137,7 @@ public:
   CStrT();
   CStrT(const T* pStr);
   CStrT(const T* pStr, int nLength);
+  CStrT(const T ch);
   CStrT(const CStrT& Str);
   CStrT(CStrT&& Str);
   ~CStrT();
@@ -190,6 +191,8 @@ public:
   int   RFind(const T ch, int nStartPos = -1) const;
   int   RFind(const T* pStr, int nStartPos = -1) const;
   int   RFind(const CStrT& Str, int nStartPos = -1) const;
+  int   RFindOneOf(const T* pChars, int nStartPos = -1) const;
+  int   RFindOneOf(const CStrT& Chars, int nStartPos = -1) const;
   bool  Reserve(int nLength)  { 
             return ( (nLength > m_nLength) ? SetSize(nLength) : true ); 
         } // like in STL
@@ -295,6 +298,14 @@ template <class T> CStrT<T>::CStrT(const T* pStr, int nLength) :
   m_nMemSize(0)
 {
     if (pStr && (nLength != 0))  Append(pStr, nLength);
+}
+
+template <class T> CStrT<T>::CStrT(const T ch) :
+    m_pData(NULL),
+    m_nLength(0), 
+    m_nMemSize(0)
+{
+    Append(ch);
 }
 
 template <class T> CStrT<T>::CStrT(const CStrT& Str) :
@@ -842,6 +853,37 @@ template <class T> int CStrT<T>::RFind(const T* pStr, int nStartPos ) const
 template <class T> int CStrT<T>::RFind(const CStrT& Str, int nStartPos ) const
 {
     return RFind( Str.c_str(), nStartPos );
+}
+
+template <class T> int CStrT<T>::RFindOneOf(const T* pChars, int nStartPos ) const
+{
+    if ( nStartPos < m_nLength )
+    {
+        if ( nStartPos < 0 )
+            nStartPos = m_nLength - 1;
+
+        while ( nStartPos >= 0 )
+        {
+            const T cch = m_pData[nStartPos];
+            const T* pch = pChars;
+            while ( *pch )
+            {
+                if ( *pch == cch )
+                {
+                    return nStartPos;
+                }
+                ++pch;
+            }
+            --nStartPos;
+        }
+    }
+
+    return -1;
+}
+
+template <class T> int CStrT<T>::RFindOneOf(const CStrT& Chars, int nStartPos ) const
+{
+    return RFindOneOf( Chars.c_str(), nStartPos );
 }
 
 template <class T> bool CStrT<T>::SetAt(int nPos, const T ch)

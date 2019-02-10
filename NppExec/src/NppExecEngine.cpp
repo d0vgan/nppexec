@@ -2846,7 +2846,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
                     if ( itrGVar == g_GlobalEnvVars.end() )
                     {
                         // not in the Global Env Vars List; but maybe it's Global?
-                        tstr sValue = getEnvironmentVariable(varName);
+                        tstr sValue = NppExecHelpers::GetEnvironmentVariable(varName);
                         if ( !sValue.IsEmpty() )
                         {
                             g_GlobalEnvVars[varName] = sValue;
@@ -2882,7 +2882,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
         NppExecHelpers::StrUpper(varName);
             
         bool  bSysVarOK = false;
-        tstr sValue = getEnvironmentVariable(varName);
+        tstr sValue = NppExecHelpers::GetEnvironmentVariable(varName);
         if ( !sValue.IsEmpty() )
         {
             tstr S = _T("$(SYS.");
@@ -6661,7 +6661,7 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       sub.Copy(Cmd.c_str() + i1, i2 - i1);
       if (sub.length() > 0)
       {
-        tstr sValue = getEnvironmentVariable(sub);
+        tstr sValue = NppExecHelpers::GetEnvironmentVariable(sub);
         if (!sValue.IsEmpty())
         {
           Cmd.Replace(pos, i2 - pos + 1, sValue);
@@ -6744,9 +6744,7 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
     {
       if (!bMacroOK)
       {
-        NppExecHelpers::GetClipboardText(
-          [&sub](LPCTSTR pszClipboardText) { sub = pszClipboardText; }
-        );
+        sub = NppExecHelpers::GetClipboardText();
         bMacroOK = true;
       }
 
@@ -7540,7 +7538,7 @@ void GetPathAndFilter(const TCHAR* szPathAndFilter,
     GetCurrentDirectory( FILEPATH_BUFSIZE - 1, path );
     out_Path = path;
   }
-  else if ( !isFullPath(out_Path) )
+  else if ( !NppExecHelpers::IsFullPath(out_Path) )
   {
     // is not full path
     path[0] = 0;

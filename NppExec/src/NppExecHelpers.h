@@ -369,8 +369,33 @@ namespace NppExecHelpers
 {
     bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread = NULL);
 
-    bool GetClipboardText(std::function<void(LPCTSTR pszClipboardText)> handler, HWND hWndOwner = NULL);
+    tstr GetClipboardText(HWND hWndOwner = NULL);
     bool SetClipboardText(const tstr& text, HWND hWndOwner = NULL);
+
+    tstr GetEnvironmentVariable(const TCHAR* szVarName);
+    tstr GetEnvironmentVariable(const tstr& sVarName);
+
+    bool IsFullPath(const tstr& path);
+    bool IsFullPath(const TCHAR* path);
+
+    enum eFileNamePart {
+        fnpDrive,   // "C" in "C:\User\Docs\name.ext"
+        fnpPath,    // "C:\User\Docs\" in "C:\User\Docs\name.ext"
+        fnpNameExt, // "name.ext" in "C:\User\Docs\name.ext"
+        fnpName,    // "name" in "C:\User\Docs\name.ext"
+        fnpExt      // ".ext" in "C:\User\Docs\name.ext"
+    };
+    tstr GetFileNamePart(const tstr& path, eFileNamePart whichPart);
+    tstr GetFileNamePart(const TCHAR* path, eFileNamePart whichPart);
+
+    bool CreateDirectoryTree(const tstr& dir);
+    bool CreateDirectoryTree(const TCHAR* dir);
+
+    bool CheckDirectoryExists(const tstr& dir);
+    bool CheckDirectoryExists(const TCHAR* dir);
+
+    bool CheckFileExists(const tstr& filename);
+    bool CheckFileExists(const TCHAR* filename);
 
     tstr GetInstanceAsString(const void* pInstance);
 
@@ -379,6 +404,7 @@ namespace NppExecHelpers
     void StrUpper(tstr& S); // converts to upper case
     void StrUpper(TCHAR* S); // converts to upper case
 
+    void StrQuote(tstr& S); // adds the starting and trailing '\"'
     void StrUnquote(tstr& S); // removes the starting and trailing '\"'
 
     int StrCmpNoCase(const tstr& S1, const tstr& S2); // comparing case-insensitively
