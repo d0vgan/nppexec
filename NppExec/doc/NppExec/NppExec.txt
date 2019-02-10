@@ -180,6 +180,7 @@
  v0.6 RC3 - ... 2019
  -------------------
  + new advanced option "ChildProcess_RunPolicy" (see "NppExec_TechInfo.txt")
+ * better compatibility with Notepad++ 7.6.x (and higher)
  * internal improvements
  + the NppExec Manual has been updated
  

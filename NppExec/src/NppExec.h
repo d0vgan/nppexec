@@ -1230,7 +1230,7 @@ private:
   CNppExecMacroVars m_MacroVars;
   CListT<tstr> m_ScriptCmdList;
 
-  TCHAR   m_szPluginPath[FILEPATH_BUFSIZE];
+  TCHAR   m_szPluginDllPath[FILEPATH_BUFSIZE];
   TCHAR   m_szConfigPath[FILEPATH_BUFSIZE];
   TCHAR   m_szIniFilePathName[FILEPATH_BUFSIZE];
 
@@ -1387,7 +1387,7 @@ public:
   void UpdateOutputFilterMenuItem();
   void UpdateGoToErrorMenuItem();
 
-  LPCTSTR getPluginPath() const  { return m_szPluginPath; }
+  LPCTSTR getPluginDllPath() const  { return m_szPluginDllPath; }
   LPCTSTR getConfigPath() const  { return m_szConfigPath; }
 
   static void printScriptLog(const TCHAR* str, int len);

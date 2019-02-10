@@ -675,12 +675,12 @@ class FParserWrapper
             CDirFileLister FileLst;
             tstr           path;
 
-            path = pNppExec->getPluginPath();
+            path = pNppExec->getPluginDllPath();
             path += _T("\\NppExec\\*.h");
             if ( FileLst.FindNext(path.c_str(), CDirFileLister::ESF_FILES | CDirFileLister::ESF_SORTED) )
             {
                 do {
-                    path = pNppExec->getPluginPath();
+                    path = pNppExec->getPluginDllPath();
                     path += _T("\\NppExec\\");
                     path += FileLst.GetItem();
 
@@ -690,7 +690,7 @@ class FParserWrapper
             }
             else
             {
-                path = pNppExec->getPluginPath();
+                path = pNppExec->getPluginDllPath();
                 path += _T("\\NppExec");
 
                 Runtime::GetLogger().AddEx( _T("; no *.h files found in \"%s\""), path.c_str() );

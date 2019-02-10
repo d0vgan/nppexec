@@ -4043,7 +4043,7 @@ void CNppExec::InitPluginName(HMODULE hDllModule)
 
   i = n;
   if (i >= 0)  szPath[i] = 0;
-  lstrcpy(m_szPluginPath, szPath);
+  lstrcpy(m_szPluginDllPath, szPath);
   lstrcpy(m_szConfigPath, szPath);
   
   lstrcpy( INI_FILENAME, PLUGIN_NAME );
@@ -4071,7 +4071,7 @@ void CNppExec::Init()
     WIN32_FIND_DATA fdata;
     TCHAR           szPath[FILEPATH_BUFSIZE];
 
-    lstrcpy(szPath, m_szPluginPath);
+    lstrcpy(szPath, m_szPluginDllPath);
     lstrcat(szPath, _T("\\Config\\*.*"));
     fhandle = FindFirstFile(szPath, &fdata);
     if ((fhandle == INVALID_HANDLE_VALUE) || !fhandle)
@@ -4085,7 +4085,7 @@ void CNppExec::Init()
       else
       {
           //ShowWarning("CreateDirectory failed");
-        lstrcpy(m_szConfigPath, m_szPluginPath);
+        lstrcpy(m_szConfigPath, m_szPluginDllPath);
       }
     }
     else
@@ -4396,12 +4396,28 @@ void CNppExec::OnHelpManual()
         GetMacroVars().CheckNppMacroVars(sHelpFile);
 
         sHelpFile.Replace( _T('/'), _T('\\') );
-        if ( !NppExecHelpers::IsFullPath(sHelpFile) )
+        if ( NppExecHelpers::IsFullPath(sHelpFile) )
+        {
+            if ( !NppExecHelpers::CheckFileExists(sHelpFile) )
+                return; // file does not exist, nothing to do
+        }
+        else
         {
             // sHelpFile is a relative pathname
-            if ( sHelpFile.GetFirstChar() != _T('\\') )
-                sHelpFile.Insert( 0, _T('\\') );
-            sHelpFile.Insert( 0, m_szPluginPath );
+            if ( sHelpFile.GetFirstChar() == _T('\\') )
+                sHelpFile.DeleteFirstChar();
+
+            tstr sHelpFilePath = getPluginDllPath();
+            sHelpFilePath += _T('\\');
+            sHelpFilePath += sHelpFile;
+            if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
+            {
+                sHelpFilePath = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpPath);
+                sHelpFilePath += sHelpFile;
+                if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
+                    return; // file does not exist, nothing to do
+            }
+            sHelpFile.Swap(sHelpFilePath);
         }
         
 #ifndef __MINGW32__
@@ -4422,13 +4438,20 @@ void CNppExec::OnHelpDocs()
     };
     
     tstr doc_file;
-    tstr path = getPluginPath();
-    path += _T("\\doc\\NppExec\\");
+    tstr path1 = getPluginDllPath();
+    path1 += _T("\\doc\\NppExec\\");
+    tstr path2 = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpPath);
+    path2 += _T("doc\\NppExec\\");
 
     for ( int i = 0; i < nHelpDocs; i++ )
     {
-        doc_file = path;
+        doc_file = path1;
         doc_file += cszDocFileNames[i];
+        if ( !NppExecHelpers::CheckFileExists(doc_file) )
+        {
+            doc_file = path2;
+            doc_file += cszDocFileNames[i];
+        }
         SendNppMsg( NPPM_DOOPEN, 0, (LPARAM) doc_file.c_str() );
     }
 }
