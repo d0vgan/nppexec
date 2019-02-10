@@ -20,6 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.6 RC3 - March 2019
+ ---------------------
+ + new advanced option "ChildProcess_RunPolicy" (see "NppExec_TechInfo.txt")
+ * better compatibility with Notepad++ 7.6.x (and higher)
+ * internal improvements
+ + the NppExec Manual has been updated
+
+
  v0.6 RC2 - June 2018
  --------------------
  + new environment variables: $(CLIPBOARD_TEXT), $(NPP_HWND), $(SCI_HWND)
@@ -514,8 +522,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x06C2
-#define NPPEXEC_VER_STR   _T("0.6 RC2")
+#define NPPEXEC_VER_DWORD 0x06C3
+#define NPPEXEC_VER_STR   _T("0.6 RC3")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
