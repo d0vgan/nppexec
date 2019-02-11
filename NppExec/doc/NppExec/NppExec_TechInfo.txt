@@ -21,6 +21,7 @@
  |  ChildProcess_ExitTimeout_ms     |  2000                          |  int   |
  |  ChildProcess_KillTimeout_ms     |  500                           |  int   |
  |  ChildProcess_RunPolicy          |  0                             |  int   |
+ |  ChildProcess_ComSpecSwitches    |  /C                            | string |
  |  ChildScript_SyncTimeout_ms      |  200                           |  int   |
  |  ExitScript_Timeout_ms           |  4000                          |  int   |
  |  Path_AutoDblQuotes              |  0                    (FALSE)  |  BOOL  |
@@ -82,6 +83,7 @@
    ChildProcess_ExitTimeout_ms=2000
    ChildProcess_KillTimeout_ms=500
    ChildProcess_RunPolicy=0
+   ChildProcess_ComSpecSwitches=/C
    ChildScript_SyncTimeout_ms=200
    ExitScript_Timeout_ms=4000
    Path_AutoDblQuotes=0
@@ -174,7 +176,7 @@
 
 
  ChildProcess_RunPolicy
- --------------------------
+ ----------------------
    This parameter specifies the policy used to run a child process.
    The following values are available:
 
@@ -207,6 +209,15 @@
        it allows to execute any cmd-specific command such as "time /t" or
        "for %f in (*.txt) do @echo %f" without the explicit "cmd /C" prefix
        as this prefix is added implicitly.
+       Note: the "/C" switch is not hard-coded and can be changed via the
+       advanced option "ChildProcess_ComSpecSwitches".
+
+
+ ChildProcess_ComSpecSwitches
+ ----------------------------
+   The command line switch(es) to be used with %ComSpec% when the value of the
+   advanced option "ChildProcess_RunPolicy" is set to 2.
+   The default value is "/C".
 
 
  ChildScript_SyncTimeout_ms
@@ -576,7 +587,7 @@
    log files as "<LogsDir>\<NppExecDllName>\<YYYY_MM_DD>".
    You can use some of macro-variables as the part of this pathname.
    The supported macro-variables are:
-     $(SYS.TEMP)
+     $(SYS.TEMP)             (as well as any other environment variable)
      $(NPP_DIRECTORY)
      $(PLUGINS_CONFIG_DIR)
    NOTE:

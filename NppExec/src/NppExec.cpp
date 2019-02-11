@@ -261,7 +261,7 @@ const int   DEFAULT_CHILDP_STARTUPTIMEOUT_MS  = 240;
 const int   DEFAULT_CHILDP_CYCLETIMEOUT_MS    = 120;
 const int   DEFAULT_CHILDP_EXITTIMEOUT_MS     = 2000;
 const int   DEFAULT_CHILDP_KILLTIMEOUT_MS     = 500;
-const int   DEFAULT_OPTU_CHILDP_RUNPOLICY     = 0;
+const int   DEFAULT_CHILDP_RUNPOLICY          = 0;
 const int   DEFAULT_CHILDS_SYNCTIMEOUT_MS     = 200;
 const int   DEFAULT_EXITS_TIMEOUT_MS          = 4000;
 const int   DEFAULT_PATH_AUTODBLQUOTES        = 0;
@@ -275,6 +275,7 @@ const TCHAR DEFAULT_COMMENTDELIMITER[]        = _T("//");
 const TCHAR DEFAULT_HELPFILE[]                = _T("doc\\NppExec\\NppExec_Manual.chm");
 const TCHAR DEFAULT_LOGSDIR[]                 = _T("");
 const TCHAR DEFAULT_SCRIPTSDIR[]              = _T("");
+const TCHAR DEFAULT_CHILDP_COMSPECSWITCHES[]  = _T("/C");
 const int   DEFAULT_AUTOSAVE_SECONDS          = 0; // disabled (example: 5*60 = 5 minutes)
 
 const wchar_t DEFAULT_NULCHAR_UNICODE     = 0x25E6; // 0x25E6 - the "White Bullet" symbol
@@ -1007,7 +1008,10 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
       DEFAULT_CHILDP_KILLTIMEOUT_MS, NULL },
     { OPTU_CHILDP_RUNPOLICY, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("ChildProcess_RunPolicy"),
-      DEFAULT_OPTU_CHILDP_RUNPOLICY, NULL },
+      DEFAULT_CHILDP_RUNPOLICY, NULL },
+    { OPTS_CHILDP_COMSPECSWITCHES, OPTT_STR | OPTF_READONLY,
+      INI_SECTION_CONSOLE, _T("ChildProcess_ComSpecSwitches"),
+      0, DEFAULT_CHILDP_COMSPECSWITCHES },
     { OPTU_CHILDS_SYNCTIMEOUT_MS, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("ChildScript_SyncTimeout_ms"),
       DEFAULT_CHILDS_SYNCTIMEOUT_MS, NULL },
@@ -2759,7 +2763,15 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
         if ( sComSpec.Find(_T(' ')) >= 0 )
             NppExecHelpers::StrQuote(sComSpec);
         
-        sComSpec += _T(" /C "); // to have "cmd /C" at the beginning
+        sComSpec += _T(' '); // e.g. "cmd " (notice the trailing space!)
+        
+        tstr sComSpecSwitches = Runtime::GetNppExec().GetOptions().GetStr(OPTS_CHILDP_COMSPECSWITCHES);
+        if ( !sComSpecSwitches.IsEmpty() )
+        {
+            sComSpec += sComSpecSwitches;
+            sComSpec += _T(' '); // e.g. "cmd /C " (notice the trailing space!)
+        }
+
         sCmdLine.Insert(0, sComSpec);
         return;
     }
@@ -4407,11 +4419,13 @@ void CNppExec::OnHelpManual()
             if ( sHelpFile.GetFirstChar() == _T('\\') )
                 sHelpFile.DeleteFirstChar();
 
+            // first, trying the folder at the level of NppExec.dll
             tstr sHelpFilePath = getPluginDllPath();
             sHelpFilePath += _T('\\');
             sHelpFilePath += sHelpFile;
             if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
             {
+                // then, trying the folder one level upper
                 sHelpFilePath = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpPath);
                 sHelpFilePath += sHelpFile;
                 if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
@@ -4438,8 +4452,12 @@ void CNppExec::OnHelpDocs()
     };
     
     tstr doc_file;
+
+    // first, trying the folder at the level of NppExec.dll ("doc\NppExec")
     tstr path1 = getPluginDllPath();
     path1 += _T("\\doc\\NppExec\\");
+
+    // then, trying the folder one level upper ("..\doc\Nppexec")
     tstr path2 = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpPath);
     path2 += _T("doc\\NppExec\\");
 
@@ -4569,7 +4587,7 @@ void CNppExec::ReadOptions()
   }
   if (GetOptions().GetInt(OPTU_CHILDP_RUNPOLICY) < 0)
   {
-    GetOptions().SetUint(OPTU_CHILDP_RUNPOLICY, DEFAULT_OPTU_CHILDP_RUNPOLICY);
+    GetOptions().SetUint(OPTU_CHILDP_RUNPOLICY, DEFAULT_CHILDP_RUNPOLICY);
   }
   if (GetOptions().GetInt(OPTU_CHILDS_SYNCTIMEOUT_MS) < 0)
   {
