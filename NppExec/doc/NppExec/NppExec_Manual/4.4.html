@@ -8,7 +8,7 @@
 <BODY>
 <h3>4.4. Using cmd.exe</h3>
 <p>NppExec by itself does not support
-    standard console commands such as &quot;copy&quot;, &quot;move&quot;, &quot;mkdir&quot;, &quot;for&quot; etc. (*) Actually,
+    standard console commands such as &quot;copy&quot;, &quot;move&quot;, &quot;mkdir&quot;, &quot;for&quot; etc. <em>(*)</em> Actually,
     these commands are part of system's command interpreter (cmd.exe). So, you
     can
     use cmd.exe to perform such commands. For example, you can type the following
@@ -25,7 +25,7 @@ cd C:\Backup
 // list all .txt files in C:\Backup
 cmd /c for %f in (*.txt) do @echo %f</pre>
 </blockquote>
-<p>NppExec by itself can not redirect console program's output into a text file. (*) And, again, you can do it via cmd.exe:</p>
+<p>NppExec by itself can not redirect console program's output into a text file. <em>(*)</em> And, again, you can do it via cmd.exe:</p>
 <blockquote>
   <pre>cmd /c program.exe &gt;program.txt</pre>
 </blockquote>
@@ -43,13 +43,13 @@ cmd /c C: &amp;&amp; cd C:\Backup &amp;&amp; for %f in (*.txt) do @echo %f</pre>
   <pre>cmd /?</pre>
 </blockquote>
 <p>for more details about cmd.exe and its commands. You'll be surprised how powerful it is :)</p>
-<p>Don't forget you can execute .bat and .cmd files in the same way as executable files <a href="3.3.html">[3.3]</a> - but the file extension (.bat or .cmd) can not be omitted in this case. (*) The batch files (.bat or .cmd) allow to implement sequences of commands with simple algorithms, so you can use them when single cmd's commands are not enough.</p>
+<p>Don't forget you can execute .bat and .cmd files in the same way as executable files <a href="3.3.html">[3.3]</a> - but the file extension (.bat or .cmd) can not be omitted in this case. <em>(*)</em> The batch files (.bat or .cmd) allow to implement sequences of commands with simple algorithms, so you can use them when single cmd's commands are not enough.</p>
 
 <blockquote>
   <pre> </pre>
 </blockquote>
 
-<p>(*) Starting from NppExec ver. 0.6 RC3, it is possible to execute batch files (such as .bat and .cmd) without specifying their extension, as well as it is possible to avoid explicit usage of "cmd /C" to execute the command interpreter's commands. A new advanced option "ChildProcess_RunPolicy" was introduced for this. Set its value to 1 or 2 according to the desired behavior. Refer to "doc\NppExec\NppExec_TechInfo.txt" for further details.</p>
+<p><em>(*)</em> Starting from NppExec ver. 0.6 RC3, it is possible to execute batch files (such as .bat and .cmd) without specifying their extension, as well as it is possible to avoid explicit usage of &quot;cmd /C&quot; to execute the command interpreter's commands. A new advanced option <em>&quot;ChildProcess_RunPolicy&quot;</em> was introduced for this. Set its value to <em>1</em> or <em>2</em> according to the desired behavior. Refer to &quot;doc\NppExec\NppExec_TechInfo.txt&quot; for further details.</p>
 
 <blockquote>
   <pre> </pre>
