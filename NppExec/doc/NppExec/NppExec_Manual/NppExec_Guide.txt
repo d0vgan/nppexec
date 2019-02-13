@@ -142,6 +142,23 @@ E.g. the file "C:\tools\NppExec Scripts\run@.awk.txt" must contain
   "C:\tools\gawk\gawk.exe" -f "$(FULL_CURRENT_PATH)"
   
 and so on for other file extensions (.c, .cpp, ...).
+Similarly, the path to your NppExec Scripts can be relative to Notepad++.
+For example:
+
+  // compile_or_run
+  NPP_SAVE
+  SET Compiler = $(NPP_DIRECTORY)\NppExec Scripts\run@$(EXT_PART).txt
+  NPP_EXEC "$(Compiler)"
+
+or
+
+  // compile_or_run
+  NPP_SAVE
+  SET Compiler = $(PLUGINS_CONFIG_DIR)\NppExec Scripts\run@$(EXT_PART).txt
+  NPP_EXEC "$(Compiler)"
+
+Such approach allows to use external text files as the NppExec Scripts, while
+they are always available since they reside in Notepad++'s folder.
 To read more information about the NPP_EXEC command, open the NppExec's
 Console in Notepad++, and type:
 
@@ -153,6 +170,32 @@ To get general NppExec's help information, type just
   help
   
 and press Enter.
+
+You may have noticed, that the script "compile_or_run" uses a non-local
+variable $(Compiler), such as:
+
+  SET Compiler = run@$(EXT_PART)
+
+Though, in general, it is recommended to use a local variable, e.g.
+
+  SET local Compiler = run@$(EXT_PART)
+
+Local variables, unlike non-local ones, are automatically deleted at the end
+of the script where they were created. (So you don't have to use the UNSET
+command for local variables at the end of your script.)
+So, why the variable $(Compiler) is not a local one?
+Consider a situation when the "run@..." script does not do what you expected
+it to. In such case, you probably want to examine this script and correct it,
+right? And here is when the existing variable $(Compiler) becomes useful! As
+this variable holds the name of (or the path to) the just executed "run@..."
+script, it's easy to see what exact "run@..." script needs to be examined.
+Just type one the following in NppExec's Console:
+
+  // to show the "run@..." script's name:
+  echo $(Compiler)
+
+  // to open the "run@..." script from a physical file:
+  NPP_OPEN $(Compiler)
 
 
 One more thing regarding NppExec usage. Compiler/interpreter's output is shown

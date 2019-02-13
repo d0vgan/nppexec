@@ -45,7 +45,7 @@ ability to do it by itself. No magic here :)</pre>
 </blockquote>
 <p>Phew! It was a long way so far, isn't it? ;) But let's proceed. </p>
 <p>Now you already have (or at least I hope so) a general vision regarding what's needed to interpret/compile/run your source file. </p>
-<p>Let's take into account one more thing: NppExec is NOT cmd.exe. NppExec allows you to run something and see the console output, but it is NOT a system's command interpreter (cmd.exe) itself and DOES NOT invoke cmd.exe if you did not call it explicitly. Thus you may encounter different behaviour of NppExec's Console and the system's console (cmd.exe). Refer to the section <a href="1.3.html">[1.3]</a> for more details. </p>
+<p>Let's take into account one more thing: NppExec is NOT cmd.exe. NppExec allows you to run something and see the console output, but it is NOT a system's command interpreter (cmd.exe) itself and DOES NOT invoke cmd.exe if you did not call it explicitly. (Note: NppExec ver. 0.6 RC3 introduces a new advanced option "ChildProcess_RunPolicy" that allows to modify this behavior. Refer to <a href="4.4.html">[4.4]</a> for more details.) Thus you may encounter different behaviour of NppExec's Console and the system's console (cmd.exe). Refer to the section <a href="1.3.html">[1.3]</a> for more details. </p>
 <p>Anyway, you can &quot;ask&quot; cmd.exe to do something for you by calling it from NppExec explicitly. Refer to the section <a href="4.4.html">[4.4]</a> for more details. </p>
 <blockquote>
   <pre> </pre>

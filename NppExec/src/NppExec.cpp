@@ -4445,13 +4445,18 @@ void CNppExec::OnHelpManual()
 
 void CNppExec::OnHelpDocs()
 {
-    const int nHelpDocs = 2;
-    const TCHAR* cszDocFileNames[nHelpDocs] = {
-        _T("NppExec_TechInfo.txt"),
-        _T("NppExec.txt")
+    typedef struct sDocFile {
+        const TCHAR* cszFileName;
+        bool         bShouldExist;
+    } tDocFile;
+
+    const tDocFile docFiles[] = {
+        { _T("NppExec_HelpAll.txt"),  false },
+        { _T("NppExec_TechInfo.txt"), true  },
+        { _T("NppExec.txt"),          true  }
     };
     
-    tstr doc_file;
+    tstr doc_file_path;
 
     // first, trying the folder at the level of NppExec.dll ("doc\NppExec")
     tstr path1 = getPluginDllPath();
@@ -4461,16 +4466,21 @@ void CNppExec::OnHelpDocs()
     tstr path2 = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpPath);
     path2 += _T("doc\\NppExec\\");
 
-    for ( int i = 0; i < nHelpDocs; i++ )
+    for ( const tDocFile& docFile : docFiles )
     {
-        doc_file = path1;
-        doc_file += cszDocFileNames[i];
-        if ( !NppExecHelpers::CheckFileExists(doc_file) )
+        doc_file_path = path1;
+        doc_file_path += docFile.cszFileName;
+        if ( !NppExecHelpers::CheckFileExists(doc_file_path) )
         {
-            doc_file = path2;
-            doc_file += cszDocFileNames[i];
+            doc_file_path = path2;
+            doc_file_path += docFile.cszFileName;
+            if ( !NppExecHelpers::CheckFileExists(doc_file_path) )
+            {
+                if ( !docFile.bShouldExist )
+                    continue;
+            }
         }
-        SendNppMsg( NPPM_DOOPEN, 0, (LPARAM) doc_file.c_str() );
+        SendNppMsg( NPPM_DOOPEN, 0, (LPARAM) doc_file_path.c_str() );
     }
 }
 
