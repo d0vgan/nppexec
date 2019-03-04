@@ -6,12 +6,12 @@ You may use the NppExec plugin to perform certain actions on your files, but
 what about the automatization? What if you want your .c files to be compiled
 with tcc, .cpp files to be compiled with g++ and .awk files to be interpretted
 with gawk automatically, without explicit call to required compiler or
-interpretter? Is it possible?
+interpreter? Is it possible?
 Yes, NppExec ALREADY allows you to do this. All you need is some imagination
 and several things to do. And I'm about to tell what is needed.
 
 Let's begin with several theoretical questions.
-At first, how can NppExec understand which compiler/interpretter is required
+At first, how can NppExec understand which compiler/interpreter is required
 by your current source file? NppExec is not a compiler, it does not have
 any information about your file and does not know what to do with it. 
 Moreover, Notepad++ itself is not such IDE as Visual C++ Express or Dev-C++,
@@ -21,7 +21,7 @@ So, the only way to compile your source file with required compiler is to tell
 Notepad++ (to tell NppExec in our case) _which_ compiler to use and _how_ to
 use it.
 This is the solution which you may use already - explicit usage of certain
-compiler/interpretter with certain source file. For example, you may want to
+compiler/interpreter with certain source file. For example, you may want to
 compile and run your .c source file with tcc. A simple NppExec's script can
 be created for this purpose:
 

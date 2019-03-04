@@ -142,7 +142,7 @@
 
    Don't forget that actually the value of ChildProcess_CycleTimeout_ms
    is a pause between requests to the child console process'es output,
-   so values > 500 ms are not recommened.
+   so values > 500 ms are not recommended.
 
 
  ChildProcess_ExitTimeout_ms

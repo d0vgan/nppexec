@@ -408,7 +408,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  In particular, now all plugin's options are stored, read and written by the
  Options Manager component.
  The Warning Analyzer component, developed by Nicolas Babled, allows to filter
- and recognize different compiler/interpretter error and warning messages - and
+ and recognize different compiler/interpreter error and warning messages - and
  extract useful information from these messages (such as file name and line 
  number).
  The Simple Logger component stores detailed information about last executed
@@ -440,7 +440,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  3. New dialog:  Console Output Filter -> Highlight.
  (Thanks to Nicolas Babled & Geert Vancompernolle)
- This dialog allows you to specify a string mask for compiler/interpretter error 
+ This dialog allows you to specify a string mask for compiler/interpreter error 
  and warning messages with such keywords as %FILE%, %ABSFILE% and %LINE%.
  These messages can be highlighted with different colours and allow you to go
  to certain line in certain file when double-clicked in the Console window.

@@ -82,7 +82,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("about  - show NppExec Help/About") _T_RE_EOL \
   DEFAULT_NPPEXEC_CMD_PREFIX _T("  -  prefix for NppExec's commands (e.g. \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("npp_console off\")") _T_RE_EOL \
   DEFAULT_NPPEXEC_CMD_PREFIX_COLLATERAL_FORCED _T("  -  always executes a command in a collateral (parallel) script") _T_RE_EOL \
-  _T("CTRL+C  -  kill (via Ctrl+C) or terminatate current child process") _T_RE_EOL \
+  _T("CTRL+C  -  kill (via Ctrl+C) or terminate current child process") _T_RE_EOL \
   _T("CTRL+BREAK  -  kill (via Ctrl+Break) or terminate current child process") _T_RE_EOL \
   _T("CTRL+Z  -  send ^Z to current child process") _T_RE_EOL \
   _T("-------- General commands --------") _T_RE_EOL \

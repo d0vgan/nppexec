@@ -142,7 +142,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        ver            - show plugin's version
  *        manual         - show NppExec User Guide
  *        about          - show NppExec Help/About
- *        CTRL+C         - kill (via Ctrl+C) or terminatate current child process
+ *        CTRL+C         - kill (via Ctrl+C) or terminate current child process
  *        CTRL+BREAK     - kill (via Ctrl+Break) or terminate current child process
  *        CTRL+Z         - send ^Z to current child process
  *   6) All Notepad++ environment variables are supported:
