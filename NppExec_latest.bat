@@ -16,7 +16,7 @@ if not exist NppExec\Release\NppExec.dll goto no_dll_file_exit
 cd NppExec\Release
 %ARC_EXE% u -tzip ..\..\%ARC_DLL_NAME%.zip NppExec.dll NppExec\*.h -mx5
 cd ..
-%ARC_EXE% u -tzip ..\%ARC_DLL_NAME%.zip doc\NppExec\README.txt doc\NppExec\NppExec.txt doc\NppExec\NppExec_TechInfo.txt doc\NppExec\NppExec*.chm doc\NppExec\*.html doc\NppExec\*.css doc\NppExec\*.png -mx5
+%ARC_EXE% u -tzip ..\%ARC_DLL_NAME%.zip doc\NppExec\README.txt doc\NppExec\NppExec*.txt doc\NppExec\NppExec*.chm doc\NppExec\*.html doc\NppExec\*.css doc\NppExec\*.png -mx5
 cd ..
 %ARC_EXE% t %ARC_DLL_NAME%.zip
 
@@ -26,7 +26,7 @@ if not exist NppExec\x64\Release\NppExec.dll goto no_dll_file_x64_exit
 cd NppExec\x64\Release
 %ARC_EXE% u -tzip ..\..\..\%ARC_DLL_NAME_64%.zip NppExec.dll -mx5
 cd ..\..
-%ARC_EXE% u -tzip ..\%ARC_DLL_NAME_64%.zip doc\NppExec\README.txt doc\NppExec\NppExec.txt doc\NppExec\NppExec_TechInfo.txt doc\NppExec\NppExec*.chm doc\NppExec\*.html doc\NppExec\*.css doc\NppExec\*.png -mx5
+%ARC_EXE% u -tzip ..\%ARC_DLL_NAME_64%.zip doc\NppExec\README.txt doc\NppExec\NppExec*.txt doc\NppExec\NppExec*.chm doc\NppExec\*.html doc\NppExec\*.css doc\NppExec\*.png -mx5
 cd Release
 %ARC_EXE% u -tzip ..\..\%ARC_DLL_NAME_64%.zip NppExec\*.h -mx5
 cd ..\..
