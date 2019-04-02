@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.6 RC3 - March 2019
+ v0.6 RC3 - April 2019
  ---------------------
  + new advanced option "ChildProcess_RunPolicy" (see "NppExec_TechInfo.txt")
  * better compatibility with Notepad++ 7.6.x (and higher)
