@@ -11,6 +11,7 @@ And don't forget about Plugins -> NppExec -> Help/Manual.
 Installation:
 * Just unpack the NppExec zip-archive (the last \*dll\*.zip under either https://github.com/d0vgan/nppexec/releases or https://sourceforge.net/projects/npp-plugins/files/NppExec/) to the folder "Notepad++\plugins".
 It will extract the file "NppExec.dll" as well as the "doc\NppExec" and "NppExec" subfolders (the latter one contains header files used by NppExec at runtime).
+The only difference between the \*dll\*.zip and \*dll\*_PA.zip is the plugin folder structure. The \*dll\*.zip corresponds to the plugin folder structure prior to Notepad++ 7.6.x, whereas the \*dll\*_PA.zip orients to the Plugins Admin introduced in Notepad++ 7.6.x.
 
 Note:
 If you see just blank pages inside the NppExec Manual or see messages similar to "This web content was blocked" or "This web page could not be shown", please follow the instructions below:
