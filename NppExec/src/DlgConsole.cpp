@@ -233,6 +233,8 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(MSG_LPARAM)  :  lParam (output) of \'npp_sendmsg[ex]\' or \'sci_sendmsg\'") _T_RE_EOL \
   _T("$(NPP_HWND)  :  Notepad++'s main window handle") _T_RE_EOL \
   _T("$(SCI_HWND)  :  current Scintilla's window handle") _T_RE_EOL \
+  _T("$(CON_HWND)  :  NppExec's Console window handle (RichEdit control)") _T_RE_EOL \
+  _T("$(FOCUSED_HWND)  :  focused window handle") _T_RE_EOL \
   _T("$(SYS.<var>)  :  system\'s environment variable, e.g. $(SYS.PATH)") _T_RE_EOL \
   _T("$(@EXIT_CMD)  :  a callback exit command for a child process") _T_RE_EOL \
   _T("$(@EXIT_CMD_SILENT)  :  a silent (non-printed) callback exit command") _T_RE_EOL \
@@ -4669,6 +4671,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( _T("$(INPUT[1])") );         //  $(INPUT[1])
   CmdVarsList.Add( MACRO_INPUT );               //  $(INPUT)
   CmdVarsList.Add( MACRO_FILE_FULLPATH );       //  $(FULL_CURRENT_PATH)
+  CmdVarsList.Add( MACRO_FOCUSED_HWND );        //  $(FOCUSED_HWND)
   CmdVarsList.Add( MACRO_FILE_FULLNAME );       //  $(FILE_NAME)
   CmdVarsList.Add( MACRO_FILE_EXTONLY );        //  $(EXT_PART)
   CmdVarsList.Add( MACRO_EXITCODE );            //  $(EXITCODE)
@@ -4677,6 +4680,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_CURRENT_LINE );        //  $(CURRENT_LINE)
   CmdVarsList.Add( MACRO_FILE_DIRPATH );        //  $(CURRENT_DIRECTORY)
   CmdVarsList.Add( MACRO_CURRENT_COLUMN );      //  $(CURRENT_COLUMN)
+  CmdVarsList.Add( MACRO_CON_HWND );            //  $(CON_HWND)
   CmdVarsList.Add( MACRO_CLIPBOARD_TEXT );      //  $(CLIPBOARD_TEXT)
   CmdVarsList.Add( _T("$(ARGV[1])") );          //  $(ARGV[1])
   CmdVarsList.Add( _T("$(ARGV)") );             //  $(ARGV)

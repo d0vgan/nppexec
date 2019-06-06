@@ -155,6 +155,7 @@ public:
   T*    Copy(const T* pStr, int nLength = -1); // -1 means all characters
   T*    Copy(const CStrT& Str);
   T*    Copy(CStrT&& Str);
+  int   Count(const T ch);
   bool  Delete(int nPos, int nCharacters = -1); 
           // -1 means all characters from nPos
   bool  DeleteFirstChar()  { return Delete(0, 1); }
@@ -445,6 +446,17 @@ template <class T> T* CStrT<T>::Copy(CStrT&& Str)
         Swap(Str);
     }
     return m_pData; // can be NULL
+}
+
+template <class T> int CStrT<T>::Count(const T ch)
+{
+    int n = 0;
+    for ( int i = 0; i < m_nLength; i++ )
+    {
+        if ( m_pData[i] == ch )
+            ++n;
+    }
+    return n;
 }
 
 template <class T> bool CStrT<T>::Delete(int nPos, int nCharacters )

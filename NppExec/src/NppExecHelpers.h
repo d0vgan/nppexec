@@ -369,6 +369,8 @@ namespace NppExecHelpers
 {
     bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread = NULL);
 
+    HWND GetFocusedWnd();
+
     tstr GetClipboardText(HWND hWndOwner = NULL);
     bool SetClipboardText(const tstr& text, HWND hWndOwner = NULL);
 

@@ -83,6 +83,8 @@ const TCHAR MACRO_LAST_CMD_RESULT[]     = _T("$(LAST_CMD_RESULT)");
 const TCHAR MACRO_CLIPBOARD_TEXT[]      = _T("$(CLIPBOARD_TEXT)");
 const TCHAR MACRO_NPP_HWND[]            = _T("$(NPP_HWND)");
 const TCHAR MACRO_SCI_HWND[]            = _T("$(SCI_HWND)");
+const TCHAR MACRO_CON_HWND[]            = _T("$(CON_HWND)");
+const TCHAR MACRO_FOCUSED_HWND[]        = _T("$(FOCUSED_HWND)");
 
 // NppExec's Search Flags for sci_find and sci_replace:
 #define NPE_SF_MATCHCASE    0x00000001 // "text" finds only "text", not "Text" or "TEXT"
@@ -288,6 +290,7 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
 
     int i = 0;
     int n = 0;
+    unsigned int nBracketDepth = 0;
     bool isComplete = false;
     bool isDblQuote = false;
     bool isEnvVar = false;
@@ -349,21 +352,37 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
                 break;
 
             case _T('$'):
-                if ( !isEnvVar )
+                if ( (!isEnvVar) && (*(s + 1) == _T('(')) )
                 {
-                    if ( *(s + 1) == _T('(') )
-                    {
-                        isEnvVar = true;
-                    }
+                    isEnvVar = true;
+                    param += _T('$');
+                    param += _T('(');
+                    ++s; // skip '$'
+                    ++s; // skip '('
                 }
-                param += ch;
-                ++s; // to next character
+                else
+                {
+                    param += ch;
+                    ++s; // to next character
+                }
                 break;
 
             case _T(')'):
                 if ( isEnvVar )
                 {
-                    isEnvVar = false;
+                    if ( nBracketDepth == 0 )
+                        isEnvVar = false;
+                    else
+                        --nBracketDepth;
+                }
+                param += ch;
+                ++s; // to next character
+                break;
+
+            case _T('('):
+                if ( isEnvVar )
+                {
+                    ++nBracketDepth;
                 }
                 param += ch;
                 ++s; // to next character
@@ -1195,6 +1214,8 @@ static FParserWrapper g_fp;
  * $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  * $(NPP_HWND)           : Notepad++'s main window handle
  * $(SCI_HWND)           : current Scintilla's window handle
+ * $(CON_HWND)           : NppExec's Console window handle (RichEdit control)
+ * $(FOCUSED_HWND)       : focused window handle
  * $(SYS.<var>)          : system's environment variable, e.g. $(SYS.PATH)
  * $(@EXIT_CMD)          : a callback exit command for a child process
  * $(@EXIT_CMD_SILENT)   : a silent (non-printed) callback exit command
@@ -4874,7 +4895,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSetFocus(const tstr& params)
             // CNppExecCommandExecutor::BackgroundExecuteThreadFunc,
             // it is not straightforward to set the focus
             HWND hCon = m_pNppExec->GetConsole().GetConsoleWnd();
-            HWND hFocused = ::GetFocus(); // most likely returns NULL
+            HWND hFocused = NppExecHelpers::GetFocusedWnd();
             if ( hFocused != hCon && hFocused != hConDlg )
             {
                 //m_pNppExec->SendNppMsg(NPPM_DMMSHOW, 0, (LPARAM) hConDlg);
@@ -4893,7 +4914,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSetFocus(const tstr& params)
             // Note: since this code is executed in the scope of
             // CNppExecCommandExecutor::BackgroundExecuteThreadFunc,
             // it is not straightforward to set the focus
-            HWND hFocused = ::GetFocus(); // most likely returns NULL
+            HWND hFocused = NppExecHelpers::GetFocusedWnd();
             if ( hFocused != hSci )
                 ::SendMessage(hSci, SCI_SETFOCUS, 1, 0);
             m_pNppExec->m_hFocusedWindowBeforeScriptStarted = hSci;
@@ -6119,10 +6140,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
         bLocalVar = m_pNppExec->GetMacroVars().IsLocalMacroVar(varName);
         if ( varName.length() > 0 )
         {
-            if ( varName.StartsWith(_T("$(")) == false )
-                varName.Insert(0, _T("$("));
-            if ( varName.GetLastChar() != _T(')') )
-                varName.Append(_T(')'));
+            CNppExecMacroVars::MakeCompleteVarName(varName);
             NppExecHelpers::StrUpper(varName);
         }
     }
@@ -6650,14 +6668,28 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
     }
 
     sub.Clear();
-    len = lstrlen(MACRO_SYSVAR);
+    len = lstrlen(MACRO_SYSVAR); // $(SYS.
     pos = 0;
     while ((pos = Cmd.Find(MACRO_SYSVAR, pos)) >= 0)
     {
       bool bSysVarOK = false;
       int  i1 = pos + len;
       int  i2 = i1;
-      while ((i2 < Cmd.length()) && (Cmd[i2] != _T(')')))  ++i2;
+      unsigned int nBracketDepth = 0;
+      for (; i2 < Cmd.length(); ++i2)
+      {
+        if (Cmd[i2] == _T(')'))
+        {
+          if (nBracketDepth != 0)
+            --nBracketDepth;
+          else
+            break;
+        }
+        else if (Cmd[i2] == _T('('))
+        {
+          ++nBracketDepth;
+        }
+      }
       sub.Copy(Cmd.c_str() + i1, i2 - i1);
       if (sub.length() > 0)
       {
@@ -6788,6 +6820,53 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
           c_base::_tuint64_to_strhex((unsigned __int64)(UINT_PTR)(m_pNppExec->GetScintillaHandle()), szMacro);
         #else
           c_base::_tuint2strhex((unsigned int)(UINT_PTR)(m_pNppExec->GetScintillaHandle()), szMacro);
+        #endif
+        sub = _T("0x");
+        sub += szMacro;
+        bMacroOK = true;
+      }
+
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
+    }
+
+    sub.Clear(); // hwnd will be here
+    bMacroOK = false;
+    len = lstrlen(MACRO_CON_HWND);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_CON_HWND, pos)) >= 0)
+    {
+      if (!bMacroOK)
+      {
+        #ifdef _WIN64
+          c_base::_tuint64_to_strhex((unsigned __int64)(UINT_PTR)(m_pNppExec->GetConsole().GetConsoleWnd()), szMacro);
+        #else
+          c_base::_tuint2strhex((unsigned int)(UINT_PTR)(m_pNppExec->GetConsole().GetConsoleWnd()), szMacro);
+        #endif
+        sub = _T("0x");
+        sub += szMacro;
+        bMacroOK = true;
+      }
+
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
+    }
+
+    sub.Clear(); // hwnd will be here
+    bMacroOK = false;
+    len = lstrlen(MACRO_FOCUSED_HWND);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_FOCUSED_HWND, pos)) >= 0)
+    {
+      if (!bMacroOK)
+      {
+        HWND hFocusedWnd = NppExecHelpers::GetFocusedWnd();
+        #ifdef _WIN64
+          c_base::_tuint64_to_strhex((unsigned __int64)(UINT_PTR)(hFocusedWnd), szMacro);
+        #else
+          c_base::_tuint2strhex((unsigned int)(UINT_PTR)(hFocusedWnd), szMacro);
         #endif
         sub = _T("0x");
         sub += szMacro;
@@ -6966,8 +7045,25 @@ void CNppExecMacroVars::CheckEmptyMacroVars(CNppExec* pNppExec, tstr& S, int nCm
       int i;
       while ( (i = S.Find(_T("$("))) >= 0 )
       {
-        int j = S.Find(_T(')'), i + 1);
-        if ( j > 0 )
+        int j = i + 2;
+        unsigned int nBracketDepth = 0;
+        for ( ; j < S.length(); ++j )
+        {
+          const TCHAR ch = S[j];
+          if ( ch == _T(')') )
+          {
+            if ( nBracketDepth != 0 )
+              --nBracketDepth;
+            else
+              break;
+          }
+          else if ( ch == _T('(') )
+          {
+            ++nBracketDepth;
+          }
+        }
+        
+        if ( j < S.length() )
           S.Delete(i, j - i + 1);
         else
           S.Delete(i, -1);
@@ -7027,11 +7123,7 @@ bool CNppExecMacroVars::SetUserMacroVar(CScriptEngine* pScriptEngine, tstr& varN
 
   if ( varName.length() > 0 )
   {
-    if ( varName.StartsWith(_T("$(")) == false )
-      varName.Insert(0, _T("$("));
-    if ( varName.GetLastChar() != _T(')') )
-      varName.Append(_T(')'));
-    
+    CNppExecMacroVars::MakeCompleteVarName(varName);
     NppExecHelpers::StrUpper(varName);
 
     {
@@ -7104,6 +7196,25 @@ bool CNppExecMacroVars::SetUserMacroVar(CScriptEngine* pScriptEngine, tstr& varN
   }
 
   return bSuccess;
+}
+
+void CNppExecMacroVars::MakeCompleteVarName(tstr& varName)
+{
+    if ( !varName.IsEmpty() )
+    {
+        if ( varName.StartsWith(_T("$(")) == false )
+            varName.Insert(0, _T("$("));
+        if ( varName.GetLastChar() != _T(')') )
+            varName.Append(_T(')'));
+
+        int n1 = varName.Count(_T('('));
+        int n2 = varName.Count(_T(')'));
+        while ( n1 > n2 )
+        {
+            varName.Append(_T(')'));
+            ++n2;
+        }
+    }
 }
 
 

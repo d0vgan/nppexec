@@ -1082,6 +1082,8 @@ extern const TCHAR MACRO_LAST_CMD_RESULT[];
 extern const TCHAR MACRO_CLIPBOARD_TEXT[];
 extern const TCHAR MACRO_NPP_HWND[];
 extern const TCHAR MACRO_SCI_HWND[];
+extern const TCHAR MACRO_CON_HWND[];
+extern const TCHAR MACRO_FOCUSED_HWND[];
 
 //---------------------------------------------------------------------------
 #endif

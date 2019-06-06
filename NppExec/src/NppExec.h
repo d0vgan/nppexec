@@ -1167,6 +1167,8 @@ public:
     bool        CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging, int nCmdType = 0);
     bool        SetUserMacroVar(CScriptEngine* pScriptEngine, tstr& varName, const tstr& varValue, unsigned int nFlags = 0);
 
+    static void MakeCompleteVarName(tstr& varName);
+
 public:
     class StrCalc
     {

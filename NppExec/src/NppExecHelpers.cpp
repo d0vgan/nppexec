@@ -89,6 +89,28 @@ namespace NppExecHelpers
         return true;
     }
 
+    HWND GetFocusedWnd()
+    {
+        HWND hFocusedWnd = NULL;
+        HWND hForegroundWnd = ::GetForegroundWindow();
+        if (hForegroundWnd)
+        {
+            DWORD dwProcessId = 0;
+            DWORD dwThreadId = ::GetWindowThreadProcessId(hForegroundWnd, &dwProcessId);
+            if (dwThreadId != 0)
+            {
+                GUITHREADINFO gti;
+                ::ZeroMemory(&gti, sizeof(GUITHREADINFO));
+                gti.cbSize = sizeof(GUITHREADINFO);
+                if (GetGUIThreadInfo(dwThreadId, &gti))
+                {
+                    hFocusedWnd = gti.hwndFocus;
+                }
+            }
+        }
+        return hFocusedWnd;
+    }
+
     tstr GetClipboardText(HWND hWndOwner )
     {
         tstr sText;
