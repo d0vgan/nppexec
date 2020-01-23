@@ -348,6 +348,8 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
 
     { OPTB_CONSOLE_NOINTMSGS, OPTT_INT | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("NoInternalMsgs"), -1, NULL },
+    { OPTB_CONSOLE_PRINTMSGREADY, OPTT_INT | OPTF_READWRITE,
+      INI_SECTION_CONSOLE, _T("PrintMsgReady"), -1, NULL },
     { OPTD_CONSOLE_FONT, OPTT_DATA | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("Font"), 0, NULL },
     //[ConsoleOutputFilter]
@@ -4817,6 +4819,10 @@ void CNppExec::ReadOptions()
   if (GetOptions().GetInt(OPTB_CONSOLE_NOINTMSGS) < 0)
   {
     GetOptions().SetBool(OPTB_CONSOLE_NOINTMSGS, false);
+  }
+  if (GetOptions().GetInt(OPTB_CONSOLE_PRINTMSGREADY) < 0)
+  {
+    GetOptions().SetBool(OPTB_CONSOLE_PRINTMSGREADY, true);
   }
 
   {

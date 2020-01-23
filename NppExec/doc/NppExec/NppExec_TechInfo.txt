@@ -34,6 +34,7 @@
  |  CommentDelimiter                |  //                            | string |
  |  Visible                         |  0                    (FALSE)  |  BOOL  |
  |  ShowHelp                        |  0                    (FALSE)  |  BOOL  |
+ |  PrintMsgReady                   |  1                    (TRUE)   |  BOOL  |
  |  NoEmptyVars                     |  1                    (TRUE)   |  BOOL  |
  |  SaveCmdHistory                  |  1                    (TRUE)   |  BOOL  |
  |  TextColorNormal                 |  00 00 00                      |  HEX   |
@@ -76,6 +77,7 @@
    [Console]
    Visible=0
    ShowHelp=0
+   PrintMsgReady=1
    OEM=1
    CmdHistory=1
    ChildProcess_StartupTimeout_ms=240
@@ -346,6 +348,14 @@
    the Help Info each time Notepad++ starts.
    If this option is disabled (set to 0), the Console window does not
    show the Help Info when Notepad++ starts.
+
+
+ PrintMsgReady
+ -------------
+   When this option is enabled (set to 1), a message "==== READY ===="
+   is printed in the Console after an NppExec's script is executed.
+   If this option is disabled (set to 0), a message "==== READY ===="
+   is not printed.
 
 
  NoEmptyVars

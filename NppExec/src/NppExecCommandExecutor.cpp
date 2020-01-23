@@ -58,7 +58,10 @@ static DWORD WINAPI dwRunCollateralScriptThread(LPVOID lpScrptEngnRnr)
     }
     else if ( !pScriptEngine->IsExternal() )
     {
-        pNppExec->GetConsole().PrintMessage( _T("================ READY ================"), false );
+        if ( pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) )
+        {
+            pNppExec->GetConsole().PrintMessage( _T("================ READY ================"), false );
+        }
         pNppExec->GetConsole().RestoreDefaultTextStyle(true);
     }
 
@@ -957,7 +960,8 @@ DWORD CNppExecCommandExecutor::ScriptableCommand::RunConsoleScript(Command* pCom
                  (pNppExec->GetConsole().IsOutputEnabledN() > 1)*/ 
                  pNppExec->GetConsole().IsOutputEnabledN() != 0 )
             {
-                if ( !pNppExec->GetCommandExecutor().GetRunningScriptEngine() )
+                if ( pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) &&
+                     !pNppExec->GetCommandExecutor().GetRunningScriptEngine() )
                 {
                     pNppExec->GetConsole().PrintMessage( _T("================ READY ================"), false );
                 }

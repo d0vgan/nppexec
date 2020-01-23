@@ -3882,6 +3882,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                     // d+/d-     follow current directory on/off
                     // h+/h-     console commands history on/off
                     // m+/m-     console internal messages on/off
+                    // p+/p-     print "==== READY ====" on/off
                     // q+/q-     command aliases on/off
                     // v+/v-     set the $(OUTPUT) variable on/off
                     // f+/f-     console output filter on/off
@@ -3947,6 +3948,16 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                         MF_BYCOMMAND | (bOn ? MF_CHECKED : MF_UNCHECKED));
                                 }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOINTMSGS, bOn);
+                                isOK = true;
+                            }
+                            break;
+
+                        case _T('p'):
+                        case _T('P'):
+                            if ( arg[1] == _T('+') || arg[1] == _T('-') )
+                            {
+                                bool bOn = ( arg[1] == _T('+') );
+                                m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_PRINTMSGREADY, bOn);
                                 isOK = true;
                             }
                             break;
@@ -4107,9 +4118,13 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S1 += _T(" m");
         S2 += _T_RE_EOL _T("; int_msgs: ");
         appendOnOff( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS), S1, S2 );
+        // print_ready
+        S1 += _T(" p");
+        S2 += _T(", print_ready: ");
+        appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY), S1, S2 );
         // cmd_aliases
         S1 += _T(" q");
-        S2 += _T(", cmd_aliases: ");
+        S2 += _T_RE_EOL _T("; cmd_aliases: ");
         appendOnOff( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOCMDALIASES), S1, S2 );
         // $(OUTPUT)
         S1 += _T(" v");

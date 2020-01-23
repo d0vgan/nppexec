@@ -1416,7 +1416,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  npe_console") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_console") _T_RE_EOL \
-    _T("  npe_console a+/a- d+/d- h+/h- m+/m- q+/q- v+/v- f+/f- r+/r- k0..3") _T_RE_EOL \
+    _T("  npe_console a+/a- d+/d- h+/h- m+/m- p+/p- q+/q- v+/v- f+/f- r+/r- k0..3") _T_RE_EOL \
     _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
     _T("  npe_console <options> --") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
@@ -1426,6 +1426,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("       d+/d-  follow $(CURRENT_DIRECTORY) on/off") _T_RE_EOL \
     _T("       h+/h-  console commands history on/off") _T_RE_EOL \
     _T("       m+/m-  console internal messages on/off") _T_RE_EOL \
+    _T("       p+/p-  print \"==== READY ====\" on/off") _T_RE_EOL \
     _T("       q+/q-  command aliases on/off") _T_RE_EOL \
     _T("       v+/v-  set the $(OUTPUT) local variable on/off") _T_RE_EOL \
     _T("       f+/f-  console output filter on/off") _T_RE_EOL \
@@ -1461,6 +1462,9 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  m+/m-  Console internal messages on/off.") _T_RE_EOL \
     _T("         Corresponding menu item (inverse): No internal messages.") _T_RE_EOL \
     _T("         If On, NppExec\'s Console prints all internal (green) messages.") _T_RE_EOL \
+    _T("  p+/p-  Print \"==== READY ====\" on/off.") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         Default value: on.") _T_RE_EOL \
     _T("  q+/q-  Command aliases on/off.") _T_RE_EOL \
     _T("         Corresponding menu item (inverse): Disable command aliases.") _T_RE_EOL \
     _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
@@ -4515,8 +4519,11 @@ void ConsoleDlg::OnSize(HWND hDlg)
 void ConsoleDlg::printConsoleReady()
 {
   CNppExec& NppExec = Runtime::GetNppExec();
-  if (!NppExec.GetCommandExecutor().IsChildProcessRunning())
+  if (NppExec.GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) &&
+      !NppExec.GetCommandExecutor().IsChildProcessRunning())
+  {
     NppExec.GetConsole().PrintMessage( _T("================ READY ================"), false );
+  }
 }
 
 bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
