@@ -1,7 +1,7 @@
 [Project]
 FileName=NppExec_DevCpp.dev
 Name=NppExec
-UnitCount=82
+UnitCount=84
 Type=3
 Ver=2
 IsCpp=1
@@ -894,6 +894,26 @@ BuildCmd=
 
 [Unit82]
 FileName=src\NppExecHelpers.cpp
+CompileCpp=1
+Folder=NppExec
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit83]
+FileName=src\NppScript.cpp
+CompileCpp=1
+Folder=NppExec
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit84]
+FileName=src\NppScript.h
 CompileCpp=1
 Folder=NppExec
 Compile=1

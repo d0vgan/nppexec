@@ -1,6 +1,6 @@
 /*
 This file is part of NppExec
-Copyright (C) 2013 DV <dvv81 (at) ukr (dot) net>
+Copyright (C) 2020 DV <dvv81 (at) ukr (dot) net>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,21 +26,17 @@ CNppScriptList::CNppScriptList()
 
 CNppScriptList::~CNppScriptList()
 {
-  free();
+  Free();
 }
 
-void CNppScriptList::free()
+void CNppScriptList::Free()
 {
-  CListItemT<PNppScript>* p = _Scripts.GetFirst();
+  CListItemT<CNppScript *> * p = _Scripts.GetFirst();
   while (p)
   {
     CNppScript* pScript = p->GetItem();
-    if (pScript)
-    {
-      pScript->DeleteAll();
-      delete pScript;
-      p->SetItem(NULL);
-    }
+    delete pScript;
+    p->SetItem(NULL);
     p = p->GetNext();
   }
 }
@@ -51,30 +47,18 @@ bool CNppScriptList::AddScript(const tstr& ScriptName, const CNppScript& newScri
   {
     CCriticalSectionLockGuard lock(_csScripts);
 
-    if (_ScriptNames.Add(ScriptName))
-    {
-      CNppScript* pScript = new CNppScript;
-      if (pScript)
-      {      
-        pScript->AddItems(newScript);
-        if (_Scripts.Add(pScript))
-        {
-          // script is added -> list is modified
-          _bIsModified = true;
-          return true;
-        }
-        else
-        {
-          pScript->DeleteAll();
-          delete pScript;
-          _ScriptNames.DeleteLast();
-          return false;
-        }
-
+    CNppScript* pScript = new CNppScript(ScriptName, newScript.GetCmdList());
+    if (pScript)
+    {      
+      if (_Scripts.Add(pScript))
+      {
+        // script is added -> list is modified
+        _bIsModified = true;
+        return true;
       }
       else
       {
-        _ScriptNames.DeleteLast();
+        delete pScript;
         return false;
       }
     }
@@ -96,20 +80,14 @@ bool CNppScriptList::DeleteScript(const tstr& ScriptName)
 
   CCriticalSectionLockGuard lock(_csScripts);
 
-  CListItemT<tstr>* p = _ScriptNames.GetFirst();
-  CListItemT<PNppScript>* p1 = _Scripts.GetFirst();
-  while (p && p1)
+  CListItemT<CNppScript *> * p = _Scripts.GetFirst();
+  while (p)
   {
-    if (p->GetItem() == ScriptName)
+    CNppScript* pScript = p->GetItem();
+    if (pScript->GetScriptName() == ScriptName)
     {
-      CNppScript* pScript = p1->GetItem();
-      if (pScript)
-      {
-        pScript->DeleteAll();
-        delete pScript;
-      }
-      _Scripts.Delete(p1);
-      _ScriptNames.Delete(p);
+      delete pScript;
+      _Scripts.Delete(p);
 
       // script is deleted -> list is modified
       _bIsModified = true;
@@ -117,12 +95,9 @@ bool CNppScriptList::DeleteScript(const tstr& ScriptName)
       p = NULL; // break condition
     }
     else
-    {
       p = p->GetNext();
-      p1 = p1->GetNext();
-    }
   }
-  
+
   return bRet;
 }
 
@@ -130,31 +105,24 @@ bool CNppScriptList::GetScript(const tstr& ScriptName, CNppScript& outScript)
 {
   bool bRet = false;
 
-  outScript.DeleteAll();
+  outScript.GetCmdList().DeleteAll();
 
   CCriticalSectionLockGuard lock(_csScripts);
 
-  CListItemT<tstr>* p = _ScriptNames.GetFirst();
-  CListItemT<PNppScript>* p1 = _Scripts.GetFirst();
-  while (p && p1)
+  CListItemT<CNppScript *> * p = _Scripts.GetFirst();
+  while (p)
   {
-    if (p->GetItem() == ScriptName)
+    const CNppScript* pScript = p->GetItem();
+    if (pScript->GetScriptName() == ScriptName)
     {
-      CNppScript* pScript = p1->GetItem();
-      if (pScript)
-      {
-        outScript.AddItems(*pScript);
-      }
+      outScript = *pScript;
       bRet = true;
       p = NULL; // break condition
     }
     else
-    {
       p = p->GetNext();
-      p1 = p1->GetNext();
-    }
   }
-  
+
   return bRet;
 }
 
@@ -162,36 +130,38 @@ int CNppScriptList::GetScriptCount() const
 {
   CCriticalSectionLockGuard lock(_csScripts);
 
-  return _ScriptNames.GetCount(); 
+  return _Scripts.GetCount(); 
 }
 
 CListT<tstr> CNppScriptList::GetScriptNames() const
 {
   CCriticalSectionLockGuard lock(_csScripts);
 
-  return _ScriptNames; // returns a copy
-}
-
-CListT<CNppScript> CNppScriptList::GetScripts(CListT<tstr>* pScriptNames ) const
-{
-  if (pScriptNames)
-    pScriptNames->Clear();
-
-  CCriticalSectionLockGuard lock(_csScripts);
-
-  CListT<CNppScript> ScriptsList;
-  CListItemT<tstr>* pName = _ScriptNames.GetFirst();
-  CListItemT<PNppScript>* pScript = _Scripts.GetFirst();
-  while (pName && pScript)
+  CListT<tstr> scriptNames;
+  CListItemT<CNppScript *> * p = _Scripts.GetFirst();
+  while (p)
   {
-    ScriptsList.Add(*pScript->GetItem()); // a copy of a script
-    if (pScriptNames)
-      pScriptNames->Add(pName->GetItem());
-    pName = pName->GetNext();
-    pScript = pScript->GetNext();
+    const CNppScript* pScript = p->GetItem();
+    scriptNames.Add(pScript->GetScriptName());
+    p = p->GetNext();
   }
 
-  return ScriptsList;
+  return scriptNames;
+}
+
+CListT<CNppScript> CNppScriptList::GetScripts() const
+{
+  CCriticalSectionLockGuard lock(_csScripts);
+
+  CListT<CNppScript> scriptsList;
+  CListItemT<CNppScript *> * p = _Scripts.GetFirst();
+  while (p)
+  {
+    scriptsList.Add(*p->GetItem()); // a copy of a script
+    p = p->GetNext();
+  }
+
+  return scriptsList;
 }
 
 void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLength)
@@ -200,8 +170,7 @@ void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLengt
 
   CCriticalSectionLockGuard lock(_csScripts);
 
-  free();
-  _ScriptNames.DeleteAll();
+  Free();
   _Scripts.DeleteAll();
   _bIsModified = false;
   
@@ -232,9 +201,8 @@ void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLengt
           ScriptName.Delete(i);
           i--;
         }
-        _ScriptNames.Add(ScriptName);
         iScript++;
-        pScript = new CNppScript;
+        pScript = new CNppScript(ScriptName);
         _Scripts.Add(pScript);
       }
       else
@@ -242,7 +210,7 @@ void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLengt
         // it is a script line
         if (pScript)
         {
-          pScript->Add(S);
+          pScript->GetCmdList().Add(S);
         }
       }
     }
@@ -256,72 +224,54 @@ bool CNppScriptList::ModifyScript(const tstr& ScriptName, const CNppScript& newS
 
   CCriticalSectionLockGuard lock(_csScripts);
 
-  CListItemT<tstr>* p = _ScriptNames.GetFirst();
-  CListItemT<PNppScript>* p1 = _Scripts.GetFirst();
-  while (p && p1)
+  CListItemT<CNppScript *> * p = _Scripts.GetFirst();
+  while (p)
   {
-    if (p->GetItem() == ScriptName)
+    CNppScript* pScript = p->GetItem();
+    if (pScript->GetScriptName() == ScriptName)
     {
       // ScriptName is matched
-      CNppScript* pScript = p1->GetItem();
-      if (pScript)
+      // Now let's check if newScript is different than pScript
+      CListItemT<tstr>* p1 = pScript->GetCmdList().GetFirst();
+      CListItemT<tstr>* p2 = newScript.GetCmdList().GetFirst();
+      while (p2)
       {
-        // Now let's check if newScript is different than pScript
-        p = pScript->GetFirst();
-        CListItemT<tstr>* p2 = newScript.GetFirst();
-        while (p2)
+        // Walking through newScript
+        S2 = p2->GetItem();
+        if (p1)
         {
-          // Walking through newScript
-          S2 = p2->GetItem();
-          if (p)
-          {
-            if (S2 != p->GetItem())
-            {
-              // list is modified
-              _bIsModified = true;
-              p->SetItem(S2);
-            }
-            p = p->GetNext();
-          }
-          else
+          if (S2 != p1->GetItem())
           {
             // list is modified
             _bIsModified = true;
-            pScript->Add(S2);
+            p1->SetItem(S2);
           }
-          p2 = p2->GetNext();
+          p1 = p1->GetNext();
         }
-        if (p)
+        else
         {
-          // pScript is greater than newScript
           // list is modified
           _bIsModified = true;
-          while (((p2 = pScript->GetLast()) != NULL) && (p2 != p))
-          {
-            pScript->DeleteLast();
-          }
-          pScript->Delete(p);
-          p = NULL; // break condition
+          pScript->GetCmdList().Add(S2);
         }
+        p2 = p2->GetNext();
       }
-      else
+      if (p1)
       {
-        pScript = new CNppScript;
-        if (pScript)
+        // pScript is greater than newScript
+        // list is modified
+        _bIsModified = true;
+        while (((p2 = pScript->GetCmdList().GetLast()) != NULL) && (p2 != p1))
         {
-          // list is modified
-          _bIsModified = true;
-          p1->SetItem(pScript);
-          pScript->AddItems(newScript);
+          pScript->GetCmdList().DeleteLast();
         }
+        pScript->GetCmdList().Delete(p1);
       }
       bModified = true;
+      p = NULL; // break condition
     }
     else
-    {
       p = p->GetNext();
-      p1 = p1->GetNext();
-    }
   }
 
   return bModified;
@@ -337,28 +287,25 @@ void CNppScriptList::SaveToFile(const TCHAR* cszFileName)
 
   CCriticalSectionLockGuard lock(_csScripts);
 
-  CListItemT<PNppScript>* p = _Scripts.GetFirst();
-  CListItemT<tstr>* pname = _ScriptNames.GetFirst();
-  while (p && pname)
+  CListItemT<CNppScript *> * p = _Scripts.GetFirst();
+  while (p)
   {
-    ScriptName = pname->GetItem();
+    CNppScript* pScript = p->GetItem();
+    ScriptName = pScript->GetScriptName();
     ScriptName.Insert(0, _T("::"), 2);
     ScriptName += _T("\r\n");
     fbuf.GetBufPtr()->Append(ScriptName.c_str(), ScriptName.length());
-    CNppScript* pScript = p->GetItem();
-    if (pScript)
+
+    CListItemT<tstr>* pline = pScript->GetCmdList().GetFirst();
+    while (pline)
     {
-      CListItemT<tstr>* pline = pScript->GetFirst();
-      while (pline)
-      {
-        ScriptLine = pline->GetItem();
-        ScriptLine += _T("\r\n");
-        fbuf.GetBufPtr()->Append(ScriptLine.c_str(), ScriptLine.length());
-        pline = pline->GetNext();
-      }
+      ScriptLine = pline->GetItem();
+      ScriptLine += _T("\r\n");
+      fbuf.GetBufPtr()->Append(ScriptLine.c_str(), ScriptLine.length());
+      pline = pline->GetNext();
     }
+
     p = p->GetNext();
-    pname = pname->GetNext();
   }
 
   // .bak file...
@@ -374,7 +321,19 @@ void CNppScriptList::SaveToFile(const TCHAR* cszFileName)
 
 bool CNppScriptList::IsScriptPresent(const tstr& ScriptName) const
 {
-    CCriticalSectionLockGuard lock(_csScripts);
+  bool bRet = false;
 
-    return (_ScriptNames.FindExact(ScriptName) ? true : false);
+  CCriticalSectionLockGuard lock(_csScripts);
+
+  CListItemT<CNppScript *> * p = _Scripts.GetFirst();
+  while (p && !bRet)
+  {
+    const CNppScript* pScript = p->GetItem();
+    if (pScript->GetScriptName() == ScriptName)
+      bRet = true;
+    else
+      p = p->GetNext();
+  }
+
+  return bRet;
 }

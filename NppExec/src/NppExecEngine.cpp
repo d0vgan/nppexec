@@ -4473,7 +4473,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
 
                 int n = 0;
                 CListItemT<tstr>* pline = m_execState.pScriptLineCurrent;
-                CListItemT<tstr>* pscriptline = Script.GetFirst();
+                CListItemT<tstr>* pscriptline = Script.GetCmdList().GetFirst();
                 while (pscriptline)
                 {
                     //line = "";

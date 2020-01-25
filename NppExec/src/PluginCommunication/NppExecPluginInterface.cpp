@@ -699,11 +699,11 @@ TCHAR* CNppExecPluginInterfaceImpl::npemGetScriptNames()
 TCHAR* CNppExecPluginInterfaceImpl::npemGetScriptByName(const TCHAR* szScriptName)
 {
     tstr S;
-    CNppScript scriptBody;
-    if ( m_pNppExec->m_ScriptsList.GetScript(szScriptName, scriptBody) )
+    CNppScript nppScript;
+    if ( m_pNppExec->m_ScriptsList.GetScript(szScriptName, nppScript) )
     {
-        S.Reserve(scriptBody.GetCount() * 80);
-        for ( CListItemT<tstr>* p = scriptBody.GetFirst(); p != NULL; p = p->GetNext() )
+        S.Reserve(nppScript.GetCmdList().GetCount() * 80);
+        for ( CListItemT<tstr>* p = nppScript.GetCmdList().GetFirst(); p != NULL; p = p->GetNext() )
         {
             if ( !S.IsEmpty() )
                 S += _T('\n');
