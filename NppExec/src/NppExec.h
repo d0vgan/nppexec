@@ -1257,8 +1257,6 @@ private:
   static DWORD WINAPI ExitScriptTimeoutThreadProc(LPVOID lpParam);
 
   HWND    getCurrentScintilla(INT which);
-  int     findFileNameIndexInNppOpenFileNames(const tstr& fileName, 
-                                              bool bGetOpenFileNames);
 
 public:
   toolbarIcons    m_TB_Icon;
@@ -1305,12 +1303,13 @@ public:
   int  textLoadFrom(LPCTSTR cszFile, bool bSelectionOnly); // returns -1 if can't load
   int  textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly); // returns -1 if can't save
   void textSetText(LPCTSTR cszText, bool bSelectionOnly);
-  int  nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames);
+  int  nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
   int  nppGetMenuItemIdByName(const tstr& menuItemPathName, tstr& parsedPath, tstr& parsedSep);
   int  nppGetOpenFileNames();
   int  nppGetOpenFileNamesInView(int nView = PRIMARY_VIEW, int nFiles = -1);
-  bool nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames);
+  bool nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
   bool nppSaveAllFiles();
+  int  findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
 
 private:
   bool SendChildProcessExitCommand();

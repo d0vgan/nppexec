@@ -2289,10 +2289,17 @@ void CNppExec::textSetText(LPCTSTR cszText, bool bSelectionOnly)
   SciTextDeleteResultPtr(pBufData, cszText);
 }
 
-int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames)
+int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView )
 {
   if (bGetOpenFileNames)
-    nppGetOpenFileNames();
+  {
+    if (nView == PRIMARY_VIEW || nView == SECOND_VIEW)
+    {
+      npp_nbFiles = nppGetOpenFileNamesInView(nView);
+    }
+    else
+      nppGetOpenFileNames();
+  }
 
   tstr S;
   tstr S1 = fileName;
@@ -2418,7 +2425,7 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGe
   return iPartialMatch1; // first partial match or -1
 }
 
-int CNppExec::nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames)
+int CNppExec::nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, int nView )
 {
   
   Runtime::GetLogger().Add(   _T("nppConvertToFullPathName()") );
@@ -2432,7 +2439,7 @@ int CNppExec::nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames)
       
     if (!NppExecHelpers::IsFullPath(fileName))
     {
-      int i = findFileNameIndexInNppOpenFileNames(fileName, bGetOpenFileNames);
+      int i = findFileNameIndexInNppOpenFileNames(fileName, bGetOpenFileNames, nView);
       if (i != -1)
       {
         fileName = npp_bufFileNames[i];
@@ -2653,7 +2660,7 @@ int CNppExec::nppGetOpenFileNamesInView(int nView , int nFiles )
   return nFiles;
 }
 
-bool CNppExec::nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames)
+bool CNppExec::nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames, int nView )
 {
   
   Runtime::GetLogger().Add(   _T("nppSwitchToDocument()") );
@@ -2663,7 +2670,7 @@ bool CNppExec::nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames)
     
   if (!NppExecHelpers::IsFullPath(fileName))
   {
-    int i = findFileNameIndexInNppOpenFileNames(fileName, bGetOpenFileNames);
+    int i = findFileNameIndexInNppOpenFileNames(fileName, bGetOpenFileNames, nView);
     if (i != -1)
     {
         

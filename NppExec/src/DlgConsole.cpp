@@ -2918,12 +2918,26 @@ bool ConsoleDlg::GoToLineIfWarningAnalyzerMatch(CAnyRichEdit& Edit, const int nL
             {
                 tstr fileName = WarningAnalyzer.GetFileName();
 
-                NppExec.nppConvertToFullPathName(fileName, true);
-                
-                NppExec.SendNppMsg( NPPM_DOOPEN
-                             , (WPARAM) 0
-                             , (LPARAM) fileName.c_str()
-                             );
+                int nView = (int) NppExec.SendNppMsg(NPPM_GETCURRENTVIEW);
+                nView = (nView == 0) ? PRIMARY_VIEW : SECOND_VIEW;
+
+                // trying the current view first
+                int nFile = NppExec.findFileNameIndexInNppOpenFileNames(fileName, true, nView);
+                if ( nFile == -1 )
+                {
+                    // trying the opposite view
+                    nView = (nView == PRIMARY_VIEW) ? SECOND_VIEW : PRIMARY_VIEW;
+                    nFile = NppExec.findFileNameIndexInNppOpenFileNames(fileName, true, nView);
+                }
+
+                if ( nFile != -1 )
+                {
+                    NppExec.SendNppMsg( NPPM_ACTIVATEDOC, (nView == PRIMARY_VIEW) ? 0 : 1, nFile );
+                }
+                else
+                {
+                    NppExec.SendNppMsg( NPPM_DOOPEN, 0, (LPARAM) fileName.c_str() );
+                }
             }
 
             HWND hSciWnd = NppExec.GetScintillaHandle();
@@ -2978,6 +2992,7 @@ bool ConsoleDlg::GoToLineIfWarningAnalyzerMatch(CAnyRichEdit& Edit, const int nL
                 }
             }
 
+            ::SendMessage( hSciWnd, SCI_VERTICALCENTRECARET, 0, 0 );
             ::SetFocus( NppExec.GetScintillaHandle() );
             return true;
         }
