@@ -197,7 +197,7 @@ void CDoExecDlg::OnBtOK(BOOL bUpdateCmdList)
     CListT<tstr> CmdList;
 
     if (bModified) 
-      pScript->DeleteAll();
+      pScript->GetCmdList().DeleteAll();
 
     TCHAR szScriptLine[CONSOLECOMMAND_BUFSIZE];
     int nLines = m_edScript.GetLineCount();
@@ -207,7 +207,7 @@ void CDoExecDlg::OnBtOK(BOOL bUpdateCmdList)
       if (bUpdateCmdList)
         CmdList.Add(szScriptLine);
       if (bModified) 
-        pScript->Add(szScriptLine);
+        pScript->GetCmdList().Add(szScriptLine);
     }
 
     if (bUpdateCmdList)
@@ -544,12 +544,12 @@ void CDoExecDlg::ShowScriptText(const tstr& ScriptName)
     
   // setting new script text
   S.Clear();
-  S.Reserve(pScript->GetCount() * 64);
-  p = pScript->GetFirst();
+  S.Reserve(pScript->GetCmdList().GetCount() * 64);
+  p = pScript->GetCmdList().GetFirst();
   while (p)
   {
     Line = p->GetItem(); 
-    if (p != pScript->GetLast())
+    if (p != pScript->GetCmdList().GetLast())
       Line.Append( _T("\r\n"), 2);
     S += Line;
     p = p->GetNext();
@@ -945,7 +945,7 @@ bool CScriptNameDlg::OnBtSave()
     for (int i = 0; i < lines; i++)
     {
       DoExecDlg.m_edScript.GetLine(i, szLine, CONSOLECOMMAND_BUFSIZE - 1);
-      Script.Add(szLine);
+      Script.GetCmdList().Add(szLine);
     }
     Runtime::GetNppExec().m_ScriptsList.AddScript(DoExecDlg.m_szScriptNameToSave, Script);
 

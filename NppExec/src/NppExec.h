@@ -1267,7 +1267,7 @@ public:
 
   bool            m_bAnotherNppExecDllExists;
       
-  CListT<tstr>    m_TempScript;
+  CNppScript      m_TempScript;
   bool            m_TempScriptIsModified;
 
   CNppScriptList  m_ScriptsList;

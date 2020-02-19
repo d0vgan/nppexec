@@ -4886,7 +4886,7 @@ void CNppExec::ReadOptions()
 
     while (fbuf.GetLine(Line) >= 0)
     {
-      m_TempScript.Add(Line);
+      m_TempScript.GetCmdList().Add(Line);
     } 
   }
 
@@ -5118,11 +5118,11 @@ void CNppExec::SaveScripts()
   if (m_TempScriptIsModified)
   {
     fbuf.GetBufPtr()->Clear();
-    p = m_TempScript.GetFirst();
+    p = m_TempScript.GetCmdList().GetFirst();
     while (p)
     {
       Line = p->GetItem();
-      if (p != m_TempScript.GetLast())
+      if (p != m_TempScript.GetCmdList().GetLast())
         Line.Append(_T("\r\n"), 2);
       fbuf.GetBufPtr()->Append(Line.c_str(), Line.length());
       p = p->GetNext();

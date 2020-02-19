@@ -286,6 +286,7 @@
     <ClCompile Include="src\NppExecCommandExecutor.cpp" />
     <ClCompile Include="src\NppExecEngine.cpp" />
     <ClCompile Include="src\NppExecHelpers.cpp" />
+    <ClCompile Include="src\NppScript.cpp" />
     <ClCompile Include="src\NppScriptList.cpp" />
     <ClCompile Include="src\PluginCommunication\NppExecPluginInterface.cpp" />
     <ClCompile Include="src\WarningAnalyzer.cpp" />
@@ -327,6 +328,7 @@
     <ClInclude Include="src\fparser\extrasrc\fptypes.hh" />
     <ClInclude Include="src\fparser\fparser.hh" />
     <ClInclude Include="src\fparser\fpconfig.hh" />
+    <ClInclude Include="src\NppScript.h" />
     <ClInclude Include="src\npp_files\Docking.h" />
     <ClInclude Include="src\npp_files\menuCmdID.h" />
     <ClInclude Include="src\npp_files\Notepad_plus_msgs.h" />

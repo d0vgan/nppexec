@@ -123,6 +123,9 @@
     <ClCompile Include="src\fparser\fparser.cc">
       <Filter>Source Files\fparser</Filter>
     </ClCompile>
+    <ClCompile Include="src\NppScript.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\base.h">
@@ -274,6 +277,9 @@
     </ClInclude>
     <ClInclude Include="src\fparser\extrasrc\fptypes.hh">
       <Filter>Header Files\fparser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NppScript.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

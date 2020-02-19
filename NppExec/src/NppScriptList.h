@@ -1,6 +1,6 @@
 /*
 This file is part of NppExec
-Copyright (C) 2013 DV <dvv81 (at) ukr (dot) net>
+Copyright (C) 2020 DV <dvv81 (at) ukr (dot) net>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,20 +25,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cpp/CListT.h"
 #include "cpp/CFileBufT.h"
 #include "NppExecHelpers.h"
-
-typedef CStrT<TCHAR> tstr;
-typedef CListT<tstr> CNppScript;
-typedef CNppScript*  PNppScript;
+#include "NppScript.h"
 
 class CNppScriptList 
 {
 private:
-  CListT<tstr>        _ScriptNames;
-  CListT<PNppScript>  _Scripts;
-  bool                _bIsModified;
+  CListT<CNppScript *>  _Scripts;
+  bool                  _bIsModified;
   mutable CCriticalSection _csScripts;
 
-  void free();
+  void Free();
 
 public:
   CNppScriptList();
@@ -49,7 +45,7 @@ public:
   bool GetScript(const tstr& ScriptName, CNppScript& outScript);
   int  GetScriptCount() const;
   CListT<tstr> GetScriptNames() const;
-  CListT<CNppScript> GetScripts(CListT<tstr>* pScriptNames = NULL) const;
+  CListT<CNppScript> GetScripts() const;
   bool IsModified() const  { return _bIsModified; }
   void LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLength = 16384);
   bool ModifyScript(const tstr& ScriptName, const CNppScript& newScript);
