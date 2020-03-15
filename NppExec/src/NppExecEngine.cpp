@@ -1491,9 +1491,6 @@ void CScriptEngine::Run(unsigned int nRunFlags)
         {
             if ( p == currentScript.CmdRange.pEnd )
             {
-                Runtime::GetLogger().AddEx( _T("; script context removed: { Name = \"%s\"; CmdRange = [0x%X, 0x%X) }"), 
-                    currentScript.ScriptName.c_str(), currentScript.CmdRange.pBegin, currentScript.CmdRange.pEnd ); 
-
                 CListItemT<tstr>* pItem = currentScript.CmdRange.pBegin;
                 while ( pItem != currentScript.CmdRange.pEnd )
                 {
@@ -1501,7 +1498,21 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                     m_CmdList.Delete(pItem);
                     pItem = pNext;
                 }
-                m_execState.ScriptContextList.DeleteLast();
+
+                // There can be several npp_exec-ed scripts with the same CmdRange.pEnd
+                while ( !m_execState.ScriptContextList.IsEmpty() )
+                {
+                    const ScriptContext& currScript = m_execState.GetCurrentScriptContext();
+                    if ( currScript.IsNppExeced && (p == currScript.CmdRange.pEnd) )
+                    {
+                        Runtime::GetLogger().AddEx( _T("; script context removed: { Name = \"%s\"; CmdRange = [0x%X, 0x%X) }"), 
+                            currScript.ScriptName.c_str(), currScript.CmdRange.pBegin, currScript.CmdRange.pEnd ); 
+
+                        m_execState.ScriptContextList.DeleteLast();
+                    }
+                    else
+                        break;
+                }
 
                 Runtime::GetLogger().Add(   _T("") );
             }
