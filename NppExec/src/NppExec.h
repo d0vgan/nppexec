@@ -1,6 +1,6 @@
 /*
 This file is part of NppExec
-Copyright (C) 2013 DV <dvv81 (at) ukr (dot) net>
+Copyright (C) 2020 DV <dvv81 (at) ukr (dot) net>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,6 +19,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /****************************************************************************
  * NppExec History:
  ****************************************************************************
+
+ v0.6 RC4 (dev)
+ --------------
+ + added: $(CON_HWND), $(FOCUSED_HWND)
+ + added: the message "==== READY ====" is optional now (can be on/off)
+ * now WarningAnalyzer tries to find a file in the current view first
+ - fixed: variable names can contain brackets - e.g. $(a(b(c)))
+ - fixed: end of an embedded npp_exec-ed script may also be the end of its parent script
+ * internal improvements
+
 
  v0.6 RC3 - April 2019
  ---------------------
