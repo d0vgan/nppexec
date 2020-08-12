@@ -156,6 +156,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(CURRENT_LINE)       : current line number
  *        $(CURRENT_COLUMN)     : current column number
  *   7) Additional environment variables:
+ *        $(FILE_NAME_AT_CURSOR): file name selected in the editor
  *        $(CLIPBOARD_TEXT)     : text from the clipboard
  *        $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  *        $(#N), N=1,2,3...     : full path of the Nth opened document

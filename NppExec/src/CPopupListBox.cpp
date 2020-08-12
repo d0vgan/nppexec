@@ -56,6 +56,7 @@ const TCHAR* VariablesList[] = {
   MACRO_EXITCODE,            //  $(EXITCODE)
   MACRO_FILE_EXTONLY,        //  $(EXT_PART)
   MACRO_FILE_FULLNAME,       //  $(FILE_NAME)
+  MACRO_FILE_NAME_AT_CURSOR, //  $(FILE_NAME_AT_CURSOR)
   MACRO_FOCUSED_HWND,        //  $(FOCUSED_HWND)
   MACRO_FILE_FULLPATH,       //  $(FULL_CURRENT_PATH)
   MACRO_INPUT,               //  $(INPUT)

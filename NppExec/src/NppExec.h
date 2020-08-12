@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
  v0.6 RC4 (dev)
  --------------
- + added: $(CON_HWND), $(FOCUSED_HWND)
+ + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
  + added: the message "==== READY ====" is optional now (can be on/off)
  * now WarningAnalyzer tries to find a file in the current view first
  - fixed: variable names can contain brackets - e.g. $(a(b(c)))

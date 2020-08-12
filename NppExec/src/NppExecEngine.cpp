@@ -56,6 +56,7 @@ const TCHAR MACRO_FILE_NAMEONLY[]       = _T("$(NAME_PART)");
 const TCHAR MACRO_FILE_EXTONLY[]        = _T("$(EXT_PART)");
 const TCHAR MACRO_NPP_DIRECTORY[]       = _T("$(NPP_DIRECTORY)");
 const TCHAR MACRO_CURRENT_WORD[]        = _T("$(CURRENT_WORD)");
+const TCHAR MACRO_FILE_NAME_AT_CURSOR[] = _T("$(FILE_NAME_AT_CURSOR)");
 const TCHAR MACRO_CURRENT_LINE[]        = _T("$(CURRENT_LINE)");
 const TCHAR MACRO_CURRENT_COLUMN[]      = _T("$(CURRENT_COLUMN)");
 const TCHAR MACRO_DOCNUMBER[]           = _T("$(#");
@@ -1187,6 +1188,7 @@ static FParserWrapper g_fp;
  *
  * Additional environment variables:
  * ---------------------------------
+ * $(FILE_NAME_AT_CURSOR): file name selected in the editor
  * $(CLIPBOARD_TEXT)     : text from the clipboard
  * $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  * $(#N), N=1,2,3...     : full path of the Nth opened document
@@ -6542,8 +6544,10 @@ void CNppExecMacroVars::CheckCmdAliases(tstr& S, bool useLogging)
 
 void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
 {
-  const int    NPPVAR_COUNT = 7 + 2;
+  const int    NPPSTR_COUNT = 8;
+  const int    NPPVAR_COUNT = NPPSTR_COUNT + 2;
   const TCHAR* NPPVAR_STRINGS[NPPVAR_COUNT] = {
+    // getting strings:
     MACRO_FILE_FULLPATH,
     MACRO_FILE_DIRPATH,
     MACRO_FILE_FULLNAME,
@@ -6551,11 +6555,13 @@ void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
     MACRO_FILE_EXTONLY,
     MACRO_NPP_DIRECTORY,
     MACRO_CURRENT_WORD,
-    
+    MACRO_FILE_NAME_AT_CURSOR,
+    // getting numbers:
     MACRO_CURRENT_LINE,   // (int) line number
     MACRO_CURRENT_COLUMN  // (int) column number
   };
   const UINT   NPPVAR_MESSAGES[NPPVAR_COUNT] = {
+    // getting strings:
     NPPM_GETFULLCURRENTPATH,
     NPPM_GETCURRENTDIRECTORY,
     NPPM_GETFILENAME,
@@ -6563,7 +6569,8 @@ void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
     NPPM_GETEXTPART,
     NPPM_GETNPPDIRECTORY,
     NPPM_GETCURRENTWORD,
-    
+    NPPM_GETFILENAMEATCURSOR,
+    // getting numbers:
     NPPM_GETCURRENTLINE,
     NPPM_GETCURRENTCOLUMN
   };
@@ -6593,7 +6600,7 @@ void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
         if (len < 0)
         {
           szMacro[0] = 0;
-          if (j < 7)
+          if (j < NPPSTR_COUNT)
           {
             m_pNppExec->SendNppMsg(NPPVAR_MESSAGES[j], 
               (WPARAM) (MACRO_SIZE - 1), (LPARAM) szMacro);
