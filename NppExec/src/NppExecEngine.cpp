@@ -6599,15 +6599,33 @@ void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
       {
         if (len < 0)
         {
+          const UINT uNppMsg = NPPVAR_MESSAGES[j];
+
           szMacro[0] = 0;
           if (j < NPPSTR_COUNT)
           {
-            m_pNppExec->SendNppMsg(NPPVAR_MESSAGES[j], 
-              (WPARAM) (MACRO_SIZE - 1), (LPARAM) szMacro);
+            INT_PTR nAnchor = 0, nCaret = 0;
+
+            if (uNppMsg == NPPM_GETFILENAMEATCURSOR)
+            {
+              HWND hSci = m_pNppExec->GetScintillaHandle();
+              nAnchor = (INT_PTR) ::SendMessage(hSci, SCI_GETANCHOR, 0, 0);
+              nCaret = (INT_PTR) ::SendMessage(hSci, SCI_GETCURRENTPOS, 0, 0);
+              ::SendMessage(hSci, WM_SETREDRAW, FALSE, 0);
+            }
+
+            m_pNppExec->SendNppMsg(uNppMsg, (WPARAM) (MACRO_SIZE - 1), (LPARAM) szMacro);
+
+            if (uNppMsg == NPPM_GETFILENAMEATCURSOR)
+            {
+              HWND hSci = m_pNppExec->GetScintillaHandle();
+              ::SendMessage(hSci, SCI_SETSEL, nAnchor, nCaret);
+              ::SendMessage(hSci, WM_SETREDRAW, TRUE, 0);
+            }
           }
           else
           {
-            int nn = (int) m_pNppExec->SendNppMsg(NPPVAR_MESSAGES[j], 0, 0);
+            int nn = (int) m_pNppExec->SendNppMsg(uNppMsg, 0, 0);
             wsprintf(szMacro, _T("%d"), nn);
           }
           len = lstrlen(szMacro);
