@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
  + added: the message "==== READY ====" is optional now (can be on/off)
  * now WarningAnalyzer tries to find a file in the current view first
+ * now $(LAST_CMD_RESULT) will be 0 in case of StrCalc error (set x ~ ...)
  - fixed: variable names can contain brackets - e.g. $(a(b(c)))
  - fixed: end of an embedded npp_exec-ed script may also be the end of its parent script
  * internal improvements
@@ -1204,17 +1205,17 @@ public:
         
         StrCalc& operator=(const StrCalc&) = delete;
 
-        void Process();
+        bool Process();
         
     protected:
-        void calcFParser();
-        void calcStrLen();
-        void calcStrCase();
-        void calcSubStr();
-        void calcStrFind();
-        void calcStrRplc();
-        void calcStrFromHex();
-        void calcStrToHex();
+        bool calcFParser();
+        bool calcStrLen();
+        bool calcStrCase();
+        bool calcSubStr();
+        bool calcStrFind();
+        bool calcStrRplc();
+        bool calcStrFromHex();
+        bool calcStrToHex();
 
     protected:
         tstr& m_varValue;

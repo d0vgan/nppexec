@@ -6982,7 +6982,7 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
 
       if ( !bSep1 )
       {
-        StrCalc(varValue, m_pNppExec).Process();
+        bResult = StrCalc(varValue, m_pNppExec).Process();
       }
 
       bool bLocalVar = IsLocalMacroVar(varName);
@@ -7274,7 +7274,7 @@ CNppExecMacroVars::StrCalc::StrCalc(tstr& varValue, CNppExec* pNppExec)
 {
 }
 
-void CNppExecMacroVars::StrCalc::Process()
+bool CNppExecMacroVars::StrCalc::Process()
 {
     m_calcType = StrCalc::CT_FPARSER;
     m_param.Clear();
@@ -7319,44 +7319,49 @@ void CNppExecMacroVars::StrCalc::Process()
         }
     }
 
+    bool bSucceded = false;
+
     switch ( m_calcType )
     {
         case CT_FPARSER:
-            calcFParser(); // calc
+            bSucceded = calcFParser(); // calc
             break;
         case CT_STRLEN:
         case CT_STRLENUTF8:
         case CT_STRLENSCI:
-            calcStrLen();
+            bSucceded = calcStrLen();
             break;
         case CT_STRUPPER:
         case CT_STRLOWER:
-            calcStrCase();
+            bSucceded = calcStrCase();
             break;
         case CT_SUBSTR:
-            calcSubStr();
+            bSucceded = calcSubStr();
             break;
         case CT_STRFIND:
         case CT_STRRFIND:
-            calcStrFind();
+            bSucceded = calcStrFind();
             break;
         case CT_STRREPLACE:
-            calcStrRplc();
+            bSucceded = calcStrRplc();
             break;
         case CT_STRFROMHEX:
-            calcStrFromHex();
+            bSucceded = calcStrFromHex();
             break;
         case CT_STRTOHEX:
-            calcStrToHex();
+            bSucceded = calcStrToHex();
             break;
     }
+
+    return bSucceded;
 }
 
-void CNppExecMacroVars::StrCalc::calcFParser()
+bool CNppExecMacroVars::StrCalc::calcFParser()
 {
     tstr calcError;
+    bool bSucceded = g_fp.Calculate(m_pNppExec, m_varValue, calcError, m_varValue);
 
-    if ( g_fp.Calculate(m_pNppExec, m_varValue, calcError, m_varValue) )
+    if ( bSucceded )
     {
       
         Runtime::GetLogger().AddEx( _T("; fparser calc result: %s"), m_varValue.c_str() );
@@ -7367,9 +7372,11 @@ void CNppExecMacroVars::StrCalc::calcFParser()
         calcError.Insert( 0, _T("- fparser calc error: ") );
         m_pNppExec->GetConsole().PrintError( calcError.c_str() );
     }
+
+    return bSucceded;
 }
 
-void CNppExecMacroVars::StrCalc::calcStrLen()
+bool CNppExecMacroVars::StrCalc::calcStrLen()
 {
     int len = 0;
 
@@ -7415,9 +7422,10 @@ void CNppExecMacroVars::StrCalc::calcStrLen()
       m_varValue.c_str() 
     );
 
+    return true;
 }
 
-void CNppExecMacroVars::StrCalc::calcStrCase()
+bool CNppExecMacroVars::StrCalc::calcStrCase()
 {
     if ( *m_pVar )
     {
@@ -7426,18 +7434,25 @@ void CNppExecMacroVars::StrCalc::calcStrCase()
             NppExecHelpers::StrUpper(m_varValue);
         else
             NppExecHelpers::StrLower(m_varValue);
-
-        Runtime::GetLogger().AddEx( 
-          _T("; %s: %s"), 
-          (m_calcType == CT_STRUPPER) ? _T("strupper") : _T("strlower"),
-          m_varValue.c_str() 
-        );
-
     }
+    else
+    {
+        m_varValue.Clear();
+    }
+
+    Runtime::GetLogger().AddEx( 
+      _T("; %s: %s"), 
+      (m_calcType == CT_STRUPPER) ? _T("strupper") : _T("strlower"),
+      m_varValue.c_str() 
+    );
+
+    return true;
 }
 
-void CNppExecMacroVars::StrCalc::calcSubStr()
+bool CNppExecMacroVars::StrCalc::calcSubStr()
 {
+    bool bSucceded = false;
+
     if ( *m_pVar )
     {
         m_pVar = get_param(m_pVar, m_param);
@@ -7489,6 +7504,7 @@ void CNppExecMacroVars::StrCalc::calcSubStr()
                       m_varValue.c_str() 
                     );
 
+                    bSucceded = true;
                 }
                 else
                 {
@@ -7509,10 +7525,13 @@ void CNppExecMacroVars::StrCalc::calcSubStr()
     {
         m_pNppExec->GetConsole().PrintError( _T("- failed to get 1st parameter of SUBSTR") );
     }
+
+    return bSucceded;
 }
 
-void CNppExecMacroVars::StrCalc::calcStrFind()
+bool CNppExecMacroVars::StrCalc::calcStrFind()
 {
+    bool bSucceded = false;
     CStrSplitT<TCHAR> args;
 
     const int n = args.SplitToArgs(m_pVar);
@@ -7532,6 +7551,7 @@ void CNppExecMacroVars::StrCalc::calcStrFind()
           m_varValue.c_str() 
         );
 
+        bSucceded = true;
     }
     else if ( n < 2 )
     {
@@ -7542,10 +7562,13 @@ void CNppExecMacroVars::StrCalc::calcStrFind()
         m_pNppExec->GetConsole().PrintError( _T("- too much STRFIND parameters given: 2 parameters expected") );
         m_pNppExec->GetConsole().PrintError( _T("- try to enclose the STRFIND parameters with quotes, e.g. \"s\" \"sfind\"") );
     }
+
+    return bSucceded;
 }
 
-void CNppExecMacroVars::StrCalc::calcStrRplc()
+bool CNppExecMacroVars::StrCalc::calcStrRplc()
 {
+    bool bSucceded = false;
     CStrSplitT<TCHAR> args;
 
     const int n = args.SplitToArgs(m_pVar);
@@ -7561,6 +7584,7 @@ void CNppExecMacroVars::StrCalc::calcStrRplc()
           m_varValue.c_str() 
         );
 
+        bSucceded = true;
     }
     else if ( n < 3 )
     {
@@ -7571,10 +7595,14 @@ void CNppExecMacroVars::StrCalc::calcStrRplc()
         m_pNppExec->GetConsole().PrintError( _T("- too much STRREPLACE parameters given: 3 parameters expected") );
         m_pNppExec->GetConsole().PrintError( _T("- try to enclose the STRREPLACE parameters with quotes, e.g. \"s\" \"sfind\" \"sreplace\"") );
     }
+
+    return bSucceded;
 }
 
-void CNppExecMacroVars::StrCalc::calcStrFromHex()
+bool CNppExecMacroVars::StrCalc::calcStrFromHex()
 {
+    bool bSucceded = false;
+
     if ( *m_pVar )
     {
         tstr hexStr = m_pVar;
@@ -7592,11 +7620,20 @@ void CNppExecMacroVars::StrCalc::calcStrFromHex()
           m_varValue.c_str() 
         );
 
+        bSucceded = true;
     }
+    else
+    {
+        m_pNppExec->GetConsole().PrintError( _T("- not enough STRFROMHEX parameters given: 1 parameter expected") );
+    }
+
+    return bSucceded;
 }
 
-void CNppExecMacroVars::StrCalc::calcStrToHex()
+bool CNppExecMacroVars::StrCalc::calcStrToHex()
 {
+    bool bSucceded = false;
+
     if ( *m_pVar )
     {
         tstr Str = m_pVar;
@@ -7613,7 +7650,14 @@ void CNppExecMacroVars::StrCalc::calcStrToHex()
           m_varValue.c_str() 
         );
 
+        bSucceded = true;
     }
+    else
+    {
+        m_pNppExec->GetConsole().PrintError( _T("- not enough STRTOHEX parameters given: 1 parameter expected") );
+    }
+
+    return bSucceded;
 }
 
 //////////////////////////////////////////////////////////////////////////////
