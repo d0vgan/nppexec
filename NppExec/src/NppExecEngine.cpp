@@ -57,6 +57,10 @@ const TCHAR MACRO_FILE_EXTONLY[]        = _T("$(EXT_PART)");
 const TCHAR MACRO_NPP_DIRECTORY[]       = _T("$(NPP_DIRECTORY)");
 const TCHAR MACRO_CURRENT_WORD[]        = _T("$(CURRENT_WORD)");
 const TCHAR MACRO_FILE_NAME_AT_CURSOR[] = _T("$(FILE_NAME_AT_CURSOR)");
+const TCHAR MACRO_WORKSPACE_ITEM_DIR[]  = _T("$(WORKSPACE_ITEM_DIR)");
+const TCHAR MACRO_WORKSPACE_ITEM_NAME[] = _T("$(WORKSPACE_ITEM_NAME)");
+const TCHAR MACRO_WORKSPACE_ITEM_PATH[] = _T("$(WORKSPACE_ITEM_PATH)");
+/* const TCHAR MACRO_WORKSPACE_FOLDER[]    = _T("$(WORKSPACE_FOLDER"); */
 const TCHAR MACRO_CURRENT_LINE[]        = _T("$(CURRENT_LINE)");
 const TCHAR MACRO_CURRENT_COLUMN[]      = _T("$(CURRENT_COLUMN)");
 const TCHAR MACRO_DOCNUMBER[]           = _T("$(#");
@@ -1189,6 +1193,9 @@ static FParserWrapper g_fp;
  * Additional environment variables:
  * ---------------------------------
  * $(FILE_NAME_AT_CURSOR): file name selected in the editor
+ * $(WORKSPACE_ITEM_PATH): full path to the current item in the workspace pane
+ * $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
+ * $(WORKSPACE_ITEM_NAME): file name of the current item in the workspace pane
  * $(CLIPBOARD_TEXT)     : text from the clipboard
  * $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  * $(#N), N=1,2,3...     : full path of the Nth opened document
@@ -6924,6 +6931,138 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
         bMacroOK = true;
       }
 
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
+    }
+
+    /*
+    CListT<tstr> listOfRootFolders;
+    bMacroOK = false;
+    len = lstrlen(MACRO_WORKSPACE_FOLDER);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_WORKSPACE_FOLDER, pos)) >= 0)
+    {
+      sub.Clear();
+
+      bool bSyntaxMismatch = false;
+      int len_n = len;
+      int k = pos + len;
+
+      if (Cmd[k] == _T('['))
+      {
+        tstr snum = _T("");
+
+        ++k;
+        for (; k < Cmd.length(); k++)
+        {
+          if (isDecNumChar(Cmd[k]))
+            snum += Cmd[k];
+          else
+            break;
+        }
+
+        if (Cmd[k] == _T(']'))
+        {
+          ++k;
+          if (Cmd[k] == _T(')'))
+            ++k;
+          else
+            bSyntaxMismatch = true;
+        }
+        else
+          bSyntaxMismatch = true;
+
+        len_n = k - pos;
+
+        if (!bSyntaxMismatch)
+        {
+          if (!snum.IsEmpty())
+          {
+            if (!bMacroOK)
+            {
+              m_pNppExec->nppGetWorkspaceRootFolders(listOfRootFolders);
+              bMacroOK = true;
+            }
+
+            k = _ttoi(snum.c_str());
+            if (k > 0 && k <= listOfRootFolders.GetCount())
+            {
+              const CListItemT<tstr>* pItem = listOfRootFolders.GetFirst();
+              while (--k != 0)
+              {
+                pItem = pItem->GetNext();
+              }
+              sub = pItem->GetItem();
+            }
+          }
+          else
+            bSyntaxMismatch = true;
+        }
+      }
+      else
+        bSyntaxMismatch = true;
+
+      if (!bSyntaxMismatch)
+      {
+        Cmd.Replace(pos, len_n, sub.c_str());
+        S.Replace(pos, len_n, sub.c_str());
+        pos += sub.length();
+      }
+      else
+        pos += len_n;
+    }
+    */
+
+    tstr sWorkspaceItemPath;
+    bool bWorkspaceItem = false;
+
+    sub.Clear();
+    len = lstrlen(MACRO_WORKSPACE_ITEM_PATH);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_PATH, pos)) >= 0)
+    {
+      if (!bWorkspaceItem)
+      {
+        m_pNppExec->nppGetWorkspaceItemPath(sWorkspaceItemPath);
+        bWorkspaceItem = true;
+      }
+
+      sub = sWorkspaceItemPath;
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
+    }
+
+    sub.Clear();
+    len = lstrlen(MACRO_WORKSPACE_ITEM_DIR);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_DIR, pos)) >= 0)
+    {
+      if (!bWorkspaceItem)
+      {
+        m_pNppExec->nppGetWorkspaceItemPath(sWorkspaceItemPath);
+        bWorkspaceItem = true;
+      }
+
+      sub = NppExecHelpers::GetFileNamePart(sWorkspaceItemPath, NppExecHelpers::fnpDirPath);
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
+    }
+
+    sub.Clear();
+    len = lstrlen(MACRO_WORKSPACE_ITEM_NAME);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_NAME, pos)) >= 0)
+    {
+      if (!bWorkspaceItem)
+      {
+        m_pNppExec->nppGetWorkspaceItemPath(sWorkspaceItemPath);
+        bWorkspaceItem = true;
+      }
+
+      sub = NppExecHelpers::GetFileNamePart(sWorkspaceItemPath, NppExecHelpers::fnpNameExt);
       Cmd.Replace(pos, len, sub.c_str());
       S.Replace(pos, len, sub.c_str());
       pos += sub.length();

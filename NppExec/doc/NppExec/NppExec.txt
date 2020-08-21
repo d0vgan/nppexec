@@ -140,6 +140,9 @@
  *        $(CURRENT_COLUMN)     : current column number
  *   7) Additional environment variables:
  *        $(FILE_NAME_AT_CURSOR): file name selected in the editor
+ *        $(WORKSPACE_ITEM_PATH): full path to the current item in the workspace pane
+ *        $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
+ *        $(WORKSPACE_ITEM_NAME): file name of the current item in the workspace pane
  *        $(CLIPBOARD_TEXT)     : text from the clipboard
  *        $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  *        $(#N), N=1,2,3...     : full path of the Nth opened document
@@ -181,6 +184,7 @@
  v0.6 RC4 (dev)
  --------------
  + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
+ + added: $(WORKSPACE_ITEM_PATH), $(WORKSPACE_ITEM_DIR), $(WORKSPACE_ITEM_NAME)
  + added: the message "==== READY ====" is optional now (can be on/off)
  * now WarningAnalyzer tries to find a file in the current view first
  * now $(LAST_CMD_RESULT) will be 0 in case of StrCalc error (set x ~ ...)

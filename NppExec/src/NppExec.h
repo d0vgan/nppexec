@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  v0.6 RC4 (dev)
  --------------
  + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
+ + added: $(WORKSPACE_ITEM_PATH), $(WORKSPACE_ITEM_DIR), $(WORKSPACE_ITEM_NAME)
  + added: the message "==== READY ====" is optional now (can be on/off)
  * now WarningAnalyzer tries to find a file in the current view first
  * now $(LAST_CMD_RESULT) will be 0 in case of StrCalc error (set x ~ ...)
@@ -1320,6 +1321,8 @@ public:
   int  nppGetOpenFileNamesInView(int nView = PRIMARY_VIEW, int nFiles = -1);
   bool nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
   bool nppSaveAllFiles();
+  bool nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders);
+  bool nppGetWorkspaceItemPath(tstr& itemPath);
   int  findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
 
 private:
@@ -1362,6 +1365,8 @@ public:
 
   void OnShowConsoleDlg();
   void OnToggleConsoleDlg();
+  void OnGoToNextError();
+  void OnGoToPrevError();
   void OnHelpManual();
   void OnHelpDocs();
   void OnHelpAbout();

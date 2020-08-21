@@ -382,7 +382,7 @@ namespace NppExecHelpers
 
     enum eFileNamePart {
         fnpDrive,   // "C" in "C:\User\Docs\name.ext"
-        fnpPath,    // "C:\User\Docs\" in "C:\User\Docs\name.ext"
+        fnpDirPath, // "C:\User\Docs\" in "C:\User\Docs\name.ext"
         fnpNameExt, // "name.ext" in "C:\User\Docs\name.ext"
         fnpName,    // "name" in "C:\User\Docs\name.ext"
         fnpExt      // ".ext" in "C:\User\Docs\name.ext"

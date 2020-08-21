@@ -231,7 +231,7 @@ namespace NppExecHelpers
                 }
                 break;
 
-            case fnpPath:    // "C:\User\Docs\" in "C:\User\Docs\name.ext"
+            case fnpDirPath:    // "C:\User\Docs\" in "C:\User\Docs\name.ext"
                 p1 = path;
                 p2 = ::PathFindFileName(p1);
                 if ( p2 > p1 )

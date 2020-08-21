@@ -157,6 +157,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(CURRENT_COLUMN)     : current column number
  *   7) Additional environment variables:
  *        $(FILE_NAME_AT_CURSOR): file name selected in the editor
+ *        $(WORKSPACE_ITEM_PATH): full path to the current item in the workspace pane
+ *        $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
+ *        $(WORKSPACE_ITEM_NAME): file name of the current item in the workspace pane
  *        $(CLIPBOARD_TEXT)     : text from the clipboard
  *        $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  *        $(#N), N=1,2,3...     : full path of the Nth opened document
@@ -224,6 +227,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <time.h>
 #include <limits.h>
 #include <algorithm>
+
+#include <CommCtrl.h>
 
 
 #define  MAX_PLUGIN_NAME  60
@@ -1108,8 +1113,8 @@ void do_exec_dlg_func()     { Runtime::GetNppExec().OnDoExecDlg(); }
 void direct_exec_func()     { Runtime::GetNppExec().OnDirectExec(tstr(), true, CScriptEngine::rfConsoleLocalVarsRead); }
 void show_console_func()    { Runtime::GetNppExec().OnShowConsoleDlg(); }
 void toggle_console_func()  { Runtime::GetNppExec().OnToggleConsoleDlg(); }
-void go_to_next_error()     { ConsoleDlg::GoToError(1); }
-void go_to_prev_error()     { ConsoleDlg::GoToError(-1); }
+void go_to_next_error()     { Runtime::GetNppExec().OnGoToNextError(); }
+void go_to_prev_error()     { Runtime::GetNppExec().OnGoToPrevError(); }
 void console_enc_func()     { Runtime::GetNppExec().OnConsoleEncoding(); }
 void output_f_func()        { Runtime::GetNppExec().OnOutputFilter(); }
 void adv_opt_func()         { Runtime::GetNppExec().OnAdvancedOptions(); }
@@ -2424,6 +2429,101 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGe
   }
 
   return iPartialMatch1; // first partial match or -1
+}
+
+#define	IDD_FILEBROWSER            3500
+#define	IDD_FILEBROWSER_MENU       (IDD_FILEBROWSER + 10)
+#define IDM_FILEBROWSER_COPYPATH   (IDD_FILEBROWSER_MENU + 6)
+
+struct tWorkspaceDlg
+{
+    HWND hDlg;
+    HWND hTreeView;
+
+    tWorkspaceDlg() : hDlg(NULL), hTreeView(NULL)
+    {
+    }
+};
+
+static BOOL CALLBACK GetWorkspaceTreeViewEnumFunc(HWND hWnd, LPARAM lParam)
+{
+    if ( ::IsWindowVisible(hWnd) )
+    {
+        TCHAR szText[255];
+
+        ::GetWindowText(hWnd, szText, 254);
+        if ( ::lstrcmp(szText, _T("File Browser")) == 0 )
+        {
+            HWND hTreeView = ::FindWindowEx(hWnd, NULL, WC_TREEVIEW, NULL);
+            if ( hTreeView )
+            {
+                tWorkspaceDlg* pWrkspcDlg = (tWorkspaceDlg *) lParam;
+                pWrkspcDlg->hDlg = hWnd;
+                pWrkspcDlg->hTreeView = hTreeView;
+
+                return FALSE; // stop enumeration
+            }
+        }
+    }
+
+    return TRUE; // continue enumeration
+}
+
+bool CNppExec::nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders)
+{
+    bool bRet = false;
+    tWorkspaceDlg wrkspcDlg;
+
+    listOfRootFolders.Clear();
+
+    EnumChildWindows(m_nppData._nppHandle, GetWorkspaceTreeViewEnumFunc, (LPARAM) &wrkspcDlg);
+
+    if ( wrkspcDlg.hTreeView )
+    {
+        TVITEM tvItem;
+        TCHAR szText[FILEPATH_BUFSIZE];
+
+        HTREEITEM hItem = (HTREEITEM) ::SendMessage(wrkspcDlg.hTreeView, TVM_GETNEXTITEM, TVGN_ROOT, 0);
+        while ( hItem )
+        {
+            ::ZeroMemory(&tvItem, sizeof(TVITEM));
+            tvItem.mask = TVIF_HANDLE | TVIF_TEXT;
+            tvItem.hItem = hItem;
+            tvItem.pszText = szText;
+            tvItem.cchTextMax = FILEPATH_BUFSIZE - 1;
+
+            if ( ::SendMessage(wrkspcDlg.hTreeView, TVM_GETITEM, 0, (LPARAM) &tvItem) )
+            {
+                listOfRootFolders.Add( tstr(szText) );
+            }
+
+            hItem = (HTREEITEM) ::SendMessage(wrkspcDlg.hTreeView, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM) hItem);
+        }
+
+        bRet = TRUE;
+    }
+
+    return bRet;
+}
+
+bool CNppExec::nppGetWorkspaceItemPath(tstr& itemPath)
+{
+    bool bRet = false;
+    tWorkspaceDlg wrkspcDlg;
+
+    EnumChildWindows(m_nppData._nppHandle, GetWorkspaceTreeViewEnumFunc, (LPARAM) &wrkspcDlg);
+
+    if ( wrkspcDlg.hDlg )
+    {
+        const tstr sClipboardText0 = NppExecHelpers::GetClipboardText(Runtime::GetNppExec().m_nppData._nppHandle);
+        ::SendMessage(wrkspcDlg.hDlg, WM_COMMAND, IDM_FILEBROWSER_COPYPATH, 0);
+        itemPath = NppExecHelpers::GetClipboardText(Runtime::GetNppExec().m_nppData._nppHandle);
+        NppExecHelpers::SetClipboardText(sClipboardText0, Runtime::GetNppExec().m_nppData._nppHandle);
+
+        bRet = TRUE;
+    }
+
+    return bRet;
 }
 
 int CNppExec::nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, int nView )
@@ -4411,6 +4511,22 @@ void CNppExec::OnToggleConsoleDlg()
     }
 }
 
+void CNppExec::OnGoToNextError()
+{
+    if ( GetConsole().GetDialogWnd() )
+        showConsoleDialog(showIfHidden, 0);
+
+    ConsoleDlg::GoToError(1);
+}
+
+void CNppExec::OnGoToPrevError()
+{
+    if ( GetConsole().GetDialogWnd() )
+        showConsoleDialog(showIfHidden, 0);
+
+    ConsoleDlg::GoToError(-1);
+}
+
 void CNppExec::OnHelpManual()
 {
     tstr sHelpFile = GetOptions().GetStr(OPTS_PLUGIN_HELPFILE);
@@ -4438,7 +4554,7 @@ void CNppExec::OnHelpManual()
             if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
             {
                 // then, trying the folder one level upper
-                sHelpFilePath = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpPath);
+                sHelpFilePath = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpDirPath);
                 sHelpFilePath += sHelpFile;
                 if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
                     return; // file does not exist, nothing to do
@@ -4475,7 +4591,7 @@ void CNppExec::OnHelpDocs()
     path1 += _T("\\doc\\NppExec\\");
 
     // then, trying the folder one level upper ("..\doc\Nppexec")
-    tstr path2 = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpPath);
+    tstr path2 = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpDirPath);
     path2 += _T("doc\\NppExec\\");
 
     for ( const tDocFile& docFile : docFiles )
