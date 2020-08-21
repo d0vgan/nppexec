@@ -178,6 +178,17 @@
  *  HISTORY  *
  *************
 
+ v0.6 RC4 (dev)
+ --------------
+ + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
+ + added: the message "==== READY ====" is optional now (can be on/off)
+ * now WarningAnalyzer tries to find a file in the current view first
+ * now $(LAST_CMD_RESULT) will be 0 in case of StrCalc error (set x ~ ...)
+ - fixed: variable names can contain brackets - e.g. $(a(b(c)))
+ - fixed: end of an embedded npp_exec-ed script may also be the end of its parent script
+ * internal improvements
+
+
  v0.6 RC3 - April 2019
  ---------------------
  + new advanced option "ChildProcess_RunPolicy" (see "NppExec_TechInfo.txt")
