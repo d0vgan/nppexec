@@ -7046,6 +7046,10 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       }
 
       sub = NppExecHelpers::GetFileNamePart(sWorkspaceItemPath, NppExecHelpers::fnpDirPath);
+      if (sub.EndsWith(_T('\\')) || sub.EndsWith(_T('/')))
+      {
+        sub.DeleteLastChar();
+      }
       Cmd.Replace(pos, len, sub.c_str());
       S.Replace(pos, len, sub.c_str());
       pos += sub.length();
