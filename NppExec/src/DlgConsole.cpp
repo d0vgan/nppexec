@@ -4351,16 +4351,16 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                                     int i = nLen - 1;
                                     for ( ; i >= 0; i--)
                                     {
-                                        if ( NppExecHelpers::IsTabSpaceChar(szLine[i]) )
+                                        if ( (szLine[i] == _T('(')) && (i > 0) && (szLine[i-1] == _T('$')) )
                                         {
-                                            ++i;
-                                            if ( szLine[i] == _T('\"') )  ++i;  // skip first '"'
-                                            lstrcpy(szLine, szLine + i);        // last word in the string - maybe "$("
+                                            // "$(" found
+                                            --i;
+                                            lstrcpy(szLine, szLine + i);
                                             nLen -= i;
                                             break;
                                         }
                                     }
-                                    if ( (nLen > 0) && (i < 0) )  // no ' ' or '\t' found
+                                    if ( (nLen > 0) && (i < 0) )  // no "$(" found
                                     {
                                         if ( szLine[0] == _T('\"') )  // skip first '"'
                                         {
