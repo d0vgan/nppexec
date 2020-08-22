@@ -210,6 +210,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_PATH)  :  full path to the current item in the workspace pane") _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_DIR)  :  directory containing the current item in the workspace pane") _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_NAME)  :  file name of the current item in the workspace pane") _T_RE_EOL \
+  _T("$(WORKSPACE_ITEM_ROOT)  :  root path of the current item in the workspace pane") _T_RE_EOL \
   _T("$(CLIPBOARD_TEXT)  :  text from the clipboard") _T_RE_EOL \
   _T("$(#N)  :  full path of the Nth opened document (N=1,2,3...)") _T_RE_EOL \
   _T("$(#0)  :  full path to notepad++.exe") _T_RE_EOL \
@@ -4056,12 +4057,22 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 
                             NppExecHelpers::StrDelLeadingTabSpaces(cmdLine);
 
-                            Runtime::GetNppExec().GetMacroVars().CheckAllMacroVars(nullptr, cmdLine, false);
+                            bool bEndsWithIncompleteMacroVar = false;
+                            const int nMacroVarStart = cmdLine.RFind(_T("$("));
+                            if ( nMacroVarStart != -1 )
+                            {
+                                const int nMacroVarEnd = cmdLine.RFind(_T(")"));
+                                if ( (nMacroVarEnd == -1) || (nMacroVarEnd < nMacroVarStart) )
+                                    bEndsWithIncompleteMacroVar = true;
+                            }
+
+                            if ( !bEndsWithIncompleteMacroVar )
+                                Runtime::GetNppExec().GetMacroVars().CheckAllMacroVars(nullptr, cmdLine, false);
                             
                             // enable logging (don't forget to enable after disabling!)
                             Runtime::GetLogger().Activate(true);
                             
-                            if ( cmdLine.length() > 0 )
+                            if ( (cmdLine.length() > 0) && !bEndsWithIncompleteMacroVar )
                             {
                                 if ( (cmdLine.length() == 2) && (cmdLine[1] == _T(':')) )
                                 {
@@ -4676,6 +4687,7 @@ bool ConsoleDlg::IsConsoleVerCommand(const tstr& S)
 void ConsoleDlg::loadCmdVarsList()
 {
   // environment variables in reverse order
+  CmdVarsList.Add( MACRO_WORKSPACE_ITEM_ROOT );    //  $(WORKSPACE_ITEM_ROOT)
   CmdVarsList.Add( MACRO_WORKSPACE_ITEM_PATH );    //  $(WORKSPACE_ITEM_PATH)
   CmdVarsList.Add( MACRO_WORKSPACE_ITEM_NAME );    //  $(WORKSPACE_ITEM_NAME)
   CmdVarsList.Add( MACRO_WORKSPACE_ITEM_DIR );     //  $(WORKSPACE_ITEM_DIR)

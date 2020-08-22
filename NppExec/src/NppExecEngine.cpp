@@ -60,6 +60,7 @@ const TCHAR MACRO_FILE_NAME_AT_CURSOR[] = _T("$(FILE_NAME_AT_CURSOR)");
 const TCHAR MACRO_WORKSPACE_ITEM_DIR[]  = _T("$(WORKSPACE_ITEM_DIR)");
 const TCHAR MACRO_WORKSPACE_ITEM_NAME[] = _T("$(WORKSPACE_ITEM_NAME)");
 const TCHAR MACRO_WORKSPACE_ITEM_PATH[] = _T("$(WORKSPACE_ITEM_PATH)");
+const TCHAR MACRO_WORKSPACE_ITEM_ROOT[] = _T("$(WORKSPACE_ITEM_ROOT)");
 /* const TCHAR MACRO_WORKSPACE_FOLDER[]    = _T("$(WORKSPACE_FOLDER"); */
 const TCHAR MACRO_CURRENT_LINE[]        = _T("$(CURRENT_LINE)");
 const TCHAR MACRO_CURRENT_COLUMN[]      = _T("$(CURRENT_COLUMN)");
@@ -1196,6 +1197,7 @@ static FParserWrapper g_fp;
  * $(WORKSPACE_ITEM_PATH): full path to the current item in the workspace pane
  * $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
  * $(WORKSPACE_ITEM_NAME): file name of the current item in the workspace pane
+ * $(WORKSPACE_ITEM_ROOT): root path of the current item in the workspace pane
  * $(CLIPBOARD_TEXT)     : text from the clipboard
  * $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  * $(#N), N=1,2,3...     : full path of the Nth opened document
@@ -7067,6 +7069,23 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       }
 
       sub = NppExecHelpers::GetFileNamePart(sWorkspaceItemPath, NppExecHelpers::fnpNameExt);
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
+    }
+
+    sub.Clear(); // root path will be here
+    bMacroOK = false;
+    len = lstrlen(MACRO_WORKSPACE_ITEM_ROOT);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_ROOT, pos)) >= 0)
+    {
+      if (!bMacroOK)
+      {
+        m_pNppExec->nppGetWorkspaceRootItemPath(sub);
+        bMacroOK = true;
+      }
+
       Cmd.Replace(pos, len, sub.c_str());
       S.Replace(pos, len, sub.c_str());
       pos += sub.length();

@@ -160,6 +160,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(WORKSPACE_ITEM_PATH): full path to the current item in the workspace pane
  *        $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
  *        $(WORKSPACE_ITEM_NAME): file name of the current item in the workspace pane
+ *        $(WORKSPACE_ITEM_ROOT): root path of the current item in the workspace pane
  *        $(CLIPBOARD_TEXT)     : text from the clipboard
  *        $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  *        $(#N), N=1,2,3...     : full path of the Nth opened document
@@ -2500,7 +2501,7 @@ bool CNppExec::nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders)
             hItem = (HTREEITEM) ::SendMessage(wrkspcDlg.hTreeView, TVM_GETNEXTITEM, TVGN_NEXT, (LPARAM) hItem);
         }
 
-        bRet = TRUE;
+        bRet = true;
     }
 
     return bRet;
@@ -2520,7 +2521,51 @@ bool CNppExec::nppGetWorkspaceItemPath(tstr& itemPath)
         itemPath = NppExecHelpers::GetClipboardText(Runtime::GetNppExec().m_nppData._nppHandle);
         NppExecHelpers::SetClipboardText(sClipboardText0, Runtime::GetNppExec().m_nppData._nppHandle);
 
-        bRet = TRUE;
+        bRet = true;
+    }
+
+    return bRet;
+}
+
+bool CNppExec::nppGetWorkspaceRootItemPath(tstr& rootItemPath)
+{
+    bool bRet = false;
+    tWorkspaceDlg wrkspcDlg;
+
+    EnumChildWindows(m_nppData._nppHandle, GetWorkspaceTreeViewEnumFunc, (LPARAM) &wrkspcDlg);
+
+    if ( wrkspcDlg.hDlg && wrkspcDlg.hTreeView )
+    {
+        HTREEITEM hCurrItem = (HTREEITEM) ::SendMessage(wrkspcDlg.hTreeView, TVM_GETNEXTITEM, TVGN_CARET, 0);
+        if ( hCurrItem )
+        {
+            HTREEITEM hRootItem = hCurrItem;
+            HTREEITEM hItem = hCurrItem;
+            while ( hItem )
+            {
+                hRootItem = hItem;
+                hItem = (HTREEITEM) ::SendMessage(wrkspcDlg.hTreeView, TVM_GETNEXTITEM, TVGN_PARENT, (LPARAM) hItem);
+            }
+
+            if ( hRootItem != hCurrItem )
+            {
+                ::SendMessage(wrkspcDlg.hTreeView, WM_SETREDRAW, FALSE, 0);
+                ::SendMessage(wrkspcDlg.hTreeView, TVM_SELECTITEM, TVGN_CARET, (LPARAM) hRootItem);
+            }
+
+            const tstr sClipboardText0 = NppExecHelpers::GetClipboardText(Runtime::GetNppExec().m_nppData._nppHandle);
+            ::SendMessage(wrkspcDlg.hDlg, WM_COMMAND, IDM_FILEBROWSER_COPYPATH, 0);
+            rootItemPath = NppExecHelpers::GetClipboardText(Runtime::GetNppExec().m_nppData._nppHandle);
+            NppExecHelpers::SetClipboardText(sClipboardText0, Runtime::GetNppExec().m_nppData._nppHandle);
+
+            if ( hRootItem != hCurrItem )
+            {
+                ::SendMessage(wrkspcDlg.hTreeView, TVM_SELECTITEM, TVGN_CARET, (LPARAM) hCurrItem);
+                ::SendMessage(wrkspcDlg.hTreeView, WM_SETREDRAW, TRUE, 0);
+            }
+
+            bRet = true;
+        }
     }
 
     return bRet;
