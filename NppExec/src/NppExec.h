@@ -535,7 +535,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iterator>
 
 #define NPPEXEC_VER_DWORD 0x06C3
-#define NPPEXEC_VER_STR   _T("0.6 RC3")
+#define NPPEXEC_VER_STR   _T("0.6 RC3/4")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

@@ -153,9 +153,9 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,95,262,50,14
 //    PUSHBUTTON      "Donate...",IDC_BT_DONATE,180,262,50,14
 #ifdef UNICODE
-    CTEXT           "NppExec ver. 0.6 RC3 Unicode for Notepad++",
+    CTEXT           "NppExec ver. 0.6 RC3/4 Unicode for Notepad++",
 #else
-    CTEXT           "NppExec ver. 0.6 RC3 ANSI for Notepad++",
+    CTEXT           "NppExec ver. 0.6 RC3/4 ANSI for Notepad++",
 #endif
                     IDC_STATIC,7,7,225,13
                     CTEXT           "(C)  Dec 2006 - Apr 2019,  Vitaliy Dovgan aka DV <dvv81 @ ukr.net>",
