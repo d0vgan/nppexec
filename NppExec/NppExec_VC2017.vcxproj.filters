@@ -19,6 +19,9 @@
     <Filter Include="Header Files\fparser">
       <UniqueIdentifier>{2e542de7-1a8f-4b53-97a0-736ae0c257c3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\npp_files">
+      <UniqueIdentifier>{d6bb39d9-dfd2-4771-a80d-2617c7f0ec31}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CAnyCheckBox.cpp">
@@ -194,9 +197,6 @@
     <ClInclude Include="src\DlgInputBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\npp_files\Docking.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\c_base\HexStr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -207,12 +207,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\c_base\max_int.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\npp_files\menuCmdID.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\npp_files\Notepad_plus_msgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\NppExec.h">
@@ -233,13 +227,7 @@
     <ClInclude Include="src\c_base\PackDataStr.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\npp_files\PluginInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\npp_files\Scintilla.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\c_base\str2int.h">
@@ -280,6 +268,24 @@
     </ClInclude>
     <ClInclude Include="src\NppScript.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\Docking.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\menuCmdID.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\Notepad_plus_msgs.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\PluginInterface.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\Scintilla.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\Sci_Position.h">
+      <Filter>Header Files\npp_files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

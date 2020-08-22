@@ -25,10 +25,11 @@
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
-#ifndef DOCKING_H
-#define DOCKING_H
 
-#include "windows.h"
+#pragma once
+
+#include <windows.h>
+
 // ATTENTION : It's a part of interface header, so don't include the others header here
 
 // styles for containers
@@ -88,6 +89,3 @@ typedef struct {
 	#define DMN_DOCK		            (DMN_FIRST + 2)
     #define DMN_FLOAT					(DMN_FIRST + 3)
 
-
-
-#endif // DOCKING_H
