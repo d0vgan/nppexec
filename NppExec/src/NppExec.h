@@ -1321,7 +1321,7 @@ public:
   int  nppGetOpenFileNamesInView(int nView = PRIMARY_VIEW, int nFiles = -1);
   bool nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
   bool nppSaveAllFiles();
-  bool nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders);
+  /* bool nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders); */
   bool nppGetWorkspaceItemPath(tstr& itemPath);
   bool nppGetWorkspaceRootItemPath(tstr& rootItemPath);
   int  findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);

@@ -7019,7 +7019,7 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
     tstr sWorkspaceItemPath;
     bool bWorkspaceItem = false;
 
-    sub.Clear();
+    sub.Clear(); // item path will be gere
     len = lstrlen(MACRO_WORKSPACE_ITEM_PATH);
     pos = 0;
     while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_PATH, pos)) >= 0)
@@ -7036,7 +7036,7 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       pos += sub.length();
     }
 
-    sub.Clear();
+    sub.Clear(); // item dir will be gere
     len = lstrlen(MACRO_WORKSPACE_ITEM_DIR);
     pos = 0;
     while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_DIR, pos)) >= 0)
@@ -7057,7 +7057,7 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       pos += sub.length();
     }
 
-    sub.Clear();
+    sub.Clear(); // item name will be gere
     len = lstrlen(MACRO_WORKSPACE_ITEM_NAME);
     pos = 0;
     while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_NAME, pos)) >= 0)

@@ -2470,6 +2470,7 @@ static BOOL CALLBACK GetWorkspaceTreeViewEnumFunc(HWND hWnd, LPARAM lParam)
     return TRUE; // continue enumeration
 }
 
+/*
 bool CNppExec::nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders)
 {
     bool bRet = false;
@@ -2506,6 +2507,7 @@ bool CNppExec::nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders)
 
     return bRet;
 }
+*/
 
 bool CNppExec::nppGetWorkspaceItemPath(tstr& itemPath)
 {
