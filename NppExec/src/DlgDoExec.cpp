@@ -596,7 +596,13 @@ int GetCurrentEditWord(HWND hEd, TCHAR* lpWordBuf, int nWordBufSize)
         i = nWordEnd - 1;
         while ((i >= 0) && !IsDelimiterCharacter(str[i]))
         {
-          i--;
+          if ((str[i] == _T('$')) && (str[i+1] == _T('(')))
+          {
+            i--;
+            break;
+          }
+          else
+            i--;
         }
         nWordStart = i + 1;
         i = nWordEnd;
