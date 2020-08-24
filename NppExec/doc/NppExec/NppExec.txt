@@ -171,6 +171,8 @@
  *        $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  *        $(NPP_HWND)           : Notepad++'s main window handle
  *        $(SCI_HWND)           : current Scintilla's window handle
+ *        $(CON_HWND)           : NppExec's Console window handle (RichEdit control)
+ *        $(FOCUSED_HWND)       : focused window handle
  *        $(SYS.<var>)          : system's environment variable, e.g. $(SYS.PATH)
  *        $(@EXIT_CMD)          : a callback exit command for a child process
  *        $(@EXIT_CMD_SILENT)   : a silent (non-printed) callback exit command
