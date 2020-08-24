@@ -81,7 +81,7 @@ int CSciMessager::getTextLength() const
 
 int CSciMessager::getTextRange(int pos1, int pos2, char* pText) const
 {
-    TextRange tr;
+    Sci_TextRange tr;
     tr.chrg.cpMin = pos1;
     tr.chrg.cpMax = pos2;
     tr.lpstrText = pText;
