@@ -46,6 +46,7 @@
  |  Console_NulChar                 |  25E6                (0x25E6)  |  HEX   |
  |  NppExec_Cmd_Prefix              |  nppexec:                      | string |
  |  UTF8_Detect_Length              |  16384                         |  int   |
+ |  AnsiEscapeSequences             |  0                             |  int   |
  |                                  |                                |        |
  |  [Options]                       |                                |        |
  |  HotKey                          |  F6                            | string |
@@ -107,6 +108,7 @@
    Console_NulChar=25E6
    NppExec_Cmd_Prefix=nppexec:
    UTF8_Detect_Length=16384
+   AnsiEscapeSequences=0
 
 
  ChildProcess_StartupTimeout_ms
@@ -522,6 +524,20 @@
    If a negative value is specified, the whole file content will be inspected
    (may be slow while loading big files).
    Setting this value to 0 disables UTF-8 without BOM detection.
+
+
+ AnsiEscapeSequences
+ -------------------
+   Specifies what to do with ANSI escape sequences in the output text.
+   Note: currently NppExec does not support ANSI escape sequences and treats
+   them as additional characters. I.e. these sequences are not processed by
+   NppExec to e.g. set text attributes, move the cursor and so on.
+   AnsiEscapeSequences = 0  -  keeps raw ANSI escape characters "as is" (the
+                               output text may contain extra characters from
+                               the escape sequences, including unreadable ones);
+   AnsiEscapeSequences = 1  -  removes ANSI escape characters (the output text
+                               will not contain extra characters from the escape
+                               sequences).
 
 
  HotKey
