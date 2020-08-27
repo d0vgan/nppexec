@@ -3902,6 +3902,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                 {
                     // a+/a-     append mode on/off
                     // d+/d-     follow current directory on/off
+                    // e0/e1     ansi escape sequences: raw/remove
                     // h+/h-     console commands history on/off
                     // m+/m-     console internal messages on/off
                     // p+/p-     print "==== READY ====" on/off
@@ -3939,6 +3940,19 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                 }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_CDCURDIR, bOn);
                                 isOK = true;
+                            }
+                            break;
+
+                        case _T('e'):
+                        case _T('E'):
+                            {
+                                int nAnsiEscSeq = (int) (arg[1] - _T('0'));
+                                if ( (nAnsiEscSeq >= CChildProcess::escKeepRaw) &&
+                                     (nAnsiEscSeq < CChildProcess::escTotalCount) )
+                                {
+                                    m_pNppExec->GetOptions().SetInt(OPTI_CONSOLE_ANSIESCSEQ, nAnsiEscSeq);
+                                    isOK = true;
+                                }
                             }
                             break;
 
@@ -4132,13 +4146,24 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S1 += _T(" d");
         S2 += _T(", cd_curdir: ");
         appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CDCURDIR), S1, S2 );
+        // esc_seq
+        S1 += _T(" e");
+        S2 += _T(", esc_seq: ");
+        {
+            const tIntMapping escMappings[] = {
+                { CChildProcess::escKeepRaw, _T("raw") },
+                { CChildProcess::escRemove, _T("remove") },
+                { 0x00, NULL } // trailing element with .str=NULL
+            };
+            appendInt( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ), S1, S2, escMappings );
+        }
         // cmd_history
         S1 += _T(" h");
-        S2 += _T(", cmd_history: ");
+        S2 += _T_RE_EOL _T("; cmd_history: ");
         appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CMDHISTORY), S1, S2 );
         // int_msgs
         S1 += _T(" m");
-        S2 += _T_RE_EOL _T("; int_msgs: ");
+        S2 += _T(", int_msgs: ");
         appendOnOff( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS), S1, S2 );
         // print_ready
         S1 += _T(" p");
@@ -4163,14 +4188,14 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S1 += _T(" k");
         S2 += _T_RE_EOL _T("; shortcut_keys: ");
         {
-            const tIntMapping mappings[] = {
+            const tIntMapping skMappings[] = {
                 { ConsoleDlg::CSK_OFF, _T("off") },
                 { ConsoleDlg::CSK_STD, _T("std") },
                 { ConsoleDlg::CSK_USR, _T("usr") },
                 { ConsoleDlg::CSK_ALL, _T("std+usr") },
                 { 0x00, NULL } // trailing element with .str=NULL
             };
-            appendInt( m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS), S1, S2, mappings );
+            appendInt( m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS), S1, S2, skMappings );
         }
         // out_enc
         unsigned int enc_opt = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);

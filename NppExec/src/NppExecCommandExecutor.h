@@ -64,6 +64,14 @@ class CProcessKiller
 class CChildProcess
 {
     public:
+        enum eAnsiEscSeq {
+            escKeepRaw = 0,  // keep the esc-sequence characters without processing
+            escRemove,       // remove the esc-sequence characters
+
+            escTotalCount    // the last item here!
+        };
+
+    public:
         //CChildProcess();
         CChildProcess(CScriptEngine* pScriptEngine);
         ~CChildProcess();
@@ -80,6 +88,8 @@ class CChildProcess
         int   GetExitCode() const;
         DWORD GetProcessId() const;
         const PROCESS_INFORMATION* GetProcessInfo() const;
+
+        static void RemoveAnsiEscSequencesFromLine(tstr& Line);
 
     protected:
         static bool IsWindowsNT();

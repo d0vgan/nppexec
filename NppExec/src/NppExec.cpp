@@ -359,6 +359,9 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
       INI_SECTION_CONSOLE, _T("PrintMsgReady"), -1, NULL },
     { OPTD_CONSOLE_FONT, OPTT_DATA | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("Font"), 0, NULL },
+    { OPTI_CONSOLE_ANSIESCSEQ, OPTT_INT | OPTF_READWRITE,
+      INI_SECTION_CONSOLE, _T("AnsiEscapeSequences") },
+
     //[ConsoleOutputFilter]
     { OPTB_CONFLTR_ENABLE, OPTT_BOOL | OPTF_READWRITE,
       INI_SECTION_CONSOLEFILTER, _T("Enable"), 0, NULL },
@@ -1058,7 +1061,7 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTI_UTF8_DETECT_LENGTH, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("UTF8_Detect_Length"),
       DEFAULT_UTF8_DETECT_LENGTH, NULL },
-    
+
     // --- internal options ---
     { OPTU_PLUGIN_HOTKEY, OPTT_INT | OPTF_INTERNAL,
       NULL, NULL, VK_F6, NULL },
@@ -3510,6 +3513,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
     const bool bConFltrExclAllEmpty = m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_EXCLALLEMPTY);
     const bool bConFltrExclDupEmpty = m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_EXCLDUPEMPTY);
     const bool bOutputVar = m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_SETOUTPUTVAR);
+    const int  nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
 
     const int nBufLineLength = bufLine.length();
 
@@ -3724,6 +3728,11 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                     
                                 if ( bOutput )
                                 {
+                                    if ( nAnsiEscSeq == escRemove )
+                                    {
+                                        RemoveAnsiEscSequencesFromLine(printLine);
+                                    }
+
                                     if ( nPrevState == 3 ) // '\r'
                                     {
                                         m_pNppExec->GetConsole().ProcessSlashR();
@@ -3771,6 +3780,127 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
 
     if ( bOutputAll && !dwBytesRead )  dwBytesRead = nBufLineLength;
     return dwBytesRead;
+}
+
+void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
+{
+    enum eEscState {
+        esNone = 0,
+        esEsc,    // ESC symbol found
+        esCsi,    // CSI sequence
+        esOsc,    // OSC sequence
+        esWaitSt, // wait for ST (ESC \)
+        esWait1   // wait for 1 symbol
+    };
+
+    eEscState state = esNone;
+    int i = 0;
+
+    while ( i < Line.length() )
+    {
+        const TCHAR ch = Line[i];
+        switch ( state )
+        {
+            case esNone:
+                if ( ch == 0x1B )  // ESC
+                {
+                    Line.Delete(i, 1);
+                    state = esEsc;
+                }
+                else
+                {
+                    ++i;
+                }
+                break;
+
+            case esEsc:
+                switch ( ch )
+                {
+                    case _T('['):  // CSI
+                        Line.Delete(i, 1);
+                        state = esCsi;
+                        break;
+                    case _T(']'):  // OSC
+                        Line.Delete(i, 1);
+                        state = esOsc;
+                        break;
+                    case _T('P'):  // DCS
+                    case _T('X'):  // SOS
+                    case _T('^'):  // PM
+                    case _T('_'):  // APC
+                        Line.Delete(i, 1);
+                        state = esWaitSt;
+                        break;
+                    case _T('%'):  // selecting character set
+                    case _T('#'):  // screen alignment test
+                    case _T('('):  // G0 character set
+                    case _T(')'):  // G1 character set
+                    case _T('*'):  // G2 character set
+                    case _T('+'):  // G3 character set
+                        Line.Delete(i, 1);
+                        state = esWait1;
+                        break;
+                    default:       // RIS, IND, NEL, HTS, RI, ...
+                        Line.Delete(i, 1);
+                        state = esNone;
+                        break;
+                }
+                break;
+
+            case esCsi:
+                if ( (ch >= _T('A') && ch <= _T('Z')) ||
+                     (ch >= _T('a') && ch <= _T('z')) ||
+                     (ch == _T('@'))  ||
+                     (ch == _T('['))  ||
+                     (ch == _T('\\')) ||
+                     (ch == _T(']'))  ||
+                     (ch == _T('^'))  ||
+                     (ch == _T('_'))  ||
+                     (ch == _T('`'))  ||
+                     (ch == _T('{'))  ||
+                     (ch == _T('|'))  ||
+                     (ch == _T('}'))  ||
+                     (ch == _T('~')) )
+                {
+                    // the "final byte" of the CSI sequence
+                    Line.Delete(i, 1);
+                    state = esNone;
+                }
+                else
+                {
+                    Line.Delete(i, 1);
+                    // waiting for the CSI final character...
+                }
+                break;
+
+            case esOsc:
+            case esWaitSt:
+                if ( ch == 0x1B )  // ESC
+                {
+                    if ( Line.GetAt(i + 1) == _T('\\') )  // ST
+                    {
+                        Line.Delete(i, 2);
+                        state = esNone;
+                    }
+                    else // ?
+                    {
+                        Line.Delete(i, 1);
+                        state = esEsc; // ?
+                    }
+                }
+                else
+                {
+                    Line.Delete(i, 1);
+                    // waiting for the ST...
+                }
+                break;
+
+            case esWait1:
+                Line.Delete(i, 1);
+                state = esNone;
+                break;
+        }
+    }
 }
 
 void CChildProcess::MustBreak(unsigned int nBreakMethod)
@@ -4994,6 +5124,12 @@ void CNppExec::ReadOptions()
   if (GetOptions().GetInt(OPTB_CONSOLE_PRINTMSGREADY) < 0)
   {
     GetOptions().SetBool(OPTB_CONSOLE_PRINTMSGREADY, true);
+  }
+
+  int nAnsiEscSeq = GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
+  if ( (nAnsiEscSeq < 0) || (nAnsiEscSeq >= CChildProcess::escTotalCount) )
+  {
+    GetOptions().SetInt(OPTI_CONSOLE_ANSIESCSEQ, CChildProcess::escKeepRaw);
   }
 
   {

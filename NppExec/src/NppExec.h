@@ -25,10 +25,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
  + added: $(WORKSPACE_ITEM_*)
  + added: the message "==== READY ====" is optional now (can be on/off)
+ + added: ANSI escape sequences can be ignored (npe_console e1)
  * now WarningAnalyzer tries to find a file in the current view first
  * now $(LAST_CMD_RESULT) will be 0 in case of StrCalc error (set x ~ ...)
  - fixed: variable names can contain brackets - e.g. $(a(b(c)))
  - fixed: end of an embedded npp_exec-ed script may also be the end of its parent script
+ * $(var) completion in the "Execute" and "Console" dialogs improved
  * internal improvements
 
 
@@ -637,6 +639,7 @@ enum EPluginOptions {
     OPTB_CONSOLE_APPENDMODE,
     OPTU_CONSOLE_CATCHSHORTCUTKEYS,
     OPTB_CONSOLE_SETOUTPUTVAR,
+    OPTI_CONSOLE_ANSIESCSEQ,
     OPTB_CONFLTR_ENABLE,
     OPTB_CONFLTR_EXCLALLEMPTY,
     OPTB_CONFLTR_EXCLDUPEMPTY,

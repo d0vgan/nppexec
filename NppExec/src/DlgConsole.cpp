@@ -1421,7 +1421,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  npe_console") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_console") _T_RE_EOL \
-    _T("  npe_console a+/a- d+/d- h+/h- m+/m- p+/p- q+/q- v+/v- f+/f- r+/r- k0..3") _T_RE_EOL \
+    _T("  npe_console a+/a- d+/d- e0/e1 h+/h- m+/m- p+/p- q+/q- v+/v- f+/f- r+/r- k0..3") _T_RE_EOL \
     _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
     _T("  npe_console <options> --") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
@@ -1429,6 +1429,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  2. X+/X-  enables/disables the option/mode X:") _T_RE_EOL \
     _T("       a+/a-  append mode (don\'t clear Console) on/off") _T_RE_EOL \
     _T("       d+/d-  follow $(CURRENT_DIRECTORY) on/off") _T_RE_EOL \
+    _T("       e0/e1  ansi escape sequences: raw/remove") _T_RE_EOL \
     _T("       h+/h-  console commands history on/off") _T_RE_EOL \
     _T("       m+/m-  console internal messages on/off") _T_RE_EOL \
     _T("       p+/p-  print \"==== READY ====\" on/off") _T_RE_EOL \
@@ -1461,6 +1462,11 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  d+/d-  Follow $(CURRENT_DIRECTORY) on/off.") _T_RE_EOL \
     _T("         Corresponding menu item: Follow $(CURRENT_DIRECTORY).") _T_RE_EOL \
     _T("         If On, NppExec follows the directory of current file.") _T_RE_EOL \
+    _T("  e0/e1  ANSI escape sequences: raw/remove.") _T_RE_EOL \
+    _T("         e0: keep raw esc-sequence characters;") _T_RE_EOL \
+    _T("         e1: remove esc-sequence characters.") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         Default value: 0.") _T_RE_EOL \
     _T("  h+/h-  Console commands history on/off.") _T_RE_EOL \
     _T("         Corresponding menu item: Console Commands History.") _T_RE_EOL \
     _T("         If On, NppExec\'s Console remembers the commands you typed.") _T_RE_EOL \
