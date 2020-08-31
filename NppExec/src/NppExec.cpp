@@ -3784,17 +3784,29 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
 
 void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
 {
+    // ANSI escape codes, references:
+    //   https://en.wikipedia.org/wiki/ANSI_escape_code
+    //   https://en.wikipedia.org/wiki/ISO/IEC_2022
+    //   https://man7.org/linux/man-pages/man4/console_codes.4.html
+    //   http://ascii-table.com/ansi-escape-sequences.php
+    //   http://ascii-table.com/ansi-escape-sequences-vt-100.php
+    //   https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+    //   https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+
     enum eEscState {
         esNone = 0,
         esEsc,    // ESC symbol found
         esCsi,    // CSI sequence
         esOsc,    // OSC sequence
         esWaitSt, // wait for ST (ESC \)
-        esWait1   // wait for 1 symbol
+        esWait1,  // wait for 1 symbol
+        esWait2   // wait for 2 symbols
     };
 
     eEscState state = esNone;
     int i = 0;
+    TCHAR wait1_ch = 0;
+    TCHAR wait2_ch = 0;
 
     while ( i < Line.length() )
     {
@@ -3831,14 +3843,27 @@ void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
                         Line.Delete(i, 1);
                         state = esWaitSt;
                         break;
-                    case _T('%'):  // selecting character set
-                    case _T('#'):  // screen alignment test
+                    case _T('$'):  // G?DM?
+                        Line.Delete(i, 1);
+                        state = esWait2;
+                        wait2_ch = ch;
+                        break;
+                    case _T('!'):  // C0-designate
+                    case _T('"'):  // C1-designate
+                    case _T('#'):  // single control function
+                    case _T('%'):  // DOCS
+                    case _T('&'):  // IRR
                     case _T('('):  // G0 character set
                     case _T(')'):  // G1 character set
                     case _T('*'):  // G2 character set
                     case _T('+'):  // G3 character set
+                    case _T('-'):  // G1 character set, VT300
+                    case _T('.'):  // G2 character set, VT300
+                    case _T('/'):  // G3 character set, VT300
+                    case _T(' '):  // ACS
                         Line.Delete(i, 1);
                         state = esWait1;
+                        wait1_ch = ch;
                         break;
                     default:       // RIS, IND, NEL, HTS, RI, ...
                         Line.Delete(i, 1);
@@ -3898,6 +3923,33 @@ void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
             case esWait1:
                 Line.Delete(i, 1);
                 state = esNone;
+                if ( wait1_ch == _T('%') )
+                {
+                    switch ( ch )
+                    {
+                        case _T('/'):  // ESC % / F
+                            state = esWait1;
+                            break;
+                    }
+                }
+                wait1_ch = 0;
+                break;
+
+            case esWait2:
+                Line.Delete(i, 1);
+                state = esWait1;
+                if ( wait2_ch == _T('$') )
+                {
+                    switch ( ch )
+                    {
+                        case _T('@'):  // ESC $ @
+                        case _T('A'):  // ESC $ A
+                        case _T('B'):  // ESC $ B
+                            state = esNone;
+                            break;
+                    }
+                }
+                wait2_ch = 0;
                 break;
         }
     }
