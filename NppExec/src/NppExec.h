@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.6 RC4 (dev)
- --------------
+ v0.6 RC4 (dev) - September 2020
+ -------------------------------
  + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
  + added: $(WORKSPACE_ITEM_*)
  + added: the message "==== READY ====" is optional now (can be on/off)

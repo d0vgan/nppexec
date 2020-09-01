@@ -1,7 +1,7 @@
 
  ****************************************************************************
  * NppExec plugin ver. 0.6 RC3/4 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - April 2019
+ * by DV <dvv81 @ ukr.net>, December 2006 - September 2020
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -184,8 +184,8 @@
  *  HISTORY  *
  *************
 
- v0.6 RC4 (dev)
- --------------
+ v0.6 RC4 (dev) - September 2020
+ -------------------------------
  + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
  + added: $(WORKSPACE_ITEM_*)
  + added: the message "==== READY ====" is optional now (can be on/off)
