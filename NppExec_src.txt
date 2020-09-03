@@ -1,4 +1,5 @@
-NppExec_latest*.bat
+NppExec_build_*.bat
+NppExec_zip_*.bat
 NppExec_src.txt
 .gitignore
 README.md
