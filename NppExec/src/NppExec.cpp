@@ -3803,50 +3803,49 @@ void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
         esWait2   // wait for 2 symbols
     };
 
+    
+    const TCHAR* p = Line.c_str();
     eEscState state = esNone;
-    int i = 0;
+    TCHAR curr_ch = 0;
     TCHAR wait1_ch = 0;
     TCHAR wait2_ch = 0;
+    tstr outputLine;
 
-    while ( i < Line.length() )
+    outputLine.Reserve(Line.length());
+
+    while ( (curr_ch = *p) != 0 )
     {
-        const TCHAR ch = Line[i];
         switch ( state )
         {
             case esNone:
-                if ( ch == 0x1B )  // ESC
+                if ( curr_ch == 0x1B )  // ESC
                 {
-                    Line.Delete(i, 1);
                     state = esEsc;
                 }
                 else
                 {
-                    ++i;
+                    outputLine.Append(curr_ch);
                 }
                 break;
 
             case esEsc:
-                switch ( ch )
+                switch ( curr_ch )
                 {
                     case _T('['):  // CSI
-                        Line.Delete(i, 1);
                         state = esCsi;
                         break;
                     case _T(']'):  // OSC
-                        Line.Delete(i, 1);
                         state = esOsc;
                         break;
                     case _T('P'):  // DCS
                     case _T('X'):  // SOS
                     case _T('^'):  // PM
                     case _T('_'):  // APC
-                        Line.Delete(i, 1);
                         state = esWaitSt;
                         break;
                     case _T('$'):  // G?DM?
-                        Line.Delete(i, 1);
                         state = esWait2;
-                        wait2_ch = ch;
+                        wait2_ch = curr_ch;
                         break;
                     case _T('!'):  // C0-designate
                     case _T('"'):  // C1-designate
@@ -3861,71 +3860,59 @@ void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
                     case _T('.'):  // G2 character set, VT300
                     case _T('/'):  // G3 character set, VT300
                     case _T(' '):  // ACS
-                        Line.Delete(i, 1);
                         state = esWait1;
-                        wait1_ch = ch;
+                        wait1_ch = curr_ch;
                         break;
                     default:       // RIS, IND, NEL, HTS, RI, ...
-                        Line.Delete(i, 1);
                         state = esNone;
                         break;
                 }
                 break;
 
             case esCsi:
-                if ( (ch >= _T('A') && ch <= _T('Z')) ||
-                     (ch >= _T('a') && ch <= _T('z')) ||
-                     (ch == _T('@'))  ||
-                     (ch == _T('['))  ||
-                     (ch == _T('\\')) ||
-                     (ch == _T(']'))  ||
-                     (ch == _T('^'))  ||
-                     (ch == _T('_'))  ||
-                     (ch == _T('`'))  ||
-                     (ch == _T('{'))  ||
-                     (ch == _T('|'))  ||
-                     (ch == _T('}'))  ||
-                     (ch == _T('~')) )
+                if ( (curr_ch >= _T('A') && curr_ch <= _T('Z')) ||
+                     (curr_ch >= _T('a') && curr_ch <= _T('z')) ||
+                     (curr_ch == _T('@'))  ||
+                     (curr_ch == _T('['))  ||
+                     (curr_ch == _T('\\')) ||
+                     (curr_ch == _T(']'))  ||
+                     (curr_ch == _T('^'))  ||
+                     (curr_ch == _T('_'))  ||
+                     (curr_ch == _T('`'))  ||
+                     (curr_ch == _T('{'))  ||
+                     (curr_ch == _T('|'))  ||
+                     (curr_ch == _T('}'))  ||
+                     (curr_ch == _T('~')) )
                 {
                     // the "final byte" of the CSI sequence
-                    Line.Delete(i, 1);
                     state = esNone;
                 }
-                else
-                {
-                    Line.Delete(i, 1);
-                    // waiting for the CSI final character...
-                }
+                // else waiting for the CSI final character...
                 break;
 
             case esOsc:
             case esWaitSt:
-                if ( ch == 0x1B )  // ESC
+                if ( curr_ch == 0x1B )  // ESC
                 {
-                    if ( Line.GetAt(i + 1) == _T('\\') )  // ST
+                    const TCHAR next_ch = *(p + 1);
+                    if ( next_ch == _T('\\') )  // ST
                     {
-                        Line.Delete(i, 2);
+                        ++p; // skipping the next character as well
                         state = esNone;
                     }
                     else // ?
                     {
-                        Line.Delete(i, 1);
                         state = esEsc; // ?
                     }
                 }
-                else
-                {
-                    Line.Delete(i, 1);
-                    // waiting for the ST...
-                }
+                // else waiting for the ST...
                 break;
 
             case esWait1:
-                Line.Delete(i, 1);
                 state = esNone;
                 if ( wait1_ch == _T('%') )
                 {
-                    switch ( ch )
+                    switch ( curr_ch )
                     {
                         case _T('/'):  // ESC % / F
                             state = esWait1;
@@ -3936,11 +3923,10 @@ void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
                 break;
 
             case esWait2:
-                Line.Delete(i, 1);
                 state = esWait1;
                 if ( wait2_ch == _T('$') )
                 {
-                    switch ( ch )
+                    switch ( curr_ch )
                     {
                         case _T('@'):  // ESC $ @
                         case _T('A'):  // ESC $ A
@@ -3952,7 +3938,11 @@ void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
                 wait2_ch = 0;
                 break;
         }
+
+        ++p;
     }
+
+    Line.Swap(outputLine);
 }
 
 void CChildProcess::MustBreak(unsigned int nBreakMethod)
