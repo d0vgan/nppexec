@@ -1024,6 +1024,8 @@ class CScriptEngine : public IScriptEngine
         bool reportCmdAndParams(const TCHAR* cszCmd, const tstr& params, unsigned int uFlags);
         void updateFocus();
 
+        static void getLabelName(tstr& labelName);
+
         eCmdResult doSendMsg(const tstr& params, int cmdType);
         eCmdResult doSciFindReplace(const tstr& params, eCmdType cmdType);
         eCmdResult doIf(const tstr& params, bool isElseIf);

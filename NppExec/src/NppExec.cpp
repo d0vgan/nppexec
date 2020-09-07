@@ -57,6 +57,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        set <var> ~ strreplace <s> <t0> <t1> - replaces all <t0> with <t1>
  *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
  *        set <var> ~ strtohex <s> - returns a hex-string from the string
+ *        set <var> ~ chr <n> - returns a character from a character code <n>
+ *        set <var> ~ ord <c> - returns a decimal character code of a character <c>
+ *        set <var> ~ ordx <c> - returns a hexadecimal character code of a character <c>
  *        set local - shows all user's local variables
  *        set local <var> - shows the value of user's local variable <var>
  *        set local <var> = ... - sets the value of user's local variable <var>

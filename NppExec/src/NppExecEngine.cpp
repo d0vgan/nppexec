@@ -1023,6 +1023,12 @@ static FParserWrapper g_fp;
  *   - returns a string from the hex-string
  * set <var> ~ strtohex <s>
  *   - returns a hex-string from the string
+ * set <var> ~ chr <n>
+ *   - returns a character from a character code <n>
+ * set <var> ~ ord <c>
+ *   - returns a decimal character code of a character <c>
+ * set <var> ~ ordx <c>
+ *   - returns a hexadecimal character code of a character <c>
  * set local
  *   - shows all user's local variables
  * set local <var>
@@ -3066,15 +3072,23 @@ CScriptEngine::eCmdResult CScriptEngine::DoExit(const tstr& params)
 }
 
 
+void CScriptEngine::getLabelName(tstr& labelName)
+{
+    NppExecHelpers::StrDelLeadingTabSpaces(labelName);
+    NppExecHelpers::StrDelTrailingTabSpaces(labelName);
+    NppExecHelpers::StrUpper(labelName);
+
+    if ( labelName.StartsWith(_T(':')) )
+        labelName.DeleteFirstChar();
+}
+
 CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
 {
     if ( !reportCmdAndParams( DoGoToCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     tstr labelName = params;
-    NppExecHelpers::StrDelLeadingTabSpaces(labelName);
-    NppExecHelpers::StrDelTrailingTabSpaces(labelName);
-    NppExecHelpers::StrUpper(labelName);
+    getLabelName(labelName);
 
     if ( labelName.IsEmpty() )
     {
@@ -3096,9 +3110,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
             Cmd = p->GetItem();
             if ( getCmdType(m_pNppExec, Cmd) == CMDTYPE_LABEL )
             {
-                NppExecHelpers::StrDelLeadingTabSpaces(Cmd);
-                NppExecHelpers::StrDelTrailingTabSpaces(Cmd);
-                NppExecHelpers::StrUpper(Cmd);
+                getLabelName(Cmd);
                 if ( Labels.find(Cmd) == Labels.end() )
                 {
                     Labels[Cmd] = p->GetNext(); // label points to the next command
@@ -3528,9 +3540,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
     if ( mode == IF_GOTO )
     {
         labelName.Copy( params.c_str() + n + 6 );
-        NppExecHelpers::StrDelLeadingTabSpaces(labelName);
-        NppExecHelpers::StrDelTrailingTabSpaces(labelName);
-        NppExecHelpers::StrUpper(labelName);
+        getLabelName(labelName);
 
         if ( labelName.IsEmpty() )
         {
@@ -3620,9 +3630,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoLabel(const tstr& params)
         return CMDRESULT_INVALIDPARAM;
 
     tstr labelName = params;
-    NppExecHelpers::StrDelLeadingTabSpaces(labelName);
-    NppExecHelpers::StrDelTrailingTabSpaces(labelName);
-    NppExecHelpers::StrUpper(labelName);
+    getLabelName(labelName);
 
     ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
     tLabels& Labels = currentScript.Labels;
@@ -7469,7 +7477,7 @@ bool CNppExecMacroVars::StrCalc::Process()
     // check for 'strlen', 'strupper', 'strlower', 'substr' and so on
     m_pVar = m_varValue.c_str();
     m_pVar = get_param(m_pVar, m_param);
-    if ( m_param.length() > 5 )
+    if ( m_param.length() >= 3 )
     {
         typedef struct sCalcType {
             const TCHAR* szCalcType;
@@ -7491,7 +7499,10 @@ bool CNppExecMacroVars::StrCalc::Process()
             { _T("STRREPLACE"), CT_STRREPLACE },
             { _T("STRRPLC"),    CT_STRREPLACE },
             { _T("STRFROMHEX"), CT_STRFROMHEX },
-            { _T("STRTOHEX"),   CT_STRTOHEX   }
+            { _T("STRTOHEX"),   CT_STRTOHEX   },
+            { _T("CHR"),        CT_CHR        },
+            { _T("ORD"),        CT_ORD        },
+            { _T("ORDX"),       CT_ORDX       }
         };
 
         NppExecHelpers::StrUpper(m_param);
@@ -7537,6 +7548,13 @@ bool CNppExecMacroVars::StrCalc::Process()
             break;
         case CT_STRTOHEX:
             bSucceded = calcStrToHex();
+            break;
+        case CT_CHR:
+            bSucceded = calcChr();
+            break;
+        case CT_ORD:
+        case CT_ORDX:
+            bSucceded = calcOrd();
             break;
     }
 
@@ -7842,6 +7860,79 @@ bool CNppExecMacroVars::StrCalc::calcStrToHex()
     else
     {
         m_pNppExec->GetConsole().PrintError( _T("- not enough STRTOHEX parameters given: 1 parameter expected") );
+    }
+
+    return bSucceded;
+}
+
+bool CNppExecMacroVars::StrCalc::calcChr()
+{
+    bool bSucceded = false;
+
+    if ( *m_pVar )
+    {
+        const TCHAR ch = static_cast<TCHAR>(c_base::_tstr2int(m_pVar));
+        if ( ch != 0 )
+        {
+            m_varValue = ch;
+
+            Runtime::GetLogger().AddEx( 
+              _T("; chr: %s"), 
+              m_varValue.c_str() 
+            );
+
+            bSucceded = true;
+        }
+        else
+        {
+            m_pNppExec->GetConsole().PrintError( _T("- wrong CHR parameter given: a character code expected") );
+        }
+    }
+    else
+    {
+        m_pNppExec->GetConsole().PrintError( _T("- not enough CHR parameters given: 1 parameter expected") );
+    }
+
+    return bSucceded;
+}
+
+bool CNppExecMacroVars::StrCalc::calcOrd()
+{
+    bool bSucceded = false;
+
+    if ( *m_pVar )
+    {
+        tstr Str = m_pVar;
+        NppExecHelpers::StrUnquote(Str);
+
+        if ( Str.length() == 1 )
+        {
+            const bool isHex = (m_calcType == CT_ORDX);
+            const int n = static_cast<int>(Str[0]);
+
+            const TCHAR* szFmt = _T("%d");
+            if ( isHex )
+            {
+                szFmt = (n > 0xFF) ? _T("0x%04X") : _T("0x%X");
+            }
+            m_varValue.Format(16, szFmt, n);
+
+            Runtime::GetLogger().AddEx( 
+              _T("; %s: %s"), 
+              isHex ? _T("ordx") : _T("ord"),
+              m_varValue.c_str() 
+            );
+
+            bSucceded = true;
+        }
+        else
+        {
+            m_pNppExec->GetConsole().PrintError( _T("- wrong ORD parameter given: 1 character expected") );
+        }
+    }
+    else
+    {
+        m_pNppExec->GetConsole().PrintError( _T("- not enough ORD parameters given: 1 parameter expected") );
     }
 
     return bSucceded;

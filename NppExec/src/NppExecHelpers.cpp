@@ -348,7 +348,8 @@ namespace NppExecHelpers
 
     void StrUnquote(tstr& S)
     {
-        if ( (S.GetFirstChar() == _T('\"')) && (S.GetLastChar() == _T('\"')) )
+        if ( (S.length() > 1) &&
+             (S.GetFirstChar() == _T('\"')) && (S.GetLastChar() == _T('\"')) )
         {
             S.DeleteLastChar();
             S.DeleteFirstChar();

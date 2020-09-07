@@ -114,6 +114,9 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("set <var> ~ strreplace <s> <t0> <t1>  -  replaces all <t0> with <t1>") _T_RE_EOL \
   _T("set <var> ~ strfromhex <hs>  -  returns a string from the hex-string") _T_RE_EOL \
   _T("set <var> ~ strtohex <s>  -  returns a hex-string from the string") _T_RE_EOL \
+  _T("set <var> ~ chr <n>  -  returns a character from a character code <n>") _T_RE_EOL \
+  _T("set <var> ~ ord <c>  -  returns a decimal character code of a character <c>") _T_RE_EOL \
+  _T("set <var> ~ ordx <c>  -  returns a hexadecimal character code of a character <c>") _T_RE_EOL \
   _T("set local  -  shows all user\'s local variables") _T_RE_EOL \
   _T("set local <var>  -  shows the value of user\'s local variable <var>") _T_RE_EOL \
   _T("set local <var> = ...  -  sets the value of user\'s local variable <var>") _T_RE_EOL \
@@ -278,6 +281,41 @@ typedef struct sCmdItemInfo {
   _T("  set s ~ strtohex abc123   // 61 62 63 31 32 33") _T_RE_EOL \
   _T("  set s ~ strtohex \"ab 12\"  // 61 62 20 31 32") _T_RE_EOL \
   _T("  set s ~ strtohex ") _T_STRLEN_CYRILLIC _T("   // ") _T_STRHEX_CYRILLIC _T_RE_EOL
+#endif
+
+#ifdef UNICODE
+  #define _T_HELP_CHR_ORD_ORDX \
+  _T("  // chr")  _T_RE_EOL \
+  _T("  set c ~ chr 0x71    // q")  _T_RE_EOL \
+  _T("  set c ~ chr 113     // q")  _T_RE_EOL \
+  _T("  set c ~ chr 0x0416  // \x0416")  _T_RE_EOL \
+  _T("  // ord")  _T_RE_EOL \
+  _T("  set n ~ ord /       // 47")  _T_RE_EOL \
+  _T("  set n ~ ord q       // 113")  _T_RE_EOL \
+  _T("  set n ~ ord \x0439       // 1081")  _T_RE_EOL \
+  _T("  set n ~ ord \" \"     // 32")  _T_RE_EOL \
+  _T("  set n ~ ord \"z\"     // 122")  _T_RE_EOL \
+  _T("  // ordx")  _T_RE_EOL \
+  _T("  set n ~ ordx /      // 0x2F")  _T_RE_EOL \
+  _T("  set n ~ ordx q      // 0x71")  _T_RE_EOL \
+  _T("  set n ~ ordx \x0416      // 0x0416")  _T_RE_EOL \
+  _T("  set n ~ ordx \" \"    // 0x20")  _T_RE_EOL \
+  _T("  set n ~ ordx \"z\"    // 0x7A")  _T_RE_EOL
+#else
+  #define _T_HELP_CHR_ORD_ORDX \
+  _T("  // chr")  _T_RE_EOL \
+  _T("  set c ~ chr 0x71    // q")  _T_RE_EOL \
+  _T("  set c ~ chr 113     // q")  _T_RE_EOL \
+  _T("  // ord")  _T_RE_EOL \
+  _T("  set n ~ ord /       // 47")  _T_RE_EOL \
+  _T("  set n ~ ord q     // 113")  _T_RE_EOL \
+  _T("  set n ~ ord \" \"     // 32")  _T_RE_EOL \
+  _T("  set n ~ ord \"z\"     // 122")  _T_RE_EOL \
+  _T("  // ordx")  _T_RE_EOL \
+  _T("  set n ~ ordx /      // 0x2F")  _T_RE_EOL \
+  _T("  set n ~ ordx q    // 0x71")  _T_RE_EOL \
+  _T("  set n ~ ordx \" \"    // 0x20")  _T_RE_EOL \
+  _T("  set n ~ ordx \"z\"    // 0x7A")  _T_RE_EOL
 #endif
 
 #define _T_HELP_NPE_SEARCHFLAGS \
@@ -1096,34 +1134,37 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     CScriptEngine::DoSetCommand::Name(),
     _T("COMMAND:  set/unset") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
-    _T("  set") _T_RE_EOL \
-    _T("  set <var>") _T_RE_EOL \
-    _T("  set <var> = <value>") _T_RE_EOL \
-    _T("  set $(<var>) = <value>") _T_RE_EOL \
-    _T("  set <var> ~ <math expression>") _T_RE_EOL \
-    _T("  set <var> ~ strlen <string>") _T_RE_EOL \
-    _T("  set <var> ~ strlenutf8 <string>") _T_RE_EOL \
-    _T("  set <var> ~ strlensci <string>") _T_RE_EOL \
-    _T("  set <var> ~ strupper <string>") _T_RE_EOL \
-    _T("  set <var> ~ strlower <string>") _T_RE_EOL \
-    _T("  set <var> ~ substr <pos> <len> <string>") _T_RE_EOL \
-    _T("  set <var> ~ strfind <string> <sfind>") _T_RE_EOL \
-    _T("  set <var> ~ strrfind <string> <sfind>") _T_RE_EOL \
-    _T("  set <var> ~ strreplace <string> <sfind> <sreplace>") _T_RE_EOL \
-    _T("  set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
-    _T("  set <var> ~ strtohex <string>") _T_RE_EOL \
-    _T("  set local") _T_RE_EOL \
-    _T("  set local <var>") _T_RE_EOL \
-    _T("  set local <var> = ...") _T_RE_EOL \
-    _T("  set local <var> ~ ...") _T_RE_EOL \
-    _T("  unset <var>") _T_RE_EOL \
-    _T("  unset <var> = <value>") _T_RE_EOL \
-    _T("  unset local <var>") _T_RE_EOL \
+    _T("  1.  set") _T_RE_EOL \
+    _T("  2.  set <var>") _T_RE_EOL \
+    _T("  3.  set <var> = <value>") _T_RE_EOL \
+    _T("      set $(<var>) = <value>") _T_RE_EOL \
+    _T("  4.  set <var> ~ <math expression>") _T_RE_EOL \
+    _T("  5a. set <var> ~ strlen <string>") _T_RE_EOL \
+    _T("  5b. set <var> ~ strlenutf8 <string>") _T_RE_EOL \
+    _T("  5c. set <var> ~ strlensci <string>") _T_RE_EOL \
+    _T("  5d. set <var> ~ strupper <string>") _T_RE_EOL \
+    _T("  5e. set <var> ~ strlower <string>") _T_RE_EOL \
+    _T("  5f. set <var> ~ substr <pos> <len> <string>") _T_RE_EOL \
+    _T("  5g. set <var> ~ strfind <string> <sfind>") _T_RE_EOL \
+    _T("  5h. set <var> ~ strrfind <string> <sfind>") _T_RE_EOL \
+    _T("  5i. set <var> ~ strreplace <string> <sfind> <sreplace>") _T_RE_EOL \
+    _T("  5j. set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
+    _T("  5k. set <var> ~ strtohex <string>") _T_RE_EOL \
+    _T("  5l. set <var> ~ chr <n>") _T_RE_EOL \
+    _T("  5m. set <var> ~ ord <c>") _T_RE_EOL \
+    _T("  5n. set <var> ~ ordx <c>") _T_RE_EOL \
+    _T("  6.  set local") _T_RE_EOL \
+    _T("      set local <var>") _T_RE_EOL \
+    _T("      set local <var> = ...") _T_RE_EOL \
+    _T("      set local <var> ~ ...") _T_RE_EOL \
+    _T("  7.  unset <var>") _T_RE_EOL \
+    _T("      unset <var> = <value>") _T_RE_EOL \
+    _T("  8.  unset local <var>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
-    _T("  1. Shows all user\'s variables (\"set\" without parameters)") _T_RE_EOL \
-    _T("  2. Shows the value of user\'s variable (\"set\" without \"=\")") _T_RE_EOL \
-    _T("  3. Sets the value of user\'s variable (\"set <var> = <value>\")") _T_RE_EOL \
-    _T("  4. Calculates the math expression (\"set <var> ~ <math expr>\")") _T_RE_EOL \
+    _T("  1.  Shows all user\'s variables (\"set\" without parameters)") _T_RE_EOL \
+    _T("  2.  Shows the value of user\'s variable (\"set\" without \"=\")") _T_RE_EOL \
+    _T("  3.  Sets the value of user\'s variable (\"set <var> = <value>\")") _T_RE_EOL \
+    _T("  4.  Calculates the math expression (\"set <var> ~ <math expr>\")") _T_RE_EOL \
     _T("  5a. Calculates the string length (\"set <var> ~ strlen <string>\")") _T_RE_EOL \
     _T("  5b. Calculates the UTF-8 string length (\"set <var> ~ strlenutf8 <s>\")") _T_RE_EOL \
     _T("  5c. Calculates Scintilla's string length (\"set <var> ~ strlensci <s>\")") _T_RE_EOL \
@@ -1136,6 +1177,9 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  5i. Replaces all <sfind> with <sreplace> in <string>") _T_RE_EOL \
     _T("  5j. Returns a string from the <hexstring>") _T_RE_EOL \
     _T("  5k. Returns a hex-string from the <string>") _T_RE_EOL \
+    _T("  5l. Returns a character from a character code <n>") _T_RE_EOL \
+    _T("  5m. Returns a decimal character code of a character <c>") _T_RE_EOL \
+    _T("  5n. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
     _T("  6.  Shows/sets the value of local variable (\"set local <var> ...\")") _T_RE_EOL \
     _T("  7.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
     _T("  8.  Removes the local variable <var> (\"unset local <var>\")") _T_RE_EOL \
@@ -1192,6 +1236,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set s ~ strreplace \"$(s)\" 1 \"y \"         // Hey y 0 w0ry d (\"1\" -> \"y \")") _T_RE_EOL \
     _T("  set s ~ strreplace \"queen-bee\" ee \"\"     // qun-b          (\"ee\" -> \"\")") _T_RE_EOL \
     _T_HELP_STRTOHEX_STRFROMHEX \
+    _T_HELP_CHR_ORD_ORDX \
     _T("REMARKS:") _T_RE_EOL \
     _T("  User\'s variables have the lowest priority, so they can\'t override") _T_RE_EOL \
     _T("  other (predefined) variables. Thus, you can set your own variables") _T_RE_EOL \
@@ -1939,6 +1984,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  label, :") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  label <LabelName>") _T_RE_EOL \
+    _T("  label :<LabelName>") _T_RE_EOL \
     _T("  :<LabelName>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  Declares a label within the current script.") _T_RE_EOL \
@@ -1948,9 +1994,10 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  label MyLabelB") _T_RE_EOL \
     _T("  :C") _T_RE_EOL \
     _T("  label 4") _T_RE_EOL \
+    _T("  label :4  // equal to label 4") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  You can give any name to your label. Leading and trailing spaces are") _T_RE_EOL \
-    _T("  ignored.") _T_RE_EOL \
+    _T("  ignored. Leading ':' is ignored (i.e. LABEL X is the same as LABEL :X).") _T_RE_EOL \
     _T("  Each label \"lives\" within a script where it is declared. You can not") _T_RE_EOL \
     _T("  jump to a label located inside another script - either outer or inner") _T_RE_EOL \
     _T("  one. (And this is the difference between labels and variables: each") _T_RE_EOL \
@@ -1973,6 +2020,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  goto") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  goto <LabelName>") _T_RE_EOL \
+    _T("  goto :<LabelName>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  Jumps to the label") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
@@ -1984,6 +2032,15 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  goto 3") _T_RE_EOL \
     _T("  :1") _T_RE_EOL \
     _T("  goto 2") _T_RE_EOL \
+    _T("  :3") _T_RE_EOL \
+    _T("  ////////////////////////") _T_RE_EOL \
+    _T("  // The very same example,") _T_RE_EOL \
+    _T("  // using short label names with preceding ':'") _T_RE_EOL \
+    _T("  goto :1") _T_RE_EOL \
+    _T("  :2") _T_RE_EOL \
+    _T("  goto :3") _T_RE_EOL \
+    _T("  :1") _T_RE_EOL \
+    _T("  goto :2") _T_RE_EOL \
     _T("  :3") _T_RE_EOL \
     _T("  ////////////////////////") _T_RE_EOL \
     _T("  // Theoretical example:") _T_RE_EOL \
@@ -2004,7 +2061,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  :done") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  You can give any name to your label. Leading and trailing spaces are") _T_RE_EOL \
-    _T("  ignored.") _T_RE_EOL \
+    _T("  ignored. Leading ':' is ignored (i.e. GOTO X is the same as GOTO :X).") _T_RE_EOL \
     _T("  Each label \"lives\" within a script where it is declared. You can not") _T_RE_EOL \
     _T("  jump to a label located inside another script - either outer or inner") _T_RE_EOL \
     _T("  one. (And this is the difference between labels and variables: each") _T_RE_EOL \
@@ -4640,7 +4697,9 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
                      S1 == _T("SUBSTR")     || 
                      S1 == _T("STRFIND")    || S1 == _T("STRRFIND")   ||
                      S1 == _T("STRREPLACE") || S1 == _T("STRRPLC")    ||
-                     S1 == _T("STRFROMHEX") || S1 == _T("STRTOHEX"))
+                     S1 == _T("STRFROMHEX") || S1 == _T("STRTOHEX")   ||
+                     S1 == _T("CHR")        ||
+                     S1 == _T("ORD")        || S1 == _T("ORDX"))
               S1 = CScriptEngine::DoSetCommand::Name();
             else if (S1.GetAt(0) == DEFAULT_ALIAS_CMD_LABEL && S1.GetAt(1) == 0)
               S1 = CScriptEngine::DoLabelCommand::Name();

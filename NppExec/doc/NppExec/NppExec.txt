@@ -40,6 +40,9 @@
  *        set <var> ~ strreplace <s> <t0> <t1> - replaces all <t0> with <t1>
  *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
  *        set <var> ~ strtohex <s> - returns a hex-string from the string
+ *        set <var> ~ chr <n> - returns a character from a character code <n>
+ *        set <var> ~ ord <c> - returns a decimal character code of a character <c>
+ *        set <var> ~ ordx <c> - returns a hexadecimal character code of a character <c>
  *        set local - shows all user's local variables
  *        set local <var> - shows the value of user's local variable <var>
  *        set local <var> = ... - sets the value of user's local variable <var>
@@ -190,8 +193,11 @@
  + added: $(WORKSPACE_ITEM_*)
  + added: the message "==== READY ====" is optional now (can be on/off)
  + added: ANSI escape sequences can be ignored (npe_console e1)
- * now WarningAnalyzer tries to find a file in the current view first
+ + added: set <var> ~ chr <char code>
+ + added: set <var> ~ ord <char>, set <var> ~ ordx <char>
  * now $(LAST_CMD_RESULT) will be 0 in case of StrCalc error (set x ~ ...)
+ * now WarningAnalyzer tries to find a file in the current view first
+ * now GOTO X equals to GOTO :X, as well as LABEL X equals to LABEL :X
  - fixed: variable names can contain brackets - e.g. $(a(b(c)))
  - fixed: end of an embedded npp_exec-ed script may also be the end of its parent script
  * $(var) completion in the "Execute" and "Console" dialogs improved

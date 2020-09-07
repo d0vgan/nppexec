@@ -26,8 +26,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: $(WORKSPACE_ITEM_*)
  + added: the message "==== READY ====" is optional now (can be on/off)
  + added: ANSI escape sequences can be ignored (npe_console e1)
- * now WarningAnalyzer tries to find a file in the current view first
+ + added: set <var> ~ chr <char code>
+ + added: set <var> ~ ord <char>, set <var> ~ ordx <char>
  * now $(LAST_CMD_RESULT) will be 0 in case of StrCalc error (set x ~ ...)
+ * now WarningAnalyzer tries to find a file in the current view first
+ * now GOTO X equals to GOTO :X, as well as LABEL X equals to LABEL :X
  - fixed: variable names can contain brackets - e.g. $(a(b(c)))
  - fixed: end of an embedded npp_exec-ed script may also be the end of its parent script
  * $(var) completion in the "Execute" and "Console" dialogs improved
@@ -1201,7 +1204,10 @@ public:
             CT_STRRFIND,
             CT_STRREPLACE,
             CT_STRFROMHEX,
-            CT_STRTOHEX
+            CT_STRTOHEX,
+            CT_CHR,
+            CT_ORD,
+            CT_ORDX
         };
 
     public:
@@ -1220,6 +1226,8 @@ public:
         bool calcStrRplc();
         bool calcStrFromHex();
         bool calcStrToHex();
+        bool calcChr();
+        bool calcOrd();
 
     protected:
         tstr& m_varValue;
