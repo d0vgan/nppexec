@@ -191,7 +191,7 @@
  -------------------------------
  + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
  + added: $(WORKSPACE_ITEM_*)
- + added: the message "==== READY ====" is optional now (can be on/off)
+ + added: the message "==== READY ====" is optional now (npe_console p-)
  + added: ANSI escape sequences can be ignored (npe_console e1)
  + added: set <var> ~ chr <char code>
  + added: set <var> ~ ord <char>, set <var> ~ ordx <char>
