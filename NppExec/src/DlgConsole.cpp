@@ -1511,6 +1511,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         e0: keep raw esc-sequence characters;") _T_RE_EOL \
     _T("         e1: remove esc-sequence characters.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is saved as \"AnsiEscapeSequences\".") _T_RE_EOL \
     _T("         Default value: 0.") _T_RE_EOL \
     _T("  h+/h-  Console commands history on/off.") _T_RE_EOL \
     _T("         Corresponding menu item: Console Commands History.") _T_RE_EOL \
@@ -1520,6 +1521,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         If On, NppExec\'s Console prints all internal (green) messages.") _T_RE_EOL \
     _T("  p+/p-  Print \"==== READY ====\" on/off.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is saved as \"PrintMsgReady\".") _T_RE_EOL \
     _T("         Default value: on.") _T_RE_EOL \
     _T("  q+/q-  Command aliases on/off.") _T_RE_EOL \
     _T("         Corresponding menu item (inverse): Disable command aliases.") _T_RE_EOL \
