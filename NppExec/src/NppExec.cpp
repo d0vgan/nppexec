@@ -3649,26 +3649,20 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                     
                                       #ifdef UNICODE
 
-                                        wchar_t* pStr;
-                                        int lenStr = 0;
-
                                         switch ( enc )
                                         {
                                             case CConsoleEncodingDlg::ENC_OEM :
-                                                pStr = SysUniConv::newMultiByteToUnicode( outLine.c_str(), outLine.length(), CP_OEMCP, &lenStr );
+                                                _line = NppExecHelpers::CStrToWStr(outLine, CP_OEMCP);
                                                 break;
                                             
                                             case CConsoleEncodingDlg::ENC_UTF8 :
-                                                pStr = SysUniConv::newUTF8ToUnicode( outLine.c_str(), outLine.length(), &lenStr );
+                                                _line = NppExecHelpers::CStrToWStr(outLine, CP_UTF8);
                                                 break;
 
                                             default:
-                                                pStr = SysUniConv::newMultiByteToUnicode( outLine.c_str(), outLine.length(), CP_ACP, &lenStr );
+                                                _line = NppExecHelpers::CStrToWStr(outLine, CP_ACP);
                                                 break;
                                         }
-
-                                        _line.Copy(pStr, lenStr);
-                                        delete [] pStr;
 
                                         {
                                             wchar_t wchNulChar = CNppConsoleRichEdit::GetNulChar();

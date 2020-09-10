@@ -1,4 +1,5 @@
 #include "NppExecHelpers.h"
+#include "encodings/SysUniConv.h"
 #include <shlwapi.h>
 
 namespace
@@ -418,6 +419,48 @@ namespace NppExecHelpers
             --i;
         }
         S.Delete(i + 1, -1);
+    }
+
+    CWStr CStrToWStr(const CStr& S, UINT aCodePage )
+    {
+        if ( S.IsEmpty() )
+            return CWStr();
+
+        int nLenW = 0;
+        wchar_t* pStrW = SysUniConv::newMultiByteToUnicode( S.c_str(), S.length(), aCodePage, &nLenW );
+        CWStr ret(pStrW, nLenW);
+        delete [] pStrW;
+        return ret;
+    }
+
+    CStr WStrToCStr(const CWStr& S, UINT aCodePage )
+    {
+        if ( S.IsEmpty() )
+            return CStr();
+
+        int nLenA = 0;
+        char* pStrA = SysUniConv::newUnicodeToMultiByte( S.c_str(), S.length(), aCodePage, &nLenA );
+        CStr ret(pStrA, nLenA);
+        delete [] pStrA;
+        return ret;
+    }
+
+    tstr CStrToTStr(const CStr& S, UINT aCodePage )
+    {
+      #ifdef UNICODE
+        return CStrToWStr(S, aCodePage);
+      #else
+        return S;
+      #endif
+    }
+
+    CStr TStrToCStr(const tstr& S, UINT aCodePage )
+    {
+      #ifdef UNICODE
+        return WStrToCStr(S, aCodePage);
+      #else
+        return S;
+      #endif
     }
 }
 

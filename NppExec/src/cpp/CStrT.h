@@ -596,6 +596,21 @@ template <class T> T* CStrT<T>::Format(int nMaxLength, const T* pFmt, ...)
     return m_pData; // can be NULL
 }
 
+template <> inline char* CStrT<char>::Format(int nMaxLength, const char* pFmt, ...)
+{
+    Clear();
+    if ( SetSize(nMaxLength) )
+    {
+        int nLength;
+        va_list argList;
+        va_start(argList, pFmt);
+        nLength = ::wvsprintfA(m_pData, pFmt ? pFmt : "", argList);
+        va_end(argList);
+        SetLengthValue(nLength);
+    }
+    return m_pData; // can be NULL
+}
+
 template <class T> void CStrT<T>::FreeMemory()
 {
     if ( m_pData )

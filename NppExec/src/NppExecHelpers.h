@@ -421,6 +421,11 @@ namespace NppExecHelpers
     void StrDelLeadingTabSpaces(CStrT<wchar_t>& S);
     void StrDelTrailingTabSpaces(CStrT<char>& S);
     void StrDelTrailingTabSpaces(CStrT<wchar_t>& S);
+
+    CWStr CStrToWStr(const CStr& S, UINT aCodePage = CP_ACP);
+    CStr  WStrToCStr(const CWStr& S, UINT aCodePage = CP_ACP);
+    tstr  CStrToTStr(const CStr& S, UINT aCodePage = CP_ACP);
+    CStr  TStrToCStr(const tstr& S, UINT aCodePage = CP_ACP);
 }
 
 namespace std_helpers
