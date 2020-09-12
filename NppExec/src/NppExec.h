@@ -34,6 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  - fixed: variable names can contain brackets - e.g. $(a(b(c)))
  - fixed: end of an embedded npp_exec-ed script may also be the end of its parent script
  * $(var) completion in the "Execute" and "Console" dialogs improved
+ + now FParserWrapper::readConstsFromFile supports "enum { ... }" definitions
  * internal improvements
 
 

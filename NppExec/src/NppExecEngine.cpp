@@ -513,7 +513,7 @@ class FParserWrapper
     public:
         typedef struct sUserConst {
             CStrT<char> constName;
-            tstr        constValue;
+            CStrT<char> constValue;
             int         nLine;
         } tUserConst;
 
@@ -534,152 +534,269 @@ class FParserWrapper
                 delete m_fp;
         }
 
-        bool Calculate(CNppExec* pNppExec, const tstr& func, tstr& calcError, tstr& ret)
+        bool Calculate(CNppExec* pNppExec, const tstr& func, tstr& calcError, tstr& calcResult)
         {
-            return calc2(pNppExec, func, calcError, ret);
+            const CStr funcA = NppExecHelpers::TStrToCStr(func);
+            return calc2(pNppExec, funcA, calcError, calcResult);
         }
 
     private:
-        void readConstsFromFile(CNppExec* pNppExec, const tstr& path)
-        {
+        enum eParsingState {
+            stNormal = 0,
+            stEnumDeclaration,  // the "enum" keyword found
+            stEnumBody          // inside "{ ... }" part of the enum
+        };
+
+        struct sParseContext {
+            CNppExec*          pNppExec;
             CFileBufT<char>    fbuf;
             CStrT<char>        line;
-            tUserConst         userConst;
             CListT<tUserConst> unparsedUserConstsList;
+            int                nItemsOK;
+            int                nNextEnumValue;
+            eParsingState      state;
+        };
 
-            if ( fbuf.LoadFromFile(path.c_str(), true, pNppExec->GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH)) )
+        void parse_Define(sParseContext& context)
+        {
+            NppExecHelpers::StrDelLeadingTabSpaces(context.line);
+            if ( context.line.IsEmpty() )
+                return;
+
+            tUserConst userConst;
+            userConst.nLine = context.fbuf.GetLineNumber() - 1;
+
+            int i = 0;
+            while ( i < context.line.length() && !NppExecHelpers::IsTabSpaceChar(context.line[i]) )
             {
-                int nItemsOK = 0;
+                userConst.constName += context.line[i];
+                ++i;
+            }
 
+            context.line.Delete(0, i); // delete const name
+            NppExecHelpers::StrDelLeadingTabSpaces(context.line);
+            NppExecHelpers::StrDelTrailingTabSpaces(context.line);
+            if ( context.line.IsEmpty() )
+                return;
+
+            tstr calcError;
+            fparser_type::value_type val = calcValue(context.pNppExec, context.line, calcError);
+            if ( !calcError.IsEmpty() )
+            {
+                userConst.constValue = context.line;
+                context.unparsedUserConstsList.Add(userConst);
+                return;
+            }
+
+            m_fp->AddConstant(userConst.constName.c_str(), val);
+            ++context.nItemsOK;
+        }
+
+        void parse_EnumDeclaration(sParseContext& context)
+        {
+            NppExecHelpers::StrDelTrailingTabSpaces(context.line);
+            if ( context.line.EndsWith('\\') )
+                context.line.DeleteLastChar();
+
+            int i = context.line.Find('{');
+            if ( i >= 0 )
+            {
+                context.line.Delete(0, i + 1);
+                NppExecHelpers::StrDelLeadingTabSpaces(context.line);
+
+                context.state = stEnumBody;
+                context.nNextEnumValue = 0;
+                parse_EnumBody(context);
+            }
+        }
+
+        void parse_EnumBody(sParseContext& context)
+        {
+            NppExecHelpers::StrDelTrailingTabSpaces(context.line);
+            if ( context.line.EndsWith('\\') )
+                context.line.DeleteLastChar();
+
+            int i = context.line.Find('}');
+            if ( i >= 0 )
+            {
+                context.line.Delete(i, -1);
+
+                context.state = stNormal;
+            }
+
+            NppExecHelpers::StrDelTrailingTabSpaces(context.line);
+            NppExecHelpers::StrDelLeadingTabSpaces(context.line);
+            if ( context.line.IsEmpty() )
+                return;
+
+            CStr varName;
+            CStr varValue;
+            CStrSplitT<char> args;
+            const int n = args.Split(context.line, ",");
+            for ( i = 0; i < n; i++ )
+            {
+                const CStr& S = args.Arg(i);
+                if ( S.IsEmpty() )
+                    continue;
+
+                int j = S.Find('=');
+                if ( j >= 0 )
+                {
+                    varName.Copy(S.c_str(), j);
+                    NppExecHelpers::StrDelTrailingTabSpaces(varName);
+                    NppExecHelpers::StrDelLeadingTabSpaces(varName);
+                    if ( varName.IsEmpty() )
+                        continue;
+
+                    varValue.Copy(S.c_str() + j + 1, S.length() - j - 1);
+                    NppExecHelpers::StrDelTrailingTabSpaces(varValue);
+                    NppExecHelpers::StrDelLeadingTabSpaces(varValue);
+                    if ( !varValue.IsEmpty() )
+                    {
+                        tstr calcError;
+                        fparser_type::value_type val = calcValue(context.pNppExec, varValue, calcError);
+                        if ( calcError.IsEmpty() )
+                        {
+                            m_fp->AddConstant(varName.c_str(), val);
+                            context.nNextEnumValue = static_cast<int>(val);
+                            ++context.nNextEnumValue;
+                            ++context.nItemsOK;
+                        }
+                        else
+                        {
+                            tstr Name = NppExecHelpers::CStrToTStr(varName);
+                            tstr Value = NppExecHelpers::CStrToTStr(varValue);
+
+                            Runtime::GetLogger().AddEx( _T("error at line %d: \"%s = %s\""), context.fbuf.GetLineNumber() - 1, Name.c_str(), Value.c_str() );
+                            Runtime::GetLogger().AddEx( _T(" - %s"), calcError.c_str() );
+
+                        }
+                    }
+                    else
+                    {
+                        m_fp->AddConstant(varName.c_str(), fparser_type::value_type(context.nNextEnumValue));
+                        ++context.nNextEnumValue;
+                        ++context.nItemsOK;
+                    }
+                }
+                else
+                {
+                    varName = S;
+                    NppExecHelpers::StrDelTrailingTabSpaces(varName);
+                    NppExecHelpers::StrDelLeadingTabSpaces(varName);
+                    if ( !varName.IsEmpty() )
+                    {
+                        m_fp->AddConstant(varName.c_str(), fparser_type::value_type(context.nNextEnumValue));
+                        ++context.nNextEnumValue;
+                        ++context.nItemsOK;
+                    }
+                }
+            }
+        }
+
+        void process_unparsedUserConsts(sParseContext& context)
+        {
+            if ( !context.unparsedUserConstsList.IsEmpty() )
+            {
+                CListItemT<tUserConst>* pItem = context.unparsedUserConstsList.GetFirst();
+                while ( pItem )
+                {
+                    tUserConst& uc = pItem->GetItem();
+
+                    tstr calcError;
+                    fparser_type::value_type val = calcValue(context.pNppExec, uc.constValue, calcError);
+                    if ( calcError.IsEmpty() )
+                    {
+                        m_fp->AddConstant(uc.constName.c_str(), val);
+                        ++context.nItemsOK;
+                    }
+                    else
+                    {
+                        tstr Value = NppExecHelpers::CStrToTStr(uc.constValue);
+
+                        Runtime::GetLogger().AddEx( _T("error at line %d: \"%s\""), uc.nLine, Value.c_str() );
+                        Runtime::GetLogger().AddEx( _T(" - %s"), calcError.c_str() );
+
+                    }
+
+                    pItem = pItem->GetNext();
+                }
+            }
+        }
+
+        void readConstsFromFile(CNppExec* pNppExec, const tstr& path)
+        {
+            sParseContext context;
+            context.nItemsOK = 0;
+            context.nNextEnumValue = 0;
+            context.state = stNormal;
+
+            if ( context.fbuf.LoadFromFile(path.c_str(), true, pNppExec->GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH)) )
+            {
                 Runtime::GetLogger().Add(   path.c_str() );
                 Runtime::GetLogger().Add(   _T("(") );
                 Runtime::GetLogger().IncIndentLevel();
 
-                while ( fbuf.GetLine(line) >= 0 )
+                while ( context.fbuf.GetLine(context.line) >= 0 )
                 {
-                    if ( line.length() > 0 )
+                    if ( context.line.IsEmpty() )
+                        continue;
+
+                    int i = context.line.Find("//");
+                    if ( i >= 0 )
+                        context.line.Delete(i, -1);
+
+                    NppExecHelpers::StrDelLeadingTabSpaces(context.line);
+                    if ( context.line.IsEmpty() )
+                        continue;
+
+                    switch ( context.state )
                     {
-                        int i = line.Find("//");
-                        if ( i >= 0 )
-                            line.Delete(i, -1);
-
-                        NppExecHelpers::StrDelLeadingTabSpaces(line);
-
-                        if ( line.length() > 0 && line.StartsWith("#define") )
-                        {
-                            line.Delete(0, 7); // delete "#define"
-                            NppExecHelpers::StrDelLeadingTabSpaces(line);
-                            if ( line.length() > 0 )
+                        case stNormal:
+                            if ( context.line.StartsWith('#') )
                             {
-                                userConst.constName.Clear();
-                                userConst.constValue.Clear();
-                                userConst.nLine = fbuf.GetLineNumber() - 1;
-
-                                i = 0;
-                                while ( i < line.length() && !NppExecHelpers::IsTabSpaceChar(line[i]) )
+                                int offset = 1; // the leading '#'
+                                while ( NppExecHelpers::IsTabSpaceChar(context.line[offset]) )
                                 {
-                                    userConst.constName += line[i];
-                                    ++i;
+                                    ++offset; // skipping ' ' and '\t'
                                 }
-
-                                line.Delete(0, i); // delete const name
-                                NppExecHelpers::StrDelLeadingTabSpaces(line);
-                                NppExecHelpers::StrDelTrailingTabSpaces(line);
-                                if ( line.length() > 0 )
+                                
+                                const char* s = context.line.c_str() + offset;
+                                if ( memcmp(s, "define", 6*sizeof(char)) == 0 )
                                 {
-                                    double val = 0;
-                                    bool isVal = false;
-
-                                  #ifdef UNICODE
-                                    wchar_t* p = SysUniConv::newMultiByteToUnicode(line.c_str());
-                                    if ( p )
+                                    const char ch = context.line.GetAt(offset + 6);
+                                    if ( ch == ' ' || ch == '\t' )
                                     {
-                                        userConst.constValue = p;
-                                        delete [] p;
-                                    }
-                                  #else
-                                    userConst.constValue = line;
-                                  #endif
-
-                                    /*if ( isDecNumChar(constValue.GetAt(0)) )
-                                    {
-                                    val = c_base::_tstr2uint(constValue.c_str());
-                                    isVal = true;
-                                    }
-                                    else*/
-                                    {
-                                        tstr calcErr;
-
-                                        Runtime::GetLogger().Activate(false); // temporary disable
-
-                                        isVal = calc2(pNppExec, userConst.constValue, calcErr, userConst.constValue);
-
-                                        Runtime::GetLogger().Activate(true);  // enable again
-
-                                        if ( isVal )
-                                        {
-                                            if ( userConst.constValue.Find(_T('.')) >= 0 )
-                                                val = _t_str2f(userConst.constValue.c_str());
-                                            else
-                                                val = c_base::_tstr2uint(userConst.constValue.c_str());
-                                        }
-                                        else
-                                        {
-                                            unparsedUserConstsList.Add(userConst);
-                                        }
-                                    }
-
-                                    if ( isVal )
-                                    {
-                                        m_fp->AddConstant(userConst.constName.c_str(), fparser_type::value_type(val));
-                                        ++nItemsOK;
+                                        context.line.Delete(0, offset + 6); // delete "#define" or "# define"
+                                        parse_Define(context);
                                     }
                                 }
                             }
-                        }
+                            else if ( context.line.StartsWith("enum") )
+                            {
+                                const char ch = context.line.GetAt(4);
+                                if ( ch == ' ' || ch == '\t' || ch == 0 )
+                                {
+                                    context.line.Delete(0, 4); // delete "enum"
+                                    context.state = stEnumDeclaration;
+                                    parse_EnumDeclaration(context);
+                                }
+                            }
+                            break;
+
+                        case stEnumDeclaration:
+                            parse_EnumDeclaration(context);
+                            break;
+
+                        case stEnumBody:
+                            parse_EnumBody(context);
+                            break;
                     }
                 }
 
-                if ( !unparsedUserConstsList.IsEmpty() )
-                {
-                    tstr calcErr;
+                process_unparsedUserConsts(context);
 
-                    CListItemT<tUserConst>* pItem = unparsedUserConstsList.GetFirst();
-                    while ( pItem )
-                    {
-                        tUserConst& uc = pItem->GetItem();
-                        bool isVal = false;
-
-                        Runtime::GetLogger().Activate(false); // temporary disable
-
-                        isVal = calc2(pNppExec, uc.constValue, calcErr, uc.constValue);
-
-                        Runtime::GetLogger().Activate(true);  // enable again
-
-                        if ( isVal )
-                        {
-                            double val = 0;
-                            if ( uc.constValue.Find(_T('.')) >= 0 )
-                                val = _t_str2f(uc.constValue.c_str());
-                            else
-                                val = c_base::_tstr2uint(uc.constValue.c_str());
-
-                            m_fp->AddConstant(uc.constName.c_str(), fparser_type::value_type(val));
-                            ++nItemsOK;
-                        }
-                        else
-                        {
-
-                            Runtime::GetLogger().AddEx( _T("error at line %d: \"%s\""), uc.nLine, uc.constValue.c_str() );
-                            Runtime::GetLogger().AddEx( _T(" - %s"), calcErr.c_str() );
-
-                        }
-
-                        pItem = pItem->GetNext();
-                    }
-                }
-
-                Runtime::GetLogger().AddEx( _T("%d definitions added."), nItemsOK );
+                Runtime::GetLogger().AddEx( _T("%d definitions added."), context.nItemsOK );
                 Runtime::GetLogger().DecIndentLevel();
                 Runtime::GetLogger().Add(   _T(")") );
 
@@ -740,41 +857,13 @@ class FParserWrapper
             m_fp->AddFunction("hex", fp_hex, 1);
         }
 
-        fparser_type::value_type calc(CNppExec* pNppExec, const tstr& func, tstr& calcError)
+        fparser_type::value_type calc(CNppExec* pNppExec, const CStr& func, tstr& calcError)
         {
             if ( func.IsEmpty() )
             {
                 calcError = _T("Input function is empty");
                 return fparser_type::value_type(0);
             }
-
-            /*
-            {
-                TCHAR szNum[50];
-                // pre-parse for '0x...' numbers 
-                int pos = func.Find( _T("0x") );
-                while ( pos >= 0 )
-                {
-                    const TCHAR ch = func.GetAt(pos + 2);
-                    if ( isHexNumChar(ch) )
-                    {
-                        const int nn = c_base::_tstr2int( func.c_str() + pos );
-                        int hexLen = 2;
-                        while ( isHexNumChar(func.GetAt(pos + hexLen)) )  ++hexLen;
-                        int decLen = c_base::_tint2str(nn, szNum);
-                        func.Replace(pos, hexLen, szNum, decLen);
-                        pos += decLen;
-                    }
-                    pos = func.Find( _T("0x"), pos );
-                }
-            }
-            */
-
-          #ifdef UNICODE
-            char* pFunc = SysUniConv::newUnicodeToMultiByte( func.c_str() );
-          #else
-            const char* pFunc = func.c_str();
-          #endif
 
             {
                 CCriticalSectionLockGuard lock(m_cs);
@@ -819,7 +908,7 @@ class FParserWrapper
             {
                 CCriticalSectionLockGuard lock(m_cs);
 
-                errPos = m_fp->Parse(pFunc, "");
+                errPos = m_fp->Parse(func.c_str(), "");
                 if ( errPos == -1 )
                 {
                     fparser_type::value_type var(0);
@@ -833,14 +922,7 @@ class FParserWrapper
                 }
                 else
                 {
-                    const char* pErr = m_fp->ErrorMsg();
-                  #ifdef UNICODE
-                    TCHAR* pErrW = SysUniConv::newMultiByteToUnicode( pErr );
-                    calcError = pErrW; // store a copy of the error message
-                    delete [] pErrW;
-                  #else
-                    calcError = pErr; // store a copy of the error message
-                  #endif
+                    calcError = NppExecHelpers::CStrToTStr( m_fp->ErrorMsg() );
                 }
             }
 
@@ -853,29 +935,25 @@ class FParserWrapper
                 calcError += szNum;
             }
 
-          #ifdef UNICODE
-            delete [] pFunc;
-          #endif
-
             return ret;
         }
 
-        template<typename T> void format_result(const std::complex<T>& val, tstr& ret, const tstr& func)
+        template<typename T> void format_result(const std::complex<T>& val, tstr& result, const CStr& func)
         {
             if ( val.imag() == 0 )
             {
-                format_result(val.real(), ret, func);
+                format_result(val.real(), result, func);
             }
             else
             {
                 TCHAR szNum[120];
                 // ha-ha, wsprintf does not support neither "%f" nor "%G"
-                _t_sprintf(szNum, _T("%g %c %gi"), val.real(), val.imag() < 0 ? '-' : '+', std::abs(val.imag()));
-                ret = szNum;
+                _t_sprintf(szNum, _T("%g %c %gi"), val.real(), val.imag() < 0 ? _T('-') : _T('+'), std::abs(val.imag()));
+                result = szNum;
             }
         }
 
-        template<typename T> void format_result(const T& val, tstr& ret, const tstr& func)
+        template<typename T> void format_result(const T& val, tstr& result, const CStr& func)
         {
             // Note: 
             // As we are using FunctionParser that operates with 'double',
@@ -890,7 +968,7 @@ class FParserWrapper
             TCHAR szNum[80];
             szNum[0] = 0;
 
-            if ( (func.StartsWith(_T("hex(")) || func.StartsWith(_T("hex ("))) &&
+            if ( (func.StartsWith("hex(") || func.StartsWith("hex (")) &&
                  (abs_val(val) < max_accurate_i64_value) )
             {
                 unsigned __int64 n = static_cast<unsigned __int64>(val);
@@ -933,19 +1011,41 @@ class FParserWrapper
                 // ha-ha, wsprintf does not support neither "%f" nor "%G"
             }
 
-            ret = szNum;
+            result = szNum;
         }
 
-        bool calc2(CNppExec* pNppExec, const tstr& func, tstr& calcError, tstr& ret)
+        bool calc2(CNppExec* pNppExec, const CStr& func, tstr& calcError, tstr& calcResult)
         {
             fparser_type::value_type fret = calc(pNppExec, func, calcError);
 
             if ( calcError.IsEmpty() )
             {
-                format_result(fret, ret, func);
+                format_result(fret, calcResult, func);
             }
 
             return calcError.IsEmpty();
+        }
+
+        fparser_type::value_type calcValue(CNppExec* pNppExec, const CStr& func, tstr& calcError)
+        {
+            fparser_type::value_type val = 0;
+            tstr calcResult;
+
+            Runtime::GetLogger().Activate(false); // temporary disable
+            
+            bool isCalculated = calc2(pNppExec, func, calcError, calcResult);
+
+            Runtime::GetLogger().Activate(true);  // enable again
+
+            if ( isCalculated )
+            {
+                if ( calcResult.Find(_T('.')) >= 0 )
+                    val = _t_str2f(calcResult.c_str());
+                else
+                    val = c_base::_tstr2uint(calcResult.c_str());
+            }
+
+            return val;
         }
 
     private:
