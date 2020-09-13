@@ -540,6 +540,12 @@ class FParserWrapper
             return calc2(pNppExec, funcA, calcError, calcResult);
         }
 
+        fparser_type::value_type CalcValue(CNppExec* pNppExec, const tstr& func, tstr& calcError)
+        {
+            const CStr funcA = NppExecHelpers::TStrToCStr(func);
+            return calcValue(pNppExec, funcA, calcError);
+        }
+
     private:
         enum eParsingState {
             stNormal = 0,
@@ -1029,8 +1035,8 @@ class FParserWrapper
         fparser_type::value_type calcValue(CNppExec* pNppExec, const CStr& func, tstr& calcError)
         {
             // Note:
-            // - this is an internal method which is called from readConstsFromFile();
-            // - NppExec's logger is not used within calc() during these calls.
+            //  When this method is called from readConstsFromFile(),
+            //  NppExec's logger is not used within calc().
 
             fparser_type::value_type val = calc(pNppExec, func, calcError);
 
