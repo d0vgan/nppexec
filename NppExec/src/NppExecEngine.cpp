@@ -894,9 +894,9 @@ class FParserWrapper
                         }
                     }
 
+                    initFParserFuncs();
                     m_hasConsts = true;
                     initFParserConsts(pNppExec);
-                    initFParserFuncs();
                 }
             }
 
@@ -1028,21 +1028,42 @@ class FParserWrapper
 
         fparser_type::value_type calcValue(CNppExec* pNppExec, const CStr& func, tstr& calcError)
         {
-            fparser_type::value_type val = 0;
-            tstr calcResult;
+            // Note:
+            // - this is an internal method which is called from readConstsFromFile();
+            // - NppExec's logger is not used within calc() during these calls.
 
-            Runtime::GetLogger().Activate(false); // temporary disable
-            
-            bool isCalculated = calc2(pNppExec, func, calcError, calcResult);
+            fparser_type::value_type val = calc(pNppExec, func, calcError);
 
-            Runtime::GetLogger().Activate(true);  // enable again
-
-            if ( isCalculated )
+            if ( calcError.IsEmpty() )
             {
-                if ( calcResult.Find(_T('.')) >= 0 )
-                    val = _t_str2f(calcResult.c_str());
-                else
-                    val = c_base::_tstr2uint(calcResult.c_str());
+              #ifndef __MINGW32__
+                const __int64 max_accurate_i64_value = (1i64) << std::numeric_limits<fparser_type::value_type>::digits; // 2**53 for the 'double' type
+              #else
+                const long long max_accurate_i64_value = (1LL) << std::numeric_limits<fparser_type::value_type>::digits; // 2**53 for the 'double' type
+              #endif
+
+                if ( func.StartsWith("hex(") || func.StartsWith("hex (") )
+                {
+                    if ( abs_val(val) < max_accurate_i64_value )
+                    {
+                        unsigned __int64 n = static_cast<unsigned __int64>(val);
+                        val = fparser_type::value_type(n);
+                    }
+                }
+                else if ( abs_val(val) > m_calc_precision*100 )
+                {
+                    if ( abs_val(val) < max_accurate_i64_value )
+                    {
+                        __int64 n = static_cast<__int64>(val);
+                        double  diff = static_cast<double>(val - n);
+
+                        if ( abs_val(diff) < m_calc_precision )
+                        {
+                            // result can be rounded
+                            val = fparser_type::value_type(n);
+                        }
+                    }
+                }
             }
 
             return val;
