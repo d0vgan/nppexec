@@ -520,7 +520,6 @@ class FParserWrapper
     public:
         FParserWrapper()
           : m_fp(nullptr)
-          , m_hasConsts(false)
           , m_calc_precision(0.000001)
         {
             lstrcpy( m_szCalcDefaultFmt, _T("%.6f") );
@@ -863,6 +862,36 @@ class FParserWrapper
             m_fp->AddFunction("hex", fp_hex, 1);
         }
 
+        void initCalc(CNppExec* pNppExec)
+        {
+            m_fp = new fparser_type();
+            int len = 0;
+            const TCHAR* pPrecision = pNppExec->GetOptions().GetStr(OPTS_CALC_PRECISION, &len);
+            if ( len > 0 )
+            {
+                double precision = _t_str2f(pPrecision);
+                precision = abs_val(precision);
+                if ( precision > 0.0 )
+                {
+                    int d = 0;
+
+                    m_calc_precision = precision;
+
+                    while ( precision < 0.99 )
+                    {
+                        precision *= 10;
+                        ++d;
+                    }
+                    wsprintf(m_szCalcDefaultFmt, _T("%%.%df"), d);
+                    wsprintf(m_szCalcSmallFmt,   _T("%%.%dG"), d);
+                    wsprintf(m_szCalcBigFmt,     _T("%%.%dG"), d + 1);
+                }
+            }
+
+            initFParserFuncs();
+            initFParserConsts(pNppExec);
+        }
+
         fparser_type::value_type calc(CNppExec* pNppExec, const CStr& func, tstr& calcError)
         {
             if ( func.IsEmpty() )
@@ -874,35 +903,9 @@ class FParserWrapper
             {
                 CCriticalSectionLockGuard lock(m_cs);
 
-                if ( !m_hasConsts )
+                if ( !m_fp )
                 {
-                    m_fp = new fparser_type();
-                    int len = 0;
-                    const TCHAR* pPrecision = pNppExec->GetOptions().GetStr(OPTS_CALC_PRECISION, &len);
-                    if ( len > 0 )
-                    {
-                        double precision = _t_str2f(pPrecision);
-                        precision = abs_val(precision);
-                        if ( precision > 0.0 )
-                        {
-                            int d = 0;
-
-                            m_calc_precision = precision;
-
-                            while ( precision < 0.99 )
-                            {
-                                precision *= 10;
-                                ++d;
-                            }
-                            wsprintf(m_szCalcDefaultFmt, _T("%%.%df"), d);
-                            wsprintf(m_szCalcSmallFmt,   _T("%%.%dG"), d);
-                            wsprintf(m_szCalcBigFmt,     _T("%%.%dG"), d + 1);
-                        }
-                    }
-
-                    initFParserFuncs();
-                    m_hasConsts = true;
-                    initFParserConsts(pNppExec);
+                    initCalc(pNppExec);
                 }
             }
 
@@ -917,12 +920,12 @@ class FParserWrapper
                 errPos = m_fp->Parse(func.c_str(), "");
                 if ( errPos == -1 )
                 {
-                    fparser_type::value_type var(0);
+                    fparser_type::value_type val(0);
 
-                    var = m_fp->Eval( &var );
+                    val = m_fp->Eval( &val );
                     int err = m_fp->EvalError();
                     if ( err == 0 )
-                        ret = var;
+                        ret = val;
                     else
                         calcError.Format(50, _T("Eval error (%d)"), err);
                 }
@@ -1078,7 +1081,6 @@ class FParserWrapper
     private:
         CCriticalSection m_cs;
         fparser_type* m_fp;
-        bool   m_hasConsts;
         double m_calc_precision;
         TCHAR  m_szCalcDefaultFmt[12];
         TCHAR  m_szCalcSmallFmt[12];
