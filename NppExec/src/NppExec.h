@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.6 RC4 (dev) - September 2020
- -------------------------------
+ v0.6 RC4 - September 2020
+ -------------------------
  + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
  + added: $(WORKSPACE_ITEM_*)
  + added: the message "==== READY ====" is optional now (npe_console p-)
@@ -540,8 +540,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x06C3
-#define NPPEXEC_VER_STR   _T("0.6 RC3/4")
+#define NPPEXEC_VER_DWORD 0x06C4
+#define NPPEXEC_VER_STR   _T("0.6 RC4")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
