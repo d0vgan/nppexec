@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: $(WORKSPACE_ITEM_*)
  + added: the message "==== READY ====" is optional now (npe_console p-)
  + added: ANSI escape sequences can be ignored (npe_console e1)
+ + added: set <var> ~ strquote <s>, set <var> ~ strunquote <s>
+ + added: set <var> ~ normpath <path>
  + added: set <var> ~ chr <char code>
  + added: set <var> ~ ord <char>, set <var> ~ ordx <char>
  * now $(LAST_CMD_RESULT) will be 0 in case of StrCalc error (set x ~ ...)
@@ -1204,6 +1206,9 @@ public:
             CT_STRFIND,
             CT_STRRFIND,
             CT_STRREPLACE,
+            CT_STRQUOTE,
+            CT_STRUNQUOTE,
+            CT_NORMPATH,
             CT_STRFROMHEX,
             CT_STRTOHEX,
             CT_CHR,
@@ -1229,6 +1234,8 @@ public:
         bool calcStrToHex();
         bool calcChr();
         bool calcOrd();
+        bool calcStrQuote();
+        bool calcNormPath();
 
     protected:
         tstr& m_varValue;

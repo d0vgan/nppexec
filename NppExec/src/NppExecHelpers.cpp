@@ -216,6 +216,81 @@ namespace NppExecHelpers
         return false;
     }
 
+    void NormPath(tstr& path)
+    {
+        path.Replace(_T('/'), _T('\\'));
+
+        // terrible test paths:
+        /*
+          ".\..\.\.\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\.\f"
+          "..\.\.\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\.\\f"
+          "\..\.\.\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\.\\\\f"
+          "\.\.\..\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\..\f"
+          "\..\..\..\..\\.\.\.\..\..\\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\..\f"
+          "x\y\z\..\..\..\..\\.\.\.\..\..\\\\.\.\\..\\C:\\\.\a\.\\.\b\\..f..\f"
+          ".\.\.\.\.\.\a\b"
+          "\.\.\.\.\.\.\a\b"
+          "..\..\..\..\..\a\b"
+          "\..\..\..\..\a\b"
+        */
+
+        // remove all double '\' except the leading "\\"
+        // e.g. "C:\\a\\\b\\c" -> "C:\a\b\c"
+        int i = 2;
+        while ((i = path.Find(_T("\\\\"), i)) > 0)
+            path.Delete(i, 1);
+
+        // remove all "subpath\..\"
+        // e.g. "a\b\..\..\ab" -> "a\..\ab" -> "ab"
+        i = 0;
+        while ((i = path.Find(_T("\\..\\"), i)) >= 0)
+        {
+            int n = 0;
+            int j = (i == 0) ? 0 : path.RFind(_T('\\'), i - 1);
+            if ((i == j + 1) || (i == j + 3 && path[i - 1] == _T(':')))
+                j = i; // e.g. "\\..\a" or "C:\..\a"
+            else
+                n = i - j;
+            path.Delete(j + 1, n + 3); // when RFind returns -1, (j + 1) = 0
+            i = (j < 0) ? 0 : j;
+        }
+
+        // remove all leading "..\"
+        // e.g. "..\..\..\path" -> "path"
+        while (path.StartsWith(_T("..\\")))
+            path.Delete(0, 3);
+
+        // remove all leading ".\"
+        // e.g. ".\.\.\path" -> "path"
+        while (path.StartsWith(_T(".\\")))
+            path.Delete(0, 2);
+
+        // replace all "\.\" with "\"
+        // e.g. "a\.\b\.\c" -> "a\b\c"
+        i = 0;
+        while ((i = path.Find(_T("\\.\\"), i)) >= 0)
+            path.Delete(i, 2);
+
+        // ! Disabled as the leading '\' means "root of the disk":
+        // remove leading '\' if the next character is not '\'
+        // if (path.GetAt(0) == _T('\\') && path.GetAt(1) != _T('\\'))
+        //    path.Delete(0, 1);
+    }
+
+    tstr NormalizePath(const tstr& path)
+    {
+        tstr nrmPath(path);
+        NormPath(nrmPath);
+        return nrmPath;
+    }
+
+    tstr NormalizePath(const TCHAR* path)
+    {
+        tstr nrmPath(path);
+        NormPath(nrmPath);
+        return nrmPath;
+    }
+
     tstr GetFileNamePart(const TCHAR* path, eFileNamePart whichPart)
     {
         const TCHAR* p1;
@@ -340,21 +415,30 @@ namespace NppExecHelpers
 
     void StrQuote(tstr& S)
     {
-        if ( (S.GetFirstChar() != _T('\"')) || (S.GetLastChar() != _T('\"')) )
+        if ( IsStrNotQuoted(S) )
         {
-            S.Insert( 0, _T('\"') );
             S.Append( _T('\"') );
+            S.Insert( 0, _T('\"') );
         }
     }
 
     void StrUnquote(tstr& S)
     {
-        if ( (S.length() > 1) &&
-             (S.GetFirstChar() == _T('\"')) && (S.GetLastChar() == _T('\"')) )
+        if ( IsStrQuoted(S) )
         {
             S.DeleteLastChar();
             S.DeleteFirstChar();
         }
+    }
+
+    bool IsStrQuoted(const tstr& S)
+    {
+        return ( (S.length() > 1) && (S.GetFirstChar() == _T('\"')) && (S.GetLastChar() == _T('\"')) );
+    }
+
+    bool IsStrNotQuoted(const tstr& S)
+    {
+        return ( (S.GetFirstChar() != _T('\"')) && (S.GetLastChar()  != _T('\"')) );
     }
 
     int StrCmpNoCase(const tstr& S1, const tstr& S2)

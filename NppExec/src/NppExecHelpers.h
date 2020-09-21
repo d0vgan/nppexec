@@ -380,6 +380,10 @@ namespace NppExecHelpers
     bool IsFullPath(const tstr& path);
     bool IsFullPath(const TCHAR* path);
 
+    void NormPath(tstr& path);
+    tstr NormalizePath(const tstr& path);
+    tstr NormalizePath(const TCHAR* path);
+
     enum eFileNamePart {
         fnpDrive,   // "C" in "C:\User\Docs\name.ext"
         fnpDirPath, // "C:\User\Docs\" in "C:\User\Docs\name.ext"
@@ -408,6 +412,9 @@ namespace NppExecHelpers
 
     void StrQuote(tstr& S); // adds the starting and trailing '\"'
     void StrUnquote(tstr& S); // removes the starting and trailing '\"'
+
+    bool IsStrQuoted(const tstr& S); // starts & ends with '\"'
+    bool IsStrNotQuoted(const tstr& S); // no '\"' at start & at end
 
     int StrCmpNoCase(const tstr& S1, const tstr& S2); // comparing case-insensitively
     int StrCmpNoCase(const tstr& S1, const TCHAR* S2); // comparing case-insensitively

@@ -1148,6 +1148,12 @@ static FParserWrapper g_fp;
  *   - returns the last position of <t> in <s>
  * set <var> ~ strreplace <s> <t0> <t1>
  *   - replaces all <t0> with <t1>
+ * set <var> ~ strquote <s>
+ *   - surrounds <s> with "" quotes
+ * set <var> ~ strunquote <s>
+ *   - removes the surrounding "" quotes
+ * set <var> ~ normpath <path>
+ *   - returns a normalized path
  * set <var> ~ strfromhex <hs>
  *   - returns a string from the hex-string
  * set <var> ~ strtohex <s>
@@ -7627,6 +7633,9 @@ bool CNppExecMacroVars::StrCalc::Process()
             { _T("STRRFIND"),   CT_STRRFIND   },
             { _T("STRREPLACE"), CT_STRREPLACE },
             { _T("STRRPLC"),    CT_STRREPLACE },
+            { _T("STRQUOTE"),   CT_STRQUOTE   },
+            { _T("STRUNQUOTE"), CT_STRUNQUOTE },
+            { _T("NORMPATH"),   CT_NORMPATH   },
             { _T("STRFROMHEX"), CT_STRFROMHEX },
             { _T("STRTOHEX"),   CT_STRTOHEX   },
             { _T("CHR"),        CT_CHR        },
@@ -7671,6 +7680,13 @@ bool CNppExecMacroVars::StrCalc::Process()
             break;
         case CT_STRREPLACE:
             bSucceded = calcStrRplc();
+            break;
+        case CT_STRQUOTE:
+        case CT_STRUNQUOTE:
+            bSucceded = calcStrQuote();
+            break;
+        case CT_NORMPATH:
+            bSucceded = calcNormPath();
             break;
         case CT_STRFROMHEX:
             bSucceded = calcStrFromHex();
@@ -7931,6 +7947,61 @@ bool CNppExecMacroVars::StrCalc::calcStrRplc()
     }
 
     return bSucceded;
+}
+
+bool CNppExecMacroVars::StrCalc::calcStrQuote()
+{
+    const bool isQuote = (m_calcType == CT_STRQUOTE);
+    tstr S(m_pVar);
+
+    if ( isQuote ) // strquote
+    {
+        NppExecHelpers::StrQuote(S);
+    }
+    else // strunquote
+    {
+        NppExecHelpers::StrUnquote(S);
+    }
+
+    m_varValue.Swap(S);
+
+    Runtime::GetLogger().AddEx( 
+      _T("; %s: %s"), 
+      isQuote ? _T("strquote") : _T("strunquote"),
+      m_varValue.c_str() 
+    );
+
+    return true;
+}
+
+bool CNppExecMacroVars::StrCalc::calcNormPath()
+{
+    if ( *m_pVar )
+    {
+        tstr path(m_pVar);
+        const bool isQuoted = NppExecHelpers::IsStrQuoted(path);
+        if ( isQuoted )
+        {
+            NppExecHelpers::StrUnquote(path);
+        }
+        NppExecHelpers::NormPath(path);
+        if ( isQuoted )
+        {
+            NppExecHelpers::StrQuote(path);
+        }
+        m_varValue.Swap(path);
+    }
+    else
+    {
+        m_varValue.Clear();
+    }
+
+    Runtime::GetLogger().AddEx( 
+      _T("; normpath: %s"), 
+      m_varValue.c_str() 
+    );
+
+    return true;
 }
 
 bool CNppExecMacroVars::StrCalc::calcStrFromHex()

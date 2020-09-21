@@ -55,6 +55,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        set <var> ~ strfind <s> <t> - returns the first position of <t> in <s>
  *        set <var> ~ strrfind <s> <t> - returns the last position of <t> in <s>
  *        set <var> ~ strreplace <s> <t0> <t1> - replaces all <t0> with <t1>
+ *        set <var> ~ strquote <s>  -  surrounds <s> with "" quotes
+ *        set <var> ~ strunquote <s>  -  removes the surrounding "" quotes
+ *        set <var> ~ normpath <path>  -  returns a normalized path
  *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
  *        set <var> ~ strtohex <s> - returns a hex-string from the string
  *        set <var> ~ chr <n> - returns a character from a character code <n>
@@ -2315,63 +2318,7 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGe
   }
 
   tstr S;
-  tstr S1 = fileName;
-
-  S1.Replace(_T('/'), _T('\\'));
-  // nightmare begins -->
-  {
-    // a terrible test paths:
-    /*
-    NPP_SWITCH ".\..\.\.\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\.\f"
-    NPP_SWITCH "..\.\.\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\.\\f"
-    NPP_SWITCH "\..\.\.\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\.\\\\f"
-    NPP_SWITCH "\.\.\..\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\..\f"
-    NPP_SWITCH "\..\..\..\..\\.\.\.\..\..\\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\..\f"
-    NPP_SWITCH "x\y\z\..\..\..\..\\.\.\.\..\..\\\\.\.\\..\\C:\\\.\a\.\\.\b\\..f..\f"
-    NPP_SWITCH ".\.\.\.\.\.\a\b"
-    NPP_SWITCH "\.\.\.\.\.\.\a\b"
-    NPP_SWITCH "..\..\..\..\..\a\b"
-    NPP_SWITCH "\..\..\..\..\a\b"
-    */
-    int i;
-
-    // remove all double '\' except the leading "\\"
-    // e.g. "C:\\a\\\b\\c" -> "C:\a\b\c"
-    i = 2;
-    while ((i = S1.Find(_T("\\\\"), i)) > 0)  
-      S1.Delete(i, 1);
-
-    // remove all "subpath\..\"
-    // e.g. "a\b\..\..\ab" -> "a\..\ab" -> "ab"
-    i = 0;
-    while ((i = S1.Find(_T("\\..\\"), i)) >= 0)
-    {
-      int j = (i == 0) ? 0 : S1.RFind(_T('\\'), i - 1);
-      S1.Delete(j + 1, i - j + 3); // when RFind returns -1, (j + 1) = 0
-      i = (j < 0) ? 0 : j;
-    }
-
-    // remove all leading "..\"
-    // e.g. "..\..\..\path" -> "path"
-    while (S1.StartsWith(_T("..\\")))
-      S1.Delete(0, 3);
-
-    // remove all leading ".\"
-    // e.g. ".\.\.\path" -> "path"
-    while (S1.StartsWith(_T(".\\")))
-      S1.Delete(0, 2);
-
-    // replace all "\.\" with "\"
-    // e.g. "a\.\b\.\c" -> "a\b\c"
-    i = 0;
-    while ((i = S1.Find(_T("\\.\\"), i)) >= 0)
-      S1.Delete(i, 2);
-
-    // remove leading '\' if the next character is not '\'
-    if (S1.GetAt(0) == _T('\\') && S1.GetAt(1) != _T('\\'))
-      S1.Delete(0, 1);
-  }
-  // <-- nightmare ends
+  tstr S1 = NppExecHelpers::NormalizePath(fileName);
 
   int nFileLevel = 0;
   bool bFullPath = NppExecHelpers::IsFullPath(S1);

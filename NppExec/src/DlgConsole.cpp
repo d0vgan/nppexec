@@ -112,6 +112,9 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("set <var> ~ strfind <s> <t>  -  returns the first position of <t> in <s>") _T_RE_EOL \
   _T("set <var> ~ strrfind <s> <t>  -  returns the last position of <t> in <s>") _T_RE_EOL \
   _T("set <var> ~ strreplace <s> <t0> <t1>  -  replaces all <t0> with <t1>") _T_RE_EOL \
+  _T("set <var> ~ strquote <s>  -  surrounds <s> with \"\" quotes") _T_RE_EOL \
+  _T("set <var> ~ strunquote <s>  -  removes the surrounding \"\" quotes") _T_RE_EOL \
+  _T("set <var> ~ normpath <path>  -  returns a normalized path") _T_RE_EOL \
   _T("set <var> ~ strfromhex <hs>  -  returns a string from the hex-string") _T_RE_EOL \
   _T("set <var> ~ strtohex <s>  -  returns a hex-string from the string") _T_RE_EOL \
   _T("set <var> ~ chr <n>  -  returns a character from a character code <n>") _T_RE_EOL \
@@ -1148,11 +1151,14 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  5g. set <var> ~ strfind <string> <sfind>") _T_RE_EOL \
     _T("  5h. set <var> ~ strrfind <string> <sfind>") _T_RE_EOL \
     _T("  5i. set <var> ~ strreplace <string> <sfind> <sreplace>") _T_RE_EOL \
-    _T("  5j. set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
-    _T("  5k. set <var> ~ strtohex <string>") _T_RE_EOL \
-    _T("  5l. set <var> ~ chr <n>") _T_RE_EOL \
-    _T("  5m. set <var> ~ ord <c>") _T_RE_EOL \
-    _T("  5n. set <var> ~ ordx <c>") _T_RE_EOL \
+    _T("  5j. set <var> ~ strquote <string>") _T_RE_EOL \
+    _T("  5k. set <var> ~ strunquote <string>") _T_RE_EOL \
+    _T("  5l. set <var> ~ normpath <path>") _T_RE_EOL \
+    _T("  5m. set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
+    _T("  5n. set <var> ~ strtohex <string>") _T_RE_EOL \
+    _T("  5o. set <var> ~ chr <n>") _T_RE_EOL \
+    _T("  5p. set <var> ~ ord <c>") _T_RE_EOL \
+    _T("  5q. set <var> ~ ordx <c>") _T_RE_EOL \
     _T("  6.  set local") _T_RE_EOL \
     _T("      set local <var>") _T_RE_EOL \
     _T("      set local <var> = ...") _T_RE_EOL \
@@ -1175,11 +1181,14 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  5g. Returns the position of first <sfind> in <string>") _T_RE_EOL \
     _T("  5h. Returns the position of last <sfind> in <string>") _T_RE_EOL \
     _T("  5i. Replaces all <sfind> with <sreplace> in <string>") _T_RE_EOL \
-    _T("  5j. Returns a string from the <hexstring>") _T_RE_EOL \
-    _T("  5k. Returns a hex-string from the <string>") _T_RE_EOL \
-    _T("  5l. Returns a character from a character code <n>") _T_RE_EOL \
-    _T("  5m. Returns a decimal character code of a character <c>") _T_RE_EOL \
-    _T("  5n. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
+    _T("  5j. Returns the string surrounded with \"\" quotes") _T_RE_EOL \
+    _T("  5k. Removes the surrounding \"\" quotes") _T_RE_EOL \
+    _T("  5l. Returns a normalized path") _T_RE_EOL \
+    _T("  5m. Returns a string from the <hexstring>") _T_RE_EOL \
+    _T("  5n. Returns a hex-string from the <string>") _T_RE_EOL \
+    _T("  5o. Returns a character from a character code <n>") _T_RE_EOL \
+    _T("  5p. Returns a decimal character code of a character <c>") _T_RE_EOL \
+    _T("  5q. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
     _T("  6.  Shows/sets the value of local variable (\"set local <var> ...\")") _T_RE_EOL \
     _T("  7.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
     _T("  8.  Removes the local variable <var> (\"unset local <var>\")") _T_RE_EOL \
@@ -1235,6 +1244,15 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set s ~ strreplace \"$(s)\" l 1            // He110 w0r1d    (\"l\" -> \"1\")") _T_RE_EOL \
     _T("  set s ~ strreplace \"$(s)\" 1 \"y \"         // Hey y 0 w0ry d (\"1\" -> \"y \")") _T_RE_EOL \
     _T("  set s ~ strreplace \"queen-bee\" ee \"\"     // qun-b          (\"ee\" -> \"\")") _T_RE_EOL \
+    _T("  // strquote") _T_RE_EOL \
+    _T("  set s ~ strquote a b c        // \"a b c\"") _T_RE_EOL \
+    _T("  set s ~ strquote \"a b c\"      // \"a b c\"") _T_RE_EOL \
+    _T("  // strunquote") _T_RE_EOL \
+    _T("  set s ~ strunquote \"a b c\"    // a b c") _T_RE_EOL \
+    _T("  set s ~ strunquote a b c      // a b c") _T_RE_EOL \
+    _T("  // normpath") _T_RE_EOL \
+    _T("  set s ~ normpath C:\\A\\.\\B\\X\\..\\C  // C:\\A\\B\\C") _T_RE_EOL \
+    _T("  set s ~ normpath \"\\\\A\\B\\..\\..\\C\"  // \"\\\\C\"") _T_RE_EOL \
     _T_HELP_STRTOHEX_STRFROMHEX \
     _T_HELP_CHR_ORD_ORDX \
     _T("REMARKS:") _T_RE_EOL \
@@ -4699,6 +4717,8 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
                      S1 == _T("SUBSTR")     || 
                      S1 == _T("STRFIND")    || S1 == _T("STRRFIND")   ||
                      S1 == _T("STRREPLACE") || S1 == _T("STRRPLC")    ||
+                     S1 == _T("STRQUOTE")   || S1 == _T("STRUNQUOTE") ||
+                     S1 == _T("NORMPATH")   ||
                      S1 == _T("STRFROMHEX") || S1 == _T("STRTOHEX")   ||
                      S1 == _T("CHR")        ||
                      S1 == _T("ORD")        || S1 == _T("ORDX"))

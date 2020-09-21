@@ -38,6 +38,9 @@
  *        set <var> ~ strfind <s> <t> - returns the first position of <t> in <s>
  *        set <var> ~ strrfind <s> <t> - returns the last position of <t> in <s>
  *        set <var> ~ strreplace <s> <t0> <t1> - replaces all <t0> with <t1>
+ *        set <var> ~ strquote <s>  -  surrounds <s> with "" quotes
+ *        set <var> ~ strunquote <s>  -  removes the surrounding "" quotes
+ *        set <var> ~ normpath <path>  -  returns a normalized path
  *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
  *        set <var> ~ strtohex <s> - returns a hex-string from the string
  *        set <var> ~ chr <n> - returns a character from a character code <n>
@@ -193,6 +196,8 @@
  + added: $(WORKSPACE_ITEM_*)
  + added: the message "==== READY ====" is optional now (npe_console p-)
  + added: ANSI escape sequences can be ignored (npe_console e1)
+ + added: set <var> ~ strquote <s>, set <var> ~ strunquote <s>
+ + added: set <var> ~ normpath <path>
  + added: set <var> ~ chr <char code>
  + added: set <var> ~ ord <char>, set <var> ~ ordx <char>
  * now $(LAST_CMD_RESULT) will be 0 in case of StrCalc error (set x ~ ...)
