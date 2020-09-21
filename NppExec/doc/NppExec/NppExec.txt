@@ -208,6 +208,7 @@
  * $(var) completion in the "Execute" and "Console" dialogs improved
  + now FParserWrapper::readConstsFromFile supports "enum { ... }" definitions
  * internal improvements
+ + NppExec Manual slightly updated
 
 
  v0.6 RC3 - April 2019

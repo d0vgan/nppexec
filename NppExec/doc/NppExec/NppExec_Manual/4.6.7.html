@@ -8,10 +8,29 @@
 <BODY>
 <h3>4.6.7. Run and terminate PowerShell process</h3>
 
-<p><em>[this article contains the text originally posted in NppExec's forum]</em></p>
+<p><em>[the following text is based on nppexec/issues/23]</em></p>
+<p>The problem #1: If you execute a PowerShell's script in NppExec's Console, the PowerShell process is not ended when the script is finished.</p>
+<p>The solution #1: Use &quot;cmd /c echo. | powershell&quot; instead of &quot;powershell&quot; to emulate sending of the Enter key to PowerShell process.</p>
+<p>The problem #2: If a quoted file path is passed to the second instance of PowerShell, this second instance receives the file path without quotes.</p>
+<p>The solution #2: Use escaped quotes \&quot; \&quot; instead of just &quot; &quot;.</p>
+<p>Here is an example that illustrates this approach. Also it demonstrates how PowerShell's ExecutionPolicy can be applied to a single script. It is assumed that a .ps1 file is currently opened in Notepad++:</p>
+<blockquote>
+  <pre>cmd /c echo. | PowerShell -ExecutionPolicy Unrestricted start-process PowerShell -ArgumentList '-ExecutionPolicy Unrestricted -File \&quot;$(FULL_CURRENT_PATH)\&quot;'</pre>
+</blockquote>
+
+<p>And here is an example of PowerShell's command executed in NppExec's Console:</p>
+<blockquote>
+  <pre>cmd /c echo. | PowerShell -Command Write-Host 'Hello, World!'</pre>
+</blockquote>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p><em>[the text below was originally posted in NppExec's forum]</em></p>
 <p>The problem: if you execute a PowerShell's script in NppExec's Console, the PowerShell process is not ended when the script is finished.</p>
 <p>The solution: use &quot;cmd /c echo. | powershell&quot; instead of &quot;powershell&quot; to emulate sending of the Enter key to PowerShell process.</p>
-<p>Here is an example of the full NppExec's script:</p>
+<p>Here is an example of the full NppExec's script that uses the currently selected text as a PowerShell's program:</p>
 
 <blockquote>
   <pre>// path to PowerShell.exe
@@ -44,6 +63,8 @@ You can check the bitness using
 - In Powershell: [Environment]::Is64BitProcess
 </pre>
 </blockquote>
+
+<p>See also: Using cmd.exe <a href="4.4.html">[4.4]</a>.</p>
 
 </BODY>
 </HTML>
