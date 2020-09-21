@@ -1447,7 +1447,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  // now open or switch to another file in Notepad++") _T_RE_EOL \
     _T("  fp // always uses the actual file path") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
-    _T("  To use the command alias, type it in the beginning of the input string") _T_RE_EOL \
+    _T("  To use a command alias, type it in the beginning of the input string") _T_RE_EOL \
     _T("  (e.g. \"/c copy /?\" for the command alias \"/c -> cmd /c\"), otherwise") _T_RE_EOL \
     _T("  it will NOT be treated as a command alias. For example, \"/c\" inside") _T_RE_EOL \
     _T("  \"cmd /c move /?\" is not treated as a command alias because it is located") _T_RE_EOL \
