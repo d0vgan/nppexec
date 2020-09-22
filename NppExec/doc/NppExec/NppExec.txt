@@ -341,7 +341,6 @@
      https://github.com/d0vgan/nppexec/issues/4
      https://notepad-plus-plus.org/community/topic/15804/macro-delete-lines-that-contains-text-in-clipboard
      "Unicode and ANSI" - to be replaced with "32-bit and 64-bit"
-     mention NppExec on GitHub (provide links, etc.)
    - FAQ section?
 
  - callback scripts? (though, we already have NppEventExec)
