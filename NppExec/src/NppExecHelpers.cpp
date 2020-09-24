@@ -17,6 +17,15 @@ namespace
         return (ch == _T('\\') || ch == _T('/'));
     }
 
+    bool isPathRoot(const tstr& part)
+    {
+        if ((part == _T("\\")) || (part == _T("\\\\")))
+            return true;  // i.e. "\" or "\\"
+        if ((part.length() == 3) && (part[1] == _T(':')) && (part[2] == _T('\\')))
+            return true;  // e.g. "C:\"
+        return false;
+    };
+
     inline bool isNullOrPathSep(const TCHAR ch)
     {
         return (ch == 0 || ch == _T('\\') || ch == _T('/'));
@@ -216,78 +225,95 @@ namespace NppExecHelpers
         return false;
     }
 
-    void NormPath(tstr& path)
-    {
-        path.Replace(_T('/'), _T('\\'));
-
-        // terrible test paths:
-        /*
-          ".\..\.\.\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\.\f"
-          "..\.\.\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\.\\f"
-          "\..\.\.\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\.\\\\f"
-          "\.\.\..\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\..\f"
-          "\..\..\..\..\\.\.\.\..\..\\\\.\.\\..\\C:\\\.\a\.\\.\b\\..\c\\\..\\\\d\\..\f"
-          "x\y\z\..\..\..\..\\.\.\.\..\..\\\\.\.\\..\\C:\\\.\a\.\\.\b\\..f..\f"
-          ".\.\.\.\.\.\a\b"
-          "\.\.\.\.\.\.\a\b"
-          "..\..\..\..\..\a\b"
-          "\..\..\..\..\a\b"
-        */
-
-        // remove all double '\' except the leading "\\"
-        // e.g. "C:\\a\\\b\\c" -> "C:\a\b\c"
-        int i = 2;
-        while ((i = path.Find(_T("\\\\"), i)) > 0)
-            path.Delete(i, 1);
-
-        // remove all "subpath\..\"
-        // e.g. "a\b\..\..\ab" -> "a\..\ab" -> "ab"
-        i = 0;
-        while ((i = path.Find(_T("\\..\\"), i)) >= 0)
-        {
-            int n = 0;
-            int j = (i == 0) ? 0 : path.RFind(_T('\\'), i - 1);
-            if ((i == j + 1) || (i == j + 3 && path[i - 1] == _T(':')))
-                j = i; // e.g. "\\..\a" or "C:\..\a"
-            else
-                n = i - j;
-            path.Delete(j + 1, n + 3); // when RFind returns -1, (j + 1) = 0
-            i = (j < 0) ? 0 : j;
-        }
-
-        // remove all leading "..\"
-        // e.g. "..\..\..\path" -> "path"
-        while (path.StartsWith(_T("..\\")))
-            path.Delete(0, 3);
-
-        // remove all leading ".\"
-        // e.g. ".\.\.\path" -> "path"
-        while (path.StartsWith(_T(".\\")))
-            path.Delete(0, 2);
-
-        // replace all "\.\" with "\"
-        // e.g. "a\.\b\.\c" -> "a\b\c"
-        i = 0;
-        while ((i = path.Find(_T("\\.\\"), i)) >= 0)
-            path.Delete(i, 2);
-
-        // ! Disabled as the leading '\' means "root of the disk":
-        // remove leading '\' if the next character is not '\'
-        // if (path.GetAt(0) == _T('\\') && path.GetAt(1) != _T('\\'))
-        //    path.Delete(0, 1);
-    }
-
     tstr NormalizePath(const tstr& path)
     {
-        tstr nrmPath(path);
-        NormPath(nrmPath);
-        return nrmPath;
+        return NormalizePath(path.c_str());
     }
 
     tstr NormalizePath(const TCHAR* path)
     {
-        tstr nrmPath(path);
-        NormPath(nrmPath);
+        bool isEndOfString = false;
+        tstr part;
+        CListT<tstr> pathParts;
+
+        for ( const TCHAR* p = path; !isEndOfString; ++p )
+        {
+            const TCHAR ch = *p;
+            if ( ch == 0 )
+                isEndOfString = true;
+
+            if ( isEndOfString || isPathSep(ch) )
+            {
+                if ( part.IsEmpty() )
+                {
+                    if ( pathParts.IsEmpty() && !isEndOfString )
+                    {
+                        const TCHAR next_ch = *(p + 1);
+                        if ( isPathSep(next_ch) )
+                        {
+                            ++p;
+                            pathParts.Add( _T("\\\\") );
+                        }
+                        else
+                            pathParts.Add( _T("\\") );
+                    }
+                    continue;
+                }
+
+                if ( part == _T(".") )
+                {
+                    part.Clear();
+                    continue;
+                }
+
+                if ( part == _T("..") )
+                {
+                    auto itr = pathParts.GetLast();
+                    if ( itr )
+                    {
+                        if ( !isPathRoot(itr->GetItem()) )
+                        {
+                            pathParts.DeleteLast();
+                            if ( isEndOfString )
+                            {
+                                itr = pathParts.GetLast();
+                                if ( itr )
+                                {
+                                    tstr& path_part = itr->GetItem();
+                                    if ( !isPathRoot(path_part) )
+                                        path_part.DeleteLastChar();
+                                }
+                            }
+                        }
+                    }
+                    part.Clear();
+                    continue;
+                }
+
+                if ( isPathSep(ch) )
+                    part += _T('\\');
+
+                pathParts.Add(part);
+                part.Clear();
+            }
+            else
+                part += ch;
+        }
+
+        int expectedLength = 0;
+        for ( auto itr = pathParts.GetFirst(); itr != NULL; itr = itr->GetNext() )
+        {
+            expectedLength += itr->GetItem().length();
+        }
+
+        tstr nrmPath;
+        nrmPath.Reserve(expectedLength);
+
+        for ( auto itr = pathParts.GetFirst(); itr != NULL; itr = itr->GetNext() )
+        {
+            nrmPath += itr->GetItem();
+        }
+
         return nrmPath;
     }
 

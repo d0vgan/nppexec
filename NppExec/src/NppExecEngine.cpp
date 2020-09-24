@@ -7984,7 +7984,7 @@ bool CNppExecMacroVars::StrCalc::calcNormPath()
         {
             NppExecHelpers::StrUnquote(path);
         }
-        NppExecHelpers::NormPath(path);
+        path = NppExecHelpers::NormalizePath(path);
         if ( isQuoted )
         {
             NppExecHelpers::StrQuote(path);

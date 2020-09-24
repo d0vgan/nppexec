@@ -380,7 +380,6 @@ namespace NppExecHelpers
     bool IsFullPath(const tstr& path);
     bool IsFullPath(const TCHAR* path);
 
-    void NormPath(tstr& path);
     tstr NormalizePath(const tstr& path);
     tstr NormalizePath(const TCHAR* path);
 
