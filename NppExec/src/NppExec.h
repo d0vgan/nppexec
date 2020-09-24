@@ -38,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * $(var) completion in the "Execute" and "Console" dialogs improved
  + now FParserWrapper::readConstsFromFile supports "enum { ... }" definitions
  * internal improvements
- + NppExec Manual slightly updated
+ + NppExec Manual updated
 
 
  v0.6 RC3 - April 2019

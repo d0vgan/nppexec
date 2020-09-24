@@ -208,7 +208,7 @@
  * $(var) completion in the "Execute" and "Console" dialogs improved
  + now FParserWrapper::readConstsFromFile supports "enum { ... }" definitions
  * internal improvements
- + NppExec Manual slightly updated
+ + NppExec Manual updated
 
 
  v0.6 RC3 - April 2019
@@ -340,7 +340,6 @@
      https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/
      https://github.com/d0vgan/nppexec/issues/4
      https://notepad-plus-plus.org/community/topic/15804/macro-delete-lines-that-contains-text-in-clipboard
-     "Unicode and ANSI" - to be replaced with "32-bit and 64-bit"
    - FAQ section?
 
  - callback scripts? (though, we already have NppEventExec)
