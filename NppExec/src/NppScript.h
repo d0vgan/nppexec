@@ -43,6 +43,9 @@ public:
     const tstr& GetScriptName() const;
     const tCmdList& GetCmdList() const;
     tCmdList& GetCmdList();
+
+    tstr SerializeToString() const;
+    int GetSerializedStringLength() const;
 };
 
 //--------------------------------------------------------------------

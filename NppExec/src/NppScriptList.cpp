@@ -279,33 +279,24 @@ bool CNppScriptList::ModifyScript(const tstr& ScriptName, const CNppScript& newS
 
 void CNppScriptList::SaveToFile(const TCHAR* cszFileName)
 {
-  tstr             ScriptName;
-  tstr             ScriptLine;
   CFileBufT<TCHAR> fbuf;
-
-  fbuf.GetBufPtr()->Reserve(_Scripts.GetCount() * 128);
 
   CCriticalSectionLockGuard lock(_csScripts);
 
-  CListItemT<CNppScript *> * p = _Scripts.GetFirst();
-  while (p)
+  int totalSerializedLength = 0;
+  for (auto p = _Scripts.GetFirst(); p != NULL; p = p->GetNext())
   {
-    CNppScript* pScript = p->GetItem();
-    ScriptName = pScript->GetScriptName();
-    ScriptName.Insert(0, _T("::"), 2);
-    ScriptName += _T("\r\n");
-    fbuf.GetBufPtr()->Append(ScriptName.c_str(), ScriptName.length());
+    const CNppScript* pScript = p->GetItem();
+    totalSerializedLength += pScript->GetSerializedStringLength();
+  }
 
-    CListItemT<tstr>* pline = pScript->GetCmdList().GetFirst();
-    while (pline)
-    {
-      ScriptLine = pline->GetItem();
-      ScriptLine += _T("\r\n");
-      fbuf.GetBufPtr()->Append(ScriptLine.c_str(), ScriptLine.length());
-      pline = pline->GetNext();
-    }
+  fbuf.GetBufPtr()->Reserve(totalSerializedLength);
 
-    p = p->GetNext();
+  for (auto p = _Scripts.GetFirst(); p != NULL; p = p->GetNext())
+  {
+    const CNppScript* pScript = p->GetItem();
+    tstr serializedContent = pScript->SerializeToString();
+    fbuf.GetBufPtr()->Append(serializedContent.c_str(), serializedContent.length());
   }
 
   // .bak file...

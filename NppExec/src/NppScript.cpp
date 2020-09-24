@@ -60,3 +60,38 @@ tCmdList& CNppScript::GetCmdList()
 {
     return m_CmdList;
 }
+
+tstr CNppScript::SerializeToString() const
+{
+    tstr serializedContent;
+
+    serializedContent.Reserve(GetSerializedStringLength());
+
+    serializedContent += _T("::");
+    serializedContent += m_ScriptName;
+    serializedContent += _T("\r\n");
+
+    for ( auto pline = m_CmdList.GetFirst(); pline != NULL; pline = pline->GetNext() )
+    {
+        serializedContent += pline->GetItem();
+        serializedContent += _T("\r\n");
+    }
+
+    return serializedContent;
+}
+
+int CNppScript::GetSerializedStringLength() const
+{
+    int serializedLength = 0;
+
+    serializedLength += m_ScriptName.length();
+    serializedLength += 4; // "::" and "\r\n"
+
+    for ( auto pline = m_CmdList.GetFirst(); pline != NULL; pline = pline->GetNext() )
+    {
+        serializedLength += pline->GetItem().length();
+        serializedLength += 2; // "\r\n"
+    }
+
+    return serializedLength;
+}
