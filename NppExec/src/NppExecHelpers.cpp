@@ -232,6 +232,17 @@ namespace NppExecHelpers
 
     tstr NormalizePath(const TCHAR* path)
     {
+        auto remove_trailing_sep = [](CListT<tstr>& pathParts)
+        {
+            auto itr = pathParts.GetLast();
+            if ( itr )
+            {
+                tstr& path_part = itr->GetItem();
+                if ( !isPathRoot(path_part) )
+                    path_part.DeleteLastChar(); // remove the trailing '\'
+            }
+        };
+
         bool isEndOfString = false;
         tstr part;
         CListT<tstr> pathParts;
@@ -265,13 +276,7 @@ namespace NppExecHelpers
                     part.Clear();
                     if ( isEndOfString ) // ends with "."
                     {
-                        auto itr = pathParts.GetLast();
-                        if ( itr )
-                        {
-                            tstr& path_part = itr->GetItem();
-                            if ( !isPathRoot(path_part) )
-                                path_part.DeleteLastChar(); // remove the trailing '\'
-                        }
+                        remove_trailing_sep(pathParts);
                     }
                     continue;
                 }
@@ -286,13 +291,7 @@ namespace NppExecHelpers
                             pathParts.DeleteLast();
                             if ( isEndOfString ) // ends with ".."
                             {
-                                itr = pathParts.GetLast();
-                                if ( itr )
-                                {
-                                    tstr& path_part = itr->GetItem();
-                                    if ( !isPathRoot(path_part) )
-                                        path_part.DeleteLastChar(); // remove the trailing '\'
-                                }
+                                remove_trailing_sep(pathParts);
                             }
                         }
                     }
