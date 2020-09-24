@@ -263,6 +263,16 @@ namespace NppExecHelpers
                 if ( part == _T(".") )
                 {
                     part.Clear();
+                    if ( isEndOfString ) // ends with "."
+                    {
+                        auto itr = pathParts.GetLast();
+                        if ( itr )
+                        {
+                            tstr& path_part = itr->GetItem();
+                            if ( !isPathRoot(path_part) )
+                                path_part.DeleteLastChar(); // remove the trailing '\'
+                        }
+                    }
                     continue;
                 }
 
@@ -274,14 +284,14 @@ namespace NppExecHelpers
                         if ( !isPathRoot(itr->GetItem()) )
                         {
                             pathParts.DeleteLast();
-                            if ( isEndOfString )
+                            if ( isEndOfString ) // ends with ".."
                             {
                                 itr = pathParts.GetLast();
                                 if ( itr )
                                 {
                                     tstr& path_part = itr->GetItem();
                                     if ( !isPathRoot(path_part) )
-                                        path_part.DeleteLastChar();
+                                        path_part.DeleteLastChar(); // remove the trailing '\'
                                 }
                             }
                         }
