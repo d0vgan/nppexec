@@ -19,11 +19,11 @@ namespace
 
     bool isPathRoot(const tstr& part)
     {
-        if ((part == _T("\\")) || (part == _T("\\\\")))
-            return true;  // i.e. "\" or "\\"
-        if ((part.length() == 3) && (part[1] == _T(':')) && (part[2] == _T('\\')))
-            return true;  // e.g. "C:\"
-        return false;
+        // returns true for "\" or "\\" or "C:\"
+        const TCHAR* p = part.c_str();
+        return ( StrUnsafeCmp(p, _T("\\")) == 0 ||
+                 StrUnsafeCmp(p, _T("\\\\")) == 0 ||
+                 StrUnsafeCmp(p + 1, _T(":\\")) == 0 );
     };
 
     inline bool isNullOrPathSep(const TCHAR ch)
@@ -271,17 +271,17 @@ namespace NppExecHelpers
                     continue;
                 }
 
-                if ( part == _T(".") )
+                if ( StrUnsafeCmp(part.c_str(), _T(".")) == 0 )
                 {
-                    part.Clear();
                     if ( isEndOfString ) // ends with "."
                     {
                         remove_trailing_sep(pathParts);
                     }
+                    part.Clear();
                     continue;
                 }
 
-                if ( part == _T("..") )
+                if ( StrUnsafeCmp(part.c_str(), _T("..")) == 0 )
                 {
                     auto itr = pathParts.GetLast();
                     if ( itr )
