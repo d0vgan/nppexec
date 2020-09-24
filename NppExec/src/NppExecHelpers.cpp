@@ -257,7 +257,7 @@ namespace NppExecHelpers
             {
                 if ( part.IsEmpty() )
                 {
-                    if ( pathParts.IsEmpty() && !isEndOfString )
+                    if ( (p == path) && pathParts.IsEmpty() && !isEndOfString )
                     {
                         const TCHAR next_ch = *(p + 1);
                         if ( isPathSep(next_ch) )
