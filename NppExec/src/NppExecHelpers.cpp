@@ -23,7 +23,7 @@ namespace
         const TCHAR* p = part.c_str();
         return ( StrUnsafeCmp(p, _T("\\")) == 0 ||
                  StrUnsafeCmp(p, _T("\\\\")) == 0 ||
-                 StrUnsafeCmp(p + 1, _T(":\\")) == 0 );
+                 part.EndsWith(_T(":\\")) );
     };
 
     inline bool isNullOrPathSep(const TCHAR ch)

@@ -67,14 +67,14 @@ tstr CNppScript::SerializeToString() const
 
     serializedContent.Reserve(GetSerializedStringLength());
 
-    serializedContent += _T("::");
-    serializedContent += m_ScriptName;
-    serializedContent += _T("\r\n");
+    serializedContent.Append( _T("::"), 2 );
+    serializedContent.Append( m_ScriptName );
+    serializedContent.Append( _T("\r\n"), 2 );
 
     for ( auto pline = m_CmdList.GetFirst(); pline != NULL; pline = pline->GetNext() )
     {
-        serializedContent += pline->GetItem();
-        serializedContent += _T("\r\n");
+        serializedContent.Append( pline->GetItem() );
+        serializedContent.Append( _T("\r\n"), 2 );
     }
 
     return serializedContent;
