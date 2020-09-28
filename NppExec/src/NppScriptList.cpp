@@ -295,8 +295,7 @@ void CNppScriptList::SaveToFile(const TCHAR* cszFileName)
   for (auto p = _Scripts.GetFirst(); p != NULL; p = p->GetNext())
   {
     const CNppScript* pScript = p->GetItem();
-    tstr serializedContent = pScript->SerializeToString();
-    fbuf.GetBufPtr()->Append(serializedContent.c_str(), serializedContent.length());
+    pScript->SerializeToBuf( *fbuf.GetBufPtr(), CNppScript::sbfAppendMode );
   }
 
   // .bak file...

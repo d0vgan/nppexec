@@ -61,21 +61,24 @@ tCmdList& CNppScript::GetCmdList()
     return m_CmdList;
 }
 
+void CNppScript::SerializeToBuf(CBufT<TCHAR>& Buf, unsigned int flags ) const
+{
+    if ( (flags & sbfAppendMode) == 0 )
+        Buf.Clear();
+
+    if ( (flags & sbfReserveMemory) != 0 )
+        Buf.Reserve(GetSerializedStringLength());
+
+    serializeByAppendingTo(Buf);
+}
+
 tstr CNppScript::SerializeToString() const
 {
     tstr serializedContent;
 
     serializedContent.Reserve(GetSerializedStringLength());
 
-    serializedContent.Append( _T("::"), 2 );
-    serializedContent.Append( m_ScriptName );
-    serializedContent.Append( _T("\r\n"), 2 );
-
-    for ( auto pline = m_CmdList.GetFirst(); pline != NULL; pline = pline->GetNext() )
-    {
-        serializedContent.Append( pline->GetItem() );
-        serializedContent.Append( _T("\r\n"), 2 );
-    }
+    serializeByAppendingTo(serializedContent);
 
     return serializedContent;
 }

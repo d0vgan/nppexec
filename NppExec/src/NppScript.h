@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //--------------------------------------------------------------------
 #include "base.h"
 #include "cpp/CStrT.h"
+#include "cpp/CBufT.h"
 #include "cpp/CListT.h"
 
 typedef CStrT<TCHAR> tstr;
@@ -32,7 +33,26 @@ private:
     tstr         m_ScriptName;
     CListT<tstr> m_CmdList;
 
+    template<class Dst> void serializeByAppendingTo(Dst& dest) const
+    {
+        dest.Append( _T("::"), 2 );
+        dest.Append( m_ScriptName.c_str(), m_ScriptName.length() );
+        dest.Append( _T("\r\n"), 2 );
+
+        for ( auto pline = m_CmdList.GetFirst(); pline != NULL; pline = pline->GetNext() )
+        {
+            const tstr& line = pline->GetItem();
+            dest.Append( line.c_str(), line.length() );
+            dest.Append( _T("\r\n"), 2 );
+        }
+    }
+
 public:
+    enum eSerializeBufFlags : unsigned int {
+        sbfReserveMemory = 0x01,  // calls Buf.Reserve()
+        sbfAppendMode    = 0x02   // does not call Buf.Clear()
+    };
+
     CNppScript();
     CNppScript(const CNppScript& nppScript);
     CNppScript(const tstr& scriptName);
@@ -44,6 +64,7 @@ public:
     const tCmdList& GetCmdList() const;
     tCmdList& GetCmdList();
 
+    void SerializeToBuf(CBufT<TCHAR>& Buf, unsigned int flags = sbfReserveMemory) const;
     tstr SerializeToString() const;
     int GetSerializedStringLength() const;
 };
