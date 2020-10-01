@@ -2888,16 +2888,30 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
         return;
     }
 
+    // mode == clpPathExt
     tstr sExtensions = NppExecHelpers::GetEnvironmentVariable( _T("PATHEXT") );
     if ( !sExtensions.IsEmpty() )
-        NppExecHelpers::StrLower(sExtensions);
+        NppExecHelpers::StrLower(sExtensions); // in lower case!
     else
-        sExtensions = _T(".com;.exe;.bat;.cmd");
+        sExtensions = _T(".com;.exe;.bat;.cmd"); // in lower case!
 
     CListT<tstr> exts;
     if ( StrSplitAsArgs(sExtensions.c_str(), exts, _T(';')) == 0 )
         return; // no extensions to check, nothing to do
+
+    const tstr existingExt = NppExecHelpers::GetFileNamePart(sFileName, NppExecHelpers::fnpExt);
+    if ( !existingExt.IsEmpty() )
+    {
+        const CListItemT<tstr>* pExt = exts.Find( [&existingExt](const tstr& ext) { return (NppExecHelpers::StrCmpNoCase(ext, existingExt) == 0); } );
+        if ( pExt )
+            return; // the extension from %PATHEXT% is specified explicitly
     
+        // As the existingExt is not empty, we may return here.
+        // However, a file name may have a form of "file.name",
+        // i.e. we still need to inspects all the extensions from
+        // %PATHEXT% to check for all possible "file.name.ext"
+    }
+
     auto findMatchingExtension = [](const tstr& fileName, const CListT<tstr>& exts, const auto& Predicate)
                             {
                                 for ( const CListItemT<tstr>* pExt = exts.GetFirst(); pExt != NULL; pExt = pExt->GetNext() )
@@ -2908,11 +2922,6 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
                                 }
                                 return tstr();
                             };
-    
-    auto endsWithExt = [](const tstr& fileName, const tstr& ext)
-                            {
-                                return fileName.EndsWith(ext);
-                            };
 
     auto fexistsWithExt = [](const tstr& fileName, const tstr& ext)
                             {
@@ -2921,18 +2930,15 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
                                 return NppExecHelpers::CheckFileExists(fileNameExt);
                             };
 
-    tstr ext = findMatchingExtension(sFileName, exts, endsWithExt);
-    if ( !ext.IsEmpty() )
-        return; // the extension is specified explicitly
-
+    tstr ext;
     if ( NppExecHelpers::IsFullPath(sFileName) )
     {
-        // full path specified - check the file extensions...
+        // full path specified - check the file extensions in %PATHEXT%...
         ext = findMatchingExtension(sFileName, exts, fexistsWithExt);
     }
     else
     {
-        // no path specified - check the paths and file extensions...
+        // no path specified - check the paths in %PATH% and file extensions in %PATHEXT%...
         tstr sPaths = NppExecHelpers::GetEnvironmentVariable( _T("PATH") );
         CListT<tstr> paths;
         if ( !sPaths.IsEmpty() )
