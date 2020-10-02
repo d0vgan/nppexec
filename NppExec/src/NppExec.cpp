@@ -2909,7 +2909,21 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
         // As the existingExt is not empty, we may return here.
         // However, a file name may have a form of "file.name",
         // i.e. we still need to inspects all the extensions from
-        // %PATHEXT% to check for all possible "file.name.ext"
+        // %PATHEXT% to check for all possible "file.name.ext".
+        //
+        // But... cmd.exe does not do any additional check for
+        // an existing file! So let's check if a file exists.
+        tstr sFullPath;
+        if ( !NppExecHelpers::IsFullPath(sFileName) )
+        {
+            sFullPath = NppExecHelpers::GetCurrentDirectory();
+            const TCHAR last_ch = sFullPath.GetLastChar();
+            if ( last_ch != _T('\\') && last_ch != _T('/') )
+                sFullPath += _T('\\');
+        }
+        sFullPath += sFileName;
+        if ( NppExecHelpers::CheckFileExists(sFullPath) )
+            return;
     }
 
     auto findMatchingExtension = [](const tstr& fileName, const CListT<tstr>& exts, const auto& Predicate)
@@ -2946,12 +2960,9 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
             StrSplitAsArgs(sPaths.c_str(), paths, _T(';'));
         }
 
-        TCHAR szCurDir[FILEPATH_BUFSIZE];
-        szCurDir[0] = 0;
-        ::GetCurrentDirectory( FILEPATH_BUFSIZE - 1, szCurDir );
-        if ( szCurDir[0] != 0 )
+        const tstr sCurDir = NppExecHelpers::GetCurrentDirectory();
+        if ( !sCurDir.IsEmpty() )
         {
-            const tstr sCurDir = szCurDir;
             CListItemT<tstr>* pItem = paths.Find( [&sCurDir](const tstr& path) { return (NppExecHelpers::StrCmpNoCase(path, sCurDir) == 0); } );
             if ( pItem )
             {

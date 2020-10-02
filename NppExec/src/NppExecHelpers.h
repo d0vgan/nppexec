@@ -377,6 +377,8 @@ namespace NppExecHelpers
     tstr GetEnvironmentVariable(const TCHAR* szVarName);
     tstr GetEnvironmentVariable(const tstr& sVarName);
 
+    tstr GetCurrentDirectory();
+
     bool IsFullPath(const tstr& path);
     bool IsFullPath(const TCHAR* path);
 

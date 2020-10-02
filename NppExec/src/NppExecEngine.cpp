@@ -6977,14 +6977,10 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
     pos = 0;
     while ((pos = Cmd.Find(MACRO_CURRENT_WORKING_DIR, pos)) >= 0)
     {
-      TCHAR szPath[FILEPATH_BUFSIZE];
-      DWORD dwLen;
-
-      szPath[0] = 0;
-      dwLen = GetCurrentDirectory(FILEPATH_BUFSIZE - 1, szPath);
-      Cmd.Replace(pos, len, szPath);
-      S.Replace(pos, len, szPath);
-      pos += (int) dwLen;
+      const tstr sCurDir = NppExecHelpers::GetCurrentDirectory();
+      Cmd.Replace(pos, len, sCurDir);
+      S.Replace(pos, len, sCurDir);
+      pos += sCurDir.length();
     }
     
     len = lstrlen(MACRO_PLUGINS_CONFIG_DIR);

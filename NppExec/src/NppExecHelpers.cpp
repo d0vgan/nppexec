@@ -204,6 +204,25 @@ namespace NppExecHelpers
         return GetEnvironmentVariable(sVarName.c_str());
     }
 
+    tstr GetCurrentDirectory()
+    {
+        tstr sCurDir;
+        DWORD nLen = ::GetCurrentDirectory(0, NULL);
+        if ( nLen > 0 )
+        {
+            if ( sCurDir.Reserve(nLen + 1) )
+            {
+                nLen = ::GetCurrentDirectory(nLen + 1, sCurDir.c_str());
+                if ( nLen > 0 )
+                {
+                    sCurDir.SetLengthValue(nLen);
+                }
+            }
+        }
+        
+        return sCurDir;
+    }
+
     bool IsFullPath(const tstr& path)
     {
         return IsFullPath( path.c_str() );
