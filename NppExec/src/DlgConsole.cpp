@@ -3029,33 +3029,23 @@ bool ConsoleDlg::GoToLineIfWarningAnalyzerMatch(CAnyRichEdit& Edit, const int nL
             }
 
             HWND hSciWnd = NppExec.GetScintillaHandle();
-            ::SendMessage( hSciWnd
-                         , SCI_GOTOLINE
-                         , (WPARAM) (WarningAnalyzer.GetLineNumber() - 1)
-                         , (LPARAM) 0 
-                         );
+            const int nWarnLine = WarningAnalyzer.GetLineNumber() - 1;
+            ::SendMessage( hSciWnd, SCI_ENSUREVISIBLE, (WPARAM) nWarnLine, 0 );
+            ::SendMessage( hSciWnd, SCI_GOTOLINE,      (WPARAM) nWarnLine, 0 );
 
             if ( WarningAnalyzer.GetCharNumber() )
             {
                 // position of the start of the line
-                int pos = (int) ::SendMessage( hSciWnd
-                                    , SCI_POSITIONFROMLINE
-                                    , (WarningAnalyzer.GetLineNumber() - 1)
-                                    , 0
-                                    );
+                INT_PTR nWarnPos = (INT_PTR) ::SendMessage( hSciWnd, SCI_POSITIONFROMLINE, (WPARAM) nWarnLine, 0 );
 
-                if ( pos >= 0 )
+                if ( nWarnPos >= 0 )
                 {
                     // document's codepage
-                    int nSciCodePage = (int) ::SendMessage( hSciWnd
-                                                 , SCI_GETCODEPAGE
-                                                 , 0
-                                                 , 0 
-                                                 );
+                    int nSciCodePage = (int) ::SendMessage( hSciWnd, SCI_GETCODEPAGE, 0, 0 );
                     if ( nSciCodePage == 0 )
                     {
                         // ANSI: one-byte characters
-                        pos += WarningAnalyzer.GetCharNumber() - 1;
+                        nWarnPos += WarningAnalyzer.GetCharNumber() - 1;
                     }
                     else
                     {
@@ -3063,20 +3053,12 @@ bool ConsoleDlg::GoToLineIfWarningAnalyzerMatch(CAnyRichEdit& Edit, const int nL
                         int nChars = WarningAnalyzer.GetCharNumber();
                         while ( --nChars > 0 )
                         {
-                            pos = (int) ::SendMessage( hSciWnd
-                                                     , SCI_POSITIONAFTER
-                                                     , pos
-                                                     , 0
-                                                     );
+                            nWarnPos = (INT_PTR) ::SendMessage( hSciWnd, SCI_POSITIONAFTER, (WPARAM) nWarnPos, 0 );
                         }
                     }
                     
                     // set the position
-                    ::SendMessage( hSciWnd
-                                 , SCI_GOTOPOS
-                                 , (WPARAM) pos
-                                 , (LPARAM) 0 
-                                 );
+                    ::SendMessage( hSciWnd, SCI_GOTOPOS, (WPARAM) nWarnPos, 0 );
                 }
             }
 
