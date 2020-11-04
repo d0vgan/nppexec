@@ -20,6 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.6.1 - November 2020
+ ----------------------
+ * improved: now ChildProcess_RunPolicy=1 works better
+ * improved: now GoToLineIfWarningAnalyzerMatch calls SCI_ENSUREVISIBLE
+ * npp_files updated to Notepad++ 7.9.1
+
+
  v0.6 RC4 - September 2020
  -------------------------
  + added: $(FILE_NAME_AT_CURSOR), $(CON_HWND), $(FOCUSED_HWND)
@@ -543,8 +550,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x06C4
-#define NPPEXEC_VER_STR   _T("0.6 RC4")
+#define NPPEXEC_VER_DWORD 0x06F1
+#define NPPEXEC_VER_STR   _T("0.6.1")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

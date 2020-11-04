@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.6 RC4 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - September 2020
+ * NppExec plugin ver. 0.6.1 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - November 2020
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -189,6 +189,13 @@
  *************
  *  HISTORY  *
  *************
+
+ v0.6.1 - November 2020
+ ----------------------
+ * improved: now ChildProcess_RunPolicy=1 works better
+ * improved: now GoToLineIfWarningAnalyzerMatch calls SCI_ENSUREVISIBLE
+ * npp_files updated to Notepad++ 7.9.1
+
 
  v0.6 RC4 - September 2020
  -------------------------
