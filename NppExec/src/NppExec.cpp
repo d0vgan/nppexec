@@ -2572,6 +2572,18 @@ int CNppExec::nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, i
   return 0;
 }
 
+bool CNppExec::nppGetSettingsCloudPath(tstr& cloudPath)
+{
+    int nLen = (int) SendNppMsg( NPPM_GETSETTINGSONCLOUDPATH, 0, 0 );
+    if (nLen != 0)
+    {
+        cloudPath.Reserve(nLen + 1);
+        nLen = (int) SendNppMsg( NPPM_GETSETTINGSONCLOUDPATH, nLen + 1, (LPARAM) cloudPath.c_str() );
+    }
+    cloudPath.SetLengthValue(nLen);
+    return (nLen > 0);
+}
+
 static tstr getMenuItemPathSep(const tstr& menuItemPathName)
 {
     const int nSeps = 9;
@@ -4357,6 +4369,8 @@ void CNppExec::Init()
 
   if ( m_nppData._nppHandle )
   {
+    nppGetSettingsCloudPath(m_sSettingsCloudPath);
+
     SendNppMsg( NPPM_GETPLUGINSCONFIGDIR,
       (WPARAM) (FILEPATH_BUFSIZE - 1), (LPARAM) m_szConfigPath );
 

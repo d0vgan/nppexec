@@ -1284,6 +1284,7 @@ private:
   TCHAR   m_szPluginDllPath[FILEPATH_BUFSIZE];
   TCHAR   m_szConfigPath[FILEPATH_BUFSIZE];
   TCHAR   m_szIniFilePathName[FILEPATH_BUFSIZE];
+  tstr    m_sSettingsCloudPath;
 
   HMODULE m_hRichEditDll;
 
@@ -1351,6 +1352,7 @@ public:
   /* bool nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders); */
   bool nppGetWorkspaceItemPath(tstr& itemPath);
   bool nppGetWorkspaceRootItemPath(tstr& rootItemPath);
+  bool nppGetSettingsCloudPath(tstr& cloudPath);
   int  findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
 
 private:
