@@ -1,11 +1,13 @@
-version: 0.6.0.{build}
-image: Visual Studio 2017
-
+version: 0.6.1.{build}
 
 environment:
   matrix:
-  - PlatformToolset: v140_xp
   - PlatformToolset: v141_xp
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+
+  - PlatformToolset: v142
+    APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+
 
 platform:
     - x64
@@ -24,6 +26,7 @@ install:
 
     - if "%PlatformToolset%"=="v140_xp" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %archi%
     - if "%PlatformToolset%"=="v141_xp" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %archi%
+    - if "%PlatformToolset%"=="v142"    call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" %archi%
 
 build_script:
     - cd "%APPVEYOR_BUILD_FOLDER%"\NppExec
@@ -44,7 +47,7 @@ after_build:
             Push-AppveyorArtifact "NppExec\$env:CONFIGURATION\NppExec.dll" -FileName NppExec.dll
         }
 
-        if ($($env:APPVEYOR_REPO_TAG) -eq "true" -and $env:CONFIGURATION -eq "Release" -and $env:PLATFORMTOOLSET -eq "v140_xp") {
+        if ($($env:APPVEYOR_REPO_TAG) -eq "true" -and $env:CONFIGURATION -eq "Release" -and $env:PLATFORMTOOLSET -eq "v141_xp") {
             if($env:PLATFORM_INPUT -eq "x64"){
                 $ZipFileName = "NppExec_$($env:APPVEYOR_REPO_TAG_NAME)_x64.zip"
                 7z a $ZipFileName $env:APPVEYOR_BUILD_FOLDER\NppExec\$env:PLATFORM_INPUT\$env:CONFIGURATION\*.dll
@@ -71,5 +74,5 @@ deploy:
     force_update: true
     on:
         appveyor_repo_tag: true
-        PlatformToolset: v140_xp
+        PlatformToolset: v141_xp
         configuration: Release
