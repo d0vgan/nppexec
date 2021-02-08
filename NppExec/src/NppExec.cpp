@@ -2023,7 +2023,7 @@ int CNppExec::conLoadFrom(LPCTSTR cszFile)
 }
 
 typedef struct sConSaveStruct {
-    FILE* f;
+    CFileBufT<TCHAR>::FilePtr  f;
     LONG  size;
 } ConSaveStruct;
 
@@ -2078,7 +2078,7 @@ int CNppExec::conSaveTo(LPCTSTR cszFile)
       GetConsole().GetConsoleEdit().SendMsg( EM_STREAMOUT, SF_TEXT, (LPARAM) &es );
     #endif
     
-    CFileBufT<TCHAR>::closefile(css.f); 
+    CFileBufT<TCHAR>::closefile(css.f, true);
     return css.size;
   }
   return -1;
@@ -2262,7 +2262,7 @@ int CNppExec::textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly)
     {
       int nWritten = -1; // -1 means "failed to write"
 
-      FILE* f = CFileBufT<TCHAR>::openfile(szFileAndEncoding, true);
+      CFileBufT<TCHAR>::FilePtr f = CFileBufT<TCHAR>::openfile(szFileAndEncoding, true);
       if ( f != NULL )
       {
         nWritten = 0; // 0 bytes written yet
@@ -2283,7 +2283,7 @@ int CNppExec::textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly)
         }
         if ( CFileBufT<TCHAR>::writefile(f, pOutText, nOutSize) )
           nWritten += nOutSize;
-        CFileBufT<TCHAR>::closefile(f);
+        CFileBufT<TCHAR>::closefile(f, true);
       }
         
       delete [] pOutText;

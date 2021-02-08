@@ -40,6 +40,12 @@ private:
 public:
   typedef T value_type;
 
+#ifdef UNICODE
+  typedef HANDLE FilePtr;
+#else
+  typedef FILE* FilePtr;
+#endif
+
   CFileBufT();
   ~CFileBufT();
   int       GetBufCount() const  { return m_buf.GetCount(); }
@@ -63,33 +69,100 @@ public:
 public:
 
   #ifdef UNICODE
-    static FILE* openfile(const wchar_t* szFilePath, bool bWrite = false)
-    {
-        const wchar_t* mode_readonly = L"rb";
-        const wchar_t* mode_readwrite = L"w+b";
 
-        return _wfopen(szFilePath, bWrite ? mode_readwrite : mode_readonly);
+    static FilePtr openfile(const wchar_t* szFilePath, bool bWrite = false)
+    {
+        DWORD dwDesiredAccess = bWrite ? GENERIC_WRITE : GENERIC_READ;
+        DWORD dwShareMode = bWrite ? FILE_SHARE_READ : (FILE_SHARE_READ | FILE_SHARE_WRITE);
+        DWORD dwCreationDisposition = bWrite ? CREATE_ALWAYS : OPEN_EXISTING;
+        DWORD dwFlagsAndAttributes = bWrite ? FILE_FLAG_WRITE_THROUGH : 0;
+
+        FilePtr hFile = ::CreateFileW(szFilePath, dwDesiredAccess, dwShareMode, NULL, dwCreationDisposition, dwFlagsAndAttributes, NULL);
+        if (hFile == INVALID_HANDLE_VALUE)
+        {
+            hFile = NULL;
+        }
+
+        return hFile;
     }
+
+    static bool closefile(FilePtr hFile, bool bFlush = false)
+    {
+        if (hFile != NULL)
+        {
+            if (bFlush)
+                ::FlushFileBuffers(hFile);
+
+            if (::CloseHandle(hFile))
+                return true;
+        }
+        return false;
+    }
+
+    static long getsize(FilePtr hFile)
+    {
+        long size = 0;
+        if (hFile != NULL) {
+            size = static_cast<long>(::GetFileSize(hFile, NULL));
+        }
+        return size;
+    }
+
+    static bool readfile(FilePtr hFile, void* pBuf, size_t nBytes)
+    {
+        bool bRet = false;
+        DWORD dwBytesToRead = static_cast<DWORD>(nBytes);
+        DWORD dwBytesActuallyRead = 0;
+
+        if (::ReadFile(hFile, pBuf, dwBytesToRead, &dwBytesActuallyRead, NULL))
+        {
+            if (dwBytesToRead == dwBytesActuallyRead)
+                bRet = true;
+        }
+
+        return bRet;
+    }
+
+    static bool writefile(FilePtr hFile, const void* pBuf, size_t nBytes)
+    {
+        bool bRet = false;
+        DWORD dwBytesToWrite = static_cast<DWORD>(nBytes);
+        DWORD dwBytesActuallyWritten = 0;
+
+        if (::WriteFile(hFile, pBuf, dwBytesToWrite, &dwBytesActuallyWritten, NULL))
+        {
+            if (dwBytesToWrite == dwBytesActuallyWritten)
+                bRet = true;
+        }
+
+        return bRet;
+    }
+
   #else
-    static FILE* openfile(const char* szFilePath, bool bWrite = false)
+
+    static FilePtr openfile(const char* szFilePath, bool bWrite = false)
     {
         const char* mode_readonly = "rb";
-        const char* mode_readwrite = "w+b";
+        const char* mode_readwrite = "w+bc";
 
         return fopen(szFilePath, bWrite ? mode_readwrite : mode_readonly);
     }
-  #endif
 
-    static bool closefile(FILE* f)
+    static bool closefile(FilePtr f, bool bFlush = false)
     {
         bool bClose = false;
         if (f != NULL)
-            bClose = (fclose(f) == 0);
+        {
+            if (bFlush)
+                fflush(f);
 
+            if (fclose(f) == 0)
+                bClose = true;
+        }
         return bClose;
     }
 
-    static long getsize(FILE* f)
+    static long getsize(FilePtr f)
     {
         long size = 0;
         if (f != NULL) {
@@ -103,17 +176,18 @@ public:
         return size;
     }
 
-    static bool readfile(FILE* f, void* pBuf, size_t nBytes)
+    static bool readfile(FilePtr f, void* pBuf, size_t nBytes)
     {
         size_t count = fread(pBuf, 1, nBytes, f);
         return (count == nBytes);
     }
 
-    static bool writefile(FILE* f, const void* pBuf, size_t nBytes)
+    static bool writefile(FilePtr f, const void* pBuf, size_t nBytes)
     {
         size_t count = fwrite(pBuf, 1, nBytes, f);
         return (count == nBytes);
     }
+  #endif
 
 };
 
@@ -313,8 +387,6 @@ template <class T> bool CFileBufT<T>::GoToPrevLine()
 
 template <class T> T* CFileBufT<T>::LoadFromFile(const TCHAR* szFile, bool bTextFile, int /*nUtf8DetectLength*/)
 {
-  FILE* f;
-  
   // initial values when LoadFromFile fails
   m_nLineNumber = 1;
   m_nLineStartPos = 0;
@@ -322,7 +394,7 @@ template <class T> T* CFileBufT<T>::LoadFromFile(const TCHAR* szFile, bool bText
 
   m_buf.Clear();
 
-  f = openfile(szFile);
+  FilePtr f = openfile(szFile);
   if (f == NULL)
     return NULL;
 
@@ -375,7 +447,7 @@ template <class T> bool CFileBufT<T>::ReplaceCurrentLine(const CStrT<T>& strNewL
 
 template <class T> bool CFileBufT<T>::SaveToFile(const TCHAR* szFile, bool bTextFile)
 {
-  FILE* f = openfile(szFile, true);
+  FilePtr f = openfile(szFile, true);
   if (f == NULL)
     return false;
 
@@ -395,7 +467,7 @@ template <class T> bool CFileBufT<T>::SaveToFile(const TCHAR* szFile, bool bText
     return false;
   }
 
-  closefile(f);
+  closefile(f, true);
   return true;
 }
 

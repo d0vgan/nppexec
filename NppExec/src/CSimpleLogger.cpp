@@ -20,6 +20,135 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 
 
+#ifdef UNICODE
+class LogFileWriter
+{
+public:
+    LogFileWriter(bool useOwnLock = true) : m_hFile(INVALID_HANDLE_VALUE), m_useOwnLock(useOwnLock)
+    {
+    }
+
+    ~LogFileWriter()
+    {
+        Close();
+    }
+
+    bool Open(const TCHAR* szFilePathName, bool bAppend = false)
+    {
+        bool bOpenOK = false;
+
+        Close();
+
+        const DWORD dwCreationDisposition = bAppend ? OPEN_EXISTING : CREATE_ALWAYS;
+        const DWORD dwFlagsAndAttributes = FILE_FLAG_WRITE_THROUGH;
+
+        if ( m_useOwnLock )
+            m_csFile.Lock();
+
+        m_hFile = ::CreateFileW(szFilePathName, GENERIC_WRITE, FILE_SHARE_READ, NULL, dwCreationDisposition, dwFlagsAndAttributes, NULL);
+        if ( (m_hFile == INVALID_HANDLE_VALUE) && bAppend )
+        {
+            m_hFile = ::CreateFileW(szFilePathName, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, dwFlagsAndAttributes, NULL);
+        }
+
+        if ( m_hFile != INVALID_HANDLE_VALUE )
+        {
+            m_filePathName = szFilePathName;
+            bOpenOK = true;
+
+            if ( bAppend )
+            {
+                DWORD dwFileSize = ::GetFileSize(m_hFile, NULL);
+                ::SetFilePointer(m_hFile, dwFileSize, NULL, FILE_BEGIN);
+            }
+        }
+
+        if ( m_useOwnLock )
+            m_csFile.Unlock();
+
+        return bOpenOK;
+    }
+
+    bool Close()
+    {
+        bool bCloseOK = false;
+
+        if ( m_useOwnLock )
+            m_csFile.Lock();
+
+        if ( m_hFile != INVALID_HANDLE_VALUE )
+        {
+            ::FlushFileBuffers(m_hFile);
+            if ( ::CloseHandle(m_hFile) != FALSE )
+                bCloseOK = true;
+            m_hFile = INVALID_HANDLE_VALUE;
+            m_filePathName.Clear();
+        }
+
+        if ( m_useOwnLock )
+            m_csFile.Unlock();
+
+        return bCloseOK;
+    }
+
+    tstr GetFilePathName() const
+    {
+        if ( m_useOwnLock )
+        {
+            CCriticalSectionLockGuard lock(m_csFile);
+            return m_filePathName;
+        }
+
+        return m_filePathName;
+    }
+
+    bool IsOpen() const
+    {
+        bool isOpen = false;
+
+        if ( m_useOwnLock )
+            m_csFile.Lock();
+
+        if ( m_hFile != INVALID_HANDLE_VALUE )
+            isOpen = true;
+
+        if ( m_useOwnLock )
+            m_csFile.Unlock();
+
+        return isOpen;
+    }
+
+    bool Write(const void* pBuf, size_t nBytes)
+    {
+        bool bWriteOK = false;
+
+        if ( m_useOwnLock )
+            m_csFile.Lock();
+
+        if ( m_hFile != INVALID_HANDLE_VALUE )
+        {
+            DWORD dwBytesToWrite = static_cast<DWORD>(nBytes);
+            DWORD dwBytesWritten = 0;
+            if ( ::WriteFile(m_hFile, pBuf, dwBytesToWrite, &dwBytesWritten, NULL) )
+            {
+                if ( dwBytesToWrite == dwBytesWritten )
+                    bWriteOK = true;
+            }
+        }
+
+        if ( m_useOwnLock )
+            m_csFile.Unlock();
+
+        return bWriteOK;
+    }
+
+protected:
+    mutable CCriticalSection m_csFile;
+    HANDLE m_hFile;
+    CStrT<TCHAR> m_filePathName;
+    bool m_useOwnLock;
+};
+#else
 class LogFileWriter
 {
     public:
@@ -38,20 +167,15 @@ class LogFileWriter
 
             Close();
 
-            #ifdef UNICODE
-              const wchar_t* szMode = bAppend ? L"a+b" : L"w+b";
-            #else
-              const char* szMode = bAppend ? "a+b" : "w+b";
-            #endif
+            const char* szMode = bAppend ? "a+bc" : "w+bc";
+              // c - enable the commit flag for the associated filename
+              // so that the contents of the file buffer are written
+              // directly to disk if either fflush or _flushall is called.
 
             if ( m_useOwnLock )
                 m_csFile.Lock();
 
-            #ifdef UNICODE
-              m_f = ::_wfopen(szFilePathName, szMode);
-            #else
-              m_f = ::fopen(szFilePathName, szMode);
-            #endif
+            m_f = ::fopen(szFilePathName, szMode);
 
             if ( m_f )
             {
@@ -141,7 +265,7 @@ class LogFileWriter
         CStrT<TCHAR> m_filePathName;
         bool m_useOwnLock;
 };
-
+#endif
 
 CSimpleLogger::CSimpleLogger()
   : m_pFileWriter(NULL)

@@ -63,8 +63,6 @@ template<> void CFileBufT<wchar_t>::setLineStartPos(int pos)
 
 template<> wchar_t* CFileBufT<wchar_t>::LoadFromFile(const TCHAR* szFile, bool bTextFile, int nUtf8DetectLength)
 {
-  FILE* f;
-  
   // initial values when LoadFromFile fails
   m_nLineNumber = 1;
   m_nLineStartPos = 0;
@@ -72,7 +70,7 @@ template<> wchar_t* CFileBufT<wchar_t>::LoadFromFile(const TCHAR* szFile, bool b
 
   m_buf.Clear();
 
-  f = openfile(szFile);
+  FilePtr f = openfile(szFile);
   if (f == NULL)
     return NULL;
 
