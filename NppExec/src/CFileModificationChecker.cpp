@@ -40,7 +40,7 @@ DWORD CFileModificationChecker::getFileSize(HANDLE hFile)
 HANDLE CFileModificationChecker::openTheFile()
 {
     HANDLE hFile = ::CreateFile( m_path.c_str(), GENERIC_READ, 
-                       FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL );
+                       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL );
     return ( (hFile != INVALID_HANDLE_VALUE) ? hFile : NULL );
 }
 

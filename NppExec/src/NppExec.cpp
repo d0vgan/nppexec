@@ -1558,10 +1558,20 @@ void UpdateCurrentDirectory()
 
         szFileDir[0] = 0;
         NppExec.SendNppMsg( NPPM_GETCURRENTDIRECTORY,
-            (WPARAM) (FILEPATH_BUFSIZE - 1), (LPARAM) szFileDir);
+          (WPARAM) (FILEPATH_BUFSIZE - 1), (LPARAM) szFileDir);
         if ( szFileDir[0] )
         {
             ::SetCurrentDirectory(szFileDir);
+        }
+        else
+        {
+            // dealing with an unnamed file...
+            szFileDir[0] = 0;
+            ::GetTempPath(FILEPATH_BUFSIZE - 1, szFileDir);
+            if ( szFileDir[0] )
+            {
+                ::SetCurrentDirectory(szFileDir);
+            }
         }
     }
 }
@@ -2572,16 +2582,31 @@ int CNppExec::nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, i
   return 0;
 }
 
-bool CNppExec::nppGetSettingsCloudPath(tstr& cloudPath)
+tstr CNppExec::nppGetSettingsCloudPath()
 {
+    tstr cloudPath;
     int nLen = (int) SendNppMsg( NPPM_GETSETTINGSONCLOUDPATH, 0, 0 );
     if (nLen != 0)
     {
         cloudPath.Reserve(nLen + 1);
         nLen = (int) SendNppMsg( NPPM_GETSETTINGSONCLOUDPATH, nLen + 1, (LPARAM) cloudPath.c_str() );
+        cloudPath.SetLengthValue(nLen);
     }
-    cloudPath.SetLengthValue(nLen);
-    return (nLen > 0);
+    return cloudPath;
+}
+
+tstr CNppExec::GetSettingsCloudPluginDir()
+{
+    tstr cloudDir = nppGetSettingsCloudPath();
+    if (!cloudDir.IsEmpty())
+    {
+        if (!cloudDir.EndsWith(_T('\\')))
+        {
+            cloudDir += _T('\\');
+        }
+        cloudDir += _T("NppExec\\");
+    }
+    return cloudDir;
 }
 
 static tstr getMenuItemPathSep(const tstr& menuItemPathName)
@@ -4268,11 +4293,23 @@ void CNppExec::Uninit()
 
 }
 
-void CNppExec::ExpandToFullConfigPath(TCHAR* out_szPath, const TCHAR* cszFileName)
+tstr CNppExec::ExpandToFullConfigPath(const TCHAR* cszFileName, bool bTryCloud )
 {
-  lstrcpy(out_szPath, m_szConfigPath);
-  lstrcat(out_szPath, _T("\\"));
-  lstrcat(out_szPath, cszFileName);
+  if (bTryCloud)
+  {
+    tstr cloudPath = GetSettingsCloudPluginDir();
+    if (!cloudPath.IsEmpty())
+    {
+      cloudPath += cszFileName;
+      if (NppExecHelpers::IsValidTextFile(cloudPath))
+        return cloudPath;
+    }
+  }
+
+  tstr localPath = m_szConfigPath;
+  localPath += _T("\\");
+  localPath += cszFileName;
+  return localPath;
 }
 
 void CNppExec::InitPluginName(HMODULE hDllModule)
@@ -4369,8 +4406,6 @@ void CNppExec::Init()
 
   if ( m_nppData._nppHandle )
   {
-    nppGetSettingsCloudPath(m_sSettingsCloudPath);
-
     SendNppMsg( NPPM_GETPLUGINSCONFIGDIR,
       (WPARAM) (FILEPATH_BUFSIZE - 1), (LPARAM) m_szConfigPath );
 
@@ -4839,7 +4874,23 @@ void CNppExec::OnUserMenuItem(int nItemNumber)
 void CNppExec::ReadOptions()
 {
   // Reading options...
-  GetOptions().ReadOptions(m_szIniFilePathName);
+
+  bool bCloudIni = false;
+  tstr cloudIniPath = GetSettingsCloudPluginDir();
+  if (!cloudIniPath.IsEmpty())
+  {
+    cloudIniPath += INI_FILENAME;
+    if (NppExecHelpers::IsValidTextFile(cloudIniPath))
+    {
+      GetOptions().ReadOptions(cloudIniPath.c_str());
+      bCloudIni = true;
+    }
+  }
+
+  if (!bCloudIni)
+  {
+    GetOptions().ReadOptions(m_szIniFilePathName);
+  }
 
   // Log File...
   tstr sLogsDir = GetOptions().GetStr(OPTS_PLUGIN_LOGSDIR);
@@ -5187,11 +5238,9 @@ void CNppExec::ReadOptions()
 #endif
   }
 
-  TCHAR path[FILEPATH_BUFSIZE];
-  ExpandToFullConfigPath(path, SCRIPTFILE_TEMP);
-
+  const tstr pathToTempScript = ExpandToFullConfigPath(SCRIPTFILE_TEMP, true);
   CFileBufT<TCHAR> fbuf;
-  if (fbuf.LoadFromFile(path, true, GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH)))
+  if (fbuf.LoadFromFile(pathToTempScript.c_str(), true, GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH)))
   {
     tstr Line;
 
@@ -5201,9 +5250,31 @@ void CNppExec::ReadOptions()
     } 
   }
 
-  ExpandToFullConfigPath(path, SCRIPTFILE_SAVED);
-  m_ScriptsList.LoadFromFile(path, GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH));
-  g_scriptFileChecker.AssignFile(path);
+  const tstr pathToSavedScripts = ExpandToFullConfigPath(SCRIPTFILE_SAVED, true);
+  m_ScriptsList.LoadFromFile(pathToSavedScripts.c_str(), GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH));
+  g_scriptFileChecker.AssignFile(pathToSavedScripts.c_str());
+  /*
+  const tstr pathToCloudSavedScripts = ExpandToFullConfigPath(SCRIPTFILE_SAVED, true);
+  const tstr pathToLocalSavedScripts = ExpandToFullConfigPath(SCRIPTFILE_SAVED);
+  if (pathToCloudSavedScripts != pathToLocalSavedScripts)
+  {
+    FILETIME cloudWriteTime;
+    FILETIME localWriteTime;
+
+    ::ZeroMemory(&cloudWriteTime, sizeof(FILETIME));
+    ::ZeroMemory(&localWriteTime, sizeof(FILETIME));
+
+    NppExecHelpers::GetFileWriteTime(pathToCloudSavedScripts.c_str(), &cloudWriteTime);
+    NppExecHelpers::GetFileWriteTime(pathToLocalSavedScripts.c_str(), &localWriteTime);
+
+    if (::CompareFileTime(&cloudWriteTime, &localWriteTime) > 0)
+    {
+      ::CopyFile(pathToCloudSavedScripts.c_str(), pathToLocalSavedScripts.c_str(), FALSE);
+    }
+  }
+  m_ScriptsList.LoadFromFile(pathToLocalSavedScripts.c_str(), GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH));
+  g_scriptFileChecker.AssignFile(pathToLocalSavedScripts.c_str());
+  */
 
   if ( Runtime::GetLogger().IsLogFileOpen() )
   {
@@ -5264,20 +5335,53 @@ DWORD WINAPI CNppExec::ExitScriptTimeoutThreadProc(LPVOID lpParam)
   return 0;
 }
 
+void CNppExec::CreateCloudDirIfNeeded(const tstr& cloudDir)
+{
+  if (!NppExecHelpers::CheckDirectoryExists(cloudDir))
+  {
+    const tstr parentDir = NppExecHelpers::GetFileNamePart(cloudDir, NppExecHelpers::fnpDirPath);
+    if (!NppExecHelpers::CheckDirectoryExists(parentDir))
+    {
+      ::CreateDirectory(parentDir.c_str(), NULL);
+    }
+    ::CreateDirectory(cloudDir.c_str(), NULL);
+  }
+}
+
+void CNppExec::SaveConfiguration()
+{
+  const int nWrittenToIni = GetOptions().SaveOptions(m_szIniFilePathName);
+
+  // Cloud settings...
+  const tstr cloudPluginDir = GetSettingsCloudPluginDir();
+  if (!cloudPluginDir.IsEmpty())
+  {
+    CreateCloudDirIfNeeded(cloudPluginDir);
+
+    // Back up the .ini file to the cloud
+    tstr cloudIniPath = cloudPluginDir;
+    cloudIniPath += INI_FILENAME;
+    if ((nWrittenToIni > 0) || !NppExecHelpers::IsValidTextFile(cloudIniPath))
+    {
+      ::CopyFile(m_szIniFilePathName, cloudIniPath.c_str(), FALSE);
+    }
+  }
+}
+
 void CNppExec::SaveOptions()
 {
   if ( m_isSavingOptions )
     return;
 
   {
-  CCriticalSectionLockGuard lock(m_csAutoSave);
+    CCriticalSectionLockGuard lock(m_csAutoSave);
 
-  m_isSavingOptions = true;
+    m_isSavingOptions = true;
 
-  if ( Runtime::GetLogger().IsLogFileOpen() )
-  {
-    Runtime::GetLogger().Add/*_WithoutOutput*/( _T("; CNppExec::SaveOptions - start") );
-  }
+    if ( Runtime::GetLogger().IsLogFileOpen() )
+    {
+      Runtime::GetLogger().Add/*_WithoutOutput*/( _T("; CNppExec::SaveOptions - start") );
+    }
 
     for ( int i = 0; i < CConsoleOutputFilterDlg::RECOGNITION_ITEMS; i++ )
     {
@@ -5311,120 +5415,121 @@ void CNppExec::SaveOptions()
         }
     }
 
-  CListItemT<tstr>* p1 = ConsoleOutputFilterDlg.m_ExcludeHistory.GetFirst();
-  CListItemT<tstr>* p2 = ConsoleOutputFilterDlg.m_IncludeHistory.GetFirst();
-  CListItemT<tstr>* p3 = ConsoleOutputFilterDlg.m_RFindHistory.GetFirst();
-  CListItemT<tstr>* p4 = ConsoleOutputFilterDlg.m_RRplcHistory.GetFirst();
-  CListItemT<tstr>* p5 = ConsoleOutputFilterDlg.m_HighlightHistory.GetFirst();
-  for ( int i = 0; i < CConsoleOutputFilterDlg::HISTORY_ITEMS; i++ )
-  {
-    if ( p1 )
+    CListItemT<tstr>* p1 = ConsoleOutputFilterDlg.m_ExcludeHistory.GetFirst();
+    CListItemT<tstr>* p2 = ConsoleOutputFilterDlg.m_IncludeHistory.GetFirst();
+    CListItemT<tstr>* p3 = ConsoleOutputFilterDlg.m_RFindHistory.GetFirst();
+    CListItemT<tstr>* p4 = ConsoleOutputFilterDlg.m_RRplcHistory.GetFirst();
+    CListItemT<tstr>* p5 = ConsoleOutputFilterDlg.m_HighlightHistory.GetFirst();
+    for ( int i = 0; i < CConsoleOutputFilterDlg::HISTORY_ITEMS; i++ )
     {
-      if ( p1->GetItem().length() > 0 )
-        GetOptions().SetStr( OPTS_FILTERS_EXCL1 + i, p1->GetItem().c_str() );
-      p1 = p1->GetNext();
+      if ( p1 )
+      {
+        if ( p1->GetItem().length() > 0 )
+          GetOptions().SetStr( OPTS_FILTERS_EXCL1 + i, p1->GetItem().c_str() );
+        p1 = p1->GetNext();
+      }
+      if ( p2 )
+      {
+        if ( p2->GetItem().length() > 0 )
+          GetOptions().SetStr( OPTS_FILTERS_INCL1 + i, p2->GetItem().c_str() );
+        p2 = p2->GetNext();
+      }
+      if ( p3 )
+      {
+        if ( p3->GetItem().length() > 0 )
+          GetOptions().SetStr( OPTS_FILTERS_R_FIND1 + i, p3->GetItem().c_str() );
+        p3 = p3->GetNext();
+      }
+      if ( p4 )
+      {
+        if ( p4->GetItem().length() > 0 )
+          GetOptions().SetStr( OPTS_FILTERS_R_RPLC1 + i, p4->GetItem().c_str() );
+        p4 = p4->GetNext();
+      }
+      if ( p5 )
+      {
+        if ( p5->GetItem().length() > 0 )
+          GetOptions().SetStr( OPTS_FILTERS_HGLT1 + i, p5->GetItem().c_str() );
+        p5 = p5->GetNext();
+      }
     }
-    if ( p2 )
-    {
-      if ( p2->GetItem().length() > 0 )
-        GetOptions().SetStr( OPTS_FILTERS_INCL1 + i, p2->GetItem().c_str() );
-      p2 = p2->GetNext();
-    }
-    if ( p3 )
-    {
-      if ( p3->GetItem().length() > 0 )
-        GetOptions().SetStr( OPTS_FILTERS_R_FIND1 + i, p3->GetItem().c_str() );
-      p3 = p3->GetNext();
-    }
-    if ( p4 )
-    {
-      if ( p4->GetItem().length() > 0 )
-        GetOptions().SetStr( OPTS_FILTERS_R_RPLC1 + i, p4->GetItem().c_str() );
-      p4 = p4->GetNext();
-    }
-    if ( p5 )
-    {
-      if ( p5->GetItem().length() > 0 )
-        GetOptions().SetStr( OPTS_FILTERS_HGLT1 + i, p5->GetItem().c_str() );
-      p5 = p5->GetNext();
-    }
-  }
 
-  CListItemT<tstr>* p6 = InputBoxDlg.m_InputHistory[CInputBoxDlg::IBT_INPUTBOX].GetFirst();
-  CListItemT<tstr>* p7 = InputBoxDlg.m_InputHistory[CInputBoxDlg::IBT_EXITPROCESS].GetFirst();
-  for ( int i = 0; i < CInputBoxDlg::HISTORY_ITEMS; i++ )
-  {
-    if ( p6 )
+    CListItemT<tstr>* p6 = InputBoxDlg.m_InputHistory[CInputBoxDlg::IBT_INPUTBOX].GetFirst();
+    CListItemT<tstr>* p7 = InputBoxDlg.m_InputHistory[CInputBoxDlg::IBT_EXITPROCESS].GetFirst();
+    for ( int i = 0; i < CInputBoxDlg::HISTORY_ITEMS; i++ )
     {
-      if ( p6->GetItem().length() > 0 )
-        GetOptions().SetStr( OPTS_INPUTBOX_VALUE1 + i, p6->GetItem().c_str() );
-      p6 = p6->GetNext();
+      if ( p6 )
+      {
+        if ( p6->GetItem().length() > 0 )
+          GetOptions().SetStr( OPTS_INPUTBOX_VALUE1 + i, p6->GetItem().c_str() );
+        p6 = p6->GetNext();
+      }
+      if ( p7 )
+      {
+        if ( p7->GetItem().length() > 0 )
+          GetOptions().SetStr( OPTS_EXITBOX_VALUE1 + i, p7->GetItem().c_str() );
+        p7 = p7->GetNext();
+      }
     }
-    if ( p7 )
-    {
-      if ( p7->GetItem().length() > 0 )
-        GetOptions().SetStr( OPTS_EXITBOX_VALUE1 + i, p7->GetItem().c_str() );
-      p7 = p7->GetNext();
-    }
-  }
 
-  //if ( GetOptions().GetUint(OPTU_PLUGIN_HOTKEY) != GetOptions().GetUint(OPTU_PLUGIN_HOTKEY, false) )
-  // Incorrect comparison because initial value 
-  // of OPTU_PLUGIN_HOTKEY is always VK_F6.
-  {
-    const unsigned int nHotKey = GetOptions().GetUint(OPTU_PLUGIN_HOTKEY);  
-    TCHAR szHotKey[8];
+    //if ( GetOptions().GetUint(OPTU_PLUGIN_HOTKEY) != GetOptions().GetUint(OPTU_PLUGIN_HOTKEY, false) )
+    // Incorrect comparison because initial value 
+    // of OPTU_PLUGIN_HOTKEY is always VK_F6.
+    {
+      const unsigned int nHotKey = GetOptions().GetUint(OPTU_PLUGIN_HOTKEY);  
+      TCHAR szHotKey[8];
         
-    if ( nHotKey == VK_F1 )
-      lstrcpy(szHotKey, _T("F1"));
-    else if ( nHotKey == VK_F2 )
-      lstrcpy(szHotKey, _T("F2"));
-    else if ( nHotKey == VK_F3 )
-      lstrcpy(szHotKey, _T("F3"));
-    else if ( nHotKey == VK_F4 )
-      lstrcpy(szHotKey, _T("F4"));
-    else if ( nHotKey == VK_F5 )
-      lstrcpy(szHotKey, _T("F5"));
-    else if ( nHotKey == VK_F6 )
-      lstrcpy(szHotKey, _T("F6"));
-    else if ( nHotKey == VK_F7 )
-      lstrcpy(szHotKey, _T("F7"));
-    else if ( nHotKey == VK_F8 )
-      lstrcpy(szHotKey, _T("F8"));
-    else if ( nHotKey == VK_F9 )
-      lstrcpy(szHotKey, _T("F9"));
-    else if ( nHotKey == VK_F10 )
-      lstrcpy(szHotKey, _T("F10"));
-    else if ( nHotKey == VK_F11 )
-      lstrcpy(szHotKey, _T("F11"));
-    else if ( nHotKey == VK_F12 )
-      lstrcpy(szHotKey, _T("F12"));
-    else
-      lstrcpy(szHotKey, _T("F6"));
+      if ( nHotKey == VK_F1 )
+        lstrcpy(szHotKey, _T("F1"));
+      else if ( nHotKey == VK_F2 )
+        lstrcpy(szHotKey, _T("F2"));
+      else if ( nHotKey == VK_F3 )
+        lstrcpy(szHotKey, _T("F3"));
+      else if ( nHotKey == VK_F4 )
+        lstrcpy(szHotKey, _T("F4"));
+      else if ( nHotKey == VK_F5 )
+        lstrcpy(szHotKey, _T("F5"));
+      else if ( nHotKey == VK_F6 )
+        lstrcpy(szHotKey, _T("F6"));
+      else if ( nHotKey == VK_F7 )
+        lstrcpy(szHotKey, _T("F7"));
+      else if ( nHotKey == VK_F8 )
+        lstrcpy(szHotKey, _T("F8"));
+      else if ( nHotKey == VK_F9 )
+        lstrcpy(szHotKey, _T("F9"));
+      else if ( nHotKey == VK_F10 )
+        lstrcpy(szHotKey, _T("F10"));
+      else if ( nHotKey == VK_F11 )
+        lstrcpy(szHotKey, _T("F11"));
+      else if ( nHotKey == VK_F12 )
+        lstrcpy(szHotKey, _T("F12"));
+      else
+        lstrcpy(szHotKey, _T("F6"));
 
-    GetOptions().SetStr(OPTS_PLUGIN_HOTKEY, szHotKey);
-  }
-    
-  GetOptions().SaveOptions(m_szIniFilePathName);
-  SaveScripts();
+      GetOptions().SetStr(OPTS_PLUGIN_HOTKEY, szHotKey);
+    }
 
-  ConsoleDlg::SaveCmdHistory();
+    SaveConfiguration();
+    SaveScripts();
+    ConsoleDlg::SaveCmdHistory();
 
-  if ( Runtime::GetLogger().IsLogFileOpen() )
-  {
-    Runtime::GetLogger().Add/*_WithoutOutput*/( _T("; CNppExec::SaveOptions - end") );
-  }
+    if ( Runtime::GetLogger().IsLogFileOpen() )
+    {
+      Runtime::GetLogger().Add/*_WithoutOutput*/( _T("; CNppExec::SaveOptions - end") );
+    }
 
-  m_isSavingOptions = false;
+    m_isSavingOptions = false;
   }
 }
 
 void CNppExec::SaveScripts()
 {
-  TCHAR             path[FILEPATH_BUFSIZE];
   CListItemT<tstr>* p;
   CFileBufT<TCHAR>  fbuf;
   tstr              Line;
+  int               nSaved = 0;
+  tstr              localTempScript = ExpandToFullConfigPath(SCRIPTFILE_TEMP);
+  tstr              localSavedScripts = ExpandToFullConfigPath(SCRIPTFILE_SAVED);
 
   if (m_TempScriptIsModified)
   {
@@ -5438,16 +5543,46 @@ void CNppExec::SaveScripts()
       fbuf.GetBufPtr()->Append(Line.c_str(), Line.length());
       p = p->GetNext();
     }
-    ExpandToFullConfigPath(path, SCRIPTFILE_TEMP);
-    fbuf.SaveToFile(path);
+    fbuf.SaveToFile(localTempScript.c_str());
     m_TempScriptIsModified = false;
+    nSaved |= 0x01;
   }
 
   if (m_ScriptsList.IsModified())
   {
-    ExpandToFullConfigPath(path, SCRIPTFILE_SAVED);
-    m_ScriptsList.SaveToFile(path);
+    m_ScriptsList.SaveToFile(localSavedScripts.c_str());
     g_scriptFileChecker.UpdateFileInfo();
+    nSaved |= 0x02;
+  }
+
+  // Cloud settings...
+  const tstr cloudPluginDir = GetSettingsCloudPluginDir();
+  if (!cloudPluginDir.IsEmpty())
+  {
+    CreateCloudDirIfNeeded(cloudPluginDir);
+
+    // Back up the temp script to the cloud
+    tstr cloudTempScript = cloudPluginDir;
+    cloudTempScript += SCRIPTFILE_TEMP;
+    if ((nSaved & 0x01) || !NppExecHelpers::IsValidTextFile(cloudTempScript))
+    {
+      ::CopyFile(localTempScript.c_str(), cloudTempScript.c_str(), FALSE);
+    }
+
+    // Back up the saved scripts to the cloud
+    tstr cloudSavedScripts = cloudPluginDir;
+    cloudSavedScripts += SCRIPTFILE_SAVED;
+    if ((nSaved & 0x02) || !NppExecHelpers::IsValidTextFile(cloudSavedScripts))
+    {
+      ::CopyFile(localSavedScripts.c_str(), cloudSavedScripts.c_str(), FALSE);
+      /*
+      FILETIME writeTime;
+      if (NppExecHelpers::GetFileWriteTime(localSavedScripts.c_str(), &writeTime))
+      {
+        NppExecHelpers::SetFileWriteTime(cloudSavedScripts.c_str(), &writeTime);
+      }
+      */
+    }
   }
 
 }

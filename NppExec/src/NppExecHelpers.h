@@ -404,6 +404,12 @@ namespace NppExecHelpers
     bool CheckFileExists(const tstr& filename);
     bool CheckFileExists(const TCHAR* filename);
 
+    bool IsValidTextFile(const tstr& filename);
+    bool IsValidTextFile(const TCHAR* filename);
+
+    bool GetFileWriteTime(const TCHAR* filename, FILETIME* pLastWriteTime);
+    bool SetFileWriteTime(const TCHAR* filename, const FILETIME* pLastWriteTime);
+
     tstr GetInstanceAsString(const void* pInstance);
 
     void StrLower(tstr& S); // converts to lower case

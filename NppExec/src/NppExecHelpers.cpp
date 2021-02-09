@@ -435,6 +435,94 @@ namespace NppExecHelpers
         return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == 0));
     }
 
+    bool IsValidTextFile(const tstr& filename)
+    {
+        return IsValidTextFile(filename.c_str());
+    }
+
+    bool IsValidTextFile(const TCHAR* filename)
+    {
+        bool bResult = false;
+        HANDLE hFile = ::CreateFile( filename, GENERIC_READ, 
+          FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL );
+        
+        if ( hFile != INVALID_HANDLE_VALUE )
+        {
+            const DWORD dwBytesToVerify = 16;
+            DWORD dwBytes = ::GetFileSize(hFile, NULL);
+            if ( dwBytes > dwBytesToVerify )
+                dwBytes = dwBytesToVerify;
+            
+            DWORD dwBytesRead = 0;
+            BYTE buf[dwBytesToVerify];
+            if ( ::ReadFile(hFile, buf, dwBytesToVerify, &dwBytesRead, NULL) )
+            {
+                if ( dwBytesRead == dwBytesToVerify )
+                {
+                    DWORD dwZeroBytes = 0;
+                    DWORD dwContinuousZeroBytes = 0;
+                    DWORD dwMaxContinuousZeroBytes = 0;
+                    for ( DWORD i = 0; i < dwBytesToVerify; ++i )
+                    {
+                        if ( buf[i] == 0x00 )
+                        {
+                            ++dwZeroBytes;
+                            ++dwContinuousZeroBytes;
+                        }
+                        else
+                        {
+                            if ( dwMaxContinuousZeroBytes < dwContinuousZeroBytes )
+                                dwMaxContinuousZeroBytes = dwContinuousZeroBytes;
+
+                            dwContinuousZeroBytes = 0;
+                        }
+                    }
+                    if ( dwMaxContinuousZeroBytes < dwContinuousZeroBytes )
+                        dwMaxContinuousZeroBytes = dwContinuousZeroBytes;
+
+                    if ( (dwMaxContinuousZeroBytes <= 2) && (dwZeroBytes*2 <= dwBytesToVerify) )
+                        bResult = true;
+                }
+            }
+
+            ::CloseHandle(hFile);
+        }
+
+        return bResult;
+    }
+
+    bool GetFileWriteTime(const TCHAR* filename, FILETIME* pLastWriteTime)
+    {
+        bool bResult = false;
+        HANDLE hFile = ::CreateFile(filename, GENERIC_READ,
+          FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+        if ( hFile != INVALID_HANDLE_VALUE )
+        {
+            if ( ::GetFileTime(hFile, NULL, NULL, pLastWriteTime) )
+            {
+                bResult = true;
+            }
+            ::CloseHandle(hFile);
+        }
+        return bResult;
+    }
+
+    bool SetFileWriteTime(const TCHAR* filename, const FILETIME* pLastWriteTime)
+    {
+        bool bResult = false;
+        HANDLE hFile = ::CreateFile(filename, GENERIC_WRITE, 
+          FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+        if ( hFile != INVALID_HANDLE_VALUE )
+        {
+            if ( ::SetFileTime(hFile, NULL, NULL, pLastWriteTime) )
+            {
+                bResult = true;
+            }
+            ::CloseHandle(hFile);
+        }
+        return bResult;
+    }
+
     tstr GetInstanceAsString(const void* pInstance)
     {
         tstr S;

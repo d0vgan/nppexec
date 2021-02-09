@@ -2295,8 +2295,8 @@ namespace ConsoleDlg
   void    OnSize(HWND hDlg);
 
   void    loadCmdVarsList();
-  void    loadCmdHistory();
-  void    saveCmdHistory();
+  bool    loadCmdHistory();
+  bool    saveCmdHistory();
 
   void    enableFindControls(bool bEnable);
 
@@ -4818,56 +4818,81 @@ void ConsoleDlg::loadCmdVarsList()
   }
 }
 
-void ConsoleDlg::loadCmdHistory()
+bool ConsoleDlg::loadCmdHistory()
 {
   CNppExec& NppExec = Runtime::GetNppExec();
   if ( !NppExec.GetOptions().GetBool(OPTB_CONSOLE_SAVECMDHISTORY) )
-    return;
-  
-  TCHAR            path[FILEPATH_BUFSIZE];
+    return false;
+
   CFileBufT<TCHAR> fbuf;
   tstr             S;
 
-  NppExec.ExpandToFullConfigPath(path, CMDHISTORY_FILENAME);
-  if ( fbuf.LoadFromFile(path, true, NppExec.GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH)) )
+  tstr path = NppExec.ExpandToFullConfigPath(CMDHISTORY_FILENAME, true);
+  if ( fbuf.LoadFromFile(path.c_str(), true, NppExec.GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH)) )
   {
     while ( fbuf.GetLine(S) >= 0 )
     {
       CmdHistoryList.Add(S);
     }
+
+    return true;
   }
+
+  return false;
 }
 
-void ConsoleDlg::saveCmdHistory()
+bool ConsoleDlg::saveCmdHistory()
 {
   CNppExec& NppExec = Runtime::GetNppExec();
   if ( !NppExec.GetOptions().GetBool(OPTB_CONSOLE_SAVECMDHISTORY) )
-    return;
+    return false;
 
-  if ( !bCmdHistoryUpdated )
-    return;
-    
-  TCHAR            path[FILEPATH_BUFSIZE];
-  CFileBufT<TCHAR> fbuf;
-  tstr             S;
+  bool bSaved = false;
+  tstr localCmdHistory = NppExec.ExpandToFullConfigPath(CMDHISTORY_FILENAME);
 
-  NppExec.ExpandToFullConfigPath(path, CMDHISTORY_FILENAME);
-  fbuf.GetBufPtr()->Reserve( CmdHistoryList.GetCount() * 64 );
-  CListItemT<tstr> * p = CmdHistoryList.GetFirst();
-  while ( p )
+  if ( bCmdHistoryUpdated )
   {
-    S = p->GetItem();
-    S += _T("\r\n");
-    fbuf.GetBufPtr()->Append( S.c_str(), S.length() );
-    p = p->GetNext();
+    CFileBufT<TCHAR> fbuf;
+    tstr             S;
+
+    fbuf.GetBufPtr()->Reserve( CmdHistoryList.GetCount() * 64 );
+    CListItemT<tstr> * p = CmdHistoryList.GetFirst();
+    while ( p )
+    {
+      S = p->GetItem();
+      S += _T("\r\n");
+      fbuf.GetBufPtr()->Append( S.c_str(), S.length() );
+      p = p->GetNext();
+    }
+
+    if ( fbuf.SaveToFile(localCmdHistory.c_str()) )
+    {
+      bCmdHistoryUpdated = false;
+      bSaved = true;
+    }
   }
-  if ( fbuf.SaveToFile(path) )
-    bCmdHistoryUpdated = false;
+
+  // Cloud settings...
+  const tstr cloudPluginDir = NppExec.GetSettingsCloudPluginDir();
+  if (!cloudPluginDir.IsEmpty())
+  {
+    CNppExec::CreateCloudDirIfNeeded(cloudPluginDir);
+
+    // Back up the cmd history to the cloud
+    tstr cloudCmdHistory = cloudPluginDir;
+    cloudCmdHistory += CMDHISTORY_FILENAME;
+    if (bSaved || !NppExecHelpers::IsValidTextFile(cloudCmdHistory))
+    {
+      ::CopyFile(localCmdHistory.c_str(), cloudCmdHistory.c_str(), FALSE);
+    }
+  }
+
+  return bSaved;
 }
 
-void ConsoleDlg::SaveCmdHistory()
+bool ConsoleDlg::SaveCmdHistory()
 {
-  saveCmdHistory();
+  return saveCmdHistory();
 }
 
 void ConsoleDlg::enableFindControls(bool bEnable)

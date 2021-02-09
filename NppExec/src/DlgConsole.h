@@ -55,7 +55,7 @@ namespace ConsoleDlg
     bool IsDocked();
     const TCHAR* GetTitle();
     bool EnableTransparency(bool bEnable);
-    void SaveCmdHistory();
+    bool SaveCmdHistory();
     void GoToError(int direction);
     bool IsConsoleHelpCommand(const tstr& S);
     bool IsConsoleVerCommand(const tstr& S);

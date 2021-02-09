@@ -1284,7 +1284,6 @@ private:
   TCHAR   m_szPluginDllPath[FILEPATH_BUFSIZE];
   TCHAR   m_szConfigPath[FILEPATH_BUFSIZE];
   TCHAR   m_szIniFilePathName[FILEPATH_BUFSIZE];
-  tstr    m_sSettingsCloudPath;
 
   HMODULE m_hRichEditDll;
 
@@ -1352,12 +1351,16 @@ public:
   /* bool nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders); */
   bool nppGetWorkspaceItemPath(tstr& itemPath);
   bool nppGetWorkspaceRootItemPath(tstr& rootItemPath);
-  bool nppGetSettingsCloudPath(tstr& cloudPath);
+  tstr nppGetSettingsCloudPath();
+  tstr GetSettingsCloudPluginDir();
   int  findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
+
+  static void CreateCloudDirIfNeeded(const tstr& cloudDir);
 
 private:
   bool SendChildProcessExitCommand();
   bool ShowChildProcessExitDialog();
+  void SaveConfiguration();
   
 public: 
   enum eCanStartFlags {
@@ -1412,7 +1415,7 @@ public:
   void ShowWarning(LPCTSTR szMessage);
   INT_PTR PluginDialogBox(UINT idDlg, DLGPROC lpDlgProc);
 
-  void ExpandToFullConfigPath(TCHAR* out_szPath, const TCHAR* cszFileName);
+  tstr ExpandToFullConfigPath(const TCHAR* cszFileName, bool bTryCloud = false);
 
   void setConsoleVisible(bool consoleIsVisible);
 

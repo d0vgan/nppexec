@@ -303,9 +303,8 @@ bool CDoExecDlg::checkScriptFile()
   {
     if ( g_scriptFileChecker.IsFileTimeChanged(&writeTime) != 0 )
     {
-      TCHAR path[FILEPATH_BUFSIZE];
-      NppExec.ExpandToFullConfigPath(path, SCRIPTFILE_SAVED);
-      NppExec.m_ScriptsList.LoadFromFile(path, NppExec.GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH));
+      tstr path = NppExec.ExpandToFullConfigPath(SCRIPTFILE_SAVED, true);
+      NppExec.m_ScriptsList.LoadFromFile(path.c_str(), NppExec.GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH));
       g_scriptFileChecker.UpdateFileInfo();
         //MessageBoxA(NULL,"","",MB_OK);
       return true;
