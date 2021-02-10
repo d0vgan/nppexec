@@ -5524,10 +5524,15 @@ void CNppExec::SaveOptions()
 
 void CNppExec::SaveScripts()
 {
+  enum eSavedScriptFlags {
+    ssfTemp    = 0x01,
+    ssfScripts = 0x02
+  };
+
   CListItemT<tstr>* p;
   CFileBufT<TCHAR>  fbuf;
   tstr              Line;
-  int               nSaved = 0;
+  unsigned int      nSaved = 0;
   tstr              localTempScript = ExpandToFullConfigPath(SCRIPTFILE_TEMP);
   tstr              localSavedScripts = ExpandToFullConfigPath(SCRIPTFILE_SAVED);
 
@@ -5545,14 +5550,13 @@ void CNppExec::SaveScripts()
     }
     fbuf.SaveToFile(localTempScript.c_str());
     m_TempScriptIsModified = false;
-    nSaved |= 0x01;
+    nSaved |= ssfTemp;
   }
 
   if (m_ScriptsList.IsModified())
   {
     m_ScriptsList.SaveToFile(localSavedScripts.c_str());
-    g_scriptFileChecker.UpdateFileInfo();
-    nSaved |= 0x02;
+    nSaved |= ssfScripts;
   }
 
   // Cloud settings...
@@ -5564,7 +5568,7 @@ void CNppExec::SaveScripts()
     // Back up the temp script to the cloud
     tstr cloudTempScript = cloudPluginDir;
     cloudTempScript += SCRIPTFILE_TEMP;
-    if ((nSaved & 0x01) || !NppExecHelpers::IsValidTextFile(cloudTempScript))
+    if ((nSaved & ssfTemp) || !NppExecHelpers::IsValidTextFile(cloudTempScript))
     {
       ::CopyFile(localTempScript.c_str(), cloudTempScript.c_str(), FALSE);
     }
@@ -5572,7 +5576,7 @@ void CNppExec::SaveScripts()
     // Back up the saved scripts to the cloud
     tstr cloudSavedScripts = cloudPluginDir;
     cloudSavedScripts += SCRIPTFILE_SAVED;
-    if ((nSaved & 0x02) || !NppExecHelpers::IsValidTextFile(cloudSavedScripts))
+    if ((nSaved & ssfScripts) || !NppExecHelpers::IsValidTextFile(cloudSavedScripts))
     {
       ::CopyFile(localSavedScripts.c_str(), cloudSavedScripts.c_str(), FALSE);
       /*
@@ -5585,6 +5589,10 @@ void CNppExec::SaveScripts()
     }
   }
 
+  if (nSaved & ssfScripts)
+  {
+    g_scriptFileChecker.UpdateFileInfo();
+  }
 }
 
 HWND CNppExec::GetScintillaHandle()
