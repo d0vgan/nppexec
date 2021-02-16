@@ -47,6 +47,7 @@
  |  NppExec_Cmd_Prefix              |  nppexec:                      | string |
  |  UTF8_Detect_Length              |  16384                         |  int   |
  |  AnsiEscapeSequences             |  0                             |  int   |
+ |  Cd_Unnamed                      |  1                             |  int   |
  |                                  |                                |        |
  |  [Options]                       |                                |        |
  |  HotKey                          |  F6                            | string |
@@ -109,6 +110,7 @@
    NppExec_Cmd_Prefix=nppexec:
    UTF8_Detect_Length=16384
    AnsiEscapeSequences=0
+   Cd_Unnamed=1
 
 
  ChildProcess_StartupTimeout_ms
@@ -538,6 +540,15 @@
    AnsiEscapeSequences = 1  -  removes ANSI escape characters (the output text
                                will not contain extra characters from the escape
                                sequences).
+
+
+ Cd_Unnamed
+ ----------
+   When "Follow $(CURRENT_DIRECTORY)" is on and an unnamed file is activated,
+   this option defines the exact behavior.
+   When "Follow $(CURRENT_DIRECTORY)" is off, this option does nothing.
+     Cd_Unnamed=0  -  the current directory is not changed
+     Cd_Unnamed=1  -  the current directly is set to %TEMP%
 
 
  HotKey
