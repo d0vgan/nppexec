@@ -1,29 +1,18 @@
 // This file is part of Notepad++ project
-// Copyright (C)2020 Don HO <don.h@free.fr>
-//
-// This program is free software; you can redistribute it and/or
-// modify it under the terms of the GNU General Public License
-// as published by the Free Software Foundation; either
-// version 2 of the License, or (at your option) any later version.
-//
-// Note that the GPL places important restrictions on "derived works", yet
-// it does not provide a detailed definition of that term.  To avoid
-// misunderstandings, we consider an application to constitute a
-// "derivative work" for the purpose of this license if it does any of the
-// following:
-// 1. Integrates source code from Notepad++.
-// 2. Integrates/includes/aggregates Notepad++ into a proprietary executable
-//    installer, such as those produced by InstallShield.
-// 3. Links to a library or executes a program that does any of the above.
+// Copyright (C)2021 Don HO <don.h@free.fr>
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// at your option any later version.
 //
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with this program; if not, write to the Free Software
-// Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+// along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
 #pragma once
@@ -429,6 +418,39 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	// Users should call it with pluginRootPath be NULL to get the required number of TCHAR (not including the terminating nul character),
 	// allocate pluginRootPath buffer with the return value + 1, then call it again to get the path.
 
+	#define NPPM_GETSETTINGSONCLOUDPATH (NPPMSG + 98)
+	// INT NPPM_GETSETTINGSCLOUDPATH(size_t strLen, TCHAR *settingsOnCloudPath)
+	// Get settings on cloud path. It's useful if plugins want to store its settings on Cloud, if this path is set.
+	// Returns the number of TCHAR copied/to copy. If the return value is 0, then this path is not set, or the "strLen" is not enough to copy the path.
+	// Users should call it with settingsCloudPath be NULL to get the required number of TCHAR (not including the terminating nul character),
+	// allocate settingsCloudPath buffer with the return value + 1, then call it again to get the path.
+
+	#define NPPM_SETLINENUMBERWIDTHMODE    (NPPMSG + 99)
+		#define LINENUMWIDTH_DYNAMIC     0
+		#define LINENUMWIDTH_CONSTANT    1
+	// BOOL NPPM_SETLINENUMBERWIDTHMODE(0, INT widthMode)
+	// Set line number margin width in dynamic width mode (LINENUMWIDTH_DYNAMIC) or constant width mode (LINENUMWIDTH_CONSTANT)
+	// It may help some plugins to disable non-dynamic line number margins width to have a smoothly visual effect while vertical scrolling the content in Notepad++
+	// If calling is successful return TRUE, otherwise return FALSE.
+
+	#define NPPM_GETLINENUMBERWIDTHMODE    (NPPMSG + 100)
+	// INT NPPM_GETLINENUMBERWIDTHMODE(0, 0)
+	// Get line number margin width in dynamic width mode (LINENUMWIDTH_DYNAMIC) or constant width mode (LINENUMWIDTH_CONSTANT)
+
+
+#define VAR_NOT_RECOGNIZED 0
+#define FULL_CURRENT_PATH 1
+#define CURRENT_DIRECTORY 2
+#define FILE_NAME 3
+#define NAME_PART 4
+#define EXT_PART 5
+#define CURRENT_WORD 6
+#define NPP_DIRECTORY 7
+#define CURRENT_LINE 8
+#define CURRENT_COLUMN 9
+#define NPP_FULL_FILE_PATH 10
+#define GETFILENAMEATCURSOR 11
+
 #define	RUNCOMMAND_USER    (WM_USER + 3000)
 	#define NPPM_GETFULLCURRENTPATH		(RUNCOMMAND_USER + FULL_CURRENT_PATH)
 	#define NPPM_GETCURRENTDIRECTORY	(RUNCOMMAND_USER + CURRENT_DIRECTORY)
@@ -453,18 +475,6 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 
 	#define NPPM_GETNPPFULLFILEPATH			(RUNCOMMAND_USER + NPP_FULL_FILE_PATH)
 
-		#define VAR_NOT_RECOGNIZED 0
-		#define FULL_CURRENT_PATH 1
-		#define CURRENT_DIRECTORY 2
-		#define FILE_NAME 3
-		#define NAME_PART 4
-		#define EXT_PART 5
-		#define CURRENT_WORD 6
-		#define NPP_DIRECTORY 7
-		#define CURRENT_LINE 8
-		#define CURRENT_COLUMN 9
-		#define NPP_FULL_FILE_PATH 10
-		#define GETFILENAMEATCURSOR 11
 
 
 // Notification code
