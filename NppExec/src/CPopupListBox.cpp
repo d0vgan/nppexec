@@ -47,6 +47,7 @@ const TCHAR* VariablesList[] = {
   _T("$(ARGV)"),               //  $(ARGV)
   _T("$(ARGV[1])"),            //  $(ARGV[1])
   MACRO_CLIPBOARD_TEXT,        //  $(CLIPBOARD_TEXT)
+  MACRO_CLOUD_LOCATION_PATH,   //  $(CLOUD_LOCATION_PATH)
   MACRO_CON_HWND,              //  $(CON_HWND)
   MACRO_CURRENT_COLUMN,        //  $(CURRENT_COLUMN)
   MACRO_FILE_DIRPATH,          //  $(CURRENT_DIRECTORY)

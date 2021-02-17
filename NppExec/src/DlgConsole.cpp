@@ -218,6 +218,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_DIR)  :  directory containing the current item in the workspace pane") _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_NAME)  :  file name of the current item in the workspace pane") _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_ROOT)  :  root path of the current item in the workspace pane") _T_RE_EOL \
+  _T("$(CLOUD_LOCATION_PATH)  :  cloud location path (in Notepad++\'s settings)") _T_RE_EOL \
   _T("$(CLIPBOARD_TEXT)  :  text from the clipboard") _T_RE_EOL \
   _T("$(#N)  :  full path of the Nth opened document (N=1,2,3...)") _T_RE_EOL \
   _T("$(#0)  :  full path to notepad++.exe") _T_RE_EOL \
@@ -4794,6 +4795,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_FILE_DIRPATH );           //  $(CURRENT_DIRECTORY)
   CmdVarsList.Add( MACRO_CURRENT_COLUMN );         //  $(CURRENT_COLUMN)
   CmdVarsList.Add( MACRO_CON_HWND );               //  $(CON_HWND)
+  CmdVarsList.Add( MACRO_CLOUD_LOCATION_PATH );    //  $(CLOUD_LOCATION_PATH)
   CmdVarsList.Add( MACRO_CLIPBOARD_TEXT );         //  $(CLIPBOARD_TEXT)
   CmdVarsList.Add( _T("$(ARGV[1])") );             //  $(ARGV[1])
   CmdVarsList.Add( _T("$(ARGV)") );                //  $(ARGV)

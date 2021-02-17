@@ -47,6 +47,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
      NppExec reads and stores its configuration within $(PLUGINS_CONFIG_DIR).
      And the "npes_saved.txt" is monitored in that folder.
  + added Notepad++ variable: $(NPP_FULL_FILE_PATH)
+ + added: $(CLOUD_LOCATION_PATH)
 
 
  v0.6.1 - November 2020

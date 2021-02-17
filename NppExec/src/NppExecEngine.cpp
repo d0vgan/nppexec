@@ -63,6 +63,7 @@ const TCHAR MACRO_WORKSPACE_ITEM_NAME[] = _T("$(WORKSPACE_ITEM_NAME)");
 const TCHAR MACRO_WORKSPACE_ITEM_PATH[] = _T("$(WORKSPACE_ITEM_PATH)");
 const TCHAR MACRO_WORKSPACE_ITEM_ROOT[] = _T("$(WORKSPACE_ITEM_ROOT)");
 /* const TCHAR MACRO_WORKSPACE_FOLDER[]    = _T("$(WORKSPACE_FOLDER"); */
+const TCHAR MACRO_CLOUD_LOCATION_PATH[] = _T("$(CLOUD_LOCATION_PATH)");
 const TCHAR MACRO_CURRENT_LINE[]        = _T("$(CURRENT_LINE)");
 const TCHAR MACRO_CURRENT_COLUMN[]      = _T("$(CURRENT_COLUMN)");
 const TCHAR MACRO_DOCNUMBER[]           = _T("$(#");
@@ -1341,6 +1342,7 @@ static FParserWrapper g_fp;
  * $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
  * $(WORKSPACE_ITEM_NAME): file name of the current item in the workspace pane
  * $(WORKSPACE_ITEM_ROOT): root path of the current item in the workspace pane
+ * $(CLOUD_LOCATION_PATH): cloud location path (in Notepad++'s settings)
  * $(CLIPBOARD_TEXT)     : text from the clipboard
  * $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  * $(#N), N=1,2,3...     : full path of the Nth opened document
@@ -7005,6 +7007,23 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       if (!bMacroOK)
       {
         sub = NppExecHelpers::GetClipboardText();
+        bMacroOK = true;
+      }
+
+      Cmd.Replace(pos, len, sub.c_str());
+      S.Replace(pos, len, sub.c_str());
+      pos += sub.length();
+    }
+
+    sub.Clear(); // cloud location path will be here
+    bMacroOK = false;
+    len = lstrlen(MACRO_CLOUD_LOCATION_PATH);
+    pos = 0;
+    while ((pos = Cmd.Find(MACRO_CLOUD_LOCATION_PATH, pos)) >= 0)
+    {
+      if (!bMacroOK)
+      {
+        sub = m_pNppExec->nppGetSettingsCloudPath();
         bMacroOK = true;
       }
 
