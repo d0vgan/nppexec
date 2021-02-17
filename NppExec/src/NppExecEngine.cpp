@@ -6842,7 +6842,7 @@ static tstr uptr2tstr(UINT_PTR uptr)
 };
 
 void CNppExecMacroVars::substituteMacroVar(tstr& Cmd, tstr& S, const TCHAR* varName, 
-                                           std::function<tstr (CNppExec* pNppExec)> getValue)
+                                           tstr (*getValue)(CNppExec* pNppExec) )
 {
   tstr varValue;
   bool isValueOK = false;
