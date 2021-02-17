@@ -1230,6 +1230,10 @@ public:
 
     static void MakeCompleteVarName(tstr& varName);
 
+protected:
+    void substituteMacroVar(tstr& Cmd, tstr& S, const TCHAR* varName, 
+                            std::function<tstr (CNppExec* pNppExec)> getValue);
+
 public:
     class StrCalc
     {

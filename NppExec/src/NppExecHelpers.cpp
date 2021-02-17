@@ -180,7 +180,7 @@ namespace NppExecHelpers
         return bSucceeded;
     }
 
-    tstr GetEnvironmentVariable(const TCHAR* szVarName)
+    tstr GetEnvironmentVar(const TCHAR* szVarName)
     {
         tstr sValue;
         DWORD nLen = ::GetEnvironmentVariable(szVarName, NULL, 0);
@@ -199,12 +199,12 @@ namespace NppExecHelpers
         return sValue;
     }
 
-    tstr GetEnvironmentVariable(const tstr& sVarName)
+    tstr GetEnvironmentVar(const tstr& sVarName)
     {
-        return GetEnvironmentVariable(sVarName.c_str());
+        return GetEnvironmentVar(sVarName.c_str());
     }
 
-    tstr GetCurrentDirectory()
+    tstr GetCurrentDir()
     {
         tstr sCurDir;
         DWORD nLen = ::GetCurrentDirectory(0, NULL);

@@ -374,10 +374,10 @@ namespace NppExecHelpers
     tstr GetClipboardText(HWND hWndOwner = NULL);
     bool SetClipboardText(const tstr& text, HWND hWndOwner = NULL);
 
-    tstr GetEnvironmentVariable(const TCHAR* szVarName);
-    tstr GetEnvironmentVariable(const tstr& sVarName);
+    tstr GetEnvironmentVar(const TCHAR* szVarName);
+    tstr GetEnvironmentVar(const tstr& sVarName);
 
-    tstr GetCurrentDirectory();
+    tstr GetCurrentDir();
 
     bool IsFullPath(const tstr& path);
     bool IsFullPath(const TCHAR* path);

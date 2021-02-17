@@ -2910,7 +2910,7 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
 
     if ( mode == clpComSpec )
     {
-        tstr sComSpec = NppExecHelpers::GetEnvironmentVariable( _T("COMSPEC") );
+        tstr sComSpec = NppExecHelpers::GetEnvironmentVar( _T("COMSPEC") );
         if ( sComSpec.IsEmpty() )
             sComSpec = _T("cmd");
 
@@ -2936,7 +2936,7 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
     }
 
     // mode == clpPathExt
-    tstr sPathExtensions = NppExecHelpers::GetEnvironmentVariable( _T("PATHEXT") );
+    tstr sPathExtensions = NppExecHelpers::GetEnvironmentVar( _T("PATHEXT") );
     if ( !sPathExtensions.IsEmpty() )
         NppExecHelpers::StrLower(sPathExtensions); // in lower case!
     else
@@ -2990,14 +2990,14 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
     else
     {
         // no path specified - check the paths in %PATH% and file extensions in %PATHEXT%...
-        tstr sPaths = NppExecHelpers::GetEnvironmentVariable( _T("PATH") );
+        tstr sPaths = NppExecHelpers::GetEnvironmentVar( _T("PATH") );
         CListT<tstr> paths;
         if ( !sPaths.IsEmpty() )
         {
             StrSplitAsArgs(sPaths.c_str(), paths, _T(';'));
         }
 
-        const tstr sCurDir = NppExecHelpers::GetCurrentDirectory();
+        const tstr sCurDir = NppExecHelpers::GetCurrentDir();
         if ( !sCurDir.IsEmpty() )
         {
             CListItemT<tstr>* pItem = paths.Find( [&sCurDir](const tstr& path) { return (NppExecHelpers::StrCmpNoCase(path, sCurDir) == 0); } );

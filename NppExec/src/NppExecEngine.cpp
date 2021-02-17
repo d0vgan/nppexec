@@ -3034,7 +3034,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
                     if ( itrGVar == g_GlobalEnvVars.end() )
                     {
                         // not in the Global Env Vars List; but maybe it's Global?
-                        tstr sValue = NppExecHelpers::GetEnvironmentVariable(varName);
+                        tstr sValue = NppExecHelpers::GetEnvironmentVar(varName);
                         if ( !sValue.IsEmpty() )
                         {
                             g_GlobalEnvVars[varName] = sValue;
@@ -3070,7 +3070,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
         NppExecHelpers::StrUpper(varName);
             
         bool  bSysVarOK = false;
-        tstr sValue = NppExecHelpers::GetEnvironmentVariable(varName);
+        tstr sValue = NppExecHelpers::GetEnvironmentVar(varName);
         if ( !sValue.IsEmpty() )
         {
             tstr S = _T("$(SYS.");
@@ -6826,6 +6826,47 @@ void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
   
 }
 
+static tstr uptr2tstr(UINT_PTR uptr)
+{
+  TCHAR szNum[64];
+
+#ifdef _WIN64
+  c_base::_tuint64_to_strhex((unsigned __int64)uptr, szNum);
+#else
+  c_base::_tuint2strhex((unsigned int)uptr, szNum);
+#endif
+
+  tstr S = _T("0x");
+  S += szNum;
+  return S;
+};
+
+void CNppExecMacroVars::substituteMacroVar(tstr& Cmd, tstr& S, const TCHAR* varName, 
+                                           std::function<tstr (CNppExec* pNppExec)> getValue)
+{
+  tstr varValue;
+  bool isValueOK = false;
+  int nVarNameLen = -1;
+  int pos = 0;
+  while ((pos = Cmd.Find(varName, pos)) >= 0)
+  {
+    if (!isValueOK)
+    {
+      varValue = getValue(m_pNppExec);
+      isValueOK = true;
+    }
+
+    if (nVarNameLen == -1)
+    {
+      nVarNameLen = lstrlen(varName);
+    }
+
+    Cmd.Replace(pos, nVarNameLen, varValue);
+    S.Replace(pos, nVarNameLen, varValue);
+    pos += varValue.length();
+  }
+}
+
 void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
 {
   
@@ -6927,7 +6968,7 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       sub.Copy(Cmd.c_str() + i1, i2 - i1);
       if (sub.length() > 0)
       {
-        tstr sValue = NppExecHelpers::GetEnvironmentVariable(sub);
+        tstr sValue = NppExecHelpers::GetEnvironmentVar(sub);
         if (!sValue.IsEmpty())
         {
           Cmd.Replace(pos, i2 - pos + 1, sValue);
@@ -6942,188 +6983,117 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
         S.Replace(pos, i2 - pos + 1, _T(""), 0);
       }
     }
-    
-    len = lstrlen(MACRO_LEFT_VIEW_FILE);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_LEFT_VIEW_FILE, pos)) >= 0)
-    {
-      int ind = (int) m_pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, MAIN_VIEW, MAIN_VIEW);
-      if (m_pNppExec->nppGetOpenFileNamesInView(PRIMARY_VIEW, ind + 1) == ind + 1)
+
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_LEFT_VIEW_FILE,
+      [](CNppExec* pNppExec)
       {
-        Cmd.Replace(pos, len, m_pNppExec->npp_bufFileNames.GetAt(ind));
-        S.Replace(pos, len, m_pNppExec->npp_bufFileNames.GetAt(ind));
-        pos += lstrlen(m_pNppExec->npp_bufFileNames.GetAt(ind));
+        int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, MAIN_VIEW, MAIN_VIEW);
+        if (pNppExec->nppGetOpenFileNamesInView(PRIMARY_VIEW, ind + 1) == ind + 1)
+          return tstr(pNppExec->npp_bufFileNames.GetAt(ind));
+        else
+          return tstr();
       }
-      else
+    );
+
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_RIGHT_VIEW_FILE,
+      [](CNppExec* pNppExec)
       {
-        Cmd.Replace(pos, len, _T(""), 0);
-        S.Replace(pos, len, _T(""), 0);
+        int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, SUB_VIEW, SUB_VIEW);
+        if (pNppExec->nppGetOpenFileNamesInView(SECOND_VIEW, ind + 1) == ind + 1)
+          return tstr(pNppExec->npp_bufFileNames.GetAt(ind));
+        else
+          return tstr();
       }
-    }
+    );
 
-    len = lstrlen(MACRO_RIGHT_VIEW_FILE);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_RIGHT_VIEW_FILE, pos)) >= 0)
-    {
-      int ind = (int) m_pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, SUB_VIEW, SUB_VIEW);
-      if (m_pNppExec->nppGetOpenFileNamesInView(SECOND_VIEW, ind + 1) == ind + 1)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_CURRENT_WORKING_DIR,
+      [](CNppExec* pNppExec)
       {
-        Cmd.Replace(pos, len, m_pNppExec->npp_bufFileNames.GetAt(ind));
-        S.Replace(pos, len, m_pNppExec->npp_bufFileNames.GetAt(ind));
-        pos += lstrlen(m_pNppExec->npp_bufFileNames.GetAt(ind));
+        (pNppExec);
+        return NppExecHelpers::GetCurrentDir();
       }
-      else
+    );
+
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_PLUGINS_CONFIG_DIR,
+      [](CNppExec* pNppExec)
       {
-        Cmd.Replace(pos, len, _T(""), 0);
-        S.Replace(pos, len, _T(""), 0);
+        return tstr(pNppExec->getConfigPath());
       }
-    }
+    );
 
-    len = lstrlen(MACRO_CURRENT_WORKING_DIR);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_CURRENT_WORKING_DIR, pos)) >= 0)
-    {
-      const tstr sCurDir = NppExecHelpers::GetCurrentDirectory();
-      Cmd.Replace(pos, len, sCurDir);
-      S.Replace(pos, len, sCurDir);
-      pos += sCurDir.length();
-    }
-    
-    len = lstrlen(MACRO_PLUGINS_CONFIG_DIR);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_PLUGINS_CONFIG_DIR, pos)) >= 0)
-    {
-      Cmd.Replace(pos, len, m_pNppExec->getConfigPath());
-      S.Replace(pos, len, m_pNppExec->getConfigPath());
-      pos += lstrlen(m_pNppExec->getConfigPath());
-    }
-
-    sub.Clear(); // clipboard text will be here
-    bMacroOK = false;
-    len = lstrlen(MACRO_CLIPBOARD_TEXT);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_CLIPBOARD_TEXT, pos)) >= 0)
-    {
-      if (!bMacroOK)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_CLIPBOARD_TEXT,
+      [](CNppExec* pNppExec)
       {
-        sub = NppExecHelpers::GetClipboardText();
-        bMacroOK = true;
+        (pNppExec);
+        return NppExecHelpers::GetClipboardText();
       }
+    );
 
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
-
-    sub.Clear(); // cloud location path will be here
-    bMacroOK = false;
-    len = lstrlen(MACRO_CLOUD_LOCATION_PATH);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_CLOUD_LOCATION_PATH, pos)) >= 0)
-    {
-      if (!bMacroOK)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_CLOUD_LOCATION_PATH,
+      [](CNppExec* pNppExec)
       {
-        sub = m_pNppExec->nppGetSettingsCloudPath();
-        bMacroOK = true;
+        return pNppExec->nppGetSettingsCloudPath();
       }
+    );
 
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
-
-    sub.Clear(); // hwnd will be here
-    bMacroOK = false;
-    len = lstrlen(MACRO_NPP_HWND);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_NPP_HWND, pos)) >= 0)
-    {
-      if (!bMacroOK)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_NPP_HWND,
+      [](CNppExec* pNppExec)
       {
-        #ifdef _WIN64
-          c_base::_tuint64_to_strhex((unsigned __int64)(UINT_PTR)(m_pNppExec->m_nppData._nppHandle), szMacro);
-        #else
-          c_base::_tuint2strhex((unsigned int)(UINT_PTR)(m_pNppExec->m_nppData._nppHandle), szMacro);
-        #endif
-        sub = _T("0x");
-        sub += szMacro;
-        bMacroOK = true;
+        return uptr2tstr((UINT_PTR)(pNppExec->m_nppData._nppHandle));
       }
+    );
 
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
-
-    sub.Clear(); // hwnd will be here
-    bMacroOK = false;
-    len = lstrlen(MACRO_SCI_HWND);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_SCI_HWND, pos)) >= 0)
-    {
-      if (!bMacroOK)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_SCI_HWND,
+      [](CNppExec* pNppExec)
       {
-        #ifdef _WIN64
-          c_base::_tuint64_to_strhex((unsigned __int64)(UINT_PTR)(m_pNppExec->GetScintillaHandle()), szMacro);
-        #else
-          c_base::_tuint2strhex((unsigned int)(UINT_PTR)(m_pNppExec->GetScintillaHandle()), szMacro);
-        #endif
-        sub = _T("0x");
-        sub += szMacro;
-        bMacroOK = true;
+        return uptr2tstr((UINT_PTR)(pNppExec->GetScintillaHandle()));
       }
+    );
 
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
-
-    sub.Clear(); // hwnd will be here
-    bMacroOK = false;
-    len = lstrlen(MACRO_CON_HWND);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_CON_HWND, pos)) >= 0)
-    {
-      if (!bMacroOK)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_CON_HWND,
+      [](CNppExec* pNppExec)
       {
-        #ifdef _WIN64
-          c_base::_tuint64_to_strhex((unsigned __int64)(UINT_PTR)(m_pNppExec->GetConsole().GetConsoleWnd()), szMacro);
-        #else
-          c_base::_tuint2strhex((unsigned int)(UINT_PTR)(m_pNppExec->GetConsole().GetConsoleWnd()), szMacro);
-        #endif
-        sub = _T("0x");
-        sub += szMacro;
-        bMacroOK = true;
+        return uptr2tstr((UINT_PTR)(pNppExec->GetConsole().GetConsoleWnd()));
       }
+    );
 
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
-
-    sub.Clear(); // hwnd will be here
-    bMacroOK = false;
-    len = lstrlen(MACRO_FOCUSED_HWND);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_FOCUSED_HWND, pos)) >= 0)
-    {
-      if (!bMacroOK)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_FOCUSED_HWND,
+      [](CNppExec* pNppExec)
       {
-        HWND hFocusedWnd = NppExecHelpers::GetFocusedWnd();
-        #ifdef _WIN64
-          c_base::_tuint64_to_strhex((unsigned __int64)(UINT_PTR)(hFocusedWnd), szMacro);
-        #else
-          c_base::_tuint2strhex((unsigned int)(UINT_PTR)(hFocusedWnd), szMacro);
-        #endif
-        sub = _T("0x");
-        sub += szMacro;
-        bMacroOK = true;
+        (pNppExec);
+        return uptr2tstr((UINT_PTR)(NppExecHelpers::GetFocusedWnd()));
       }
-
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
+    );
 
     /*
     CListT<tstr> listOfRootFolders;
@@ -7203,80 +7173,61 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
     }
     */
 
-    tstr sWorkspaceItemPath;
-    bool bWorkspaceItem = false;
-
-    sub.Clear(); // item path will be gere
-    len = lstrlen(MACRO_WORKSPACE_ITEM_PATH);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_PATH, pos)) >= 0)
-    {
-      if (!bWorkspaceItem)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_WORKSPACE_ITEM_PATH,
+      [](CNppExec* pNppExec)
       {
-        m_pNppExec->nppGetWorkspaceItemPath(sWorkspaceItemPath);
-        bWorkspaceItem = true;
+        tstr sWorkspaceItem;
+        pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem);
+        return sWorkspaceItem;
       }
+    );
 
-      sub = sWorkspaceItemPath;
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
-
-    sub.Clear(); // item dir will be gere
-    len = lstrlen(MACRO_WORKSPACE_ITEM_DIR);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_DIR, pos)) >= 0)
-    {
-      if (!bWorkspaceItem)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_WORKSPACE_ITEM_DIR,
+      [](CNppExec* pNppExec)
       {
-        m_pNppExec->nppGetWorkspaceItemPath(sWorkspaceItemPath);
-        bWorkspaceItem = true;
+        tstr sWorkspaceItem;
+        if (pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem))
+        {
+          sWorkspaceItem = NppExecHelpers::GetFileNamePart(sWorkspaceItem, NppExecHelpers::fnpDirPath);
+          if (sWorkspaceItem.EndsWith(_T('\\')) || sWorkspaceItem.EndsWith(_T('/')))
+            sWorkspaceItem.DeleteLastChar();
+        }
+        return sWorkspaceItem;
       }
+    );
 
-      sub = NppExecHelpers::GetFileNamePart(sWorkspaceItemPath, NppExecHelpers::fnpDirPath);
-      if (sub.EndsWith(_T('\\')) || sub.EndsWith(_T('/')))
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_WORKSPACE_ITEM_NAME,
+      [](CNppExec* pNppExec)
       {
-        sub.DeleteLastChar();
+        tstr sWorkspaceItem;
+        if (pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem))
+        {
+          sWorkspaceItem = NppExecHelpers::GetFileNamePart(sWorkspaceItem, NppExecHelpers::fnpNameExt);
+        }
+        return sWorkspaceItem;
       }
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
+    );
 
-    sub.Clear(); // item name will be gere
-    len = lstrlen(MACRO_WORKSPACE_ITEM_NAME);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_NAME, pos)) >= 0)
-    {
-      if (!bWorkspaceItem)
+    substituteMacroVar(
+      Cmd,
+      S,
+      MACRO_WORKSPACE_ITEM_ROOT,
+      [](CNppExec* pNppExec)
       {
-        m_pNppExec->nppGetWorkspaceItemPath(sWorkspaceItemPath);
-        bWorkspaceItem = true;
+        tstr sWorkspaceItem;
+        pNppExec->nppGetWorkspaceRootItemPath(sWorkspaceItem);
+        return sWorkspaceItem;
       }
-
-      sub = NppExecHelpers::GetFileNamePart(sWorkspaceItemPath, NppExecHelpers::fnpNameExt);
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
-
-    sub.Clear(); // root path will be here
-    bMacroOK = false;
-    len = lstrlen(MACRO_WORKSPACE_ITEM_ROOT);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_WORKSPACE_ITEM_ROOT, pos)) >= 0)
-    {
-      if (!bMacroOK)
-      {
-        m_pNppExec->nppGetWorkspaceRootItemPath(sub);
-        bMacroOK = true;
-      }
-
-      Cmd.Replace(pos, len, sub.c_str());
-      S.Replace(pos, len, sub.c_str());
-      pos += sub.length();
-    }
+    );
   }
 
   Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );
