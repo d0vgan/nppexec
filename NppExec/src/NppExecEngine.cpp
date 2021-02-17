@@ -55,6 +55,7 @@ const TCHAR MACRO_FILE_FULLNAME[]       = _T("$(FILE_NAME)");
 const TCHAR MACRO_FILE_NAMEONLY[]       = _T("$(NAME_PART)");
 const TCHAR MACRO_FILE_EXTONLY[]        = _T("$(EXT_PART)");
 const TCHAR MACRO_NPP_DIRECTORY[]       = _T("$(NPP_DIRECTORY)");
+const TCHAR MACRO_NPP_FULL_FILE_PATH[]  = _T("$(NPP_FULL_FILE_PATH)");
 const TCHAR MACRO_CURRENT_WORD[]        = _T("$(CURRENT_WORD)");
 const TCHAR MACRO_FILE_NAME_AT_CURSOR[] = _T("$(FILE_NAME_AT_CURSOR)");
 const TCHAR MACRO_WORKSPACE_ITEM_DIR[]  = _T("$(WORKSPACE_ITEM_DIR)");
@@ -1328,6 +1329,7 @@ static FParserWrapper g_fp;
  * $(NAME_PART)          : welcome
  * $(EXT_PART)           : .html
  * $(NPP_DIRECTORY)      : the full path of directory with notepad++.exe
+ * $(NPP_FULL_FILE_PATH) : the full path to notepad++.exe
  * $(CURRENT_WORD)       : word(s) you selected in Notepad++
  * $(CURRENT_LINE)       : current line number
  * $(CURRENT_COLUMN)     : current column number
@@ -6721,8 +6723,8 @@ void CNppExecMacroVars::CheckCmdAliases(tstr& S, bool useLogging)
 
 void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
 {
-  const int    NPPSTR_COUNT = 8;
-  const int    NPPVAR_COUNT = NPPSTR_COUNT + 2;
+  const int    NPPSTR_COUNT = 9; // strings
+  const int    NPPVAR_COUNT = NPPSTR_COUNT + 2; // strings + numbers
   const TCHAR* NPPVAR_STRINGS[NPPVAR_COUNT] = {
     // getting strings:
     MACRO_FILE_FULLPATH,
@@ -6731,6 +6733,7 @@ void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
     MACRO_FILE_NAMEONLY,
     MACRO_FILE_EXTONLY,
     MACRO_NPP_DIRECTORY,
+    MACRO_NPP_FULL_FILE_PATH,
     MACRO_CURRENT_WORD,
     MACRO_FILE_NAME_AT_CURSOR,
     // getting numbers:
@@ -6745,6 +6748,7 @@ void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
     NPPM_GETNAMEPART,
     NPPM_GETEXTPART,
     NPPM_GETNPPDIRECTORY,
+    NPPM_GETNPPFULLFILEPATH,
     NPPM_GETCURRENTWORD,
     NPPM_GETFILENAMEATCURSOR,
     // getting numbers:

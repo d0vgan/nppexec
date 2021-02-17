@@ -68,6 +68,7 @@ const TCHAR* VariablesList[] = {
   MACRO_MSG_WPARAM,            //  $(MSG_WPARAM)
   MACRO_FILE_NAMEONLY,         //  $(NAME_PART)
   MACRO_NPP_DIRECTORY,         //  $(NPP_DIRECTORY)
+  MACRO_NPP_FULL_FILE_PATH,    //  $(NPP_FULL_FILE_PATH)
   MACRO_NPP_HWND,              //  $(NPP_HWND)
   MACRO_OUTPUT,                //  $(OUTPUT)
   MACRO_OUTPUT1,               //  $(OUTPUT1)

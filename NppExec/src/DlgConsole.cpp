@@ -209,6 +209,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(NAME_PART)  :  welcome") _T_RE_EOL \
   _T("$(EXT_PART)  :  .html") _T_RE_EOL \
   _T("$(NPP_DIRECTORY)  :  the full path of Notepad++\'s directory") _T_RE_EOL \
+  _T("$(NPP_FULL_FILE_PATH)  :  the full path to notepad++.exe") _T_RE_EOL \
   _T("$(CURRENT_WORD)  :  word(s) you selected in Notepad++") _T_RE_EOL \
   _T("$(CURRENT_LINE)  :  current line number") _T_RE_EOL \
   _T("$(CURRENT_COLUMN)  :  current column number") _T_RE_EOL \
@@ -4771,6 +4772,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_OUTPUT1 );                //  $(OUTPUT1)
   CmdVarsList.Add( MACRO_OUTPUT );                 //  $(OUTPUT)
   CmdVarsList.Add( MACRO_NPP_HWND );               //  $(NPP_HWND)
+  CmdVarsList.Add( MACRO_NPP_FULL_FILE_PATH );     //  $(NPP_FULL_FILE_PATH)
   CmdVarsList.Add( MACRO_NPP_DIRECTORY );          //  $(NPP_DIRECTORY)
   CmdVarsList.Add( MACRO_FILE_NAMEONLY );          //  $(NAME_PART)
   CmdVarsList.Add( MACRO_MSG_WPARAM );             //  $(MSG_WPARAM)

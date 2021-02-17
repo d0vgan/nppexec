@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /****************************************************************************
- * NppExec plugin ver. 0.6.1 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - November 2020
+ * NppExec plugin ver. 0.6.2 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - February 2021
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -158,6 +158,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(NAME_PART)          : welcome
  *        $(EXT_PART)           : .html
  *        $(NPP_DIRECTORY)      : the full path of notepad++'s directory
+ *        $(NPP_FULL_FILE_PATH) : the full path to notepad++.exe
  *        $(CURRENT_WORD)       : word(s) you selected in Notepad++
  *        $(CURRENT_LINE)       : current line number
  *        $(CURRENT_COLUMN)     : current column number

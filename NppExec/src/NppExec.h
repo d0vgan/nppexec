@@ -20,6 +20,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.6.2 - February 2021
+ ----------------------
+ * changed: now NppExec uses CreateFile+FILE_FLAG_WRITE_THROUGH while writing
+   files to avoid filling with zero bytes on system shutdown.
+ * changed: now NppExec changes the current directory to %TEMP% when an unnamed
+   file (such as "new 1") is activated and "Follow $(CURRENT_DIRECTORY)" is on.
+   To revert to the old behavior (the current directory is not changed when an
+   unnamed file is activated), set the manual option "Cd_Unnamed" to 0.
+ + added: now NppExec supports "cloud location path" in Notepad++'s settings.
+     With cloud location path specified in Notepad++'s settings, NppExec does
+     the following:
+     * On start, NppExec tries to read its configuration files from the cloud
+       location path. If these files do not exist or are filled with NULs,
+       NppExec reads its configuration from $(PLUGINS_CONFIG_DIR).
+     * When NppExec saves its configuration files, first they are saved to
+       $(PLUGINS_CONFIG_DIR) and then copied to the cloud location path. Thus,
+       NppExec always has copies of its current configuration files within the
+       $(PLUGINS_CONFIG_DIR) folder.
+     * NppExec's saved scripts - the "npes_saved.txt" file - are monitored in
+       the cloud location path. So, if you manually edit the "npes_saved.txt"
+       within the cloud location, NppExec detects it. If, however, you manually
+       edit the "npes_saved.txt" within the $(PLUGINS_CONFIG_DIR) folder, it is
+       ignored.
+     When the cloud location path is _not_ specified in Notepad++'s settings,
+     NppExec reads and stores its configuration within $(PLUGINS_CONFIG_DIR).
+     And the "npes_saved.txt" is monitored in that folder.
+ + added Notepad++ variable: $(NPP_FULL_FILE_PATH)
+
+
  v0.6.1 - November 2020
  ----------------------
  * improved: now ChildProcess_RunPolicy=1 works better
@@ -550,8 +579,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x06F1
-#define NPPEXEC_VER_STR   _T("0.6.1")
+#define NPPEXEC_VER_DWORD 0x06F2
+#define NPPEXEC_VER_STR   _T("0.6.2")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
