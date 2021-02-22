@@ -84,6 +84,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   DEFAULT_NPPEXEC_CMD_PREFIX_COLLATERAL_FORCED _T("  -  always executes a command in a collateral (parallel) script") _T_RE_EOL \
   _T("CTRL+C  -  kill (via Ctrl+C) or terminate current child process") _T_RE_EOL \
   _T("CTRL+BREAK  -  kill (via Ctrl+Break) or terminate current child process") _T_RE_EOL \
+  _T("CTRL+BREAK  -  abort current NppExec\'s script") _T_RE_EOL \
   _T("CTRL+Z  -  send ^Z to current child process") _T_RE_EOL \
   _T("-------- General commands --------") _T_RE_EOL \
   _T("cls  -  clear Console screen") _T_RE_EOL \
@@ -1374,15 +1375,11 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  // the same...") _T_RE_EOL \
     _T("  inputbox \"Input a:\" :: 1 : 2   // notice the  ::  part!") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
-    _T("  You can use any environment variable inside the input value,") _T_RE_EOL \
-    _T("  except $(ARGC), $(ARGV), $(ARGV[N]), $(RARGV) and $(RARGV[N]).") _T_RE_EOL \
-    _T("  To use values of $(ARGV) or $(RARGV) inside the input value,") _T_RE_EOL \
-    _T("  you can SET some variable and use this variable in the InputBox e.g.") _T_RE_EOL \
-    _T("    SET local arg1 = $(ARGV[1])") _T_RE_EOL \
+    _T("  You can use any environment variable inside the input value, e.g.") _T_RE_EOL \
     _T("    INPUTBOX \"Input A:\"") _T_RE_EOL \
-    _T("    // ... the InputBox is shown, you can type: $(arg1)") _T_RE_EOL \
+    _T("    // ... the InputBox is shown, you can type e.g.: $(ARGV)") _T_RE_EOL \
     _T("    SET local a = $(INPUT)") _T_RE_EOL \
-    _T("    // ... $(a) becomes $(arg1) i.e. $(ARGV[1])") _T_RE_EOL \
+    _T("    // ... $(a) becomes $(INPUT), i.e. $(ARGV)") _T_RE_EOL \
     _T("  To set the keyboard focus to the Console after the InputBox is shown,") _T_RE_EOL \
     _T("  use the following command:") _T_RE_EOL \
     _T("    npp_setfocus con") _T_RE_EOL \
@@ -3348,6 +3345,15 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     {
                         Runtime::GetNppExec()._consoleCommandBreak = true;
                     }
+                    else
+                    {
+                        // std::shared_ptr<CScriptEngine> pScriptEngine = Runtime::GetNppExec().GetCommandExecutor().GetRunningScriptEngine();
+                        // if (pScriptEngine)
+                        // {
+                        //     pScriptEngine->ScriptError(CScriptEngine::ET_ABORT, _T("; Aborted by user"));
+                        //     Runtime::GetNppExec().GetConsole().PrintError(_T("- aborted by user"));
+                        // }
+                    }
                     return 0;
                 }
             }
@@ -3421,6 +3427,15 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
             else if (Runtime::GetNppExec()._consoleCommandIsRunning)
             {
                 Runtime::GetNppExec()._consoleCommandBreak = true;
+            }
+            else
+            {
+                std::shared_ptr<CScriptEngine> pScriptEngine = Runtime::GetNppExec().GetCommandExecutor().GetRunningScriptEngine();
+                if (pScriptEngine)
+                {
+                    pScriptEngine->ScriptError(CScriptEngine::ET_ABORT, _T("; Aborted by user"));
+                    Runtime::GetNppExec().GetConsole().PrintError(_T("- aborted by user"));
+                }
             }
             return 0;
         }

@@ -219,6 +219,17 @@
      NppExec reads and stores its configuration within $(PLUGINS_CONFIG_DIR).
      And the "npes_saved.txt" is monitored in that folder.
  + added: $(NPP_FULL_FILE_PATH), $(CLOUD_LOCATION_PATH)
+ + added: indirect variable reference, e.g. $($(name)). Examples:
+     set local c = 123        // $(c) = 123
+     set local b = c          // $(b) = c
+     set local a = $($(b))    // $(a) = $($(b)) = $(c) = 123
+     set local $($(b)) = 456  // $(c) = 456
+     set local i = #          // $(i) = #
+     set local j = 1          // $(j) = 1
+     echo $($(i)$(j))         // echo $(#1)
+ * changed: now $(ARGC), $(ARGV), $(ARGV[1]) and so on support the indirect
+   variable reference (see above)
+ + added: Ctrl+Break in the Console aborts the currently running script
 
 
  v0.6.1 - November 2020

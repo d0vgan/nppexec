@@ -106,6 +106,7 @@ public:
     ~CSimpleLogger();
 
     void Activate(bool bActivate);
+    bool IsActive() const;
     void Add(const TCHAR* str);
     void Add_WithoutOutput(const TCHAR* str);
     void AddEx(const TCHAR* fmt, ...);

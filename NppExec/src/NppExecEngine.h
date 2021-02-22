@@ -842,12 +842,13 @@ class CScriptEngine : public IScriptEngine
 
         class ScriptContext {
             public:
-                tstr         ScriptName;
-                tCmdRange    CmdRange;
-                tLabels      Labels;
-                tMacroVars   LocalMacroVars; // use with GetMacroVars().GetCsUserMacroVars()
-                bool         IsNppExeced;
-            
+                tstr              ScriptName;
+                tCmdRange         CmdRange;
+                tLabels           Labels;
+                tMacroVars        LocalMacroVars; // use with GetMacroVars().GetCsUserMacroVars()
+                CStrSplitT<TCHAR> Args;
+                bool              IsNppExeced;
+
             protected:
                 CBufT<eIfState> IfState;
 

@@ -336,6 +336,19 @@ void CSimpleLogger::Activate(bool bActivate)
     }
 }
 
+bool CSimpleLogger::IsActive() const
+{
+    bool bActive = true;
+    const DWORD dwThreadId = ::GetCurrentThreadId();
+    {
+        CCriticalSectionLockGuard lock(m_csThreadStates);
+        auto itr = m_ThreadStates.find(dwThreadId);
+        if ( itr != m_ThreadStates.end() )
+            bActive = itr->second.IsActive;
+    }
+    return bActive;
+}
+
 void CSimpleLogger::Add(const TCHAR* str)
 {
     const unsigned int nMask = lfStrList | lfLogFile | lfOutputFunc;

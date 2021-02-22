@@ -459,9 +459,7 @@ static tstr substituteMacroVarsIfNotDelayed(CScriptEngine* pScriptEngine, const 
     tstr paramsToReturn = (p == NULL) ? params : tstr(p);
     if ( !bUseDelayedSubstitution )
     {
-        const CStrSplitT<TCHAR> cmdArgs;
         CNppExec* pNppExec = pScriptEngine->GetNppExec();
-        pNppExec->GetMacroVars().CheckCmdArgs(paramsToReturn, cmdArgs);
         pNppExec->GetMacroVars().CheckAllMacroVars(pScriptEngine, paramsToReturn, true);
     }
 
@@ -2088,10 +2086,6 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
         bool bCmdStartsWithMacroVar = Cmd.StartsWith(_T("$("));
 
         CNppExecMacroVars& MacroVars = pNppExec->GetMacroVars();
-
-        // ... checking script's arguments ...
-        const CStrSplitT<TCHAR> args;
-        MacroVars.CheckCmdArgs(Cmd, args);
 
         // ... checking all the macro-variables ...
         MacroVars.CheckAllMacroVars(pScriptEngine, Cmd, true);
@@ -4663,6 +4657,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
                 scriptContext.ScriptName = scriptName;
                 scriptContext.CmdRange.pBegin = m_execState.pScriptLineCurrent;
                 scriptContext.CmdRange.pEnd = m_execState.pScriptLineCurrent->GetNext();
+                scriptContext.Args = args;
                 scriptContext.IsNppExeced = true;
 
                 int n = 0;
@@ -4670,7 +4665,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
                 CListItemT<tstr>* pscriptline = Script.GetCmdList().GetFirst();
                 while (pscriptline)
                 {
-                    //line = "";
                     line = pscriptline->GetItem();
                     if (line.length() > 0)
                     {
@@ -4678,7 +4672,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
 
                         Runtime::GetLogger().AddEx( _T("; + line %d:  %s"), n, line.c_str() );
                     
-                        m_pNppExec->GetMacroVars().CheckCmdArgs(line, args);
                         pline = m_CmdList.Insert(pline, true, line);
                     }
                     pscriptline = pscriptline->GetNext();
@@ -4735,6 +4728,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
                         scriptContext.ScriptName = scriptName;
                         scriptContext.CmdRange.pBegin = m_execState.pScriptLineCurrent;
                         scriptContext.CmdRange.pEnd = m_execState.pScriptLineCurrent->GetNext();
+                        scriptContext.Args = args;
                         scriptContext.IsNppExeced = true;
 
                         int n = 0;
@@ -4747,7 +4741,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
                     
                                 Runtime::GetLogger().AddEx( _T("; + line %d:  %s"), n, line.c_str() );
                       
-                                m_pNppExec->GetMacroVars().CheckCmdArgs(line, args);
                                 pline = m_CmdList.Insert(pline, true, line);
                             }
                         }
@@ -5211,8 +5204,6 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
             else
                 Runtime::GetLogger().Add(   _T("; uMsg parameter...") );
 
-            const CStrSplitT<TCHAR> args;
-            m_pNppExec->GetMacroVars().CheckCmdArgs(val, args);
             m_pNppExec->GetMacroVars().CheckAllMacroVars(this, val, true);
 
             if ( isMsgEx && n == 0 )
@@ -5327,8 +5318,6 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
             else
                 Runtime::GetLogger().Add(   _T("; lParam parameter...") );
 
-            const CStrSplitT<TCHAR> args;
-            m_pNppExec->GetMacroVars().CheckCmdArgs(value, args);
             m_pNppExec->GetMacroVars().CheckAllMacroVars(this, value, true);
 
             if ( hasBracket )
@@ -5649,7 +5638,6 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
         return CMDRESULT_INVALIDPARAM;
 
     // 1. Preparing the arguments...
-    const CStrSplitT<TCHAR> cmdArgs;
     CStrSplitT<TCHAR> args;
     const int nArgs = args.SplitToArgs(params, (cmdType == CMDTYPE_SCIFIND) ? 2 : 3);
     if ( nArgs < 2 )
@@ -5664,7 +5652,6 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
     {
         tstr& val = args.Arg(i);
         NppExecHelpers::StrUnquote(val);
-        m_pNppExec->GetMacroVars().CheckCmdArgs(val, cmdArgs);
         m_pNppExec->GetMacroVars().CheckAllMacroVars(this, val, true);
     }
 
@@ -6319,8 +6306,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
     tstr CmdParams = params;
     {
         CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
-        const CStrSplitT<TCHAR> args;
-        MacroVars.CheckCmdArgs(CmdParams, args);
         if ( !MacroVars.CheckAllMacroVars(this, CmdParams, true, CMDTYPE_SET) )
             nCmdResult = CMDRESULT_FAILED;
     }
@@ -6431,8 +6416,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoUnset(const tstr& params)
     tstr CmdParams = params;
     {
         CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
-        const CStrSplitT<TCHAR> args;
-        MacroVars.CheckCmdArgs(CmdParams, args);
         if ( !MacroVars.CheckAllMacroVars(this, CmdParams, true, CMDTYPE_UNSET) )
             nCmdResult = CMDRESULT_FAILED;
     }
@@ -7355,10 +7338,17 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
   }
   else if ( ContainsMacroVar(S) )
   {
-    CCriticalSectionLockGuard lock(GetCsUserMacroVars());
-    const tMacroVars& userLocalMacroVars = GetUserLocalMacroVars(pScriptEngine);
-    const tMacroVars& userMacroVars = GetUserMacroVars();
-    IterateUserMacroVars<SubstituteMacroVarFunc>(userMacroVars, userLocalMacroVars, SubstituteMacroVarFunc(S));
+    if ( CheckInnerMacroVars(pScriptEngine, S, true) )
+    {
+      CheckAllMacroVars(pScriptEngine, S, true);
+    }
+    else
+    {
+      CCriticalSectionLockGuard lock(GetCsUserMacroVars());
+      const tMacroVars& userLocalMacroVars = GetUserLocalMacroVars(pScriptEngine);
+      const tMacroVars& userMacroVars = GetUserMacroVars();
+      IterateUserMacroVars<SubstituteMacroVarFunc>(userMacroVars, userLocalMacroVars, SubstituteMacroVarFunc(S));
+    }
   }
 
   Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );
@@ -7452,8 +7442,31 @@ bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S,
          (nCmdType == CScriptEngine::CMDTYPE_UNSET) ||
          ContainsMacroVar(S) )
     {
+        bool isLoggerActive = true;
+
         if ( !useLogging )
-            Runtime::GetLogger().Activate(false);
+        {
+            isLoggerActive = Runtime::GetLogger().IsActive();
+            if ( isLoggerActive )
+                Runtime::GetLogger().Activate(false);
+        }
+
+        if ( nCmdType != CScriptEngine::CMDTYPE_UNSET )
+        {
+            CheckInnerMacroVars(pScriptEngine, S, useLogging);
+
+            if ( pScriptEngine && pScriptEngine->GetExecState().ScriptContextList.GetLast() )
+            {
+                const CScriptEngine::ScriptContext& scriptContext = pScriptEngine->GetExecState().GetCurrentScriptContext();
+                const CStrSplitT<TCHAR>& args = scriptContext.Args;
+                CheckCmdArgs(S, args);
+            }
+            else
+            {
+                CStrSplitT<TCHAR> args;
+                CheckCmdArgs(S, args);
+            }
+        }
 
         CheckNppMacroVars(S);
         CheckPluginMacroVars(S);
@@ -7462,10 +7475,79 @@ bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S,
             CheckEmptyMacroVars(m_pNppExec, S, nCmdType);
 
         if ( !useLogging )
-            Runtime::GetLogger().Activate(true);
+        {
+            if ( isLoggerActive )
+                Runtime::GetLogger().Activate(true);
+        }
     }
 
     return bResult;
+}
+
+bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging)
+{
+    bool isSubstituted = false;
+
+    if ( useLogging )
+    {
+        Runtime::GetLogger().Add(   _T("CheckInnerMacroVars()") );
+        Runtime::GetLogger().Add(   _T("{") );
+        Runtime::GetLogger().IncIndentLevel();
+        Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );
+    }
+
+    int n1 = S.Find(_T("$("));
+    if ( n1 >= 0 )
+    {
+        //  $( ...
+        //  n1
+        int n2 = S.Find(_T("$("), n1 + 2);
+        if ( n2 >= 0 )
+        {
+            //  $( ... $(
+            //  n1     n2
+            unsigned int nBracketDepth = 0;
+            int n1_end = n1 + 2;
+            for ( ; n1_end < S.length(); ++n1_end )
+            {
+                const TCHAR ch = S[n1_end];
+                if ( ch == _T(')') )
+                {
+                    if ( nBracketDepth != 0 )
+                        --nBracketDepth;
+                    else
+                        break;
+                }
+                else if ( ch == _T('(') )
+                {
+                    ++nBracketDepth;
+                }
+            }
+
+            if ( n2 < n1_end )
+            {
+                //  $( ... $( ... ) ... )
+                //  n1     n2           n1_end
+                tstr SubVal;
+                SubVal.Copy(S.c_str() + n2, n1_end - n2);
+
+                Runtime::GetLogger().Add(   _T("; checking inner vars...") );
+
+                CheckAllMacroVars(pScriptEngine, SubVal, useLogging);
+                S.Replace(n2, n1_end - n2, SubVal);
+                isSubstituted = true;
+            }
+        }
+    }
+
+    if ( useLogging )
+    {
+        Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );
+        Runtime::GetLogger().DecIndentLevel();
+        Runtime::GetLogger().Add(   _T("}") );
+    }
+
+    return isSubstituted;
 }
 
 bool CNppExecMacroVars::SetUserMacroVar(CScriptEngine* pScriptEngine, tstr& varName, const tstr& varValue, unsigned int nFlags )
