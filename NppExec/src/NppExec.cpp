@@ -150,6 +150,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        about          - show NppExec Help/About
  *        CTRL+C         - kill (via Ctrl+C) or terminate current child process
  *        CTRL+BREAK     - kill (via Ctrl+Break) or terminate current child process
+ *        CTRL+BREAK     - abort current NppExec's script (without closing the Console)
  *        CTRL+Z         - send ^Z to current child process
  *   6) All Notepad++ environment variables are supported:
  *        $(FULL_CURRENT_PATH)  : E:\my Web\main\welcome.html

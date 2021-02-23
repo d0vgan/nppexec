@@ -7436,6 +7436,8 @@ void CNppExecMacroVars::CheckEmptyMacroVars(CNppExec* pNppExec, tstr& S, int nCm
 
 bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging, int nCmdType )
 {
+    // Note: pScriptEngine can be nullptr!
+
     bool bResult = false;
     
     if ( (nCmdType == CScriptEngine::CMDTYPE_SET) ||
@@ -7451,10 +7453,10 @@ bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S,
                 Runtime::GetLogger().Activate(false);
         }
 
+        CheckInnerMacroVars(pScriptEngine, S, useLogging);
+
         if ( nCmdType != CScriptEngine::CMDTYPE_UNSET )
         {
-            CheckInnerMacroVars(pScriptEngine, S, useLogging);
-
             if ( pScriptEngine && pScriptEngine->GetExecState().ScriptContextList.GetLast() )
             {
                 const CScriptEngine::ScriptContext& scriptContext = pScriptEngine->GetExecState().GetCurrentScriptContext();
@@ -7486,6 +7488,8 @@ bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S,
 
 bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging)
 {
+    // Note: pScriptEngine can be nullptr!
+
     bool isSubstituted = false;
 
     if ( useLogging )

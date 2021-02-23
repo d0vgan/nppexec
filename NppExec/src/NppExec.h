@@ -52,11 +52,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
      set local b = c          // $(b) = c
      set local a = $($(b))    // $(a) = $($(b)) = $(c) = 123
      set local $($(b)) = 456  // $(c) = 456
+     unset local $($(b))      // deletes $(c)
      set local i = #          // $(i) = #
      set local j = 1          // $(j) = 1
      echo $($(i)$(j))         // echo $(#1)
- * changed: now $(ARGC), $(ARGV), $(ARGV[1]) and so on support the indirect
-   variable reference (see above)
+ * changed: now the variables $(ARGC), $(ARGV), $(ARGV[1]) and so on support
+   the indirect variable reference (see above)
  + added: Ctrl+Break in the Console aborts the currently running script
 
 

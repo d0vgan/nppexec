@@ -84,7 +84,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   DEFAULT_NPPEXEC_CMD_PREFIX_COLLATERAL_FORCED _T("  -  always executes a command in a collateral (parallel) script") _T_RE_EOL \
   _T("CTRL+C  -  kill (via Ctrl+C) or terminate current child process") _T_RE_EOL \
   _T("CTRL+BREAK  -  kill (via Ctrl+Break) or terminate current child process") _T_RE_EOL \
-  _T("CTRL+BREAK  -  abort current NppExec\'s script") _T_RE_EOL \
+  _T("CTRL+BREAK  -  abort current NppExec\'s script (without closing the Console)") _T_RE_EOL \
   _T("CTRL+Z  -  send ^Z to current child process") _T_RE_EOL \
   _T("-------- General commands --------") _T_RE_EOL \
   _T("cls  -  clear Console screen") _T_RE_EOL \
@@ -1207,6 +1207,12 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set local x      // 20: prints local x") _T_RE_EOL \
     _T("  unset local x    // 20: deletes local x") _T_RE_EOL \
     _T("  echo $(x)        // 10: substitutes the global x") _T_RE_EOL \
+    _T("  // indirect variable reference:") _T_RE_EOL \
+    _T("  set local a = 123") _T_RE_EOL \
+    _T("  set local b = a") _T_RE_EOL \
+    _T("  echo $($(b))           // prints 123 : $($(b)) = $(a) = 123") _T_RE_EOL \
+    _T("  set local c = $($(b))  // $(c) = 123 : $($(b)) = $(a) = 123") _T_RE_EOL \
+    _T("  unset local $($(b))    // deletes $(a)") _T_RE_EOL \
     _T("  // calculations:") _T_RE_EOL \
     _T("  set ans ~ 1 + 2*(3 + 4) - 0x5  // calculates the expression") _T_RE_EOL \
     _T("  set ans ~ 0x001 | 0x010 | 0x100  // calculates the expression") _T_RE_EOL \

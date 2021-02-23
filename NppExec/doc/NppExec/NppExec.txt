@@ -133,6 +133,7 @@
  *        about          - show NppExec Help/About
  *        CTRL+C         - kill (via Ctrl+C) or terminate current child process
  *        CTRL+BREAK     - kill (via Ctrl+Break) or terminate current child process
+ *        CTRL+BREAK     - abort current NppExec's script (without closing the Console)
  *        CTRL+Z         - send ^Z to current child process
  *   6) All Notepad++ environment variables are supported:
  *        $(FULL_CURRENT_PATH)  : E:\my Web\main\welcome.html
@@ -224,11 +225,12 @@
      set local b = c          // $(b) = c
      set local a = $($(b))    // $(a) = $($(b)) = $(c) = 123
      set local $($(b)) = 456  // $(c) = 456
+     unset local $($(b))      // deletes $(c)
      set local i = #          // $(i) = #
      set local j = 1          // $(j) = 1
      echo $($(i)$(j))         // echo $(#1)
- * changed: now $(ARGC), $(ARGV), $(ARGV[1]) and so on support the indirect
-   variable reference (see above)
+ * changed: now the variables $(ARGC), $(ARGV), $(ARGV[1]) and so on support
+   the indirect variable reference (see above)
  + added: Ctrl+Break in the Console aborts the currently running script
 
 
