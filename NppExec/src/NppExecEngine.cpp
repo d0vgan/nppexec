@@ -7253,7 +7253,10 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
       if ( ContainsMacroVar(varValue) )
       {
         CheckUserMacroVars(pScriptEngine, varValue);
-        CheckEmptyMacroVars(m_pNppExec, varValue);
+        if ( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
+        {
+          CheckEmptyMacroVars(varValue);
+        }
       
         {
           CCriticalSectionLockGuard lock(GetCsUserMacroVars());
@@ -7358,74 +7361,64 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
   return bResult;
 }
 
-void CNppExecMacroVars::CheckEmptyMacroVars(CNppExec* pNppExec, tstr& S, int nCmdType , bool bForce )
+void CNppExecMacroVars::CheckEmptyMacroVars(tstr& S, int nCmdType )
 {
-    
+  // Note: be sure to check the value of OPTB_CONSOLE_NOEMPTYVARS
+  // _before_ you call CheckEmptyMacroVars!!!
+
   Runtime::GetLogger().Add(   _T("CheckEmptyMacroVars()") );
   Runtime::GetLogger().Add(   _T("{") );
   Runtime::GetLogger().IncIndentLevel();
   Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );   
-    
-  if ( bForce || pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
-  {
-    
-    Runtime::GetLogger().Add(   _T("; the function is enabled") );  
-      
-    CStrSplitT<TCHAR> args;
-    if ( (nCmdType == CScriptEngine::CMDTYPE_SET) || 
-         (nCmdType == CScriptEngine::CMDTYPE_UNSET) )
-    {
-      if ( args.Split(S, _T("="), 2) == 2 )
-      {
-        S = args.Arg(1);
-      }
-    }
-    
-    if ( S.length() > 0 )
-    {
-      int i;
-      while ( (i = S.Find(_T("$("))) >= 0 )
-      {
-        int j = i + 2;
-        unsigned int nBracketDepth = 0;
-        for ( ; j < S.length(); ++j )
-        {
-          const TCHAR ch = S[j];
-          if ( ch == _T(')') )
-          {
-            if ( nBracketDepth != 0 )
-              --nBracketDepth;
-            else
-              break;
-          }
-          else if ( ch == _T('(') )
-          {
-            ++nBracketDepth;
-          }
-        }
-        
-        if ( j < S.length() )
-          S.Delete(i, j - i + 1);
-        else
-          S.Delete(i, -1);
-      }
-    }
 
-    if ( (nCmdType == CScriptEngine::CMDTYPE_SET) || 
-         (nCmdType == CScriptEngine::CMDTYPE_UNSET) )
+  CStrSplitT<TCHAR> args;
+  if ( (nCmdType == CScriptEngine::CMDTYPE_SET) || 
+       (nCmdType == CScriptEngine::CMDTYPE_UNSET) )
+  {
+    if ( args.Split(S, _T("="), 2) == 2 )
     {
-      if (args.GetArgCount() == 2)
-      {
-        S.Insert( 0, _T("=") );
-        S.Insert( 0, args.Arg(0) );
-      }
+      S = args.Arg(1);
     }
   }
-  else
-  {
-    
-    Runtime::GetLogger().Add(   _T("; the function is disabled") );  
 
+  if ( S.length() > 0 )
+  {
+    int i;
+    while ( (i = S.Find(_T("$("))) >= 0 )
+    {
+      int j = i + 2;
+      unsigned int nBracketDepth = 0;
+      for ( ; j < S.length(); ++j )
+      {
+        const TCHAR ch = S[j];
+        if ( ch == _T(')') )
+        {
+          if ( nBracketDepth != 0 )
+            --nBracketDepth;
+          else
+            break;
+        }
+        else if ( ch == _T('(') )
+        {
+          ++nBracketDepth;
+        }
+      }
+      
+      if ( j < S.length() )
+        S.Delete(i, j - i + 1);
+      else
+        S.Delete(i, -1);
+    }
+  }
+
+  if ( (nCmdType == CScriptEngine::CMDTYPE_SET) || 
+       (nCmdType == CScriptEngine::CMDTYPE_UNSET) )
+  {
+    if (args.GetArgCount() == 2)
+    {
+      S.Insert( 0, _T("=") );
+      S.Insert( 0, args.Arg(0) );
+    }
   }
 
   Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );
@@ -7474,7 +7467,12 @@ bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S,
         CheckPluginMacroVars(S);
         bResult = CheckUserMacroVars(pScriptEngine, S, nCmdType); // <-- in case of CMDTYPE_SET/UNSET, sets/unsets a var
         if ( nCmdType != CScriptEngine::CMDTYPE_UNSET ) // <-- required for 'unset $(var)'
-            CheckEmptyMacroVars(m_pNppExec, S, nCmdType);
+        {
+            if ( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
+            {
+                CheckEmptyMacroVars(S, nCmdType);
+            }
+        }
 
         if ( !useLogging )
         {
@@ -7539,7 +7537,10 @@ bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& 
 
                 CheckAllMacroVars(pScriptEngine, SubVal, useLogging);
                 if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
-                    CheckEmptyMacroVars(m_pNppExec, SubVal, 0, true); // forcing no empty vars
+                {
+                    // forcing no empty vars
+                    CheckEmptyMacroVars(SubVal);
+                }
 
                 S.Replace(n2, n1_end - n2, SubVal);
                 isSubstituted = true;
