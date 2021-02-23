@@ -7358,7 +7358,7 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
   return bResult;
 }
 
-void CNppExecMacroVars::CheckEmptyMacroVars(CNppExec* pNppExec, tstr& S, int nCmdType )
+void CNppExecMacroVars::CheckEmptyMacroVars(CNppExec* pNppExec, tstr& S, int nCmdType , bool bForce )
 {
     
   Runtime::GetLogger().Add(   _T("CheckEmptyMacroVars()") );
@@ -7366,7 +7366,7 @@ void CNppExecMacroVars::CheckEmptyMacroVars(CNppExec* pNppExec, tstr& S, int nCm
   Runtime::GetLogger().IncIndentLevel();
   Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );   
     
-  if ( pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
+  if ( bForce || pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
   {
     
     Runtime::GetLogger().Add(   _T("; the function is enabled") );  
@@ -7538,6 +7538,9 @@ bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& 
                 Runtime::GetLogger().Add(   _T("; checking inner vars...") );
 
                 CheckAllMacroVars(pScriptEngine, SubVal, useLogging);
+                if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
+                    CheckEmptyMacroVars(m_pNppExec, SubVal, 0, true); // forcing no empty vars
+
                 S.Replace(n2, n1_end - n2, SubVal);
                 isSubstituted = true;
             }

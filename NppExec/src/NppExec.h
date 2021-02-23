@@ -1235,7 +1235,7 @@ public:
     void        CheckNppMacroVars(tstr& S);
     void        CheckPluginMacroVars(tstr& S);
     bool        CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S, int nCmdType = 0);
-    static void CheckEmptyMacroVars(CNppExec* pNppExec, tstr& S, int nCmdType = 0);
+    static void CheckEmptyMacroVars(CNppExec* pNppExec, tstr& S, int nCmdType = 0, bool bForce = false);
     bool        CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging, int nCmdType = 0);
     bool        CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging);
     bool        SetUserMacroVar(CScriptEngine* pScriptEngine, tstr& varName, const tstr& varValue, unsigned int nFlags = 0);
