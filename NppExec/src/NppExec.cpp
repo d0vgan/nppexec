@@ -289,7 +289,7 @@ const int   DEFAULT_GOTO_MAXCOUNT             = 10000;
 const int   DEFAULT_RICHEDIT_MAXTEXTLEN       = 4*1024*1024; // 4 MB
 const int   DEFAULT_SENDMSG_MAXBUFLEN         = 4*1024*1024; // 4 M symbols
 const int   DEFAULT_UTF8_DETECT_LENGTH        = 16384;
-const int   DEFAULT_CD_UNNAMED                = 1;
+const int   DEFAULT_CD_UNNAMEDFILE            = 1;
 const TCHAR DEFAULT_COMMENTDELIMITER[]        = _T("//");
 const TCHAR DEFAULT_HELPFILE[]                = _T("doc\\NppExec\\NppExec_Manual.chm");
 const TCHAR DEFAULT_LOGSDIR[]                 = _T("");
@@ -1071,9 +1071,9 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTI_UTF8_DETECT_LENGTH, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("UTF8_Detect_Length"),
       DEFAULT_UTF8_DETECT_LENGTH, NULL },
-    { OPTI_CONSOLE_CD_UNNAMED, OPTT_INT | OPTF_READONLY,
-      INI_SECTION_CONSOLE, _T("Cd_Unnamed"),
-      DEFAULT_CD_UNNAMED, NULL },
+    { OPTI_CONSOLE_CD_UNNAMEDFILE, OPTT_INT | OPTF_READONLY,
+      INI_SECTION_CONSOLE, _T("Cd_UnnamedFile"),
+      DEFAULT_CD_UNNAMEDFILE, NULL },
 
     // --- internal options ---
     { OPTU_PLUGIN_HOTKEY, OPTT_INT | OPTF_INTERNAL,
@@ -1573,8 +1573,8 @@ void UpdateCurrentDirectory()
         else
         {
             // dealing with an unnamed file...
-            int nCdUnnamed = NppExec.GetOptions().GetInt(OPTI_CONSOLE_CD_UNNAMED);
-            if ( nCdUnnamed == 1 )
+            int nCdUnnamedFile = NppExec.GetOptions().GetInt(OPTI_CONSOLE_CD_UNNAMEDFILE);
+            if ( nCdUnnamedFile == 1 )
             {
                 szFileDir[0] = 0;
                 ::GetTempPath(FILEPATH_BUFSIZE - 1, szFileDir);

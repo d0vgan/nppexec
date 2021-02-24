@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * changed: now NppExec changes the current directory to %TEMP% when an unnamed
    file (such as "new 1") is activated and "Follow $(CURRENT_DIRECTORY)" is on.
    To revert to the old behavior (the current directory is not changed when an
-   unnamed file is activated), set the manual option "Cd_Unnamed" to 0.
+   unnamed file is activated), set the manual option "Cd_UnnamedFile" to 0.
  + added: now NppExec supports "cloud location path" in Notepad++'s settings.
      With cloud location path specified in Notepad++'s settings, NppExec does
      the following:
@@ -679,7 +679,7 @@ enum EPluginOptions {
     OPTB_CONSOLE_TABASCHAR,
     OPTB_CONSOLE_SAVEONEXECUTE,
     OPTB_CONSOLE_CDCURDIR,
-    OPTI_CONSOLE_CD_UNNAMED,
+    OPTI_CONSOLE_CD_UNNAMEDFILE,
     OPTB_CONSOLE_CMDHISTORY,
     OPTB_CONSOLE_SAVECMDHISTORY,
 
