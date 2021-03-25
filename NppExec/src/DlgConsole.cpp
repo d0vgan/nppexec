@@ -187,8 +187,8 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("sci_find <flags> <find_what>  -  find a string") _T_RE_EOL \
   _T("sci_replace <flags> <find_what> <replace_with>  -  replace a string") _T_RE_EOL \
   _T("proc_signal <signal>  -  signal to a child process") _T_RE_EOL \
-  _T("sleep <ms>  -  sleep during ms milliseconds") _T_RE_EOL \
-  _T("sleep <ms> <text>  -  print the text and sleep during ms milliseconds") _T_RE_EOL \
+  _T("sleep <ms>  -  sleep for ms milliseconds") _T_RE_EOL \
+  _T("sleep <ms> <text>  -  print the text and sleep for ms milliseconds") _T_RE_EOL \
   _T("npe_cmdalias  -  show all command aliases") _T_RE_EOL \
   _T("npe_cmdalias <alias>  -  shows the value of command alias") _T_RE_EOL \
   _T("npe_cmdalias <alias> =  -  removes the command alias") _T_RE_EOL \
@@ -209,8 +209,8 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(FILE_NAME)  :  welcome.html") _T_RE_EOL \
   _T("$(NAME_PART)  :  welcome") _T_RE_EOL \
   _T("$(EXT_PART)  :  .html") _T_RE_EOL \
-  _T("$(NPP_DIRECTORY)  :  the full path of Notepad++\'s directory") _T_RE_EOL \
-  _T("$(NPP_FULL_FILE_PATH)  :  the full path to notepad++.exe") _T_RE_EOL \
+  _T("$(NPP_DIRECTORY)  :  full path of directory with notepad++.exe") _T_RE_EOL \
+  _T("$(NPP_FULL_FILE_PATH)  :  full path to notepad++.exe") _T_RE_EOL \
   _T("$(CURRENT_WORD)  :  word(s) you selected in Notepad++") _T_RE_EOL \
   _T("$(CURRENT_LINE)  :  current line number") _T_RE_EOL \
   _T("$(CURRENT_COLUMN)  :  current column number") _T_RE_EOL \
