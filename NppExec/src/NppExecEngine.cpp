@@ -1296,9 +1296,9 @@ static FParserWrapper g_fp;
  * proc_signal <signal>
  *   - signal to a child process
  * sleep <ms>
- *   - sleep during ms milliseconds
+ *   - sleep for ms milliseconds
  * sleep <ms> <text>
- *   - print the text and sleep during ms milliseconds
+ *   - print the text and sleep for ms milliseconds
  * npe_cmdalias
  *   - show all command aliases
  * npe_cmdalias <alias>
@@ -1327,8 +1327,8 @@ static FParserWrapper g_fp;
  * $(FILE_NAME)          : welcome.html
  * $(NAME_PART)          : welcome
  * $(EXT_PART)           : .html
- * $(NPP_DIRECTORY)      : the full path of directory with notepad++.exe
- * $(NPP_FULL_FILE_PATH) : the full path to notepad++.exe
+ * $(NPP_DIRECTORY)      : full path of directory with notepad++.exe
+ * $(NPP_FULL_FILE_PATH) : full path to notepad++.exe
  * $(CURRENT_WORD)       : word(s) you selected in Notepad++
  * $(CURRENT_LINE)       : current line number
  * $(CURRENT_COLUMN)     : current column number
