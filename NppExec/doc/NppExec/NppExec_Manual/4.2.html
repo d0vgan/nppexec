@@ -40,7 +40,7 @@ set the variables's value.</p>
 for more details.</p>
 <p>Good way to set your environment is to do it inside NppExec's start-up script. You can specify your start-up script in NppExec's Advanced Options. This script will be executed each time Notepad++ starts. For example, you can create similar script:</p>
 <blockquote>
-  <pre>// don't show Console if it's hidden
+  <pre>// don't show NppExec's Console if it's hidden
 NPP_CONSOLE ?
 // set our environment variables
 ENV_SET NPPHOME = $(NPP_DIRECTORY)
@@ -56,7 +56,7 @@ CLS</pre>
     forbids the Console to be shown if it's hidden - this is usefull at Notepad++'es
 start-up. </p>
 <p>The two following commands set new environment variables: NPPHOME and TCCHOME. These environment variables can be used by any program you start from NppExec. </p>
-<p>The following command (&quot;ENV_UNSET PATH&quot;) restores the initial value of PATH if it was previously modified by NppExec. Of course, it can not be modified by NppExec before its start-up script is executed, but you may execute the start-up script again (using NPP_EXEC or from NppExec's &quot;Execute...&quot; dialog),
+<p>The following command (&quot;ENV_UNSET PATH&quot;) restores the initial value of PATH if it was previously modified by NppExec. Of course, it can not be modified by NppExec before its start-up script is executed, but you may execute the start-up script again (using NPP_EXEC or from the &quot;Execute NppExec Script...&quot; dialog),
     so it may be important to restore the initial value of PATH before modifying
     it. Otherwise, the value of PATH may grow again and again - each time you
     call the start-up script explicitly or execute another script which modifies

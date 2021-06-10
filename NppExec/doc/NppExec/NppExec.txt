@@ -6,8 +6,8 @@
  ****************************************************************************
  *
  * Abilities:
- *   1) Run multiple commands from the "Execute..." dialog
- *   2) Run stand-alone command from the Console Dlg
+ *   1) Run multiple commands from the "Execute NppExec Script..." dialog
+ *   2) Run stand-alone command from the NppExec Console
  *   3) Separate console for each NppExec.dll (e.g. NppExec1.dll, NppExec2.dll)
  *   4) Additional commands:
  *        cls - clear Console screen

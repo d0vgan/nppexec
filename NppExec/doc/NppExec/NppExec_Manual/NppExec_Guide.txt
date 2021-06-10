@@ -37,9 +37,10 @@ created and saved with some name which identified that script. If you are
 not sure about NppExec's script creation & saving, let me guide you.
 
 To create & save some NppExec's script, do the following:
-1) Open NppExec's "Execute..." window: press the hotkey (F6 by default)
-   or select (main menu) Plugins -> NppExec -> Execute...
-2) Type the text of your script in the "Execute..." window. For example:
+1) Open the "Execute NppExec Script..." window: press the hotkey (F6) or
+   select (main menu) Plugins -> NppExec -> Execute NppExec Script...
+2) Type the text of your script in the "Execute NppExec Script..." window.
+   For example:
 
      "C:\tools\tcc\tcc.exe" -run "$(FULL_CURRENT_PATH)"
      
@@ -47,10 +48,10 @@ To create & save some NppExec's script, do the following:
    (for example, type "run@.c") and press Save.
 
 Now you can compile & run any single .c file opened in Notepad++. To do it,
-press F6 (default hotkey for the "Execute..." window), select "run@.c" in
-the combo-box and press OK.
+press F6 (default hotkey for the "Execute NppExec Script..." window), select
+"run@.c" in the combo-box and press OK.
 You can press Ctrl+F6 (by default) to execute the same script again without
-showing the "Execute..." window.
+showing the "Execute NppExec Script..." window.
 
 As you can see, currently you have to call the "run@.c" script explicitly 
 in order to compile & run your .c source file. Thus, to compile & run
@@ -124,7 +125,7 @@ As you can see, current implementation of the "compile_or_run" script requires
 a lot of additional "run@..." scripts to exist together with other scripts
 which you may want to call explicitly. In the same time, you do not call the 
 "run@..." scripts explicitly. So, the "run@..." scripts may be undesired in 
-the NppExec's script combo-box (in the "Execute..." window).
+the NppExec's script combo-box (in the "Execute NppExec Script..." window).
 Thus, you may modify the "compile_or_run" script in order to call script files
 instead of internal scripts. For example:
 
@@ -196,6 +197,43 @@ Just type one the following in NppExec's Console:
 
   // to open the "run@..." script from a physical file:
   NPP_OPEN $(Compiler)
+
+
+Starting from NppExec v0.6 alpha 1, IF...ELSE IF...ELSE...ENDIF sequences are
+supported in NppExec's scripts (see "help if").
+It means we can create a single NppExec's script that will deal with all the
+file types we want.
+For example:
+
+  // setting internal messages off
+  npe_console m- --
+  // queueing internal messages on
+  npe_queue -s npe_console m+ --
+  // saving current file
+  NPP_SAVE
+  // file extension in lower case
+  set local ext ~ strlower $(EXT_PART)
+  // compiling/running...
+  if $(ext) == .c
+    "C:\tools\tcc\tcc.exe" -run "$(FULL_CURRENT_PATH)"
+  else if $(ext) == .cpp
+    set local path = $(SYS.PATH)
+    env_set PATH = $(path);C:\mingw32\bin;
+    set local obj = $(CURRENT_DIRECTORY)\$(NAME_PART)
+    cmd /C del "$(obj).o" 2>nul & del "$(obj).exe" 2>nul
+    echo Compiling...
+    "g++" -c "$(FULL_CURRENT_PATH)"
+    if $(EXITCODE) == 0
+      "g++" "$(obj).o" -o "$(obj).exe"
+      echo Running...
+      NPP_RUN cmd /C if exist "$(obj).exe" "$(obj).exe" && echo. && pause
+    endif
+    env_set PATH = $(path)
+  else if $(ext) == .awk
+    "C:\tools\gawk\gawk.exe" -f "$(FULL_CURRENT_PATH)"
+  else
+    messagebox "Unknown file type!"
+  endif
 
 
 One more thing regarding NppExec usage. Compiler/interpreter's output is shown

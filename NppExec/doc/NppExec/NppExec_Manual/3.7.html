@@ -24,7 +24,7 @@ cmd /c copy /?
 ECHO You'll see this // but not this (comment)</pre>
 </blockquote>
 <p>You
-      can create and save NppExec's scripts using the &quot;Execute...&quot; dialog <a href="3.6.html">[3.6]</a>. However, NppExec's script can also be located in a text file. I.e. you can create a text file which contains some NppExec's commands (one command per one line) and then execute this file (commands from this file) in NppExec. Such text file can be an ANSI file for ANSI version of NppExec and can be an ANSI or Unicode (UCS-2 LE/UCS-2 BE/UTF-8) file for Unicode version of NppExec. Note that Unicode text file must contain leading &quot;BOM&quot; bytes to be recognized by Unicode version of NppExec (by default, these bytes are present - until you force saving without &quot;BOM&quot;). To execute NppExec's script from a text file, use the &quot;npp_exec&quot; command.
+      can create and save NppExec's scripts using the &quot;Execute NppExec Script...&quot; dialog <a href="3.6.html">[3.6]</a>. However, NppExec's script can also be located in a text file. I.e. you can create a text file which contains some NppExec's commands (one command per one line) and then execute this file (commands from this file) in NppExec. Such text file can be an ANSI file for ANSI version of NppExec and can be an ANSI or Unicode (UCS-2 LE/UCS-2 BE/UTF-8) file for Unicode version of NppExec. Note that Unicode text file must contain leading &quot;BOM&quot; bytes to be recognized by Unicode version of NppExec (by default, these bytes are present - until you force saving without &quot;BOM&quot;). To execute NppExec's script from a text file, use the &quot;npp_exec&quot; command.
       This command allows to execute commands from a previously saved (internal)
       script or from an (external) text file.</p>
 <p>As you can store your NppExec's script in a text file, you can edit such file
@@ -46,7 +46,7 @@ NPP_EXEC &quot;$(FULL_CURRENT_PATH)&quot;  // ...and execute it</pre>
 </ol>
 </p>
 <p>NppExec stores your scripts in Notepad++'es &quot;$(PLUGINS_CONFIG_DIR)&quot; folder. The &quot;npes_saved.txt&quot; file stores all the scripts except the temporary one which is stored inside &quot;npes_temp.txt&quot;.</p>
-<p>See also: NppExec's &quot;Execute...&quot; <a href="3.6.html">[3.6]</a>; Run-time parameters <a href="4.3.html">[4.3]</a>.</p>
+<p>See also: &quot;Execute NppExec Script...&quot; <a href="3.6.html">[3.6]</a>; Run-time parameters <a href="4.3.html">[4.3]</a>.</p>
 <P>&nbsp;</P>
 </BODY>
 </HTML>
