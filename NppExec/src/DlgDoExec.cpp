@@ -41,6 +41,9 @@ RECT CDoExecDlg::rcBtCancelInitial;
 
 const TCHAR TEMP_SCRIPT_NAME[] = _T(" <temporary script>");
 
+#define  MAX_PLUGIN_NAME  60
+extern TCHAR EXECUTE_DLG_TITLE[MAX_PLUGIN_NAME + 10];
+
 
 // this variable stores previous script name from DoExecDlg
 // to use it when the script name is changed
@@ -441,7 +444,15 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
   ShowScriptText(g_szPrevScriptName);
   
   if (bScriptFileChanged)
-    this->SetText( _T("Execute... *") );
+  {
+    S = EXECUTE_DLG_TITLE;
+    S += _T(" *");
+    this->SetText( S.c_str() );
+  }
+  else
+  {
+    this->SetText( EXECUTE_DLG_TITLE );
+  }
 
   m_cbScriptNames.SetFocus();
 }

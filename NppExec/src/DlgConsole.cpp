@@ -956,7 +956,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  where lParam or both lParam and wParam can be omitted.") _T_RE_EOL \
     _T("  See NPP_SENDMSG and SCI_SENDMSG for more details.") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
-    _T("  npp_sendmsg NPPM_DMMGETPLUGINHWNDBYNAME \" Console \" \"NppExec.dll\"") _T_RE_EOL \
+    _T("  npp_sendmsg NPPM_DMMGETPLUGINHWNDBYNAME \"NppExec Console\" \"NppExec.dll\"") _T_RE_EOL \
     _T("  set local hwnd = $(MSG_RESULT)  // hwnd of NppExec\'s Console") _T_RE_EOL \
     _T("  npp_sendmsgex $(hwnd) WM_COMMAND 1154 0  // Word-Wrap checkbox") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
@@ -4573,20 +4573,6 @@ void ConsoleDlg::OnShowWindow(HWND hDlg)
 {
   HWND hEd = GetDlgItem(hDlg, IDC_RE_CONSOLE);
   ::SetFocus(hEd);
-
-  /*
-  if (!Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONFLTR_ENABLE))
-  {
-    ::SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM) " Console ");
-  }
-  else
-  {
-    ::SendMessage(hDlg, WM_SETTEXT, 0, (LPARAM) " Console* ");
-  }
-  */
-
-  //CmdHistoryList.DeleteAll();
-  //pCmdHistoryItemPtr = NULL;
 }
 
 void ConsoleDlg::OnSize(HWND hDlg)

@@ -245,7 +245,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 TCHAR PLUGIN_NAME[MAX_PLUGIN_NAME] = _T("NppExec");
 TCHAR PLUGIN_NAME_DLL[MAX_PLUGIN_NAME + 6] = _T("NppExec.dll");
 TCHAR INI_FILENAME[MAX_PLUGIN_NAME + 6] = _T("NppExec.ini");
-TCHAR CONSOLE_DLG_TITLE[MAX_PLUGIN_NAME + 10] = _T(" Console ");
+TCHAR CONSOLE_DLG_TITLE[MAX_PLUGIN_NAME + 10] = _T("Console");
+TCHAR EXECUTE_DLG_TITLE[MAX_PLUGIN_NAME + 10] = _T("Execute Script...");
+TCHAR DO_EXEC_MENU_ITEM[MAX_PLUGIN_NAME + 10] = _T("Execute Script...");
+TCHAR DIRECT_EXEC_MENU_ITEM[MAX_PLUGIN_NAME + 10] = _T("Execute Previous Script");
 TCHAR SHOW_CONSOLE_MENU_ITEM[MAX_PLUGIN_NAME + 10] = _T("Show Console");
 TCHAR TOGGLE_CONSOLE_MENU_ITEM[MAX_PLUGIN_NAME + 10] = _T("Toggle Console");
 
@@ -1390,8 +1393,8 @@ void globalInitialize()
   InitShortcut(N_TOGGLECONSOLE, false, true,  false, VK_OEM_3); // the '~' key
 
   // init menu items:
-  InitFuncItem(N_DO_EXEC_DLG,     _T("Execute..."),                    do_exec_dlg_func,    &g_funcShortcut[N_DO_EXEC_DLG]);
-  InitFuncItem(N_DIRECT_EXEC,     _T("Direct Execute Previous"),       direct_exec_func,    &g_funcShortcut[N_DIRECT_EXEC]);
+  InitFuncItem(N_DO_EXEC_DLG,     DO_EXEC_MENU_ITEM,                   do_exec_dlg_func,    &g_funcShortcut[N_DO_EXEC_DLG]);
+  InitFuncItem(N_DIRECT_EXEC,     DIRECT_EXEC_MENU_ITEM,               direct_exec_func,    &g_funcShortcut[N_DIRECT_EXEC]);
   InitFuncItem(N_SHOWCONSOLE,     SHOW_CONSOLE_MENU_ITEM,              show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
   InitFuncItem(N_TOGGLECONSOLE,   TOGGLE_CONSOLE_MENU_ITEM,            toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
   InitFuncItem(N_GOTO_NEXT_ERROR, _T("Go to next error"),              go_to_next_error,    NULL);
@@ -4353,45 +4356,76 @@ void CNppExec::InitPluginName(HMODULE hDllModule)
   }
 
   {
-    tstr name = PLUGIN_NAME;
-    if ( name.length() > 0 )
+    tstr plug_name = PLUGIN_NAME;
+    if ( plug_name.length() > 0 )
     {
       // needed in MustDie9x because GetModuleFileName returns 
       // capital letters there (stupid M$...)
-      NppExecHelpers::StrUpper(name);
-      i = name.Find( _T("NPPEXEC") );
+      NppExecHelpers::StrUpper(plug_name);
+      i = plug_name.Find( _T("NPPEXEC") );
       if ( i >= 0 )
       {
-        name.Replace( i, 7, _T("NppExec") );
+        plug_name.Replace( i, 7, _T("NppExec") );
         if ( i > 1 )
         {
-          ::CharLowerBuff( (name.c_str() + 1), i - 1 );
+          ::CharLowerBuff( (plug_name.c_str() + 1), i - 1 );
         }
-        if ( i + 8 < name.length() )
+        if ( i + 8 < plug_name.length() )
         {
-          ::CharLowerBuff( (name.c_str() + i + 8), name.length() - i - 8 );
+          ::CharLowerBuff( (plug_name.c_str() + i + 8), plug_name.length() - i - 8 );
         }
-        lstrcpy( PLUGIN_NAME, name.c_str() );
-      
+        lstrcpy( PLUGIN_NAME, plug_name.c_str() );
+
+        tstr S;
+
+        auto add_prefix_to_item_name = [&S](const tstr& prefix, TCHAR* item_name)
+        {
+          S = prefix;
+          S += _T(" ");
+          S += item_name;
+          lstrcpy( item_name, S.c_str() );
+        };
+
+        auto insert_into_item_name = [&S](const tstr& insert, TCHAR* item_name, int word_pos = 1)
+        {
+          int k = 0;
+          for (; word_pos > 0; --word_pos)
+          {
+            if (k != 0)
+              ++k; // after a word separator
+            int k2 = c_base::_tstr_unsafe_findch(item_name + k, _T(' ')); // next word separator
+            if (k2 != -1)
+              k += k2;
+            else
+              return;
+          }
+          S.Copy(item_name, k);
+          S.Append(_T(' '));
+          S.Append(insert);
+          S.Append(item_name + k);
+          lstrcpy( item_name, S.c_str() );
+        };
+
+        // Execute dialog title
+        insert_into_item_name(plug_name, EXECUTE_DLG_TITLE);
+
         // Console dialog title:
-        tstr S = name;
-        S.Replace( _T("NppExec"), _T("Console") );
-        S.Insert( 0, _T(' ') );
-        S.Append( _T(' ') );
-        lstrcpy( CONSOLE_DLG_TITLE, S.c_str() );
+        add_prefix_to_item_name(plug_name, CONSOLE_DLG_TITLE);
+
+        // Execute Script menu item
+        insert_into_item_name(plug_name, DO_EXEC_MENU_ITEM);
+
+        // Execute Previous Script menu item
+        insert_into_item_name(plug_name, DIRECT_EXEC_MENU_ITEM, 2);
 
         // Show Console menu item:
-        S = name;
-        S.Replace( _T("NppExec"), _T("Console") );
-        S.Insert( 0, _T("Show ") );
-        lstrcpy( SHOW_CONSOLE_MENU_ITEM, S.c_str() );
+        insert_into_item_name(plug_name, SHOW_CONSOLE_MENU_ITEM);
 
         // Toggle Console menu item:
-        S.Replace( _T("Show "), _T("Toggle ") );
-        lstrcpy( TOGGLE_CONSOLE_MENU_ITEM, S.c_str() );
+        insert_into_item_name(plug_name, TOGGLE_CONSOLE_MENU_ITEM);
 
         // Command History file name:
-        S = name;
+        S = plug_name;
         S.Replace( _T("NppExec"), _T("npec_cmdhistory") );
         S.Append( _T(".txt") );
         lstrcpy( CMDHISTORY_FILENAME, S.c_str() );
