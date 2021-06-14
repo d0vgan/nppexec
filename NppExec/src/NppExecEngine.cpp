@@ -8433,7 +8433,11 @@ void runInputBox(CScriptEngine* pScriptEngine, const tstr& msg)
     else
     {
         // show the InputBox dialog
-        pNppExec->PluginDialogBox(IDD_INPUTBOX, InputBoxDlgProc);
+        INT_PTR nRet = pNppExec->PluginDialogBox(IDD_INPUTBOX, InputBoxDlgProc);
+        if ( nRet != CInputBoxDlg::RET_OK )
+        {
+            InputBoxDlg.m_OutputValue.Clear();
+        }
     }
 
     Runtime::GetLogger().Add(   _T("; InputBox returned") );
