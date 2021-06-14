@@ -43,10 +43,7 @@ INT_PTR CALLBACK InputBoxDlgProc(
             }
             case IDCANCEL:
             {
-                if ( InputBoxDlg.getInputBoxType() != CInputBoxDlg::IBT_INPUTBOX )
-                {
-                    EndDialog(hDlg, CInputBoxDlg::RET_CANCEL);
-                } // else don't close
+                EndDialog(hDlg, CInputBoxDlg::RET_CANCEL);
                 return 1;
             }
             case IDC_BT_KILL:
