@@ -1526,9 +1526,9 @@ extern "C" __declspec(dllexport) void setInfo(NppData notpadPlusData)
     }
     ::SetProp(notpadPlusData._nppHandle, PROP_NPPEXEC_DLL, NppExec.m_hDllModule);
 
-    int ver = (int) ::SendMessage(notpadPlusData._nppHandle, NPPM_GETNPPVERSION, 0, 0);
-    if ( (HIWORD(ver) < 5) ||
-         ((HIWORD(ver) == 5) && (LOWORD(ver) < 1)) )
+    DWORD dwVer = (DWORD) ::SendMessage(notpadPlusData._nppHandle, NPPM_GETNPPVERSION, 0, 0);
+    if ( (HIWORD(dwVer) < 5) ||
+         ((HIWORD(dwVer) == 5) && (LOWORD(dwVer) < 1)) )
     {
       ::MessageBox(
           notpadPlusData._nppHandle, 
@@ -1861,17 +1861,46 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
             const int nToolbarBtn = NppExec.GetOptions().GetInt(OPTI_TOOLBARBTN);
             if ( nToolbarBtn )
             {
-                NppExec.m_TB_Icon.hToolbarBmp = (HBITMAP) ::LoadImage( 
-                  (HINSTANCE) NppExec.m_hDllModule, MAKEINTRESOURCE(IDI_CONSOLEBITMAP), 
-                    IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS );
-
                 int cmdID = g_funcItem[N_SHOWCONSOLE]._cmdID;
                 if ( nToolbarBtn == 2 )
                     cmdID = g_funcItem[N_DO_EXEC_DLG]._cmdID;
                 else if ( nToolbarBtn == 3 )
                     cmdID = g_funcItem[N_DIRECT_EXEC]._cmdID;
-                NppExec.SendNppMsg( NPPM_ADDTOOLBARICON, 
-                  (WPARAM) cmdID, (LPARAM) &NppExec.m_TB_Icon );
+
+                DWORD dwVer = (DWORD) NppExec.SendNppMsg(NPPM_GETNPPVERSION);
+                if ( HIWORD(dwVer) >= 8 )
+                {
+                    NppExec.m_TB_IconsWithDarkMode.hToolbarBmp = (HBITMAP) ::LoadImage( 
+                      (HINSTANCE) NppExec.m_hDllModule, MAKEINTRESOURCE(IDI_CONSOLEBITMAP), 
+                      IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS
+                    );
+
+                    NppExec.m_TB_IconsWithDarkMode.hToolbarIcon = (HICON) ::LoadImage( 
+                      (HINSTANCE) NppExec.m_hDllModule, MAKEINTRESOURCE(IDI_CONSOLEICON), 
+                      IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS
+                    );
+
+                    NppExec.m_TB_IconsWithDarkMode.hToolbarIconDarkMode = (HICON) ::LoadImage( 
+                      (HINSTANCE) NppExec.m_hDllModule, MAKEINTRESOURCE(IDI_CONSOLEICONDARK), 
+                      IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS
+                    );
+
+                    NppExec.SendNppMsg( NPPM_ADDTOOLBARICON_FORDARKMODE, (WPARAM) cmdID, (LPARAM) &NppExec.m_TB_IconsWithDarkMode );
+                }
+                else
+                {
+                    NppExec.m_TB_Icons.hToolbarBmp = (HBITMAP) ::LoadImage( 
+                      (HINSTANCE) NppExec.m_hDllModule, MAKEINTRESOURCE(IDI_CONSOLEBITMAP), 
+                      IMAGE_BITMAP, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS
+                    );
+
+                    NppExec.m_TB_Icons.hToolbarIcon = (HICON) ::LoadImage( 
+                      (HINSTANCE) NppExec.m_hDllModule, MAKEINTRESOURCE(IDI_CONSOLEICON), 
+                      IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADMAP3DCOLORS
+                    );
+
+                    NppExec.SendNppMsg( NPPM_ADDTOOLBARICON_DEPRECATED, (WPARAM) cmdID, (LPARAM) &NppExec.m_TB_Icons );
+                }
             }
         } // NPPN_TBMODIFICATION
     
@@ -1913,8 +1942,12 @@ CNppExec::CNppExec()
     //m_Console.SetNppExec(this);
     m_MacroVars.SetNppExec(this);
 
-    m_TB_Icon.hToolbarBmp = NULL;
-    m_TB_Icon.hToolbarIcon = NULL;
+    m_TB_Icons.hToolbarBmp = NULL;
+    m_TB_Icons.hToolbarIcon = NULL;
+
+    m_TB_IconsWithDarkMode.hToolbarBmp = NULL;
+    m_TB_IconsWithDarkMode.hToolbarIcon = NULL;
+    m_TB_IconsWithDarkMode.hToolbarIconDarkMode = NULL;
 
     npp_nbFiles = 0;
     npp_bufFileNames.Clear();
@@ -4288,10 +4321,17 @@ void CNppExec::Uninit()
     GetCommandExecutor().WaitUntilAllScriptEnginesDone(INFINITE);
     GetCommandExecutor().Stop();
 
-    if ( m_TB_Icon.hToolbarBmp )
-        ::DeleteObject(m_TB_Icon.hToolbarBmp);
-    if ( m_TB_Icon.hToolbarIcon )
-        ::DestroyIcon(m_TB_Icon.hToolbarIcon);
+    if ( m_TB_Icons.hToolbarBmp )
+        ::DeleteObject(m_TB_Icons.hToolbarBmp);
+    if ( m_TB_Icons.hToolbarIcon )
+        ::DestroyIcon(m_TB_Icons.hToolbarIcon);
+
+    if ( m_TB_IconsWithDarkMode.hToolbarBmp )
+        ::DeleteObject(m_TB_IconsWithDarkMode.hToolbarBmp);
+    if ( m_TB_IconsWithDarkMode.hToolbarIcon )
+        ::DestroyIcon(m_TB_IconsWithDarkMode.hToolbarIcon);
+    if ( m_TB_IconsWithDarkMode.hToolbarIconDarkMode )
+        ::DestroyIcon(m_TB_IconsWithDarkMode.hToolbarIconDarkMode);
 
     if ( npp_bufFileNames.GetCount() > 0 )
     {

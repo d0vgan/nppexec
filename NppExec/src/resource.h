@@ -6,15 +6,17 @@
 #define IDD_CONSOLE                             102
 #define IDD_SCRIPTNAME                          103
 #define IDD_HELP_ABOUT                          104
-#define IDI_CONSOLEICON                         105
 #define IDD_CONSOLE_FILTER                      106
 #define IDD_CONSOLE_OUTPUTFILTER                107
 #define IDD_CONSOLE_REPLACEFILTER               108
 #define IDD_CONSOLE_HIGHLIGHTFILTER             109
-#define IDI_CONSOLEBITMAP                       110
 #define IDD_ADVANCEDOPTIONS                     111
 #define IDD_INPUTBOX                            112
 #define IDD_CONSOLE_ENCODING                    113
+
+#define IDI_CONSOLEICON                         121
+#define IDI_CONSOLEICONDARK                     122
+#define IDI_CONSOLEBITMAP                       123
 
 #define IDC_ED_CMDLINE                          1001
 #define IDC_RE_CONSOLE                          1002

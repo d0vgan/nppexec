@@ -31,7 +31,7 @@ enum LangType {L_TEXT, L_PHP , L_C, L_CPP, L_CS, L_OBJC, L_JAVA, L_RC,\
 			   L_IHEX, L_TEHEX, L_SWIFT,\
 			   L_ASN1, L_AVS, L_BLITZBASIC, L_PUREBASIC, L_FREEBASIC, \
 			   L_CSOUND, L_ERLANG, L_ESCRIPT, L_FORTH, L_LATEX, \
-			   L_MMIXAL, L_NIMROD, L_NNCRONTAB, L_OSCRIPT, L_REBOL, \
+			   L_MMIXAL, L_NIM, L_NNCRONTAB, L_OSCRIPT, L_REBOL, \
 			   L_REGISTRY, L_RUST, L_SPICE, L_TXT2TAGS, L_VISUALPROLOG,\
 			   // Don't use L_JS, use L_JAVASCRIPT instead
 			   // The end of enumated language type, so it should be always at the end
@@ -145,8 +145,10 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	#define NPPM_SETMENUITEMCHECK	(NPPMSG + 40)
 	//void WM_PIMENU_CHECK(UINT	funcItem[X]._cmdID, TRUE/FALSE)
 
-	#define NPPM_ADDTOOLBARICON (NPPMSG + 41)
-	//void WM_ADDTOOLBARICON(UINT funcItem[X]._cmdID, toolbarIcons icon)
+	#define NPPM_ADDTOOLBARICON_DEPRECATED (NPPMSG + 41)
+	//void NPPM_ADDTOOLBARICON(UINT funcItem[X]._cmdID, toolbarIcons iconHandles) -- DEPRECATED : use NPPM_ADDTOOLBARICON_FORDARKMODE instead
+	//2 formats of icon are needed: .ico & .bmp 
+	//Both handles below should be set so the icon will be displayed correctly if toolbar icon sets are changed by users
 		struct toolbarIcons {
 			HBITMAP	hToolbarBmp;
 			HICON	hToolbarIcon;
@@ -241,7 +243,6 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	// Reloads Buffer
 	// wParam: Buffer to reload
 	// lParam: 0 if no alert, else alert
-
 
 	#define NPPM_GETBUFFERLANGTYPE (NPPMSG + 64)
 	// INT NPPM_GETBUFFERLANGTYPE(UINT_PTR bufferID, 0)
@@ -437,6 +438,16 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	// INT NPPM_GETLINENUMBERWIDTHMODE(0, 0)
 	// Get line number margin width in dynamic width mode (LINENUMWIDTH_DYNAMIC) or constant width mode (LINENUMWIDTH_CONSTANT)
 
+	#define NPPM_ADDTOOLBARICON_FORDARKMODE (NPPMSG + 101)
+	// VOID NPPM_ADDTOOLBARICON_FORDARKMODE(UINT funcItem[X]._cmdID, toolbarIconsWithDarkMode iconHandles)
+	// Use NPPM_ADDTOOLBARICON_FORDARKMODE instead obsolete NPPM_ADDTOOLBARICON which doesn't support the dark mode
+	// 2 formats / 3 icons are needed:  1 * BMP + 2 * ICO 
+	// All 3 handles below should be set so the icon will be displayed correctly if toolbar icon sets are changed by users, also in dark mode
+	struct toolbarIconsWithDarkMode {
+		HBITMAP	hToolbarBmp;
+		HICON	hToolbarIcon;
+		HICON	hToolbarIconDarkMode;
+	};
 
 #define VAR_NOT_RECOGNIZED 0
 #define FULL_CURRENT_PATH 1
@@ -485,7 +496,7 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	//scnNotification->nmhdr.idFrom = 0;
 
 	#define NPPN_TBMODIFICATION (NPPN_FIRST + 2) // To notify plugins that toolbar icons can be registered
-	//scnNotification->nmhdr.code = NPPN_TB_MODIFICATION;
+	//scnNotification->nmhdr.code = NPPN_TBMODIFICATION;
 	//scnNotification->nmhdr.hwndFrom = hwndNpp;
 	//scnNotification->nmhdr.idFrom = 0;
 

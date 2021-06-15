@@ -20,6 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.7 - June 2021
+ ----------------
+ + added: now NppExec supports the "Dark Mode" of Notepad++ v8
+   (Thanks to Peter Jones for the updated icons!)
+ * changed: now NppExec's Console and the Toolbar button explicitly mention
+   "NppExec" in their names
+ * changed: now the InputBox can be closed by pressing Esc. When it happens,
+   the value of $(INPUT) will be empty.
+ + NppExec Manual updated 
+
+
  v0.6.2 - February 2021
  ----------------------
  * changed: now NppExec uses CreateFile+FILE_FLAG_WRITE_THROUGH while writing
@@ -1345,7 +1356,8 @@ private:
   HWND    getCurrentScintilla(INT which);
 
 public:
-  toolbarIcons    m_TB_Icon;
+  toolbarIcons             m_TB_Icons;
+  toolbarIconsWithDarkMode m_TB_IconsWithDarkMode;
     
   HMODULE         m_hDllModule;
   NppData         m_nppData;
