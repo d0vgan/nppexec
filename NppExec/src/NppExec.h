@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    (Thanks to Peter Jones for the updated icons!)
  * changed: now NppExec's Console and the Toolbar button explicitly mention
    "NppExec" in their names
+ + added: new menu item "Change Execute Script Font..."
  * changed: now the InputBox can be closed by pressing Esc. When it happens,
    the value of $(INPUT) will be empty.
  + NppExec Manual updated 

@@ -1,0 +1,122 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Internet Assistant for Word Version 3.0">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.11. Clone current document to new editor pane</title>
+</HEAD>
+<BODY>
+<h3>4.6.11. Clone current document to new editor pane</h3>
+
+<p>Let's consider the following scenario: you want to copy the whole content of the current document (opened in Notepad++) and paste it to a new editor pane.</p>
+<p>The first implementation that comes to your mind is:</p>
+<ol>
+  <li>save the current position of the caret;</li>
+  <li>select all the text and copy it to the clipboard;</li>
+  <li>restore the position of the caret;</li>
+  <li>open a new editor pane and paste the text from the clipboard.</li>
+</ol>
+<p>As Notepad++ uses Scintilla component to handle the text and all the text operations, let's deal directly with Scintilla to implement all of the above. Let's refer to Scintilla's documentation to get an idea of how to do it:</p>
+<ul>
+  <li>https://www.scintilla.org/ScintillaDoc.html#SelectionAndInformation</li>
+  <li>https://www.scintilla.org/ScintillaDoc.html#CutCopyAndPaste</li>
+</ul>
+<p>Looking at the documentation, we may end up with the following NppExec script:</p>
+<blockquote>
+  <pre>// saving the caret pos & anchor
+sci_sendmsg SCI_GETCURRENTPOS
+set local pos = $(MSG_RESULT)
+sci_sendmsg SCI_GETANCHOR
+set local anchor = $(MSG_RESULT)
+
+// selecting all
+sci_sendmsg SCI_SELECTALL
+
+// copying the selection to the clipboard
+sci_sendmsg SCI_COPY
+
+// restoring the caret pos & anchor
+sci_sendmsg SCI_SETSEL $(anchor) $(pos)
+
+// open new editor pane
+NPP_SENDMSG WM_COMMAND IDM_FILE_NEW
+
+// pasting the text from the clipboard
+sci_sendmsg SCI_PASTE</pre>
+</blockquote>
+
+<p>Inspecting the Scintilla's documentation further, we can notice SCI_COPYRANGE that allows to simplify the whole script:</p>
+<blockquote>
+  <pre>// getting the length of the document
+sci_sendmsg SCI_GETTEXTLENGTH
+set local textlength = $(MSG_RESULT)
+
+// copying the whole text to the clipboard
+sci_sendmsg SCI_COPYRANGE 0 $(textlength)
+
+// open new editor pane
+NPP_SENDMSG WM_COMMAND IDM_FILE_NEW
+
+// pasting the text from the clipboard
+sci_sendmsg SCI_PASTE</pre>
+</blockquote>
+
+<p>Looking into &quot;Notepad_plus_msgs.h&quot; (&quot;PowerEditor\src\MISC\PluginsManager\Notepad_plus_msgs.h&quot;), we can implement an advanced version of this script that:</p>
+<ul>
+  <li>applies the encoding of the current document to the new one;</li>
+  <li>applies the language (such as C++, JavaScript, XML, etc.) of the current document to the new one;</li>
+  <li>sets the same caret and anchor positions as in the current document.</li>
+</ul>
+<p>Here is the final NppExec's script:</p>
+<blockquote>
+  <pre>// getting the current buffer id
+npp_sendmsg NPPM_GETCURRENTBUFFERID
+set local originalBufferId = $(MSG_RESULT)
+
+// getting the current buffer encoding & lang type
+npp_sendmsg NPPM_GETBUFFERENCODING $(originalBufferId)
+set local bufEnc = $(MSG_RESULT)
+npp_sendmsg NPPM_GETBUFFERLANGTYPE $(originalBufferId)
+set local bufLangType = $(MSG_RESULT)
+
+// getting the caret pos & anchor
+sci_sendmsg SCI_GETCURRENTPOS
+set local pos = $(MSG_RESULT)
+sci_sendmsg SCI_GETANCHOR
+set local anchor = $(MSG_RESULT)
+sci_sendmsg SCI_GETFIRSTVISIBLELINE
+set local firstvisibleline = $(MSG_RESULT)
+
+// getting the length of the document
+sci_sendmsg SCI_GETTEXTLENGTH
+set local textlength = $(MSG_RESULT)
+
+// copying the whole text to the clipboard
+sci_sendmsg SCI_COPYRANGE 0 $(textlength)
+
+// opening a new editor pane (new document)
+NPP_SENDMSG WM_COMMAND IDM_FILE_NEW
+
+// getting the new buffer id
+npp_sendmsg NPPM_GETCURRENTBUFFERID
+set local newBufferId = $(MSG_RESULT)
+
+// setting the new buffer encoding & lang type
+npp_sendmsg NPPM_SETBUFFERENCODING $(newBufferId) $(bufEnc)
+npp_sendmsg NPPM_SETBUFFERLANGTYPE $(newBufferId) $(bufLangType)
+
+// pasting the text from the clipboard
+sci_sendmsg SCI_PASTE
+
+// setting the caret pos & anchor
+sci_sendmsg SCI_SETSEL $(anchor) $(pos)
+sci_sendmsg SCI_SETFIRSTVISIBLELINE $(firstvisibleline)</pre>
+</blockquote>
+<p>Note: in this last script, originally I was thinking to use SCI_GETCODEPAGE and SCI_SETCODEPAGE to deal with the text encoding. But it appeared that Notepad++ does not seem to be aware of the encoding change by SCI_SETCODEPAGE. So I've used the Notepad++'s way of dealing with encoding via NPPM_GETBUFFERENCODING and NPPM_SETBUFFERENCODING.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>
