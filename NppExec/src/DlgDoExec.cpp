@@ -389,6 +389,14 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
   }
   CenterWindow(Runtime::GetNppExec().m_nppData._nppHandle);
 
+  {
+    HFONT hEdFont = Runtime::GetNppExec()._execdlgFont;
+    if ( hEdFont )
+    {
+      m_edScript.SendMsg( WM_SETFONT, (WPARAM) hEdFont, 0 );
+    }
+  }
+
   m_cbScriptNames.AddString(TEMP_SCRIPT_NAME);
   
   tstr              S;

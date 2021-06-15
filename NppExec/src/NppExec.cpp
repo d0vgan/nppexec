@@ -272,6 +272,7 @@ const TCHAR INI_SECTION_USERMENU[]         = _T("UserMenu");
 const TCHAR INI_SECTION_INPUTBOX[]         = _T("InputBox");
 const TCHAR INI_SECTION_EXITBOX[]          = _T("ExitBox");
 const TCHAR INI_SECTION_RESTORE[]          = _T("Restore");
+const TCHAR INI_SECTION_EXECDLG[]          = _T("ExecDlg");
 
 const TCHAR SCRIPTFILE_TEMP[]              = _T("npes_temp.txt");
 const TCHAR SCRIPTFILE_SAVED[]             = _T("npes_saved.txt");
@@ -1004,7 +1005,11 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
       INI_SECTION_EXITBOX, _T("I18"), 0, NULL },
     { OPTS_EXITBOX_VALUE20, OPTT_STR | OPTF_READWRITE,
       INI_SECTION_EXITBOX, _T("I19"), 0, NULL },
-      
+
+    // [ExecDlg]
+    { OPTD_EXECDLG_FONT, OPTT_DATA | OPTF_READWRITE,
+      INI_SECTION_EXECDLG, _T("Font"), 0, NULL },
+
     // --- read-only options ---
 
     // [Options]
@@ -1350,7 +1355,8 @@ void scroll2latest_func() { Runtime::GetNppExec().OnScrollToLatest(); }
 
 void int_msgs_func()      { Runtime::GetNppExec().OnNoInternalMsgs(); }
 void nocmdaliases_func()  { Runtime::GetNppExec().OnNoCmdAliases(); }
-void console_font_func()  { Runtime::GetNppExec().OnSelectConsoleFont(); } 
+void console_font_func()  { Runtime::GetNppExec().OnSelectConsoleFont(); }
+void execdlg_font_func()  { Runtime::GetNppExec().OnSelectExecDlgFont(); }
 void help_manual_func()   { Runtime::GetNppExec().OnHelpManual(); }
 void help_docs_func()     { Runtime::GetNppExec().OnHelpDocs(); }
 void help_about_func()    { Runtime::GetNppExec().OnHelpAbout(); }
@@ -1415,6 +1421,7 @@ void globalInitialize()
   InitFuncItem(N_OUTPUT_FILTER,   _T("Console Output Filters..."),     output_f_func,       &g_funcShortcut[N_OUTPUT_FILTER]);
   InitFuncItem(N_ADV_OPTIONS,     _T("Advanced Options..."),           adv_opt_func,        NULL);
   InitFuncItem(N_CONSOLE_FONT,    _T("Change Console Font..."),        console_font_func,   NULL);
+  InitFuncItem(N_EXECDLG_FONT,    _T("Change Execute Script Font..."), execdlg_font_func,   NULL);
   InitFuncItem(N_SEPARATOR_3,     _T(""),                              /*empty_func*/NULL,  NULL);
   InitFuncItem(N_HELP_MANUAL,     _T("Help/Manual"),                   help_manual_func,    NULL);
   InitFuncItem(N_HELP_DOCS,       _T("Help/Docs..."),                  help_docs_func,      NULL);
@@ -1955,6 +1962,7 @@ CNppExec::CNppExec()
     _bStopTheExitScript = false;
     _bOptionsSavedOnNppnShutdown = false;
 
+    _execdlgFont = NULL;
     _consoleFont = NULL;
     _consoleIsVisible = false;
     _consoleCommandBreak = false;
@@ -1980,6 +1988,9 @@ CNppExec::~CNppExec()
 {
     if ( m_hRichEditDll != NULL )
         ::FreeLibrary(m_hRichEditDll);
+
+    if ( _execdlgFont != NULL )
+        ::DeleteObject(_execdlgFont);
 
     if ( _consoleFont != NULL )
         ::DeleteObject(_consoleFont);
@@ -4762,7 +4773,7 @@ void CNppExec::OnSelectConsoleFont()
   HFONT      hEdFont = _consoleFont;
   
   ZeroMemory(&lf, sizeof(LOGFONT));
-  GetObject(hEdFont ? hEdFont : GetStockObject(SYSTEM_FONT), sizeof(LOGFONT), &lf);
+  GetObject(hEdFont ? hEdFont : GetStockObject(ANSI_FIXED_FONT), sizeof(LOGFONT), &lf);
 
   ZeroMemory(&cf, sizeof(CHOOSEFONT));
   cf.lStructSize = sizeof(CHOOSEFONT);
@@ -4783,6 +4794,38 @@ void CNppExec::OnSelectConsoleFont()
 
   ::SetFocus(hWndFocus);
 
+}
+
+void CNppExec::OnSelectExecDlgFont()
+{
+  LOGFONT    lf;
+  CHOOSEFONT cf;
+  HFONT      hDlgFont = _execdlgFont;
+
+  ZeroMemory(&lf, sizeof(LOGFONT));
+  GetObject(hDlgFont ? hDlgFont : GetStockObject(ANSI_FIXED_FONT), sizeof(LOGFONT), &lf);
+
+  ZeroMemory(&cf, sizeof(CHOOSEFONT));
+  cf.lStructSize = sizeof(CHOOSEFONT);
+  cf.hwndOwner = m_nppData._nppHandle;
+  cf.lpLogFont = &lf;
+  cf.Flags = CF_FORCEFONTEXIST | CF_INITTOLOGFONTSTRUCT | CF_SCREENFONTS;
+  
+  HWND hWndFocus = ::GetFocus();
+  
+  if (ChooseFont(&cf))
+  {
+    /*
+    if (lf.lfHeight > 0) 
+      lf.lfHeight = -lf.lfHeight;
+    */
+    if (_execdlgFont)
+      ::DeleteObject(_execdlgFont);
+    GetOptions().SetData(OPTD_EXECDLG_FONT, &lf, sizeof(LOGFONT));
+    _execdlgFont = CreateFontIndirect(&lf);
+  }
+
+  ::SetFocus(hWndFocus);
 }
 
 void CNppExec::OnShowConsoleDlg()
@@ -5091,9 +5134,17 @@ void CNppExec::ReadOptions()
     GetOptions().SetInt(OPTI_SENDMSG_MAXBUFLEN, 0x10000);
   }
 
-  _consoleFont = NULL;
+  _execdlgFont = NULL;
   int dataSize = 0;
-  const LOGFONT* pLogFont = (const LOGFONT *) GetOptions().GetData(OPTD_CONSOLE_FONT, &dataSize);
+  const LOGFONT* pLogFont = (const LOGFONT *) GetOptions().GetData(OPTD_EXECDLG_FONT, &dataSize);
+  if ( pLogFont && (dataSize >= sizeof(LOGFONT)) )
+  {
+    _execdlgFont = CreateFontIndirect(pLogFont);
+  }
+
+  _consoleFont = NULL;
+  dataSize = 0;
+  pLogFont = (const LOGFONT *) GetOptions().GetData(OPTD_CONSOLE_FONT, &dataSize);
   if ( pLogFont && (dataSize >= sizeof(LOGFONT)) )
   {
     _consoleFont = CreateFontIndirect(pLogFont);

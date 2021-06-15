@@ -647,6 +647,7 @@ enum enumNFuncItems {
   N_OUTPUT_FILTER,
   N_ADV_OPTIONS,
   N_CONSOLE_FONT,
+  N_EXECDLG_FONT,
   N_SEPARATOR_3,
   N_HELP_MANUAL,
   N_HELP_DOCS,
@@ -702,6 +703,7 @@ enum EPluginOptions {
     OPTB_CONSOLE_PRINTMSGREADY,
     OPTB_CONSOLE_NOEMPTYVARS,
     OPTB_CONSOLE_NOCMDALIASES,
+    OPTD_EXECDLG_FONT,
     OPTD_CONSOLE_FONT,
     OPTB_CONSOLE_APPENDMODE,
     OPTU_CONSOLE_CATCHSHORTCUTKEYS,
@@ -1379,6 +1381,7 @@ public:
   bool            _bStopTheExitScript;
   bool            _bOptionsSavedOnNppnShutdown;
 
+  HFONT           _execdlgFont;
   HFONT           _consoleFont;
   bool            _consoleIsVisible;
   bool            _consoleCommandBreak;
@@ -1443,6 +1446,7 @@ public:
   void OnOutputFilter();
   void OnAdvancedOptions();
   void OnSelectConsoleFont();
+  void OnSelectExecDlgFont();
   void OnUserMenuItem(int nItemNumber);
 
   void DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveAll, LPCTSTR szScriptArguments = NULL, unsigned int nRunFlags = 0);
