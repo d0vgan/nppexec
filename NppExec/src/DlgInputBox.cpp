@@ -18,6 +18,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DlgInputBox.h"
 #include "cpp/StrSplitT.h"
+#include "c_base/str2int.h"
+
+
+#ifdef UNICODE
+  #define _t_sprintf  swprintf
+#else
+  #define _t_sprintf  sprintf
+#endif
+
+
+#define ID_TIMER_TIMEOUT 1001
 
 
 CInputBoxDlg InputBoxDlg;
@@ -38,17 +49,17 @@ INT_PTR CALLBACK InputBoxDlgProc(
             case IDOK:
             {
                 InputBoxDlg.OnBtOK();
-                EndDialog(hDlg, CInputBoxDlg::RET_OK);
+                InputBoxDlg.CloseDialog(hDlg, CInputBoxDlg::RET_OK);
                 return 1;
             }
             case IDCANCEL:
             {
-                EndDialog(hDlg, CInputBoxDlg::RET_CANCEL);
+                InputBoxDlg.CloseDialog(hDlg, CInputBoxDlg::RET_CANCEL);
                 return 1;
             }
             case IDC_BT_KILL:
             {
-                EndDialog(hDlg, CInputBoxDlg::RET_KILL);
+                InputBoxDlg.CloseDialog(hDlg, CInputBoxDlg::RET_KILL);
                 return 1;
             }
             default:
@@ -62,10 +73,20 @@ INT_PTR CALLBACK InputBoxDlgProc(
         {
             //if ( InputBoxDlg.getInputBoxType() != CInputBoxDlg::IBT_INPUTBOX )
             {
-                EndDialog(hDlg, CInputBoxDlg::RET_CANCEL);
+                InputBoxDlg.CloseDialog(hDlg, CInputBoxDlg::RET_CANCEL);
             } // else don't close
             return 1;
         }
+    }
+
+    else if (uMessage == WM_TIMER)
+    {
+        InputBoxDlg.OnTimer(hDlg, wParam);
+    }
+
+    else if (uMessage == WM_SHOWWINDOW)
+    {
+        InputBoxDlg.OnShowWindow(hDlg, wParam);
     }
 
     else if (uMessage == WM_INITDIALOG)
@@ -81,10 +102,33 @@ CInputBoxDlg::CInputBoxDlg() : CAnyWindow()
     m_type = IBT_INPUTBOX;
     m_nInputIndex[IBT_INPUTBOX] = -1;
     m_nInputIndex[IBT_EXITPROCESS] = -1;
+    m_nTimeout = 0;
+    m_idTimerTimeout = 0;
 }
 
 CInputBoxDlg::~CInputBoxDlg()
 {
+}
+
+void CInputBoxDlg::updateCaptionWithTimeout(HWND hDlg)
+{
+    if ( m_nTimeout != 0 )
+    {
+        if ( m_type == IBT_INPUTBOX )
+        {
+            double remaining = m_nTimeout;
+            remaining /= 1000;
+            int remaining_int = static_cast<int>(remaining);
+
+            TCHAR szCaption[96];
+            if ( remaining - remaining_int > 0.0505 )
+                _t_sprintf(szCaption, _T("NppExec InputBox (%0.1f seconds remaining)"), remaining);
+            else
+                _t_sprintf(szCaption, _T("NppExec InputBox (%d seconds remaining)"), remaining_int);
+
+            SetWindowText(szCaption);
+        }
+    }
 }
 
 void CInputBoxDlg::applyInputBoxType()
@@ -123,6 +167,15 @@ void CInputBoxDlg::applyInputBoxType()
     }
 }
 
+void CInputBoxDlg::CloseDialog(HWND hDlg, INT_PTR nResult)
+{
+    if ( m_idTimerTimeout != 0 )
+    {
+        ::KillTimer(hDlg, m_idTimerTimeout);
+    }
+    ::EndDialog(hDlg, nResult);
+}
+
 void CInputBoxDlg::OnBtOK()
 {
     TCHAR szValue[1000];
@@ -154,6 +207,65 @@ void CInputBoxDlg::OnBtOK()
    
 }
 
+void CInputBoxDlg::OnTimer(HWND hDlg, WPARAM wParam)
+{
+    if ( wParam == ID_TIMER_TIMEOUT )
+    {
+        updateCaptionWithTimeout(hDlg);
+
+        UINT uElapse;
+        if ( m_nTimeout >= 1000 )
+        {
+            uElapse = 1000;
+            m_nTimeout -= 1000;
+        }
+        else
+        {
+            uElapse = m_nTimeout;
+            m_nTimeout = 0;
+        }
+
+        if ( uElapse != 0 )
+        {
+            if ( uElapse != 1000 )
+            {
+                ::KillTimer(hDlg, m_idTimerTimeout);
+                m_idTimerTimeout = ::SetTimer(hDlg, ID_TIMER_TIMEOUT, uElapse, NULL);
+            }
+            // else use the existing timer
+        }
+        else
+        {
+            OnBtOK();
+            CloseDialog(hDlg, CInputBoxDlg::RET_OK);
+        }
+    }
+}
+
+void CInputBoxDlg::OnShowWindow(HWND hDlg, WPARAM wParam)
+{
+    if ( wParam ) // showing a window
+    {
+        if ( m_nTimeout != 0 )
+        {
+            updateCaptionWithTimeout(hDlg);
+
+            UINT uElapse;
+            if ( m_nTimeout >= 1000 )
+            {
+                uElapse = 1000;
+                m_nTimeout -= 1000;
+            }
+            else
+            {
+                uElapse = m_nTimeout;
+                m_nTimeout = 0;
+            }
+            m_idTimerTimeout = ::SetTimer(hDlg, ID_TIMER_TIMEOUT, uElapse, NULL);
+        }
+    }
+}
+
 void CInputBoxDlg::OnInitDialog(HWND hDlg)
 {
     m_hWnd = hDlg;
@@ -172,24 +284,34 @@ void CInputBoxDlg::OnInitDialog(HWND hDlg)
     ::GetWindowRect(m_btOK.m_hWnd, &rc);
     m_nScndBtnLeftPos = rc.left;
 
+    m_nTimeout = 0;
+    m_idTimerTimeout = 0;
+
     CStrSplitT<TCHAR> msg;
     if ( msg.SplitAsArgs(m_InputMessage, _T(':'), 2) == 2 )
     {
         m_stMessage.SetWindowText( msg.GetArg(0).c_str() );
         tstr initialValue = msg.GetArg(1);
-        CStrSplitT<TCHAR> valueSpecs;
-        if ( (m_type == IBT_INPUTBOX) && 
-             (valueSpecs.SplitAsArgs(initialValue, _T(':'), 2) == 2) )
+        if ( m_type == IBT_INPUTBOX )
         {
-            m_InputVarName = valueSpecs.GetArg(0);
-            NppExecHelpers::StrUnquote(m_InputVarName);
-            if ( m_InputVarName.IsEmpty() )
+            CStrSplitT<TCHAR> valueSpecs;
+            int n = valueSpecs.SplitAsArgs(initialValue, _T(':'), 3);
+            if ( n >= 2 )
             {
-                // special case: using the default value name
-                m_InputVarName = MACRO_INPUT;
-                m_InputVarName += _T(" =");
+                m_InputVarName = valueSpecs.GetArg(0);
+                NppExecHelpers::StrUnquote(m_InputVarName);
+                if ( m_InputVarName.IsEmpty() )
+                {
+                    // special case: using the default value name
+                    m_InputVarName = MACRO_INPUT;
+                    m_InputVarName += _T(" =");
+                }
+                initialValue = valueSpecs.GetArg(1);
+                if ( n == 3 )
+                {
+                    m_nTimeout = c_base::_tstr2uint(valueSpecs.GetArg(2).c_str());
+                }
             }
-            initialValue = valueSpecs.GetArg(1);
         }
         m_cbVarValue.SetText( initialValue.c_str() );
         m_nInputIndex[m_type] = m_cbVarValue.FindStringExact( initialValue.c_str() );

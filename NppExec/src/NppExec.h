@@ -1359,6 +1359,8 @@ private:
   HWND    getCurrentScintilla(INT which);
 
 public:
+  typedef int (WINAPI *MSGBOXTIMEOUTFUNC)(HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
+
   toolbarIcons             m_TB_Icons;
   toolbarIconsWithDarkMode m_TB_IconsWithDarkMode;
     
@@ -1375,6 +1377,8 @@ public:
 
   int             npp_nbFiles;
   CBufT<TCHAR*>   npp_bufFileNames;
+
+  MSGBOXTIMEOUTFUNC m_lpMsgBoxTimeoutFunc;
   
 public:
   static bool     _bIsNppReady;

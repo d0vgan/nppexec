@@ -8516,12 +8516,13 @@ CScriptEngine::eCmdResult runMessageBox(CScriptEngine* pScriptEngine, const tstr
         return CScriptEngine::CMDRESULT_SUCCEEDED;
     }
 
-    tstr text, title, type;
+    tstr text, title, type, timeout;
     CStrSplitT<TCHAR> args;
-    int n = args.SplitAsArgs(params, _T(':'), 3);
-    if ( n > 0 )  text  = args.GetArg(0);
-    if ( n > 1 )  title = args.GetArg(1);
-    if ( n > 2 )  type  = args.GetArg(2);
+    int n = args.SplitAsArgs(params, _T(':'), 4);
+    if ( n > 0 )  text    = args.GetArg(0);
+    if ( n > 1 )  title   = args.GetArg(1);
+    if ( n > 2 )  type    = args.GetArg(2);
+    if ( n > 3 )  timeout = args.GetArg(3);
 
     n = -1;
     NppExecHelpers::StrLower(type);
@@ -8556,7 +8557,18 @@ CScriptEngine::eCmdResult runMessageBox(CScriptEngine* pScriptEngine, const tstr
 
     Runtime::GetLogger().AddEx( _T("; type: %s"), type.c_str() );
 
-    ::MessageBox( pScriptEngine->GetNppExec()->m_nppData._nppHandle, text.c_str(), title.c_str(), n );
+    unsigned int nTimeout = 0;
+    CNppExec::MSGBOXTIMEOUTFUNC lpMsgBoxTimeoutFunc = pScriptEngine->GetNppExec()->m_lpMsgBoxTimeoutFunc;
+    if ( lpMsgBoxTimeoutFunc && !timeout.IsEmpty() )
+    {
+        nTimeout = c_base::_tstr2uint(timeout.c_str());
+    }
+
+    HWND hWnd = pScriptEngine->GetNppExec()->m_nppData._nppHandle;
+    if ( nTimeout != 0 )
+        lpMsgBoxTimeoutFunc( hWnd, text.c_str(), title.c_str(), n, 0, nTimeout );
+    else
+        ::MessageBox( hWnd, text.c_str(), title.c_str(), n );
 
     Runtime::GetLogger().DecIndentLevel();
     Runtime::GetLogger().Add(   _T("}") );

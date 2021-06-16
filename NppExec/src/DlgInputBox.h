@@ -54,12 +54,18 @@ class CInputBoxDlg : public CAnyWindow
         int          m_nFrstBtnLeftPos;
         int          m_nScndBtnLeftPos;
 
+        unsigned int m_nTimeout;
+        UINT_PTR     m_idTimerTimeout;
+
         CAnyWindow   m_btOK;
         CAnyWindow   m_btKill;
         CAnyWindow   m_btCancel;
         CAnyWindow   m_stMessage;
         CAnyWindow   m_stVarName;
         CAnyComboBox m_cbVarValue;
+
+        void updateCaptionWithTimeout(HWND hDlg);
+        void applyInputBoxType();
 
     public:
         tstr m_InputMessage;
@@ -72,10 +78,12 @@ class CInputBoxDlg : public CAnyWindow
         CInputBoxDlg();
         ~CInputBoxDlg();
 
+        void CloseDialog(HWND hDlg, INT_PTR nResult);
         void OnBtOK();
+        void OnTimer(HWND hDlg, WPARAM wParam);
+        void OnShowWindow(HWND hDlg, WPARAM wParam);
         void OnInitDialog(HWND hDlg);
 
-        void applyInputBoxType();
         int  getInputBoxType() const  { return m_type; }
         void setInputBoxType(eInputBoxType type)  { m_type = type; }
 };

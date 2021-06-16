@@ -218,10 +218,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DlgConsoleEncoding.h"
 #include "cpp/CFileBufT.h"
 #include "cpp/StrSplitT.h"
-#include "c_base/MatchMask.h"
-#include "c_base/HexStr.h"
 #include "CFileModificationChecker.h"
 #include "encodings/SysUniConv.h"
+#include "c_base/MatchMask.h"
+#include "c_base/HexStr.h"
 #include "c_base/str_func.h"
 #include "c_base/int2str.h"
 
@@ -1982,6 +1982,20 @@ CNppExec::CNppExec()
     m_isSavingOptions = false;
 
     m_hFocusedWindowBeforeScriptStarted = NULL;
+
+    m_lpMsgBoxTimeoutFunc = NULL;
+
+    HMODULE hUser32 = ::GetModuleHandle(_T("user32"));
+    if ( hUser32 )
+    {
+    #ifdef UNICODE
+        const char* szMsgBoxTimeOutName = "MessageBoxTimeoutW";
+    #else
+        const char* szMsgBoxTimeOutName = "MessageBoxTimeoutA";
+    #endif
+
+        m_lpMsgBoxTimeoutFunc = (MSGBOXTIMEOUTFUNC) ::GetProcAddress(hUser32, szMsgBoxTimeOutName);
+    }
 }
 
 CNppExec::~CNppExec()
