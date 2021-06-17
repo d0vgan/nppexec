@@ -14,7 +14,11 @@ template <class T> int StrSplitToArgs(const T* str,
         const int MODE_TABSPACE  = 0;
         const int MODE_CHARACTER = 1;
         const int MODE_DBLQUOTES = 2;
+        const int MODE_SGLQUOTE1 = 3;
+        const int MODE_SGLQUOTE2 = 4;
         const T   CHAR_DBLQUOTES = '\"';
+        const T   CHAR_SGLQUOTE1 = '\'';
+        const T   CHAR_SGLQUOTE2 = '`';
         const T   CHAR_SPACE     = ' ';
         const T   CHAR_TAB       = '\t';
 
@@ -23,22 +27,49 @@ template <class T> int StrSplitToArgs(const T* str,
 
         while ( *str )
         {
+            const T ch = *str;
             if ( mode == MODE_DBLQUOTES )
             {
-                if ( *str == CHAR_DBLQUOTES )
+                if ( ch == CHAR_DBLQUOTES )
                 {
                     mode = MODE_CHARACTER;
                 }
                 else
                 {
-                    S.Append( *str );
+                    S.Append( ch );
+                }
+                ++str;
+                continue;
+            }
+            if ( mode == MODE_SGLQUOTE1 )
+            {
+                if ( ch == CHAR_SGLQUOTE1 )
+                {
+                    mode = MODE_CHARACTER;
+                }
+                else
+                {
+                    S.Append( ch );
+                }
+                ++str;
+                continue;
+            }
+            if ( mode == MODE_SGLQUOTE2 )
+            {
+                if ( ch == CHAR_SGLQUOTE2 )
+                {
+                    mode = MODE_CHARACTER;
+                }
+                else
+                {
+                    S.Append( ch );
                 }
                 ++str;
                 continue;
             }
             if ( mode == MODE_TABSPACE )
             {
-                if ( (*str == CHAR_SPACE) || (*str == CHAR_TAB) )
+                if ( (ch == CHAR_SPACE) || (ch == CHAR_TAB) )
                 {
                     ++str;
                     continue;
@@ -57,11 +88,19 @@ template <class T> int StrSplitToArgs(const T* str,
                 }
             }
             
-            if ( *str == CHAR_DBLQUOTES )
+            if ( ch == CHAR_DBLQUOTES )
             {
                 mode = MODE_DBLQUOTES;
             }
-            else if ( (*str == CHAR_SPACE) || (*str == CHAR_TAB) )
+            else if ( ch == CHAR_SGLQUOTE1 )
+            {
+                mode = MODE_SGLQUOTE1;
+            }
+            else if ( ch == CHAR_SGLQUOTE2 )
+            {
+                mode = MODE_SGLQUOTE2;
+            }
+            else if ( (ch == CHAR_SPACE) || (ch == CHAR_TAB) )
             {
                 mode = MODE_TABSPACE;
                 outList.Add( S );
@@ -69,7 +108,7 @@ template <class T> int StrSplitToArgs(const T* str,
             }
             else
             {
-                S.Append( *str );
+                S.Append( ch );
             }
             ++str;
         }
@@ -91,7 +130,11 @@ template <class T> int StrSplitAsArgs(const T* str,
         const int MODE_TABSPACE  = 0;
         const int MODE_CHARACTER = 1;
         const int MODE_DBLQUOTES = 2;
+        const int MODE_SGLQUOTE1 = 3;
+        const int MODE_SGLQUOTE2 = 4;
         const T   CHAR_DBLQUOTES = '\"';
+        const T   CHAR_SGLQUOTE1 = '\'';
+        const T   CHAR_SGLQUOTE2 = '`';
         const T   CHAR_SPACE     = ' ';
         const T   CHAR_TAB       = '\t';
 
@@ -101,15 +144,44 @@ template <class T> int StrSplitAsArgs(const T* str,
 
         while ( *str )
         {
+            const T ch = *str;
             if ( mode == MODE_DBLQUOTES )
             {
-                if ( *str == CHAR_DBLQUOTES )
+                if ( ch == CHAR_DBLQUOTES )
                 {
                     mode = MODE_CHARACTER;
                 }
                 else
                 {
-                    S.Append( *str );
+                    S.Append( ch );
+                    n = S.length(); // to keep quoted spaces, if any
+                }
+                ++str;
+                continue;
+            }
+            if ( mode == MODE_SGLQUOTE1 )
+            {
+                if ( ch == CHAR_SGLQUOTE1 )
+                {
+                    mode = MODE_CHARACTER;
+                }
+                else
+                {
+                    S.Append( ch );
+                    n = S.length(); // to keep quoted spaces, if any
+                }
+                ++str;
+                continue;
+            }
+            if ( mode == MODE_SGLQUOTE2 )
+            {
+                if ( ch == CHAR_SGLQUOTE2 )
+                {
+                    mode = MODE_CHARACTER;
+                }
+                else
+                {
+                    S.Append( ch );
                     n = S.length(); // to keep quoted spaces, if any
                 }
                 ++str;
@@ -117,7 +189,7 @@ template <class T> int StrSplitAsArgs(const T* str,
             }
             if ( mode == MODE_TABSPACE )
             {
-                if ( (*str == CHAR_SPACE) || (*str == CHAR_TAB) )
+                if ( (ch == CHAR_SPACE) || (ch == CHAR_TAB) )
                 {
                     ++str;
                     continue;
@@ -136,11 +208,19 @@ template <class T> int StrSplitAsArgs(const T* str,
                 }
             }
             
-            if ( *str == CHAR_DBLQUOTES )
+            if ( ch == CHAR_DBLQUOTES )
             {
                 mode = MODE_DBLQUOTES;
             }
-            else if ( *str == sep )
+            else if ( ch == CHAR_SGLQUOTE1 )
+            {
+                mode = MODE_SGLQUOTE1;
+            }
+            else if ( ch == CHAR_SGLQUOTE2 )
+            {
+                mode = MODE_SGLQUOTE2;
+            }
+            else if ( ch == sep )
             {
                 mode = MODE_TABSPACE;
 
@@ -153,7 +233,7 @@ template <class T> int StrSplitAsArgs(const T* str,
             }
             else
             {
-                S.Append( *str );
+                S.Append( ch );
             }
             ++str;
         }

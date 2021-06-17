@@ -285,14 +285,21 @@ static bool isDecNumChar(const TCHAR ch)
 /**/
 #define  SEP_TABSPACE  0
 
+enum eQuoteType {
+    QT_DOUBLE  = 0x01, // "
+    QT_SINGLE1 = 0x02, // '
+    QT_SINGLE2 = 0x04  // `
+};
+
 // gets the current param and returns a pointer to the next param
+// checks for a bracket only when pBracket != nullptr
 const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPACE, 
-                       bool* pDblQuote = 0, bool* pBracket = 0)
+                       unsigned int* pnQuotes = nullptr, bool* pBracket = nullptr)
 {
     param.Clear();
 
-    if ( pDblQuote )  *pDblQuote = false;
-    if ( pBracket )   *pBracket = false;
+    if ( pnQuotes )  *pnQuotes = 0;
+    if ( pBracket )  *pBracket = false;
 
     while ( NppExecHelpers::IsTabSpaceChar(*s) )  ++s;  // skip leading tabs/spaces
 
@@ -301,6 +308,8 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
     unsigned int nBracketDepth = 0;
     bool isComplete = false;
     bool isDblQuote = false;
+    bool isSglQuote1 = false; // '
+    bool isSglQuote2 = false; // `
     bool isEnvVar = false;
     bool isBracket = false;
 
@@ -327,12 +336,48 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
         switch ( ch )
         {
             case _T('\"'):
-                if ( !isEnvVar )
+                if ( !isEnvVar && !isSglQuote1 && !isSglQuote2 )
                 {
                     isDblQuote = !isDblQuote;
-                    if ( isDblQuote && pDblQuote )
+                    if ( isDblQuote && pnQuotes )
                     {
-                        *pDblQuote = true;
+                        *pnQuotes |= QT_DOUBLE;
+                    }
+                    if ( isBracket )
+                        param += ch;
+                }
+                else
+                {
+                    param += ch;
+                }
+                ++s; // to next character
+                break;
+
+            case _T('\''):
+                if ( !isEnvVar && !isDblQuote && !isSglQuote2 )
+                {
+                    isSglQuote1 = !isSglQuote1;
+                    if ( isSglQuote1 && pnQuotes )
+                    {
+                        *pnQuotes |= QT_SINGLE1;
+                    }
+                    if ( isBracket )
+                        param += ch;
+                }
+                else
+                {
+                    param += ch;
+                }
+                ++s; // to next character
+                break;
+
+            case _T('`'):
+                if ( !isEnvVar && !isDblQuote && !isSglQuote1 )
+                {
+                    isSglQuote2 = !isSglQuote2;
+                    if ( isSglQuote2 && pnQuotes )
+                    {
+                        *pnQuotes |= QT_SINGLE2;
                     }
                     if ( isBracket )
                         param += ch;
@@ -346,14 +391,14 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
 
             case _T(' '):
             case _T('\t'):
-                if ( sep == SEP_TABSPACE && !isDblQuote && !isBracket && !isEnvVar )
+                if ( sep == SEP_TABSPACE && !isDblQuote && !isSglQuote1 && !isSglQuote2 && !isBracket && !isEnvVar )
                 {
                     isComplete = true;
                 }
                 else
                 {
                     param += ch;
-                    if ( isDblQuote || isBracket )
+                    if ( isDblQuote || isSglQuote1 || isSglQuote2 || isBracket )
                         n = param.length();
                 }
                 ++s; // to next character
@@ -397,7 +442,7 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
                 break;
 
             case _T(']'):
-                if ( isBracket && !isEnvVar && !isDblQuote )
+                if ( isBracket && !isEnvVar && !isDblQuote && !isSglQuote1 && !isSglQuote2 )
                 {
                     isBracket = false;
                 }
@@ -410,7 +455,7 @@ const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPA
                 break;
 
             default:
-                if ( ch == sep && !isDblQuote && !isEnvVar )
+                if ( ch == sep && !isDblQuote && !isSglQuote1 && !isSglQuote2 && !isEnvVar )
                 {
                     isComplete = true;
                 }
@@ -1188,12 +1233,16 @@ static FParserWrapper g_fp;
  *   - shows InputBox with specified initial value, sets $(INPUT)
  * inputbox "message" : "value_name" : initial_value
  *   - InputBox customization
+ * inputbox "message" : "value_name" : "initial_value" : time_ms
+ *   - expirable InputBox
  * messagebox "text"
  *   - shows a simple MessageBox
  * messagebox "text" : "title"
  *   - shows a MessageBox with a custom title
  * messagebox "text" : "title" : type
  *   - shows a MessageBox of a given type
+ * messagebox "text" : "title" : type : time_ms
+ *   - expirable MessageBox
  * con_colour <colours>
  *   - sets the Console's colours
  * con_filter <filters>
@@ -5193,9 +5242,9 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
     for ( int n = 0; n < (isMsgEx ? 2 : 1); n++ )
     {
         bool isValidParam = true;
-        bool hasDblQuote = false;
+        unsigned int hasQuotes = 0;
 
-        s = get_param(s, val, SEP_TABSPACE, &hasDblQuote); // uMsg or hWnd
+        s = get_param(s, val, SEP_TABSPACE, &hasQuotes); // uMsg or hWnd
         if ( !val.IsEmpty() )
         {
 
@@ -5209,7 +5258,7 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
             if ( isMsgEx && n == 0 )
             {
                 // hWnd
-                if ( hasDblQuote || val.GetAt(0) == _T('@') )
+                if ( hasQuotes || val.GetAt(0) == _T('@') )
                 {
                     isValidParam = false;
                 }
@@ -5306,10 +5355,10 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
     
     for ( int n = 0; n < 2; n++ )
     {
-        bool hasDblQuote = false;
+        unsigned int hasQuotes = 0;
         bool hasBracket = false;
         tstr& value = paramValue[n];
-        s = get_param(s, value, SEP_TABSPACE, &hasDblQuote, &hasBracket); // wType or lType
+        s = get_param(s, value, SEP_TABSPACE, &hasQuotes, &hasBracket); // wType or lType
         if ( !value.IsEmpty() )
         {
 
@@ -5334,7 +5383,7 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
         if ( value.GetAt(0) == _T('@') )
         {
             value.Delete(0, 1);
-            if ( value.IsEmpty() && !hasDblQuote )
+            if ( value.IsEmpty() && !hasQuotes )
             {
                 // empty, no '"'
                 ScriptError( ET_REPORT, _T("- empty pointer parameter specified") );
@@ -5343,7 +5392,7 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
 
             if ( hasBracket )
                 paramType[n] = PT_PHEXSTR;
-            else if ( hasDblQuote )
+            else if ( hasQuotes )
                 paramType[n] = PT_PSTR;
             else
                 paramType[n] = PT_PINT;
@@ -5352,7 +5401,7 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
         {
             if ( hasBracket )
                 paramType[n] = PT_HEXSTR;
-            else if ( hasDblQuote )
+            else if ( hasQuotes )
                 paramType[n] = PT_STR;
             else
                 paramType[n] = PT_INT;
@@ -5651,13 +5700,13 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
     for ( int i = 0; i < nArgs; i++ )
     {
         tstr& val = args.Arg(i);
-        NppExecHelpers::StrUnquote(val);
+        NppExecHelpers::StrUnquoteEx(val);
         m_pNppExec->GetMacroVars().CheckAllMacroVars(this, val, true);
     }
 
     // 2. Search flags...
     tstr sFlags = args.Arg(0);
-    NppExecHelpers::StrUnquote(sFlags);
+    NppExecHelpers::StrUnquoteEx(sFlags);
     CNppExecMacroVars::StrCalc(sFlags, m_pNppExec).Process();
     HWND hSci = m_pNppExec->GetScintillaHandle();
     unsigned int nSearchFlags = 0;
@@ -6143,7 +6192,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSleep(const tstr& params)
     if ( n == 2 )
     {
         tstr Text = args.GetArg(1);
-        NppExecHelpers::StrUnquote(Text);
+        NppExecHelpers::StrUnquoteEx(Text);
         if ( !Text.IsEmpty() )
         {
             m_pNppExec->GetConsole().PrintMessage( Text.c_str(), false );
@@ -8016,11 +8065,12 @@ bool CNppExecMacroVars::StrCalc::calcStrQuote()
 
     if ( isQuote ) // strquote
     {
-        NppExecHelpers::StrQuote(S);
+        if ( NppExecHelpers::IsStrNotQuotedEx(S) )
+            NppExecHelpers::StrQuote(S);
     }
     else // strunquote
     {
-        NppExecHelpers::StrUnquote(S);
+        NppExecHelpers::StrUnquoteEx(S);
     }
 
     m_varValue.Swap(S);
@@ -8102,7 +8152,7 @@ bool CNppExecMacroVars::StrCalc::calcStrToHex()
     if ( *m_pVar )
     {
         tstr Str = m_pVar;
-        NppExecHelpers::StrUnquote(Str);
+        NppExecHelpers::StrUnquoteEx(Str);
 
         m_varValue.Reserve(1 + Str.length() * sizeof(TCHAR) * 3);
         int nLen = c_base::_tbuf2hexstr((const c_base::byte_t *)(Str.c_str()), Str.length()*sizeof(TCHAR), 
@@ -8163,7 +8213,7 @@ bool CNppExecMacroVars::StrCalc::calcOrd()
     if ( *m_pVar )
     {
         tstr Str = m_pVar;
-        NppExecHelpers::StrUnquote(Str);
+        NppExecHelpers::StrUnquoteEx(Str);
 
         if ( Str.length() == 1 )
         {

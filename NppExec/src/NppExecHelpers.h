@@ -417,11 +417,14 @@ namespace NppExecHelpers
     void StrUpper(tstr& S); // converts to upper case
     void StrUpper(TCHAR* S); // converts to upper case
 
-    void StrQuote(tstr& S); // adds the starting and trailing '\"'
-    void StrUnquote(tstr& S); // removes the starting and trailing '\"'
+    void StrQuote(tstr& S); // adds the starting and trailing ""
+    void StrUnquote(tstr& S); // removes the starting and trailing ""
+    void StrUnquoteEx(tstr& S); // removes the starting and trailing "" or '' or ``
 
-    bool IsStrQuoted(const tstr& S); // starts & ends with '\"'
-    bool IsStrNotQuoted(const tstr& S); // no '\"' at start & at end
+    bool IsStrQuoted(const tstr& S); // starts & ends with ""
+    bool IsStrQuotedEx(const tstr& S); // starts & ends with "" or '' or ``
+    bool IsStrNotQuoted(const tstr& S); // no " at start & at end
+    bool IsStrNotQuotedEx(const tstr& S); // no " or ' or ` at start & at end
 
     int StrCmpNoCase(const tstr& S1, const tstr& S2); // comparing case-insensitively
     int StrCmpNoCase(const tstr& S1, const TCHAR* S2); // comparing case-insensitively

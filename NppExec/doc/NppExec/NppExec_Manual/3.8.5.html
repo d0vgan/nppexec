@@ -1,0 +1,71 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<META NAME="Generator" CONTENT="Internet Assistant for Word Version 3.0">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>3.8.5. Passing enquoted strings and special characters</title>
+</HEAD>
+<BODY>
+<h3>3.8.5. Passing enquoted strings and special characters</h3>
+
+<p>NppExec, starting from version 0.7, allows to use three different quote characters to enquote a string:</p>
+<ul>
+  <li>&quot;abc&quot;</li>
+  <li>'abc'</li>
+  <li>`abc`</li>
+</ul>
+<p>This allows to pass some quote characters within a string enquoted in the other quote characters. For example:</p>
+
+<blockquote>
+  <pre>messagebox `&quot;a message in quotes&quot;`</pre>
+</blockquote>
+
+<p>Here is an advanced example, now using Scintilla as well:</p>
+
+<blockquote>
+  <pre>set local newline ~ strfromhex 0A 00  // '\n' character
+
+set local s = &quot;a string in double-quotes&quot;
+set local len ~ strlensci $(newline)$(s)
+sci_sendmsg SCI_APPENDTEXT $(len) `$(newline)$(s)`
+
+set local t ~ strreplace '$(s)' '&quot;' `'`
+set local t ~ strreplace `$(t)` "double" "single"
+set local len ~ strlensci $(newline)$(t)
+sci_sendmsg SCI_APPENDTEXT $(len) `$(newline)$(t)`
+
+set local r ~ strreplace `$(t)` `'` "`"
+set local len ~ strlensci $(newline)$(r)
+sci_sendmsg SCI_APPENDTEXT $(len) "$(newline)$(r)"
+
+set local findflags ~ NPE_SF_INWHOLETEXT | NPE_SF_SETSEL
+sci_find $(findflags) `"`</pre>
+</blockquote>
+
+<p>The previous example additionally demonstrates a technique of adding a new-line character '\n' to the text. It uses NppExec's function <i>strfromhex</i> to get a Unicode two-byte character '\n' from its hexadecimal representation of 0A 00 (the lower bytes goes first, the upper bytes goes next). This is equal to:</p>
+
+<blockquote>  
+  <pre>set local newline ~ chr 0x0A  // '\n' character</pre>
+</blockquote>
+
+<p>Similarly, a tabulation character '\t' can be obtained as:</p>
+
+<blockquote>  
+  <pre>set local tab ~ chr 0x09  // '\t' character
+echo ab$(tab)cd</pre>
+</blockquote>
+
+<p>The <i>strfromhex</i> is more powerful than the <i>chr</i> since <i>strfromhex</i> allows to operate with a sequence of bytes while <i>chr</i> is limited to one character. For example, Windows uses '\r\n' line endings that consist of two characters '\r' and '\n'. These two characters are represented by 4 bytes in a Unicode two-byte character string:</p>
+
+<blockquote>  
+  <pre>set local newline ~ strfromhex 0D 00 0A 00  // '\r\n' characters</pre>
+</blockquote>
+
+<p>The '\r' is 0D 00 and '\n' is 0A 00 here.</p>
+
+<blockquote>  
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>

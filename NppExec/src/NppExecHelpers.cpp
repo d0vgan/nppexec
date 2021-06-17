@@ -573,14 +573,43 @@ namespace NppExecHelpers
         }
     }
 
+    void StrUnquoteEx(tstr& S)
+    {
+        if ( IsStrQuotedEx(S) )
+        {
+            S.DeleteLastChar();
+            S.DeleteFirstChar();
+        }
+    }
+
     bool IsStrQuoted(const tstr& S)
     {
         return ( (S.length() > 1) && (S.GetFirstChar() == _T('\"')) && (S.GetLastChar() == _T('\"')) );
     }
 
+    bool IsStrQuotedEx(const tstr& S)
+    {
+        if ( S.length() > 1 )
+        {
+            const tstr::value_type firstChar = S.GetFirstChar();
+            if ( firstChar == _T('\"') || firstChar == _T('\'') || firstChar == _T('`') )
+                return ( firstChar == S.GetLastChar() );
+        }
+        return false;
+    }
+
     bool IsStrNotQuoted(const tstr& S)
     {
-        return ( (S.GetFirstChar() != _T('\"')) && (S.GetLastChar()  != _T('\"')) );
+        return ( S.GetFirstChar() != _T('\"') && S.GetLastChar() != _T('\"') );
+    }
+
+    bool IsStrNotQuotedEx(const tstr& S)
+    {
+        const tstr::value_type firstChar = S.GetFirstChar();
+        const tstr::value_type lastChar = S.GetLastChar();
+        return ( firstChar != _T('\"') && lastChar != _T('\"') &&
+                 firstChar != _T('\'') && lastChar != _T('\'') &&
+                 firstChar != _T('`')  && lastChar != _T('`') );
     }
 
     int StrCmpNoCase(const tstr& S1, const tstr& S2)

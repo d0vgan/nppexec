@@ -24,9 +24,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ----------------
  + added: now NppExec supports the "Dark Mode" of Notepad++ v8
    (Thanks to Peter Jones for the updated icons!)
+ * changed: now NppExec supports quoted strings in the form of "abc", 'abc'
+   and `abc`.
+   This allows to pass quote characters within a quoted string: `"`, '"',
+   '"abc" `def`' and so on.
+   Now, if you want to pass a text that starts or ends with ' or ` character,
+   you need to enquote this text in a different pair of quotes. For example:
+   `'t was brilling...`, "Press `Esc`", etc.
  * changed: now NppExec's Console and the Toolbar button explicitly mention
    "NppExec" in their names
  + added: new menu item "Change Execute Script Font..."
+ + added: now MESSAGEBOX and INPUTBOX can accept 4th parameter: time_ms
  * changed: now the InputBox can be closed by pressing Esc. When it happens,
    the value of $(INPUT) will be empty.
  + NppExec Manual updated 

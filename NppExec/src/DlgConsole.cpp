@@ -136,9 +136,11 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("inputbox \"message\"  -  shows InputBox, sets $(INPUT)") _T_RE_EOL \
   _T("inputbox \"message\" : initial_value  -  shows InputBox, sets $(INPUT)") _T_RE_EOL \
   _T("inputbox \"message\" : \"value_name\" : initial_value  -  InputBox customization") _T_RE_EOL \
+  _T("inputbox \"message\" : \"value_name\" : \"initial_value\" : time_ms  -  expirable") _T_RE_EOL \
   _T("messagebox \"text\"  -  shows a simple MessageBox") _T_RE_EOL \
   _T("messagebox \"text\" : \"title\"  -  shows a MessageBox with a custom title") _T_RE_EOL \
   _T("messagebox \"text\" : \"title\" : type  -  shows a MessageBox of a given type") _T_RE_EOL \
+  _T("messagebox \"text\" : \"title\" : type : timeout  -  expirable MessageBox") _T_RE_EOL \
   _T("con_colour <colours>  -  sets the Console\'s colours") _T_RE_EOL \
   _T("con_filter <filters>  -  enables/disables the Console\'s output filters") _T_RE_EOL \
   _T("con_loadfrom <file>  -  loads a file\'s content to the Console") _T_RE_EOL \
@@ -1349,6 +1351,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  inputbox \"message\" :: initial_value") _T_RE_EOL \
     _T("  inputbox \"message\" : \"value_name\" : initial_value") _T_RE_EOL \
     _T("  inputbox \"message\" : \" \" : initial_value") _T_RE_EOL \
+    _T("  inputbox \"message\" : \"value_name\" : \"initial_value\" : time_ms") _T_RE_EOL \
+    _T("  inputbox \"message\" ::: timeout") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  1. Shows the InputBox with a message \'message\';") _T_RE_EOL \
     _T("     the input value is stored in $(INPUT), $(INPUT[1]) etc.") _T_RE_EOL \
@@ -1360,6 +1364,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("     (use \"\" to keep \"$(INPUT) =\"; use \" \" to empty it);") _T_RE_EOL \
     _T("     the initial input value is set to \'initial_value\';") _T_RE_EOL \
     _T("     the input value is stored in $(INPUT), $(INPUT[1]) etc.") _T_RE_EOL \
+    _T("  4. Shows the InputBox for 'time_ms' milliseconds. When the") _T_RE_EOL \
+    _T("     'time_ms' is over, the InputBox \"expires\" and closes.") _T_RE_EOL \
     _T("  * Note: $(INPUT), $(INPUT[1]) etc. are local variables.") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  // show the InputBox...") _T_RE_EOL \
@@ -1377,9 +1383,11 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  // show the InputBox with empty value name...") _T_RE_EOL \
     _T("  inputbox \"Input a:\" : \" \" :   // notice the  : \" \" :  part!") _T_RE_EOL \
     _T("  // show the initial value with a colon...") _T_RE_EOL \
-    _T("  inputbox \"Input a:\" : : 1 : 2   // notice the  : :  part!") _T_RE_EOL \
+    _T("  inputbox \"Input a:\" : : \"1 : 2\"   // notice the  : :  part!") _T_RE_EOL \
     _T("  // the same...") _T_RE_EOL \
-    _T("  inputbox \"Input a:\" :: 1 : 2   // notice the  ::  part!") _T_RE_EOL \
+    _T("  inputbox \"Input a:\" :: \"1 : 2\"   // notice the  ::  part!") _T_RE_EOL \
+    _T("  // expirable InputBox...") _T_RE_EOL \
+    _T("  inputbox \"You have 5 seconds to input a:\" : a : 1 : 5000") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  You can use any environment variable inside the input value, e.g.") _T_RE_EOL \
     _T("    INPUTBOX \"Input A:\"") _T_RE_EOL \
@@ -1402,11 +1410,14 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  messagebox \"text\" : \"title\"") _T_RE_EOL \
     _T("  messagebox \"text\" : \"title\" : type") _T_RE_EOL \
     _T("  messagebox \"text\" : : type") _T_RE_EOL \
+    _T("  messagebox \"text\" : \"title\" : type : time_ms") _T_RE_EOL \
+    _T("  messagebox \"text\" ::: time_ms") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  1. Shows a MessageBox with a text \'text\' and default title;") _T_RE_EOL \
     _T("  2. Shows a MessageBox with a text \'text\' and a title \'title\';") _T_RE_EOL \
     _T("  3. Shows a MessageBox of the given type with a text \'text\' and a title \'title\';") _T_RE_EOL \
     _T("  4. Shows a MessageBox of the given type with a text \'text\' and default title;") _T_RE_EOL \
+    _T("  5. Shows a MessageBox for 'time_ms' milliseconds and then closes it;") _T_RE_EOL \
     _T("  The type can be:") _T_RE_EOL \
     _T("    0 or \"msg\"  - a message") _T_RE_EOL \
     _T("    1 or \"warn\" - a warning") _T_RE_EOL \
@@ -1418,6 +1429,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  messagebox \"This is an error!\" :: err") _T_RE_EOL \
     _T("  messagebox \"This is a custom error!\" : \"ERROR\" : 2") _T_RE_EOL \
     _T("  messagebox \"This is a custom warning!\" : \"WARNING\" : warn") _T_RE_EOL \
+    _T("  messagebox \"You will see it during 3 seconds!\" ::: 3000") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  To set the keyboard focus to the Console after the MessageBox is shown,") _T_RE_EOL \
     _T("  use the following command:") _T_RE_EOL \

@@ -103,6 +103,10 @@
 				<param name="Name" value="3.8.4. Calculations, strlen and so on">
 				<param name="Local" value="3.8.4.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="3.8.5. Passing enquoted strings and special characters">
+				<param name="Local" value="3.8.5.html">
+				</OBJECT>
 		</UL>
 	</UL>
 	<LI> <OBJECT type="text/sitemap">

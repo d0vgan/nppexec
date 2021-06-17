@@ -299,7 +299,7 @@ void CInputBoxDlg::OnInitDialog(HWND hDlg)
             if ( n >= 2 )
             {
                 m_InputVarName = valueSpecs.GetArg(0);
-                NppExecHelpers::StrUnquote(m_InputVarName);
+                NppExecHelpers::StrUnquoteEx(m_InputVarName);
                 if ( m_InputVarName.IsEmpty() )
                 {
                     // special case: using the default value name
@@ -318,7 +318,7 @@ void CInputBoxDlg::OnInitDialog(HWND hDlg)
     }
     else
     {
-        NppExecHelpers::StrUnquote(m_InputMessage);
+        NppExecHelpers::StrUnquoteEx(m_InputMessage);
         m_stMessage.SetWindowText( m_InputMessage.c_str() );
     }
     

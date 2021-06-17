@@ -75,9 +75,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        inputbox "message" - shows InputBox, sets $(INPUT)
  *        inputbox "message" : initial_value - InputBox, sets $(INPUT)
  *        inputbox "message" : "value_name" : initial_value - InputBox customization
+ *        inputbox "message" : "value_name" : "initial_value" : time_ms - expirable
  *        messagebox "text" - shows a simple MessageBox
  *        messagebox "text" : "title" - shows a MessageBox with a custom title
  *        messagebox "text" : "title" : type - shows a MessageBox of a given type
+ *        messagebox "text" : "title" : type : time_ms - expirable MessageBox
  *        con_colour <colours> - sets the Console's colours
  *        con_filter <filters> - enables/disables the Console's output filters
  *        con_loadfrom <file> - loads a file's content to the Console
