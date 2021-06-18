@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ----------------
  + added: now NppExec supports the "Dark Mode" of Notepad++ v8
    (Thanks to Peter Jones for the updated icons!)
+   NppExec is still compatible with previous versions of Notepad++.
  * changed: now NppExec supports quoted strings in the form of "abc", 'abc'
    and `abc`.
    This allows to pass quote characters within a quoted string: `"`, '"',
@@ -34,9 +35,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * changed: now NppExec's Console and the Toolbar button explicitly mention
    "NppExec" in their names
  + added: new menu item "Change Execute Script Font..."
- + added: now MESSAGEBOX and INPUTBOX can accept 4th parameter: time_ms
+ + added: now MESSAGEBOX and INPUTBOX can accept 4th parameter 'time_ms'
  * changed: now the InputBox can be closed by pressing Esc. When it happens,
    the value of $(INPUT) will be empty.
+ + added: file names "npes_temp.txt" and "npes_saved.txt" can be customized
+   (see "NppExec_TechInfo.txt" for details)
  + NppExec Manual updated 
 
 
@@ -1040,6 +1043,8 @@ enum EPluginOptions {
     OPTS_EXITBOX_VALUE20,
 
     OPTS_PLUGIN_HELPFILE,
+    OPTS_PLUGIN_TEMPSCRIPTFILE,
+    OPTS_PLUGIN_SAVEDSCRIPTSFILE,
     OPTS_PLUGIN_LOGSDIR,
     OPTS_PLUGIN_SCRIPTSDIR,
     OPTU_PLUGIN_AUTOSAVE_SECONDS,
@@ -1543,7 +1548,8 @@ namespace Runtime
     CSimpleLogger& GetLogger();
 };
 
-extern const TCHAR SCRIPTFILE_SAVED[];
+extern TCHAR SCRIPTFILE_TEMP[100];
+extern TCHAR SCRIPTFILE_SAVED[100];
 
 
 //--------------------------------------------------------------------

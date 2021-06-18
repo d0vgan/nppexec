@@ -68,29 +68,37 @@ INT_PTR CALLBACK HelpAboutDlgProc(
   {
     CAnyWindow Wnd;
     HWND       hEd;
-    
+
     Wnd.m_hWnd = hDlg;
     Wnd.CenterWindow(Runtime::GetNppExec().m_nppData._nppHandle);
-    
+
     hEd = GetDlgItem(hDlg, IDC_ED_INFO);  
     if (hEd)
     {
+      tstr Notes = 
+          _T("Notes:\r\n") \
+          _T("- You can execute commands and scripts directly from the Console window.\r\n") \
+          _T("- Type HELP in the Console window to see available commands and ") \
+          _T("environment variables. ") \
+          _T("Commands are case-insensitive.\r\n\r\n") \
+          _T("Additional information:\r\n") \
+          _T("- NppExec\\\\Advanced Options... allows tweaking of NppExec.\r\n") \
+          _T("- NppExec\\\\Help/Docs... opens the NppExec_TechInfo document.\r\n") \
+          _T("- Inspect the folder \"Plugins\\doc\" for NppExec's documentation.\r\n") \
+          _T("- Inspect the folder \"Plugins\\NppExec\" for header files used by NppExec at runtime.\r\n") \
+          _T("- NppExec's config files are located in the \"Plugins\\Config\" folder.\r\n") \
+          _T("- Temporary script is saved to \"");
+      Notes += SCRIPTFILE_TEMP;
+      Notes +=
+          _T("\".\r\n") \
+          _T("- User scripts are saved to \"");
+      Notes += SCRIPTFILE_SAVED;
+      Notes +=
+          _T("\".\r\n") \
+          _T("- Console commands history is saved to \"npec_cmdhistory.txt\".");
+
       SendMessage(hEd, EM_LIMITTEXT, 2048, 0);
-      SetWindowText(hEd,  
-        _T("Notes:\r\n") \
-        _T("- You can execute commands and scripts directly from the Console window.\r\n") \
-        _T("- Type HELP in the Console window to see available commands and ") \
-        _T("environment variables. ") \
-        _T("Commands are case-insensitive.\r\n\r\n") \
-        _T("Additional information:\r\n") \
-        _T("- NppExec\\\\Advanced Options... allows tweaking of NppExec.\r\n") \
-        _T("- NppExec\\\\Help/Docs... opens the NppExec_TechInfo document.\r\n") \
-        _T("- Inspect the folder \"Plugins\\doc\" for NppExec's documentation.\r\n") \
-        _T("- Inspect the folder \"Plugins\\NppExec\" for header files used by NppExec at runtime.\r\n") \
-        _T("- NppExec's config files are located in the \"Plugins\\Config\" folder.\r\n") \
-        _T("- Temporary script is saved to \"npes_temp.txt\", other (user) scripts are saved to \"npes_saved.txt\".\r\n") \
-        _T("- Console commands history is saved to \"npec_cmdhistory.txt\".")
-      );
+      SetWindowText(hEd, Notes.c_str());
     }
   }
 

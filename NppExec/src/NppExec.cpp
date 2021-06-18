@@ -276,8 +276,8 @@ const TCHAR INI_SECTION_EXITBOX[]          = _T("ExitBox");
 const TCHAR INI_SECTION_RESTORE[]          = _T("Restore");
 const TCHAR INI_SECTION_EXECDLG[]          = _T("ExecDlg");
 
-const TCHAR SCRIPTFILE_TEMP[]              = _T("npes_temp.txt");
-const TCHAR SCRIPTFILE_SAVED[]             = _T("npes_saved.txt");
+TCHAR       SCRIPTFILE_TEMP[100]           = _T("npes_temp.txt\0");
+TCHAR       SCRIPTFILE_SAVED[100]          = _T("npes_saved.txt\0");
 TCHAR       CMDHISTORY_FILENAME[100]       = _T("npec_cmdhistory.txt\0");
 const TCHAR PROP_NPPEXEC_DLL[]             = _T("NppExec_dll_exists");
 
@@ -1018,6 +1018,12 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTS_PLUGIN_HELPFILE, OPTT_STR | OPTF_READONLY,
       INI_SECTION_OPTIONS, _T("HelpFile"),
       0, DEFAULT_HELPFILE },
+    { OPTS_PLUGIN_TEMPSCRIPTFILE, OPTT_STR | OPTF_READONLY,
+      INI_SECTION_OPTIONS, _T("TempScriptFile"),
+      0, SCRIPTFILE_TEMP },
+    { OPTS_PLUGIN_SAVEDSCRIPTSFILE, OPTT_STR | OPTF_READONLY,
+      INI_SECTION_OPTIONS, _T("SavedScriptsFile"),
+      0, SCRIPTFILE_SAVED },
     { OPTS_PLUGIN_LOGSDIR, OPTT_STR | OPTF_READONLY,
       INI_SECTION_OPTIONS, _T("LogsDir"),
       0, DEFAULT_LOGSDIR },
@@ -1027,6 +1033,7 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTU_PLUGIN_AUTOSAVE_SECONDS, OPTT_INT | OPTF_READONLY,
       INI_SECTION_OPTIONS, _T("AutoSave_Seconds"),
       DEFAULT_AUTOSAVE_SECONDS, NULL },
+
     // [Console]
     { OPTU_CHILDP_STARTUPTIMEOUT_MS, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("ChildProcess_StartupTimeout_ms"), 
@@ -5389,6 +5396,14 @@ void CNppExec::ReadOptions()
     GetOptions().SetData(OPTD_CONSOLE_NULCHAR, &ch, (int) sizeof(char));
 #endif
   }
+
+  const TCHAR* pszScriptFile = GetOptions().GetStr(OPTS_PLUGIN_TEMPSCRIPTFILE);
+  if (pszScriptFile && *pszScriptFile)
+    lstrcpy(SCRIPTFILE_TEMP, pszScriptFile);
+
+  pszScriptFile = GetOptions().GetStr(OPTS_PLUGIN_SAVEDSCRIPTSFILE);
+  if (pszScriptFile && *pszScriptFile)
+    lstrcpy(SCRIPTFILE_SAVED, pszScriptFile);
 
   const tstr pathToTempScript = ExpandToFullConfigPath(SCRIPTFILE_TEMP, true);
   CFileBufT<TCHAR> fbuf;

@@ -22,6 +22,18 @@
     <Filter Include="Header Files\npp_files">
       <UniqueIdentifier>{d6bb39d9-dfd2-4771-a80d-2617c7f0ec31}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\cpp">
+      <UniqueIdentifier>{e6dadeeb-d381-419e-8c25-f921e51b9235}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\c_base">
+      <UniqueIdentifier>{7f553aa3-1d98-4f1c-b924-024428bfff6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\cpp">
+      <UniqueIdentifier>{975a6d58-a2e8-4a99-9cf8-78f4754bf1dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\c_base">
+      <UniqueIdentifier>{17860ebd-8035-4dd1-aa6b-3db759dcd616}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\CAnyCheckBox.cpp">
@@ -37,9 +49,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\CAnyWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\cpp\CFileBufT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\CFileModificationChecker.cpp">
@@ -78,18 +87,6 @@
     <ClCompile Include="src\DlgInputBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\c_base\HexStr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\c_base\int2str.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\c_base\MatchMask.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\c_base\max_int.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\NppExec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -100,15 +97,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\NppScriptList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\c_base\PackDataStr.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\c_base\str2int.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\c_base\str_func.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\encodings\SysUniConv.cpp">
@@ -128,6 +116,30 @@
     </ClCompile>
     <ClCompile Include="src\NppScript.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cpp\CFileBufT.cpp">
+      <Filter>Source Files\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\HexStr.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\int2str.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\MatchMask.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\max_int.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\PackDataStr.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\str_func.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\str2int.c">
+      <Filter>Source Files\c_base</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -149,16 +161,7 @@
     <ClInclude Include="src\CAnyWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\cpp\CBufT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cpp\CFileBufT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\CFileModificationChecker.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cpp\CListT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\CPopupListBox.h">
@@ -168,9 +171,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\CStaticOptionsManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cpp\CStrT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\DirFileLister.h">
@@ -197,18 +197,6 @@
     <ClInclude Include="src\DlgInputBox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\c_base\HexStr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\c_base\int2str.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\c_base\MatchMask.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\c_base\max_int.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\NppExec.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -224,25 +212,10 @@
     <ClInclude Include="src\NppScriptList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\c_base\PackDataStr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\c_base\str2int.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\c_base\str_func.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\cpp\StrSplitT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\encodings\SysUniConv.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\c_base\types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\WarningAnalyzer.h">
@@ -286,6 +259,45 @@
     </ClInclude>
     <ClInclude Include="src\npp_files\Sci_Position.h">
       <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\CBufT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\CFileBufT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\CListT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\CStrT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\StrSplitT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\types.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\HexStr.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\int2str.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\MatchMask.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\max_int.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\PackDataStr.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\str_func.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\str2int.h">
+      <Filter>Header Files\c_base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

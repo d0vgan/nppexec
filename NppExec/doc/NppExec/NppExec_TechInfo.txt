@@ -11,55 +11,57 @@
  NppExec has advanced "hidden" settings which can be set manually.
  You need to edit NppExec's ini-file: "\Plugins\Config\NppExec.ini".
 
-  ----------------------------------------------------------------------------
- |  KEY                             |  DEFAULT VALUE                 |  TYPE  |
- |----------------------------------------------------------------------------|
- |                                  |                                |        |
- |  [Console]                       |                                |        |
- |  ChildProcess_StartupTimeout_ms  |  240                           |  int   |
- |  ChildProcess_CycleTimeout_ms    |  120                           |  int   |
- |  ChildProcess_ExitTimeout_ms     |  2000                          |  int   |
- |  ChildProcess_KillTimeout_ms     |  500                           |  int   |
- |  ChildProcess_RunPolicy          |  0                             |  int   |
- |  ChildProcess_ComSpecSwitches    |  /C                            | string |
- |  ChildScript_SyncTimeout_ms      |  200                           |  int   |
- |  ExitScript_Timeout_ms           |  4000                          |  int   |
- |  Path_AutoDblQuotes              |  0                    (FALSE)  |  BOOL  |
- |  CmdHistory_MaxItems             |  256                           |  int   |
- |  Exec_MaxCount                   |  100                           |  int   |
- |  GoTo_MaxCount                   |  10000                         |  int   |
- |  RichEdit_MaxTextLength          |  4194304              (4 MB)   |  int   |
- |  SendMsg_MaxBufLength            |  4194304              (4 MB)   |  int   |
- |  Calc_Precision                  |  0.000001                      | float  |
- |  CommentDelimiter                |  //                            | string |
- |  Visible                         |  0                    (FALSE)  |  BOOL  |
- |  ShowHelp                        |  0                    (FALSE)  |  BOOL  |
- |  PrintMsgReady                   |  1                    (TRUE)   |  BOOL  |
- |  NoEmptyVars                     |  1                    (TRUE)   |  BOOL  |
- |  SaveCmdHistory                  |  1                    (TRUE)   |  BOOL  |
- |  TextColorNormal                 |  00 00 00                      |  HEX   |
- |  TextColorError                  |  A0 10 10                      |  HEX   |
- |  TextColorMessage                |  20 80 20                      |  HEX   |
- |  BackgroundColor                 |  0                             |  HEX   |
- |  Alias_Cmd_NppExec               |  \                             | string |
- |  Key_Enter                       |  \n                            | string |
- |  Console_NulChar                 |  25E6                (0x25E6)  |  HEX   |
- |  NppExec_Cmd_Prefix              |  nppexec:                      | string |
- |  UTF8_Detect_Length              |  16384                         |  int   |
- |  AnsiEscapeSequences             |  0                             |  int   |
- |  Cd_UnnamedFile                  |  1                             |  int   |
- |                                  |                                |        |
- |  [Options]                       |                                |        |
- |  HotKey                          |  F6                            | string |
- |  ToolbarBtn                      |  1                             |  int   |
- |  WatchScriptFile                 |  1                    (TRUE)   |  BOOL  |
- |  ScriptNppStart                  |                       (empty)  | string |
- |  ScriptNppExit                   |                       (empty)  | string |
- |  HelpFile                        | doc\NppExec\NppExec_Manual.chm | string |
- |  LogsDir                         |                       (empty)  | string |
- |  AutoSave_Seconds                |  0                             |  int   |
- |                                  |                                |        |
-  ----------------------------------------------------------------------------
+  -----------------------------------------------------------------------------
+ |  KEY                             |  DEFAULT VALUE                  |  TYPE  |
+ |-----------------------------------------------------------------------------|
+ |                                  |                                 |        |
+ |  [Console]                       |                                 |        |
+ |  ChildProcess_StartupTimeout_ms  |  240                            |  int   |
+ |  ChildProcess_CycleTimeout_ms    |  120                            |  int   |
+ |  ChildProcess_ExitTimeout_ms     |  2000                           |  int   |
+ |  ChildProcess_KillTimeout_ms     |  500                            |  int   |
+ |  ChildProcess_RunPolicy          |  0                              |  int   |
+ |  ChildProcess_ComSpecSwitches    |  /C                             | string |
+ |  ChildScript_SyncTimeout_ms      |  200                            |  int   |
+ |  ExitScript_Timeout_ms           |  4000                           |  int   |
+ |  Path_AutoDblQuotes              |  0                     (FALSE)  |  BOOL  |
+ |  CmdHistory_MaxItems             |  256                            |  int   |
+ |  Exec_MaxCount                   |  100                            |  int   |
+ |  GoTo_MaxCount                   |  10000                          |  int   |
+ |  RichEdit_MaxTextLength          |  4194304               (4 MB)   |  int   |
+ |  SendMsg_MaxBufLength            |  4194304               (4 MB)   |  int   |
+ |  Calc_Precision                  |  0.000001                       | float  |
+ |  CommentDelimiter                |  //                             | string |
+ |  Visible                         |  0                     (FALSE)  |  BOOL  |
+ |  ShowHelp                        |  0                     (FALSE)  |  BOOL  |
+ |  PrintMsgReady                   |  1                     (TRUE)   |  BOOL  |
+ |  NoEmptyVars                     |  1                     (TRUE)   |  BOOL  |
+ |  SaveCmdHistory                  |  1                     (TRUE)   |  BOOL  |
+ |  TextColorNormal                 |  00 00 00                       |  HEX   |
+ |  TextColorError                  |  A0 10 10                       |  HEX   |
+ |  TextColorMessage                |  20 80 20                       |  HEX   |
+ |  BackgroundColor                 |  0                              |  HEX   |
+ |  Alias_Cmd_NppExec               |  \                              | string |
+ |  Key_Enter                       |  \n                             | string |
+ |  Console_NulChar                 |  25E6                 (0x25E6)  |  HEX   |
+ |  NppExec_Cmd_Prefix              |  nppexec:                       | string |
+ |  UTF8_Detect_Length              |  16384                          |  int   |
+ |  AnsiEscapeSequences             |  0                              |  int   |
+ |  Cd_UnnamedFile                  |  1                              |  int   |
+ |                                  |                                 |        |
+ |  [Options]                       |                                 |        |
+ |  HotKey                          |  F6                             | string |
+ |  ToolbarBtn                      |  1                              |  int   |
+ |  WatchScriptFile                 |  1                     (TRUE)   |  BOOL  |
+ |  ScriptNppStart                  |                        (empty)  | string |
+ |  ScriptNppExit                   |                        (empty)  | string |
+ |  HelpFile                        |  doc\NppExec\NppExec_Manual.chm | string |
+ |  TempScriptFile                  |  npes_temp.txt                  | string |
+ |  SavedScriptsFile                |  npes_saved.txt                 | string |
+ |  LogsDir                         |                        (empty)  | string |
+ |  AutoSave_Seconds                |  0                              |  int   |
+ |                                  |                                 |        |
+  -----------------------------------------------------------------------------
 
  The purpose of each key is described below.
  You can add specified keys to [Console] or [Options] section of
@@ -73,6 +75,8 @@
    ScriptNppStart=
    ScriptNppExit=
    HelpFile=doc\NppExec\NppExec_Manual.chm
+   TempScriptFile=npes_temp.txt
+   SavedScriptsFile=npes_saved.txt
    LogsDir=
    AutoSave_Seconds=0
 
@@ -609,6 +613,18 @@
      $(SYS.TEMP)
      $(NPP_DIRECTORY)
      $(PLUGINS_CONFIG_DIR)
+
+
+ TempScriptFile
+ --------------
+   Name of a file where NppExec stores its temporary script.
+   The default file name is "npes_temp.txt".
+
+
+ SavedScriptsFile
+ ----------------
+   Name of a file where NppExec stores its saved scripts.
+   The default file name is "npes_saved.txt".
 
 
  LogsDir
