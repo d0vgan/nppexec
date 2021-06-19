@@ -291,6 +291,14 @@ enum eQuoteType {
     QT_SINGLE2 = 0x04  // `
 };
 
+static int getQuoteType(const TCHAR ch)
+{
+    if ( ch == _T('\"') )  return QT_DOUBLE;
+    if ( ch == _T('\'') )  return QT_SINGLE1;
+    if ( ch == _T('`') )   return QT_SINGLE2;
+    return 0;
+}
+
 // gets the current param and returns a pointer to the next param
 // checks for a bracket only when pBracket != nullptr
 const TCHAR* get_param(const TCHAR* s, tstr& param, const TCHAR sep = SEP_TABSPACE, 
@@ -3521,8 +3529,6 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
 {
     if ( pHasSyntaxError )  *pHasSyntaxError = false;
 
-    CStrSplitT<TCHAR> args;
-
     typedef struct sCond {
         const TCHAR* szCond;
         int          nCondType;
@@ -3540,63 +3546,98 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
         { _T(">"),  COND_GREATTHAN   }
     };
 
-    int  condType = COND_NONE;
-    tstr cond;
-    tstr op1;
-    tstr op2;
+    enum eState {
+        stNone = 0,
+        stGotOp1,
+        stGotCond,
+        stGotOp2,
+        stError
+    };
 
-    if ( args.SplitToArgs(Condition) == 3 )
+    int    pos = 0;
+    int    condType = COND_NONE;
+    eState state = stNone;
+    tstr   cond;
+    tstr   op1;
+    tstr   op2;
+
+    while ( Condition.GetAt(pos) == _T(' ') )  ++pos;  // skip spaces before op1
+
+    if ( pos != Condition.length() )
     {
-        cond = args.GetArg(1);
-        op1 = args.GetArg(0);
-        op2 = args.GetArg(2);
-
-        for ( const tCond& c : arrCond )
+        const TCHAR ch = Condition[pos];
+        int qt = getQuoteType(ch);
+        if ( qt != 0 )
         {
-            if ( cond == c.szCond )
+            int pos2 = Condition.Find(ch, pos + 1);
+            if ( pos2 != -1 )
             {
-                condType = c.nCondType;
-                break;
+                ++pos2;
+                op1.Copy(Condition.c_str() + pos, pos2 - pos);
+                pos = pos2;  // after op1
+                while ( Condition.GetAt(pos) == _T(' ') )  ++pos;  // skip spaces after op1
+                state = stGotOp1;
+            }
+            else
+                state = stError;
+        }
+    }
+    else
+    {
+        state = stError;
+    }
+        
+    if ( state != stError )
+    {
+        if ( state == stGotOp1 )
+        {
+            const TCHAR* ptr = Condition.c_str() + pos;
+
+            for ( const tCond& c : arrCond )
+            {
+                if ( StrUnsafeCmpN(ptr, c.szCond, lstrlen(c.szCond)) == 0 )
+                {
+                    condType = c.nCondType;
+                    cond = c.szCond;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            int cond_pos = -1;
+
+            for ( const tCond& c : arrCond )
+            {
+                int pos2 = Condition.Find(c.szCond, pos);
+                if ( pos2 >= 0 && (cond_pos == -1 || pos2 < cond_pos) )
+                {
+                    cond_pos = pos2;
+                    condType = c.nCondType;
+                    cond = c.szCond;
+                }
+            }
+
+            if ( cond_pos != -1 )
+            {
+                pos = cond_pos;
+                op1.Copy(Condition.c_str(), pos);
+                NppExecHelpers::StrDelLeadingTabSpaces(op1);
+                NppExecHelpers::StrDelTrailingTabSpaces(op1);
+                state = stGotOp1;
             }
         }
 
         if ( condType != COND_NONE )
         {
-            // restore removed quotes, if any
-            int n = Condition.Find(op1);
-            if ( Condition.GetAt(n - 1) == _T('\"') )
-            {
-                op1.Insert(0, _T('\"'));
-                op1 += _T('\"');
-            }
+            state = stGotCond;
+            pos += cond.length();  // after cond
+            while ( Condition.GetAt(pos) == _T(' ') )  ++pos;  // skip spaces after cond
 
-            n = Condition.RFind(op2);
-            if ( Condition.GetAt(n - 1) == _T('\"') )
-            {
-                op2.Insert(0, _T('\"'));
-                op2 += _T('\"');
-            }
-        }
-    }
-    else
-    {
-        for ( const tCond& c : arrCond )
-        {
-            int n = Condition.Find(c.szCond);
-            if ( n >= 0 )
-            {
-                condType = c.nCondType;
-                cond = c.szCond;
-                op1.Copy(Condition.c_str(), n);
-                op2.Copy(Condition.c_str() + n + lstrlen(c.szCond));
-
-                NppExecHelpers::StrDelLeadingTabSpaces(op1);
-                NppExecHelpers::StrDelTrailingTabSpaces(op1);
-
-                NppExecHelpers::StrDelLeadingTabSpaces(op2);
-                NppExecHelpers::StrDelTrailingTabSpaces(op2);
-                break;
-            }
+            op2.Copy(Condition.c_str() + pos);
+            NppExecHelpers::StrDelLeadingTabSpaces(op2);
+            NppExecHelpers::StrDelTrailingTabSpaces(op2);
+            state = stGotOp2;
         }
     }
 

@@ -64,7 +64,7 @@ template <class T> int StrUnsafeCmpN(const T* str1, const T* str2, unsigned int 
         ++str2;
         --n;
     }
-    return (int) ( ((unsigned int) (*str1)) - ((unsigned int) (*str2)) );
+    return ( (n == 0) ? 0 : (int) (((unsigned int) (*str1)) - ((unsigned int) (*str2))) );
 }
 
 // CONDITION: str != 0 && substr != 0
