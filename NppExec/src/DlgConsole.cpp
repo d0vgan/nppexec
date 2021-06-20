@@ -516,7 +516,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  foreground colour.") _T_RE_EOL \
     _T("  <RR GG BB> are hex values of Right, Green and Blue components of a colour") _T_RE_EOL \
     _T("  to be used. Each colour component can have a value from 00 to FF. The value") _T_RE_EOL \
-    _T("  of 00 means absence of the colour component, FF means maximum. Thus, ") _T_RE_EOL \
+    _T("  of 00 means absence of the colour component, FF means maximum. Thus,") _T_RE_EOL \
     _T("  00 00 00 means \"dark\" (absence of all colours), 00 FF 00 means \"maximum of") _T_RE_EOL \
     _T("  green\", FF FF FF means \"maximum white\".") _T_RE_EOL \
     _T("  These colours are run-time only, they are not saved when Notepad++ exits.") _T_RE_EOL \
@@ -1379,7 +1379,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  // update the value of c...") _T_RE_EOL \
     _T("  set local c = $(input)") _T_RE_EOL \
     _T("  // show the InputBox with the text \"Input a:\", \"a =\"...") _T_RE_EOL \
-    _T("  inputbox \"Input a:\" : \"a =\" : ") _T_RE_EOL \
+    _T("  inputbox \"Input a:\" : \"a =\" :") _T_RE_EOL \
     _T("  // show the InputBox with empty value name...") _T_RE_EOL \
     _T("  inputbox \"Input a:\" : \" \" :   // notice the  : \" \" :  part!") _T_RE_EOL \
     _T("  // show the initial value with a colon...") _T_RE_EOL \
