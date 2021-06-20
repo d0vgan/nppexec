@@ -842,10 +842,10 @@ void CAdvOptDlg::ShowWarning(LPCTSTR szMessage)
 
 void CAdvOptDlg::colorValuesInit()
 {
-    m_bufColorTextNorm.Copy( (lpcbyte_t) &g_colorTextNorm, sizeof(COLORREF) );
-    m_bufColorTextErr.Copy( (lpcbyte_t) &g_colorTextErr, sizeof(COLORREF) );
-    m_bufColorTextMsg.Copy( (lpcbyte_t) &g_colorTextMsg, sizeof(COLORREF) );
-    m_bufColorBkgnd.Copy( (lpcbyte_t) &g_colorBkgnd, sizeof(COLORREF) );
+    m_bufColorTextNorm.Assign( (lpcbyte_t) &g_colorTextNorm, sizeof(COLORREF) );
+    m_bufColorTextErr.Assign( (lpcbyte_t) &g_colorTextErr, sizeof(COLORREF) );
+    m_bufColorTextMsg.Assign( (lpcbyte_t) &g_colorTextMsg, sizeof(COLORREF) );
+    m_bufColorBkgnd.Assign( (lpcbyte_t) &g_colorBkgnd, sizeof(COLORREF) );
 }
 
 BOOL CAdvOptDlg::colorValuesChanged()

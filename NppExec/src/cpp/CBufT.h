@@ -76,15 +76,15 @@ public:
   T*       Append(const T* pData, int nCount);
   T*       Append(const CBufT& Buf);
   T*       Append(const T& item);
+  T*       Assign(const T* pData, int nCount);
+  T*       Assign(const CBufT& Buf);
+  T*       Assign(CBufT&& Buf);
   void     Clear();
   int      Compare(const T* pData, int nCount) const; 
              // -1 if GetData() < pData
   int      Compare(const CBufT& Buf) const;       
              // 1 if GetData() > pData;  0 if identical; 
              // 2 if nCount items are identical and nCount < m_nCount
-  T*       Copy(const T* pData, int nCount);
-  T*       Copy(const CBufT& Buf);
-  T*       Copy(CBufT&& Buf);
   bool     Delete(int nPos, int nCount = -1);  
              // -1 means all items from nPos 
   int      Find(const T& item, int nStartPos = 0) const;
@@ -117,8 +117,8 @@ public:
   int      size() const  { return m_nCount; }
   const T& operator[](int nPos) const  { return m_pData[nPos]; }
   T&       operator[](int nPos)  { return m_pData[nPos]; }
-  T*       operator=(const CBufT& Buf)  { return Copy(Buf); }
-  T*       operator=(CBufT&& Buf)  { return Copy(std::forward<CBufT>(Buf)); }
+  T*       operator=(const CBufT& Buf)  { return Assign(Buf); }
+  T*       operator=(CBufT&& Buf)  { return Assign(std::forward<CBufT>(Buf)); }
   T*       operator+=(const CBufT& Buf)  { return Append(Buf); }
   T*       operator+=(const T& item)  { return Append(item); }
   bool     operator==(const CBufT& Buf) const {
@@ -238,6 +238,44 @@ template <class T> T* CBufT<T>::Append(const T& item)
     return m_pData;
 }
 
+template <class T> T* CBufT<T>::Assign(const T* pData, int nCount)
+{ 
+    if ( pData != m_pData )
+    {
+        Clear(); 
+        // works OK for pData > m_pData && pData < m_pData+nCount
+        // due to implementation of Append()
+        return Append( pData, nCount ); 
+    }
+    else
+    {
+        if ( nCount < m_nCount )
+            SetSize(nCount);
+        return m_pData;
+    }
+}
+
+template <class T> T* CBufT<T>::Assign(const CBufT& Buf) 
+{ 
+    if ( Buf.GetData() != m_pData )
+    {
+        Clear(); 
+        return Append( Buf.GetData(), Buf.GetCount() ); 
+    }
+    else
+        return m_pData;
+}
+
+template <class T> T* CBufT<T>::Assign(CBufT&& Buf)
+{
+    if ( Buf.GetData() != m_pData )
+    {
+        Clear(); 
+        Swap(Buf); 
+    }
+    return m_pData;
+}
+
 template <class T> void CBufT<T>::Clear()
 {
     if ( m_pData )
@@ -281,44 +319,6 @@ template <class T> int CBufT<T>::Compare(const T* pData, int nCount) const
 template <class T> int CBufT<T>::Compare(const CBufT& Buf) const
 {
     return Compare( Buf.GetData(), Buf.GetCount() );
-}
-
-template <class T> T* CBufT<T>::Copy(const T* pData, int nCount)
-{ 
-    if ( pData != m_pData )
-    {
-        Clear(); 
-        // works OK for pData > m_pData && pData < m_pData+nCount
-        // due to implementation of Append()
-        return Append( pData, nCount ); 
-    }
-    else
-    {
-        if ( nCount < m_nCount )
-            SetSize(nCount);
-        return m_pData;
-    }
-}
-
-template <class T> T* CBufT<T>::Copy(const CBufT& Buf) 
-{ 
-    if ( Buf.GetData() != m_pData )
-    {
-        Clear(); 
-        return Append( Buf.GetData(), Buf.GetCount() ); 
-    }
-    else
-        return m_pData;
-}
-
-template <class T> T* CBufT<T>::Copy(CBufT&& Buf)
-{
-    if ( Buf.GetData() != m_pData )
-    {
-        Clear(); 
-        Swap(Buf); 
-    }
-    return m_pData;
 }
 
 template <class T> bool CBufT<T>::Delete(int nPos, int nCount )

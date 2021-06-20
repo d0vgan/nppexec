@@ -700,13 +700,13 @@ class FParserWrapper
                 int j = S.Find('=');
                 if ( j >= 0 )
                 {
-                    varName.Copy(S.c_str(), j);
+                    varName.Assign(S.c_str(), j);
                     NppExecHelpers::StrDelTrailingTabSpaces(varName);
                     NppExecHelpers::StrDelLeadingTabSpaces(varName);
                     if ( varName.IsEmpty() )
                         continue;
 
-                    varValue.Copy(S.c_str() + j + 1, S.length() - j - 1);
+                    varValue.Assign(S.c_str() + j + 1, S.length() - j - 1);
                     NppExecHelpers::StrDelTrailingTabSpaces(varValue);
                     NppExecHelpers::StrDelLeadingTabSpaces(varValue);
                     if ( !varValue.IsEmpty() )
@@ -1440,7 +1440,7 @@ CScriptEngine::CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, co
     m_strInstance = NppExecHelpers::GetInstanceAsString(this);
 
     m_pNppExec = pNppExec;
-    m_CmdList.Copy(CmdList); // own m_CmdList
+    m_CmdList.Assign(CmdList); // own m_CmdList
     m_id = id;
 
     m_nCmdType = CMDTYPE_UNKNOWN;
@@ -2466,7 +2466,7 @@ CScriptEngine::eCmdResult CScriptEngine::Do(const tstr& params)
             tstr varValue;
 
             ++i;
-            varValue.Copy( OutputVar.c_str() + i, OutputVar.length() - i );
+            varValue.Assign( OutputVar.c_str() + i, OutputVar.length() - i );
             m_pNppExec->GetMacroVars().SetUserMacroVar( this, varName, varValue, CNppExecMacroVars::svLocalVar ); // local var
         }
         else
@@ -2480,7 +2480,7 @@ CScriptEngine::eCmdResult CScriptEngine::Do(const tstr& params)
         {
             tstr varValue;
 
-            varValue.Copy( OutputVar.c_str(), i );
+            varValue.Assign( OutputVar.c_str(), i );
             m_pNppExec->GetMacroVars().SetUserMacroVar( this, varName, varValue, CNppExecMacroVars::svLocalVar ); // local var
         }
         else
@@ -3008,7 +3008,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
             else
             {
                 tstr ifParams;
-                ifParams.Copy( params.c_str() + n + 3 );
+                ifParams.Assign( params.c_str() + n + 3 );
                 NppExecHelpers::StrDelLeadingTabSpaces(ifParams);
                 NppExecHelpers::StrDelTrailingTabSpaces(ifParams);
 
@@ -3531,19 +3531,20 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
 
     typedef struct sCond {
         const TCHAR* szCond;
+        int          nCondLen;
         int          nCondType;
     } tCond;
 
     static const tCond arrCond[] = {
-        { _T("=="), COND_EQUAL       },
-        { _T("!="), COND_NOTEQUAL    },
-        { _T("<>"), COND_NOTEQUAL    },
-        { _T(">="), COND_GREATEQUAL  },
-        { _T("<="), COND_LESSEQUAL   },
-        { _T("~="), COND_EQUALNOCASE },
-        { _T("="),  COND_EQUAL       },
-        { _T("<"),  COND_LESSTHAN    },
-        { _T(">"),  COND_GREATTHAN   }
+        { _T("=="), 2, COND_EQUAL       },
+        { _T("!="), 2, COND_NOTEQUAL    },
+        { _T("<>"), 2, COND_NOTEQUAL    },
+        { _T(">="), 2, COND_GREATEQUAL  },
+        { _T("<="), 2, COND_LESSEQUAL   },
+        { _T("~="), 2, COND_EQUALNOCASE },
+        { _T("="),  1, COND_EQUAL       },
+        { _T("<"),  1, COND_LESSTHAN    },
+        { _T(">"),  1, COND_GREATTHAN   }
     };
 
     enum eState {
@@ -3573,7 +3574,7 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
             if ( pos2 != -1 )
             {
                 ++pos2;
-                op1.Copy(Condition.c_str() + pos, pos2 - pos);
+                op1.Assign(Condition.c_str() + pos, pos2 - pos);
                 pos = pos2;  // after op1
                 while ( Condition.GetAt(pos) == _T(' ') )  ++pos;  // skip spaces after op1
                 state = stGotOp1;
@@ -3595,10 +3596,10 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
 
             for ( const tCond& c : arrCond )
             {
-                if ( StrUnsafeCmpN(ptr, c.szCond, lstrlen(c.szCond)) == 0 )
+                if ( StrUnsafeCmpN(ptr, c.szCond, c.nCondLen) == 0 )
                 {
                     condType = c.nCondType;
-                    cond = c.szCond;
+                    cond.Assign(c.szCond, c.nCondLen);
                     break;
                 }
             }
@@ -3614,14 +3615,14 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
                 {
                     cond_pos = pos2;
                     condType = c.nCondType;
-                    cond = c.szCond;
+                    cond.Assign(c.szCond, c.nCondLen);
                 }
             }
 
             if ( cond_pos != -1 )
             {
                 pos = cond_pos;
-                op1.Copy(Condition.c_str(), pos);
+                op1.Assign(Condition.c_str(), pos);
                 NppExecHelpers::StrDelLeadingTabSpaces(op1);
                 NppExecHelpers::StrDelTrailingTabSpaces(op1);
                 state = stGotOp1;
@@ -3634,7 +3635,7 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
             pos += cond.length();  // after cond
             while ( Condition.GetAt(pos) == _T(' ') )  ++pos;  // skip spaces after cond
 
-            op2.Copy(Condition.c_str() + pos);
+            op2.Assign(Condition.c_str() + pos);
             NppExecHelpers::StrDelLeadingTabSpaces(op2);
             NppExecHelpers::StrDelTrailingTabSpaces(op2);
             state = stGotOp2;
@@ -3748,7 +3749,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
     }
 
     tstr ifCondition;
-    ifCondition.Copy( params.c_str(), n );
+    ifCondition.Assign( params.c_str(), n );
     NppExecHelpers::StrDelLeadingTabSpaces(ifCondition);
     NppExecHelpers::StrDelTrailingTabSpaces(ifCondition);
 
@@ -3762,7 +3763,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
 
     if ( mode == IF_GOTO )
     {
-        labelName.Copy( params.c_str() + n + 6 );
+        labelName.Assign( params.c_str() + n + 6 );
         getLabelName(labelName);
 
         if ( labelName.IsEmpty() )
@@ -6549,7 +6550,7 @@ bool CNppExecMacroVars::IsLocalMacroVar(tstr& varName)
     if ( n == 5 ) // length of "local"
     {
         tstr Prefix;
-        Prefix.Copy( varName.c_str(), n );
+        Prefix.Assign( varName.c_str(), n );
         NppExecHelpers::StrLower(Prefix);
         if ( Prefix == _T("local") )
         {
@@ -7038,7 +7039,7 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
           ++nBracketDepth;
         }
       }
-      sub.Copy(Cmd.c_str() + i1, i2 - i1);
+      sub.Assign(Cmd.c_str() + i1, i2 - i1);
       if (sub.length() > 0)
       {
         tstr sValue = NppExecHelpers::GetEnvironmentVar(sub);
@@ -7621,7 +7622,7 @@ bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& 
                 //  $( ... $( ... ) ... )
                 //  n1     n2           n1_end
                 tstr SubVal;
-                SubVal.Copy(S.c_str() + n2, n1_end - n2);
+                SubVal.Assign(S.c_str() + n2, n1_end - n2);
 
                 Runtime::GetLogger().Add(   _T("; checking inner vars...") );
 
@@ -7997,7 +7998,7 @@ bool CNppExecMacroVars::StrCalc::calcSubStr()
                     if ( count == 0 )
                         m_varValue.Clear();
                     else
-                        m_varValue.Copy(m_pVar + pos, count);
+                        m_varValue.Assign(m_pVar + pos, count);
 
                     Runtime::GetLogger().AddEx( 
                       _T("; substr: %s"), 
@@ -8345,7 +8346,7 @@ void GetPathAndFilter(const TCHAR* szPathAndFilter,
     if ( (szPathAndFilter[pos] == _T('\\')) || 
          (szPathAndFilter[pos] == _T('/')) )
     {
-      out_Path.Copy( szPathAndFilter, pos );
+      out_Path.Assign( szPathAndFilter, pos );
       break;
     }
   }
@@ -8353,13 +8354,13 @@ void GetPathAndFilter(const TCHAR* szPathAndFilter,
   if ( (nFilterPos == 1) && 
        (szPathAndFilter[0] == _T('\\') || szPathAndFilter[0] == _T('/')) )
   {
-    out_Path.Copy( szPathAndFilter, 1 );
+    out_Path.Assign( szPathAndFilter, 1 );
   }
   
   if ( nFilterPos >= 0)
   {
     if ( pos < 0 )  pos = -1;
-    out_Filter.Copy( szPathAndFilter + 1 + pos );
+    out_Filter.Assign( szPathAndFilter + 1 + pos );
   }
   else
   {

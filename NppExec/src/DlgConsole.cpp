@@ -4664,7 +4664,7 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
 
         ++i;
         while (NppExecHelpers::IsTabSpaceChar(S[i])) ++i;
-        S1.Copy( S.c_str() + i, S.length() - i );
+        S1.Assign( S.c_str() + i, S.length() - i );
         i = 0;
         while ((i < S1.length()) && !NppExecHelpers::IsTabSpaceChar(S1[i])) ++i;
         if (i < S1.length())

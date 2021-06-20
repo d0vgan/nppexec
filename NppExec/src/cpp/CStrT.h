@@ -144,6 +144,9 @@ public:
   T*    Append(const T* pStr, int nLength = -1); // -1 means all characters
   T*    Append(const CStrT& Str);
   T*    Append(const T ch);
+  T*    Assign(const T* pStr, int nLength = -1); // -1 means all characters
+  T*    Assign(const CStrT& Str);
+  T*    Assign(CStrT&& Str);
   T*    c_str() const  { return ( m_pData ? m_pData : (T*) "\x00\x00" ); }
   int   CalculateLength();
   void  Clear();
@@ -152,9 +155,6 @@ public:
   int   Compare(const CStrT& Str) const;     
           // returns 1 if c_str() > pStr;  0 if identical; 
           // 2 if nLength characters are identical and nLength < m_nLength
-  T*    Copy(const T* pStr, int nLength = -1); // -1 means all characters
-  T*    Copy(const CStrT& Str);
-  T*    Copy(CStrT&& Str);
   int   Count(const T ch);
   bool  Delete(int nPos, int nCharacters = -1); 
           // -1 means all characters from nPos
@@ -206,9 +206,9 @@ public:
   void  Swap(CStrT& Str); // swap str's data
   T     operator[](int nPos) const  { return m_pData[nPos]; }
   T&    operator[](int nPos)  { return m_pData[nPos]; }
-  T*    operator=(const T* pStr)  { return Copy(pStr); }
-  T*    operator=(const CStrT& Str)  { return Copy(Str); }
-  T*    operator=(CStrT&& Str)  { return Copy(std::forward<CStrT>(Str)); }
+  T*    operator=(const T* pStr)  { return Assign(pStr); }
+  T*    operator=(const CStrT& Str)  { return Assign(Str); }
+  T*    operator=(CStrT&& Str)  { return Assign(std::forward<CStrT>(Str)); }
   T*    operator+=(const T* pStr)  { return Append(pStr); }
   T*    operator+=(const CStrT& Str)  { return Append(Str); }
   T*    operator+=(const T ch)  { return Append(ch); }
@@ -376,6 +376,44 @@ template <class T> T* CStrT<T>::Append(const T ch)
     return m_pData; // can be NULL
 }
 
+template <class T> T* CStrT<T>::Assign(const T* pStr, int nLength )
+{ 
+    if ( pStr != m_pData )
+    { 
+        Clear(); 
+        // works OK for pStr > m_pData && pStr < m_pData+nLength
+        // due to implementation of Append()
+        return Append(pStr, nLength); // can be NULL
+    }
+    else
+    {
+        if ( nLength < m_nLength )
+            SetSize(nLength);
+        return m_pData; // can be NULL
+    }
+}
+
+template <class T> T* CStrT<T>::Assign(const CStrT& Str) 
+{ 
+    if ( Str.c_str() != m_pData )
+    {
+        Clear(); 
+        return Append( Str.c_str(), Str.length() ); // can be NULL
+    }
+    else
+        return m_pData; // can be NULL
+}
+
+template <class T> T* CStrT<T>::Assign(CStrT&& Str) 
+{ 
+    if ( Str.c_str() != m_pData )
+    {
+        Clear(); 
+        Swap(Str);
+    }
+    return m_pData; // can be NULL
+}
+
 template <class T> int CStrT<T>::CalculateLength()
 {
     m_nLength = GetStrSafeLength<T>(m_pData);
@@ -408,44 +446,6 @@ template <class T> int CStrT<T>::Compare(const T* pStr) const
 template <class T> int CStrT<T>::Compare(const CStrT& Str) const
 {
     return Compare( Str.c_str() );
-}
-
-template <class T> T* CStrT<T>::Copy(const T* pStr, int nLength )
-{ 
-    if ( pStr != m_pData )
-    { 
-        Clear(); 
-        // works OK for pStr > m_pData && pStr < m_pData+nLength
-        // due to implementation of Append()
-        return Append(pStr, nLength); // can be NULL
-    }
-    else
-    {
-        if ( nLength < m_nLength )
-            SetSize(nLength);
-        return m_pData; // can be NULL
-    }
-}
-
-template <class T> T* CStrT<T>::Copy(const CStrT& Str) 
-{ 
-    if ( Str.c_str() != m_pData )
-    {
-        Clear(); 
-        return Append( Str.c_str(), Str.length() ); // can be NULL
-    }
-    else
-        return m_pData; // can be NULL
-}
-
-template <class T> T* CStrT<T>::Copy(CStrT&& Str) 
-{ 
-    if ( Str.c_str() != m_pData )
-    {
-        Clear(); 
-        Swap(Str);
-    }
-    return m_pData; // can be NULL
 }
 
 template <class T> int CStrT<T>::Count(const T ch)

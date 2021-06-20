@@ -79,9 +79,9 @@ public:
   CListItemT<T>* Add(const T& item);
   CListItemT<T>* Add(T&& item);
   int            AddItems(const CListT<T>& List);  // returns items count
+  int            Assign(const CListT<T>& List);    // returns items count
+  int            Assign(CListT<T>&& List);         // returns items count
   void           Clear()  { DeleteAll(); }
-  int            Copy(const CListT<T>& List);      // returns items count
-  int            Copy(CListT<T>&& List);           // returns items count
   bool           Delete(CListItemT<T>* pItemPtr);
   void           DeleteAll();
   bool           DeleteFirst();
@@ -100,8 +100,8 @@ public:
   bool           Swap(CListItemT<T>* pItemPtr1, CListItemT<T>* pItemPtr2);
   void           Swap(CListT<T>& List);
 
-  CListT&        operator=(const CListT<T>& List)  { Copy(List); return *this; }
-  CListT&        operator=(CListT<T>&& List)       { Copy(std::forward<CListT>(List)); return *this; }
+  CListT&        operator=(const CListT<T>& List)  { Assign(List); return *this; }
+  CListT&        operator=(CListT<T>&& List)       { Assign(std::forward<CListT>(List)); return *this; }
 
 };
 
@@ -266,13 +266,13 @@ template <class T> int CListT<T>::AddItems(const CListT<T>& List)
     return m_nCount;
 }
 
-template <class T> int CListT<T>::Copy(const CListT<T>& List)
+template <class T> int CListT<T>::Assign(const CListT<T>& List)
 {
     DeleteAll();
     return AddItems(List);
 }
 
-template <class T> int CListT<T>::Copy(CListT<T>&& List)
+template <class T> int CListT<T>::Assign(CListT<T>&& List)
 {
     DeleteAll();
     Swap(List);

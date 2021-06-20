@@ -595,9 +595,9 @@ void CStaticOptionsManager::setBufListValue(void* listItemPtr,
     {
         BUFBUF_ITEM& itm = ((CBufBufList::CListItemPtr) listItemPtr)->GetItem();
         if ( actual )
-            itm.actual.Copy( (const BYTE *) data, data_size );
+            itm.actual.Assign( (const BYTE *) data, data_size );
         else
-            itm.saved.Copy( (const BYTE *) data, data_size );
+            itm.saved.Assign( (const BYTE *) data, data_size );
     }
 }
 

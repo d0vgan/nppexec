@@ -262,7 +262,7 @@ template <class T> int StrSplit(const CStrT<T>& str,
                 while ( (outList.GetCount() < max_items) &&
                         ((pos2 = str.Find(separator, pos1)) >= 0) )
                 {
-                    S.Copy( str.c_str() + pos1, pos2 - pos1 );
+                    S.Assign( str.c_str() + pos1, pos2 - pos1 );
                     outList.Add(S);
                     pos1 = pos2 + sep_len;
                 }
@@ -271,12 +271,12 @@ template <class T> int StrSplit(const CStrT<T>& str,
             {
                 while ( (pos2 = str.Find(separator, pos1)) >= 0 )
                 {
-                    S.Copy( str.c_str() + pos1, pos2 - pos1 );
+                    S.Assign( str.c_str() + pos1, pos2 - pos1 );
                     outList.Add(S);
                     pos1 = pos2 + sep_len;
                 }
             }
-            S.Copy( str.c_str() + pos1, str.length() - pos1 );
+            S.Assign( str.c_str() + pos1, str.length() - pos1 );
             outList.Add(S);
         }
     }

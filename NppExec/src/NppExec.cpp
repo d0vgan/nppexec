@@ -2028,7 +2028,7 @@ CListT<tstr> CNppExec::GetCmdList() const
 void CNppExec::SetCmdList(const CListT<tstr>& CmdList)
 {
     CCriticalSectionLockGuard lock(m_csScriptCmdList);
-    m_ScriptCmdList.Copy(CmdList);
+    m_ScriptCmdList.Assign(CmdList);
 }
 
 bool CNppExec::IsCmdListEmpty() const
@@ -3693,7 +3693,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                     copy_len--;
                             }
 
-                            outLine.Copy(bufLine.c_str(), copy_len);
+                            outLine.Assign(bufLine.c_str(), copy_len);
 
                             if ( nIsNewLine == 7 ) // '\b'
                             {
@@ -4473,7 +4473,7 @@ void CNppExec::InitPluginName(HMODULE hDllModule)
             else
               return;
           }
-          S.Copy(item_name, k);
+          S.Assign(item_name, k);
           S.Append(_T(' '));
           S.Append(insert);
           S.Append(item_name + k);
