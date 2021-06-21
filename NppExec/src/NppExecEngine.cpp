@@ -8164,7 +8164,7 @@ bool CNppExecMacroVars::StrCalc::calcStrFromHex()
     {
         tstr hexStr = m_pVar;
         m_varValue.Reserve(hexStr.length());
-        int nBytes = c_base::_thexstrex2buf(hexStr.c_str(), (c_base::byte_t *)(m_varValue.c_str()), m_varValue.GetMemSize());
+        int nBytes = c_base::_thexstrex2buf(hexStr.c_str(), (c_base::byte_t *)(m_varValue.c_str()), (m_varValue.GetMemSize() - 1)*sizeof(TCHAR));
         if ( nBytes % sizeof(TCHAR) != 0 )
         {
             ((c_base::byte_t *)(m_varValue.c_str()))[nBytes] = 0;
