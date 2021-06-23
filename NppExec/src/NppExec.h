@@ -29,9 +29,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    and `abc`.
    This allows to pass quote characters within a quoted string: `"`, '"',
    '"abc" `def`' and so on.
-   Now, if you want to pass a text that starts or ends with ' or ` character,
-   you need to enquote this text in a different pair of quotes. For example:
-   `'t was brilling...`, "Press `Esc`", etc.
+   Now, if you want to pass a text that includes ' or ` character, you need
+   to enquote this text in a different pair of quotes. For example:
+   `'t was brillig...`, "Can't stop", "Press `Esc`", etc.
  * changed: now NppExec's Console and the Toolbar button explicitly mention
    "NppExec" in their names
  + added: new menu item "Change Execute Script Font..."

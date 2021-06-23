@@ -17,7 +17,8 @@
 <p>This allows to pass some quote characters within a string enquoted in the other quote characters. For example:</p>
 
 <blockquote>
-  <pre>messagebox `&quot;a message in quotes&quot;`</pre>
+  <pre>messagebox `&quot;a message in quotes&quot;`  // preserves the "" quotes
+messagebox &quotCan't stop&quot;             // preserves a single ' quote</pre>
 </blockquote>
 
 <p>Here is an advanced example, now using Scintilla as well:</p>
@@ -62,6 +63,7 @@ echo ab$(tab)cd</pre>
 </blockquote>
 
 <p>The '\r' is 0D 00 and '\n' is 0A 00 here.</p>
+<p>See also: Calculations, strlen and so on <a href="3.8.4.html">[3.8.4]</a>.</p>
 
 <blockquote>  
   <pre> </pre>
