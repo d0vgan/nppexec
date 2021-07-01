@@ -1233,6 +1233,8 @@ static FParserWrapper g_fp;
  *   - shows the value of environment variable <var>
  * env_set <var> = <value>
  *   - sets the value of environment variable <var>
+ * env_set local ...
+ *   - sets an environment variable locally (within the current script)
  * env_unset <var>
  *   - removes/restores the environment variable <var>
  * inputbox "message"
@@ -1253,8 +1255,12 @@ static FParserWrapper g_fp;
  *   - expirable MessageBox
  * con_colour <colours>
  *   - sets the Console's colours
+ * con_colour local ...
+ *   - sets the colours locally (within the current script)
  * con_filter <filters>
  *   - enables/disables the Console's output filters
+ * con_filter local ...
+ *   - sets the filters locally (within the current script)
  * con_loadfrom <file> 
  *   - loads a file's content to the Console
  * con_load <file>
@@ -1307,6 +1313,8 @@ static FParserWrapper g_fp;
  *   - show/hide the Console window
  * npp_console <+/->
  *   - enable/disable output to the Console
+ * npp_console local ...
+ *   - Console on/off locally (within the current script)
  * npp_menucommand <menu\item\name>
  *   - executes (invokes) a menu item
  * npp_open <file>
@@ -1366,14 +1374,20 @@ static FParserWrapper g_fp;
  *   - sets the command alias
  * npe_console <options>
  *   - set/modify Console options/mode
+ * npe_console local ...
+ *   - sets Console's mode locally (within the current script)
  * npe_debuglog <on/off>
  *   - enable/disable Debug Log
  * npe_noemptyvars <1/0>
  *   - enable/disable replacement of empty vars
+ * npe_noemptyvars local ...
+ *   - sets empty vars on/off locally (within the current script)
  * npe_queue <command>
  *   - queue NppExec's command to be executed
  * npe_sendmsgbuflen <max_len>
  *   - set npp_sendmsg/sci_sendmsg's buffer length
+ * npe_sendmsgbuflen local ...
+ *   - sets the buffer length locally (within the current script)
  *
  * Internal Macros (environment variables):
  * ----------------------------------------

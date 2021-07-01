@@ -38,6 +38,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: now MESSAGEBOX and INPUTBOX can accept 4th parameter 'time_ms'
  * changed: now the InputBox can be closed by pressing Esc. When it happens,
    the value of $(INPUT) will be empty.
+ + added: now con_colour, con_filter, env_set, npe_console, npe_noemptyvars,
+   npe_sendmsgbuflen and npp_console support a new keyword "local".
+   This new keyword means: the changes are applied locally to the current
+   NppExec's script and are reverted back when the current script ends.
+   Thus, the "local" keyword does not make sense in a single command executed
+   directly in NppExec's Console because the previous state is restored right
+   after the execution of this single "local" command, so you will not see any
+   effect of it.
  + added: file names "npes_temp.txt" and "npes_saved.txt" can be customized
    (see "NppExec_TechInfo.txt" for details)
  + NppExec Manual updated 

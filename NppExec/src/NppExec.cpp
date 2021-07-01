@@ -71,6 +71,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        unset local <var> - removes user's local variable <var>
  *        env_set <var> - shows the value of environment variable <var>
  *        env_set <var> = <value> - sets the value of environment variable <var>
+ *        env_set local ... - sets an environment variable locally         (**)
  *        env_unset <var> - removes/restores the environment variable <var>
  *        inputbox "message" - shows InputBox, sets $(INPUT)
  *        inputbox "message" : initial_value - InputBox, sets $(INPUT)
@@ -81,7 +82,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        messagebox "text" : "title" : type - shows a MessageBox of a given type
  *        messagebox "text" : "title" : type : time_ms - expirable MessageBox
  *        con_colour <colours> - sets the Console's colours
+ *        con_colour local ... - sets the colours locally                  (**)
  *        con_filter <filters> - enables/disables the Console's output filters
+ *        con_filter local ... - sets the filters locally                  (**)
  *        con_loadfrom <file> - loads a file's content to the Console
  *        con_load <file> - see "con_loadfrom"
  *        con_saveto <file> - saves the Console's content to a file
@@ -107,6 +110,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        npp_console <enable/disable> - enable/disable output to the Console
  *        npp_console <1/0/?> - show/hide the Console window
  *        npp_console <+/-> - enable/disable output to the Console
+ *        npp_console local ... - Console on/off locally                   (**)
  *        npp_menucommand <menu\item\name> - executes (invokes) a menu item
  *        npp_open <file> - open a file in Notepad++
  *        npp_open <mask> - open files matched the mask
@@ -135,15 +139,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        npe_cmdalias <alias> = - removes the command alias
  *        npe_cmdalias <alias> = <command> - sets the command alias
  *        npe_console <options> - set/modify Console options/mode
+ *        npe_console local ... - sets Console's mode locally              (**)
  *        npe_debuglog <on/off> - enable/disable Debug Log
  *        npe_debug <1/0> - see "npe_debuglog"
  *        npe_noemptyvars <1/0> - enable/disable replacement of empty vars
+ *        npe_noemptyvars local ... - sets empty vars on/off locally       (**)
  *        npe_queue <command> - queue NppExec's command to be executed
  *        npe_sendmsgbuflen <max_len> - set npp/sci_sendmsg's buffer length
+ *        npe_sendmsgbuflen local ... - sets the buffer length locally     (**)
  *        nppexec: - prefix for NppExec's commands (e.g. "nppexec:npp_console off")
  *        nppexec:: - always executes a command in a collateral (parallel) script
  *        (*) these commands work with a partial file path/name also
  *            i.e.  npp_save c:\dir\f.txt  is the same as  npp_save f.txt
+ *        (**) within the current script
  *   5) Additional console commands (Console Dlg only):
  *        help           - show available commands
  *        help <command> - information on the specific command (e.g. "help cls")

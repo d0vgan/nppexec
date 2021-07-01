@@ -130,6 +130,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("unset local <var>  -  removes user\'s local variable <var>") _T_RE_EOL \
   _T("env_set <var>  -  shows the value of environment variable <var>") _T_RE_EOL \
   _T("env_set <var> = <value>  -  sets the value of environment variable <var>") _T_RE_EOL \
+  _T("env_set local ...  -  sets an environment variable locally (within the current script)") _T_RE_EOL \
   _T("env_unset <var>  -  removes/restores the environment variable <var>") _T_RE_EOL \
   _T("set_env <var> = <value>  -  see \"env_set\"") _T_RE_EOL \
   _T("unset_env <var>  -  see \"env_unset\"") _T_RE_EOL \
@@ -142,7 +143,9 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("messagebox \"text\" : \"title\" : type  -  shows a MessageBox of a given type") _T_RE_EOL \
   _T("messagebox \"text\" : \"title\" : type : timeout  -  expirable MessageBox") _T_RE_EOL \
   _T("con_colour <colours>  -  sets the Console\'s colours") _T_RE_EOL \
+  _T("con_colour local ...  -  sets the colours locally (within the current script)") _T_RE_EOL \
   _T("con_filter <filters>  -  enables/disables the Console\'s output filters") _T_RE_EOL \
+  _T("con_filter local ...  -  sets the filters locally (within the current script)") _T_RE_EOL \
   _T("con_loadfrom <file>  -  loads a file\'s content to the Console") _T_RE_EOL \
   _T("con_load <file>  -  see \"con_loadfrom\"") _T_RE_EOL \
   _T("con_saveto <file>  -  saves the Console\'s content to a file") _T_RE_EOL \
@@ -169,6 +172,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("npp_console <enable/disable>  -  enables/disables output to the Console") _T_RE_EOL \
   _T("npp_console <1/0/?>  -  show/hide the Console window") _T_RE_EOL \
   _T("npp_console <+/->  -  enables/disables output to the Console") _T_RE_EOL \
+  _T("npp_console local ...  -  Console on/off locally (within the current script)") _T_RE_EOL \
   _T("npp_menucommand <menu\\item\\name>  -  executes (invokes) a menu item") _T_RE_EOL \
   _T("npp_open <file>  -  (re)open specified file in Notepad++") _T_RE_EOL \
   _T("npp_open <mask or path\\mask>  -  opens file(s) matched the mask") _T_RE_EOL \
@@ -196,11 +200,14 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("npe_cmdalias <alias> =  -  removes the command alias") _T_RE_EOL \
   _T("npe_cmdalias <alias> = <command>  -  sets the command alias") _T_RE_EOL \
   _T("npe_console <options>  -  set/modify Console options/mode") _T_RE_EOL \
+  _T("npe_console local ...  -  sets Console's mode locally (within the current script)") _T_RE_EOL \
   _T("npe_debuglog <on/off>  -  enable/disable Debug Log") _T_RE_EOL \
   _T("npe_debug <1/0>  -  see \"npe_debuglog\"") _T_RE_EOL \
   _T("npe_noemptyvars <1/0>  -  enable/disable replacement of empty vars") _T_RE_EOL \
+  _T("npe_noemptyvars local ...  -  sets empty vars' mode locally (within the current script)") _T_RE_EOL \
   _T("npe_queue <command>  -  queue NppExec's command to be executed") _T_RE_EOL \
   _T("npe_sendmsgbuflen <max_len>  -  set npp/sci_sendmsg's buffer length") _T_RE_EOL \
+  _T("npe_sendmsgbuflen local ...  -  sets the buffer length locally (within the current script)") _T_RE_EOL \
   DEFAULT_ALIAS_CMD_NPPEXEC _T("<script/file>  -  the same as  npp_exec <script/file>") _T_RE_EOL \
   DEFAULT_ALIAS_CMD_NPPEXEC _T("<script/file> <args>  -  the same as  npp_exec <script/file> <args>") _T_RE_EOL \
   DEFAULT_NPPEXEC_CMD_PREFIX _T("  -  prefix for NppExec's commands (e.g. \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("npp_console off\")") _T_RE_EOL \
