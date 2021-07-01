@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.7 - June 2021
+ v0.7 - July 2021
  ----------------
  + added: now NppExec supports the "Dark Mode" of Notepad++ v8
    (Thanks to Peter Jones for the updated icons!)
@@ -1522,6 +1522,7 @@ public:
   eDlgExistResult verifyConsoleDialogExists();
   bool isConsoleDialogVisible();
   void UpdateConsoleEncoding();
+  void updateConsoleEncodingFlags();
   
   void printConsoleHelpInfo();
 

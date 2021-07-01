@@ -76,6 +76,7 @@ public:
     int          GetCharNumber() const;
     long         GetColor() const;
     int          GetStyle() const;
+    bool         IsEffectEnabled( int FilterNumber ) const;
     void         EnableEffect( int FilterNumber, bool Enable );
     void         SetEffect( int FilterNumber, const TEffect& Effect );
     void         SetMask( int FilterNumber, const TCHAR* Mask );

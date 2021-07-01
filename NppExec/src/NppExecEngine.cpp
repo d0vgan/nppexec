@@ -2264,6 +2264,30 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
     return nCmdType;
 }
 
+bool CScriptEngine::isLocalParam(tstr& param)
+{
+    bool isLocal = false;
+    int n = param.Find(_T(' '));
+    if ( n < 0 )
+    {
+        n = param.Find(_T('\t'));
+        if ( n < 0 )
+            n = param.length();
+    }
+    if ( n == 5 ) // length of "local"
+    {
+        tstr Prefix( param.c_str(), n );
+        NppExecHelpers::StrLower(Prefix);
+        if ( Prefix == _T("local") )
+        {
+            isLocal = true;
+            param.Delete(0, n);
+            NppExecHelpers::StrDelLeadingTabSpaces(param);
+        }
+    }
+    return isLocal;
+}
+
 int CScriptEngine::getOnOffParam(const tstr& param)
 {
     if ( param.IsEmpty() )
@@ -2606,9 +2630,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
 
-    if ( params.length() > 0 )
+    tstr colorParams = params;
+    bool isLocal = isLocalParam(colorParams);
+
+    if ( colorParams.length() > 0 )
     {
-        tstr colorParams = params;
         NppExecHelpers::StrUpper(colorParams);
 
         const int posFG = colorParams.Find(_T("FG"));
@@ -2630,6 +2656,13 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                 NppExecHelpers::StrDelTrailingTabSpaces(colorFG);
                 if ( (!colorFG.IsEmpty()) && getColorFromStr(colorFG.c_str(), &color) )
                 {
+                    if ( isLocal )
+                    {
+                        ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+                        SavedConfiguration& savedConf = currentScript.SavedConf;
+                        if ( !savedConf.hasColorTextNorm() )
+                            savedConf.setColorTextNorm( m_pNppExec->GetConsole().GetCurrentColorTextNorm() );
+                    }
                     m_pNppExec->GetConsole().SetCurrentColorTextNorm(color);
                 }
                 else
@@ -2661,6 +2694,13 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                 NppExecHelpers::StrDelTrailingTabSpaces(colorBG);
                 if ( (!colorBG.IsEmpty()) && getColorFromStr(colorBG.c_str(), &color) )
                 {
+                    if ( isLocal )
+                    {
+                        ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+                        SavedConfiguration& savedConf = currentScript.SavedConf;
+                        if ( !savedConf.hasColorBkgnd() )
+                            savedConf.setColorBkgnd( m_pNppExec->GetConsole().GetCurrentColorBkgnd() );
+                    }
                     m_pNppExec->GetConsole().SetCurrentColorBkgnd(color);
                     m_pNppExec->GetConsole().UpdateColours();
                 }
@@ -2735,12 +2775,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
         typeHighlight
     };
 
+    ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+    SavedConfiguration& savedConf = currentScript.SavedConf;
+
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     bool isHighlightChanged = false;
 
     tstr sOption;
+    tstr sParams = params;
+    bool isLocal = isLocalParam(sParams);
     CStrSplitT<TCHAR> args;
-    const int n = args.SplitToArgs(params);
+    const int n = args.SplitToArgs(sParams);
     for ( int i = 0; i < n; i++ )
     {
         sOption = args.GetArg(i);
@@ -2797,6 +2842,13 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                         {
                             const int nIndexMask = (0x01 << nIndex);
                             int nConFltrInclMask = m_pNppExec->GetOptions().GetInt(OPTI_CONFLTR_INCLMASK);
+                            if ( isLocal )
+                            {
+                                if ( !savedConf.hasConFltrInclMask() )
+                                    savedConf.setConFltrInclMask(nConFltrInclMask);
+                                if ( !savedConf.hasConFltrEnable() )
+                                    savedConf.setConFltrEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_ENABLE) );
+                            }
                             nConFltrInclMask |= nIndexMask;
                             if ( !bEnable )  nConFltrInclMask ^= nIndexMask;
                             m_pNppExec->GetOptions().SetInt(OPTI_CONFLTR_INCLMASK, nConFltrInclMask);
@@ -2812,6 +2864,13 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                         {
                             const int nIndexMask = (0x01 << nIndex);
                             int nConFltrExclMask = m_pNppExec->GetOptions().GetInt(OPTI_CONFLTR_EXCLMASK);
+                            if ( isLocal )
+                            {
+                                if ( !savedConf.hasConFltrExclMask() )
+                                    savedConf.setConFltrExclMask(nConFltrExclMask);
+                                if ( !savedConf.hasConFltrEnable() )
+                                    savedConf.setConFltrEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_ENABLE) );
+                            }
                             nConFltrExclMask |= nIndexMask;
                             if ( !bEnable )  nConFltrExclMask ^= nIndexMask;
                             m_pNppExec->GetOptions().SetInt(OPTI_CONFLTR_EXCLMASK, nConFltrExclMask);
@@ -2829,10 +2888,22 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                             const int nIndexMask = (0x01 << nIndex);
                             const bool bMatchCase = (type == typeFindReplaceMatchCase) ? true : false;
                             int nRplcFltrFindMask = m_pNppExec->GetOptions().GetInt(OPTI_CONFLTR_R_FINDMASK);
+                            if ( isLocal )
+                            {
+                                if ( !savedConf.hasRplcFltrFindMask() )
+                                    savedConf.setRplcFltrFindMask(nRplcFltrFindMask);
+                                if ( !savedConf.hasConFltrRplcEnable() )
+                                    savedConf.setConFltrRplcEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_R_ENABLE) );
+                            }
                             nRplcFltrFindMask |= nIndexMask;
                             if ( !bEnable )  nRplcFltrFindMask ^= nIndexMask;
                             m_pNppExec->GetOptions().SetInt(OPTI_CONFLTR_R_FINDMASK, nRplcFltrFindMask);
                             int nRplcFltrCaseMask = m_pNppExec->GetOptions().GetInt(OPTI_CONFLTR_R_CASEMASK);
+                            if ( isLocal )
+                            {
+                                if ( !savedConf.hasRplcFltrCaseMask() )
+                                    savedConf.setRplcFltrCaseMask(nRplcFltrCaseMask);
+                            }
                             nRplcFltrCaseMask |= nIndexMask;
                             if ( !bMatchCase )  nRplcFltrCaseMask ^= nIndexMask;
                             m_pNppExec->GetOptions().SetInt(OPTI_CONFLTR_R_CASEMASK, nRplcFltrCaseMask);
@@ -2846,6 +2917,19 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                     case typeHighlight:
                         if ( nIndex >= 0 && nIndex < CConsoleOutputFilterDlg::RECOGNITION_ITEMS )
                         {
+                            if ( isLocal )
+                            {
+                                if ( !savedConf.hasWarnEffectEnabled() )
+                                {
+                                    const CWarningAnalyzer& WarnAn = m_pNppExec->GetWarningAnalyzer();
+                                    bool WarnEffectEnabled[WARN_MAX_FILTER];
+                                    for ( int i = 0; i < WARN_MAX_FILTER; ++i )
+                                    {
+                                        WarnEffectEnabled[i] = WarnAn.IsEffectEnabled(i);
+                                    }
+                                    savedConf.setWarnEffectEnabled(WarnEffectEnabled);
+                                }
+                            }
                             m_pNppExec->GetWarningAnalyzer().EnableEffect(nIndex, bEnable);
                             isHighlightChanged = true;
                         }
@@ -3057,14 +3141,15 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     bool isInternal = false;
-    
+
     CStrSplitT<TCHAR> args;
     if ( args.Split(params, _T("="), 2) == 2 )
     {
         isInternal = true;
         
         // set the value
-        tstr& varName = args.Arg(0);
+        tstr varName = args.Arg(0);
+        bool isLocal = isLocalParam(varName);
         tstr& varValue = args.Arg(1);
         
         NppExecHelpers::StrDelLeadingTabSpaces(varName);
@@ -3100,6 +3185,14 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
                 }
             }
 
+            if ( isLocal )
+            {
+                ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+                SavedConfiguration& savedConf = currentScript.SavedConf;
+                if ( !savedConf.hasEnvVar(varName) )
+                    savedConf.setEnvVar( varName, NppExecHelpers::GetEnvironmentVar(varName) );
+            }
+
             if ( !SetEnvironmentVariable(varName.c_str(), varValue.c_str()) )
                 nCmdResult = CMDRESULT_FAILED;
         }
@@ -3111,7 +3204,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
     }
 
     // show the value
-    tstr& varName = args.Arg(0);
+    tstr varName = args.Arg(0);
+    isLocalParam(varName);
         
     NppExecHelpers::StrDelLeadingTabSpaces(varName);
     NppExecHelpers::StrDelTrailingTabSpaces(varName);
@@ -4114,13 +4208,18 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
 {
     reportCmdAndParams( DoNpeConsoleCommand::Name(), params, fMessageToConsole );
 
+    ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+    SavedConfiguration& savedConf = currentScript.SavedConf;
+
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
+    tstr sParams = params;
+    bool isLocal = isLocalParam(sParams);
     bool isSilent = false;
     
-    if ( params.length() > 0 )
+    if ( sParams.length() > 0 )
     {
         CStrSplitT<TCHAR> args;
-        int n = args.SplitToArgs(params);
+        int n = args.SplitToArgs(sParams);
         if ( n > 0 )
         {
             bool isEncChanged = false;
@@ -4154,6 +4253,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
                                 bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConsoleAppendMode() )
+                                        savedConf.setConsoleAppendMode( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_APPENDMODE) );
+                                }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_APPENDMODE, bOn);
                                 isOK = true;
                             }
@@ -4164,6 +4268,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
                                 bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConsoleCdCurDir() )
+                                        savedConf.setConsoleCdCurDir( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CDCURDIR) );
+                                }
                                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                                 if ( hMenu )
                                 {
@@ -4182,6 +4291,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                 if ( (nAnsiEscSeq >= CChildProcess::escKeepRaw) &&
                                      (nAnsiEscSeq < CChildProcess::escTotalCount) )
                                 {
+                                    if ( isLocal )
+                                    {
+                                        if ( !savedConf.hasConsoleAnsiEscSeq() )
+                                            savedConf.setConsoleAnsiEscSeq( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ) );
+                                    }
                                     m_pNppExec->GetOptions().SetInt(OPTI_CONSOLE_ANSIESCSEQ, nAnsiEscSeq);
                                     isOK = true;
                                 }
@@ -4193,6 +4307,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
                                 bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConsoleCmdHistory() )
+                                        savedConf.setConsoleCmdHistory( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CMDHISTORY) );
+                                }
                                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                                 if ( hMenu )
                                 {
@@ -4209,6 +4328,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
                                 bool bOn = ( arg[1] == _T('-') ); // inverse
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConsoleNoIntMsgs() )
+                                        savedConf.setConsoleNoIntMsgs( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) );
+                                }
                                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                                 if ( hMenu )
                                 {
@@ -4225,6 +4349,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
                                 bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConsolePrintMsgReady() )
+                                        savedConf.setConsolePrintMsgReady( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) );
+                                }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_PRINTMSGREADY, bOn);
                                 isOK = true;
                             }
@@ -4238,6 +4367,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                      (enc < CConsoleEncodingDlg::ENC_TOTAL) )
                                 {
                                     unsigned int enc_opt = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
+                                    if ( isLocal )
+                                    {
+                                        if ( !savedConf.hasConsoleEncoding() )
+                                            savedConf.setConsoleEncoding( enc_opt );
+                                    }
                                     enc_opt &= 0xFFF0;
                                     enc_opt |= enc;
                                     m_pNppExec->GetOptions().SetUint(OPTU_CONSOLE_ENCODING, enc_opt);
@@ -4255,6 +4389,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                      (enc < CConsoleEncodingDlg::ENC_TOTAL) )
                                 {
                                     unsigned int enc_opt = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
+                                    if ( isLocal )
+                                    {
+                                        if ( !savedConf.hasConsoleEncoding() )
+                                            savedConf.setConsoleEncoding( enc_opt );
+                                    }
                                     enc_opt &= 0xFF0F;
                                     enc_opt |= (enc * 0x10);
                                     m_pNppExec->GetOptions().SetUint(OPTU_CONSOLE_ENCODING, enc_opt);
@@ -4269,6 +4408,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
                                 bool bOn = ( arg[1] == _T('-') ); // inverse
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConsoleNoCmdAliases() )
+                                        savedConf.setConsoleNoCmdAliases( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOCMDALIASES) );
+                                }
                                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                                 if ( hMenu )
                                 {
@@ -4285,6 +4429,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
                                 bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConsoleSetOutputVar() )
+                                        savedConf.setConsoleSetOutputVar( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_SETOUTPUTVAR) );
+                                }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_SETOUTPUTVAR, bOn);
                                 isOK = true;
                             }
@@ -4295,6 +4444,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
                                 bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConFltrEnable() )
+                                        savedConf.setConFltrEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_ENABLE) );
+                                }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONFLTR_ENABLE, bOn);
                                 isFilterChanged = true;
                                 isOK = true;
@@ -4306,6 +4460,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
                                 bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConFltrRplcEnable() )
+                                        savedConf.setConFltrRplcEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_R_ENABLE) );
+                                }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONFLTR_R_ENABLE, bOn);
                                 isFilterChanged = true;
                                 isOK = true;
@@ -4319,6 +4478,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                 if ( (k >= ConsoleDlg::CSK_OFF) &&
                                      (k <= ConsoleDlg::CSK_ALL) )
                                 {
+                                    if ( isLocal )
+                                    {
+                                        if ( !savedConf.hasConsoleCatchShortcutKeys() )
+                                            savedConf.setConsoleCatchShortcutKeys( m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS) );
+                                    }
                                     m_pNppExec->GetOptions().SetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS, k);
                                     isOK = true;
                                 }
@@ -4344,18 +4508,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
 
             if ( isEncChanged )
             {
-                unsigned int enc_opt = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
-                if ( enc_opt > 0xFF )
-                {
-                    // "input as output" flag is set
-                    unsigned int encIn  = CConsoleEncodingDlg::getInputEncoding(enc_opt);
-                    unsigned int encOut = CConsoleEncodingDlg::getOutputEncoding(enc_opt);
-                    if ( encIn != encOut )
-                    {
-                        // remove the "input as output" flag
-                        m_pNppExec->GetOptions().SetUint(OPTU_CONSOLE_ENCODING, enc_opt & 0xFF);
-                    }
-                }
+                m_pNppExec->updateConsoleEncodingFlags();
                 m_pNppExec->UpdateConsoleEncoding();
             }
 
@@ -4480,14 +4633,20 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeNoEmptyVars(const tstr& params)
     reportCmdAndParams( DoNpeNoEmptyVarsCommand::Name(), params, fMessageToConsole );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
-    int nParam = getOnOffParam(params);
-    if (nParam == PARAM_ON)
+    tstr sParams = params;
+    bool isLocal = isLocalParam(sParams);
+    int nParam = getOnOffParam(sParams);
+    if (nParam == PARAM_ON || nParam == PARAM_OFF)
     {
-        m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOEMPTYVARS, true);
-    }
-    else if (nParam == PARAM_OFF)
-    {
-        m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOEMPTYVARS, false);
+        bool bOnOff = (nParam == PARAM_ON) ? true : false;
+        if (isLocal)
+        {
+            ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+            SavedConfiguration& savedConf = currentScript.SavedConf;
+            if ( !savedConf.hasConsoleNoEmptyVars() )
+                savedConf.setConsoleNoEmptyVars( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) );
+        }
+        m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOEMPTYVARS, bOnOff);
     }
     else if (nParam != PARAM_EMPTY)
     {
@@ -4540,15 +4699,27 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeSendMsgBufLen(const tstr& params)
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     int nBufLen = 0;
 
-    if ( params.IsEmpty() )
+    tstr sParams = params;
+    bool isLocal = isLocalParam(sParams);
+
+    if ( sParams.IsEmpty() )
     {
         nBufLen = m_pNppExec->GetOptions().GetInt(OPTI_SENDMSG_MAXBUFLEN);
     }
     else
     {
-        nBufLen = c_base::_tstr2int(params.c_str());
+        nBufLen = c_base::_tstr2int(sParams.c_str());
         if ( nBufLen > 0 )
         {
+            if ( isLocal )
+            {
+                ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+                SavedConfiguration& savedConf = currentScript.SavedConf;
+
+                if ( !savedConf.hasSendMsgBufLen() )
+                    savedConf.setSendMsgBufLen( m_pNppExec->GetOptions().GetInt(OPTI_SENDMSG_MAXBUFLEN) );
+            }
+
             if ( nBufLen < 0x10000 )
             {
                 nBufLen = 0x10000;
@@ -4620,9 +4791,15 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
 {
     reportCmdAndParams( DoNppConsoleCommand::Name(), params, 0 );
 
+    ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+    SavedConfiguration& savedConf = currentScript.SavedConf;
+
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
 
-    switch ( getOnOffParam(params) )
+    tstr sParams = params;
+    bool isLocal = isLocalParam(sParams);
+
+    switch ( getOnOffParam(sParams) )
     {
         case PARAM_EMPTY:
             errorCmdNoParam(DoNppConsoleCommand::Name());
@@ -4631,6 +4808,14 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
 
         case PARAM_ON:
             messageConsole( DoNppConsoleCommand::Name(), _T("On") );
+            if ( isLocal )
+            {
+                if ( !m_pNppExec->isConsoleDialogVisible() )
+                {
+                    if ( !savedConf.hasConsoleDialogVisible() )
+                        savedConf.setConsoleDialogVisible(false);
+                }
+            }
             m_pNppExec->showConsoleDialog(CNppExec::showIfHidden, CNppExec::scfCmdNppConsole);
             break;
 
@@ -4639,6 +4824,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
             //m_pNppExec->verifyConsoleDialogExists();
             if ( m_pNppExec->isConsoleDialogVisible() )
             {
+                if ( isLocal )
+                {
+                    if ( !savedConf.hasConsoleDialogVisible() )
+                        savedConf.setConsoleDialogVisible(true);
+                }
                 m_isClosingConsole = true;
                 m_pNppExec->showConsoleDialog(CNppExec::hideIfShown, CNppExec::scfCmdNppConsole);
                 m_isClosingConsole = false;
@@ -4659,12 +4849,28 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
 
         case PARAM_ENABLE:
             messageConsole( DoNppConsoleCommand::Name(), _T("+") );
+            if ( isLocal )
+            {
+                if ( !savedConf.hasConsoleIsOutputEnabled() )
+                {
+                    if ( !m_pNppExec->GetConsole().IsOutputEnabled() )
+                        savedConf.setConsoleIsOutputEnabled(false);
+                }
+            }
             m_pNppExec->GetConsole().SetOutputEnabled(true);
             m_pNppExec->GetConsole().LockConsoleEndPos();
             break;
 
         case PARAM_DISABLE:
             // messageConsole( DoNppConsoleCommand::Name(), _T("-") );  --  don't output anything
+            if ( isLocal )
+            {
+                if ( !savedConf.hasConsoleIsOutputEnabled() )
+                {
+                    if ( m_pNppExec->GetConsole().IsOutputEnabled() )
+                        savedConf.setConsoleIsOutputEnabled(true);
+                }
+            }
             m_pNppExec->GetConsole().LockConsoleEndPos();
             m_pNppExec->GetConsole().SetOutputEnabled(false);
             break;
@@ -6539,27 +6745,7 @@ void CNppExecMacroVars::SetNppExec(CNppExec* pNppExec)
 
 bool CNppExecMacroVars::IsLocalMacroVar(tstr& varName)
 {
-    bool isLocal = false;
-    int n = varName.Find(_T(' '));
-    if ( n < 0 )
-    {
-        n = varName.Find(_T('\t'));
-        if ( n < 0 )
-            n = varName.length();
-    }
-    if ( n == 5 ) // length of "local"
-    {
-        tstr Prefix;
-        Prefix.Assign( varName.c_str(), n );
-        NppExecHelpers::StrLower(Prefix);
-        if ( Prefix == _T("local") )
-        {
-            isLocal = true;
-            varName.Delete(0, n);
-            NppExecHelpers::StrDelLeadingTabSpaces(varName);
-        }
-    }
-    return isLocal;
+    return CScriptEngine::isLocalParam(varName);
 }
 
 bool CNppExecMacroVars::ContainsMacroVar(const tstr& S)

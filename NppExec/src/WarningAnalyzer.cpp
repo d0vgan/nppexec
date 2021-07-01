@@ -475,6 +475,11 @@ int CWarningAnalyzer::GetStyle() const
            );
 }
 
+bool CWarningAnalyzer::IsEffectEnabled( int FilterNumber ) const
+{
+    return m_Filter[ FilterNumber ].Effect.Enable;
+}
+
 void CWarningAnalyzer::EnableEffect( int FilterNumber, bool Enable )
 {
     m_Filter[ FilterNumber ].Effect.Enable = Enable;

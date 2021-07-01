@@ -4723,6 +4723,22 @@ void CNppExec::UpdateConsoleEncoding()
     }
 }
 
+void CNppExec::updateConsoleEncodingFlags()
+{
+    unsigned int enc_opt = GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
+    if ( enc_opt > 0xFF )
+    {
+        // "input as output" flag is set
+        unsigned int encIn  = CConsoleEncodingDlg::getInputEncoding(enc_opt);
+        unsigned int encOut = CConsoleEncodingDlg::getOutputEncoding(enc_opt);
+        if ( encIn != encOut )
+        {
+            // remove the "input as output" flag
+            GetOptions().SetUint(OPTU_CONSOLE_ENCODING, enc_opt & 0xFF);
+        }
+    }
+}
+
 void CNppExec::OnOutputFilter()
 {
   if ( PluginDialogBox(IDD_CONSOLE_FILTER, ConsoleOutputFilterDlgProc) == 1 )

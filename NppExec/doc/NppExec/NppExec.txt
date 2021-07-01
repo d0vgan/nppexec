@@ -399,12 +399,6 @@
    correspondingly, use CHARFORMAT2 to set both Text and Background color.
    This probably will not be included in v0.6 (requires noticeable time for development & testing).
 
- - Idea: add "local" keyword for _everything_, i.e. including env_set, con_colour, npp_console, npe_console, ...
-   It will mean: this change is local within the script - and when the script ends, everything will be restored
-   as it was before the "local" command was applied.
-   This will need implementation of "Undo" or "State" logic for all commands.
-   Extremally time-consuming, though. Probably will remain just an idea.
-
 
  v0.5.3 - February 2015
  ----------------------

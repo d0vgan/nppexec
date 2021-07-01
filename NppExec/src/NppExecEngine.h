@@ -787,6 +787,7 @@ class CScriptEngine : public IScriptEngine
         static bool     isCommentOrEmpty(CNppExec* pNppExec, tstr& Cmd);
         static bool     isSkippingThisCommandDueToIfState(eCmdType cmdType, eIfState ifState);
         static eCmdType modifyCommandLine(CScriptEngine* pScriptEngine, tstr& Cmd, eIfState ifState);
+        static bool     isLocalParam(tstr& param);
 
         CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, const tstr& id);
         virtual ~CScriptEngine();
@@ -840,14 +841,485 @@ class CScriptEngine : public IScriptEngine
             CListItemT<tstr>* pEnd;   // points _after_ last cmd
         } tCmdRange;
 
+        class SavedConfiguration {
+            public:
+                SavedConfiguration() : mHasValues(0)
+                {
+                }
+
+                void setColorTextNorm(const COLORREF& colorTextNorm)
+                {
+                    mColorTextNorm = colorTextNorm;
+                    mHasValues |= fColorTextNorm;
+                }
+
+                void setColorBkgnd(const COLORREF& colorBkgnd)
+                {
+                    mColorBkgnd = colorBkgnd;
+                    mHasValues |= fColorBkgnd;
+                }
+
+                void setConFltrInclMask(int nConFltrInclMask)
+                {
+                    mConFltrInclMask = nConFltrInclMask;
+                    mHasValues |= fConFltrInclMask;
+                }
+
+                void setConFltrExclMask(int nConFltrExclMask)
+                {
+                    mConFltrExclMask = nConFltrExclMask;
+                    mHasValues |= fConFltrExclMask;
+                }
+
+                void setRplcFltrFindMask(int nRplcFltrFindMask)
+                {
+                    mRplcFltrFindMask = nRplcFltrFindMask;
+                    mHasValues |= fRplcFltrFindMask;
+                }
+
+                void setRplcFltrCaseMask(int nRplcFltrCaseMask)
+                {
+                    mRplcFltrCaseMask = nRplcFltrCaseMask;
+                    mHasValues |= fRplcFltrCaseMask;
+                }
+
+                void setConFltrEnable(bool bConFltrEnable)
+                {
+                    mConFltrEnable = bConFltrEnable;
+                    mHasValues |= fConFltrEnable;
+                }
+
+                void setConFltrRplcEnable(bool bConFltrRplcEnable)
+                {
+                    mConFltrRplcEnable = bConFltrRplcEnable;
+                    mHasValues |= fConFltrRplcEnable;
+                }
+
+                void setWarnEffectEnabled(const bool* pWarnEffectEnabled)
+                {
+                    for ( int i = 0; i < WARN_MAX_FILTER; ++i )
+                    {
+                        mWarnEffectEnabled[i] = pWarnEffectEnabled[i];
+                    }
+                    mHasValues |= fWarnEffectEnabled;
+                }
+
+                void setEnvVar(const tstr& varName, const tstr& varValue)
+                {
+                    mEnvVars[varName] = varValue;
+                    if ( varValue.IsEmpty() && varValue.GetMemSize() != 0 )
+                        mEnvVars[varName].Reserve(1);
+                }
+
+                void setConsoleEncoding(unsigned int nConsoleEncoding)
+                {
+                    mConsoleEncoding = nConsoleEncoding;
+                    mHasValues |= fConsoleEncoding;
+                }
+
+                void setConsoleCatchShortcutKeys(unsigned int nConsoleCatchShortcutKeys)
+                {
+                    mConsoleCatchShortcutKeys = nConsoleCatchShortcutKeys;
+                    mHasValues |= fConsoleCatchShortcutKeys;
+                }
+
+                void setConsoleAnsiEscSeq(int nConsoleAnsiEscSeq)
+                {
+                    mConsoleAnsiEscSeq = nConsoleAnsiEscSeq;
+                    mHasValues |= fConsoleAnsiEscSeq;
+                }
+
+                void setConsoleAppendMode(bool bConsoleAppendMode)
+                {
+                    mConsoleAppendMode = bConsoleAppendMode;
+                    mHasValues |= fConsoleAppendMode;
+                }
+
+                void setConsoleCdCurDir(bool bConsoleCdCurDir)
+                {
+                    mConsoleCdCurDir = bConsoleCdCurDir;
+                    mHasValues |= fConsoleCdCurDir;
+                }
+
+                void setConsoleCmdHistory(bool bConsoleCmdHistory)
+                {
+                    mConsoleCmdHistory = bConsoleCmdHistory;
+                    mHasValues |= fConsoleCmdHistory;
+                }
+
+                void setConsoleNoIntMsgs(bool bConsoleNoIntMsgs)
+                {
+                    mConsoleNoIntMsgs = bConsoleNoIntMsgs;
+                    mHasValues |= fConsoleNoIntMsgs;
+                }
+
+                void setConsolePrintMsgReady(bool bConsolePrintMsgReady)
+                {
+                    mConsolePrintMsgReady = bConsolePrintMsgReady;
+                    mHasValues |= fConsolePrintMsgReady;
+                }
+
+                void setConsoleNoCmdAliases(bool bConsoleNoCmdAliases)
+                {
+                    mConsoleNoCmdAliases = bConsoleNoCmdAliases;
+                    mHasValues |= fConsoleNoCmdAliases;
+                }
+
+                void setConsoleSetOutputVar(bool bConsoleSetOutputVar)
+                {
+                    mConsoleSetOutputVar = bConsoleSetOutputVar;
+                    mHasValues |= fConsoleSetOutputVar;
+                }
+
+                void setConsoleNoEmptyVars(bool bConsoleNoEmptyVars)
+                {
+                    mConsoleNoEmptyVars = bConsoleNoEmptyVars;
+                    mHasValues |= fConsoleNoEmptyVars;
+                }
+
+                void setConsoleDialogVisible(bool bConsoleDialogVisible)
+                {
+                    mConsoleDialogVisible = bConsoleDialogVisible;
+                    mHasValues |= fConsoleDialogVisible;
+                }
+
+                void setConsoleIsOutputEnabled(bool bConsoleIsOutputEnabled)
+                {
+                    mConsoleIsOutputEnabled = bConsoleIsOutputEnabled;
+                    mHasValues |= fConsoleIsOutputEnabled;
+                }
+
+                void setSendMsgBufLen(int nSendMsgBufLen)
+                {
+                    mSendMsgBufLen = nSendMsgBufLen;
+                    mHasValues |= fSendMsgBufLen;
+                }
+
+                bool hasColorTextNorm() const { return ((mHasValues & fColorTextNorm) != 0); }
+                bool hasColorBkgnd() const { return ((mHasValues & fColorBkgnd) != 0); }
+                bool hasConFltrInclMask() const { return ((mHasValues & fConFltrInclMask) != 0); }
+                bool hasConFltrExclMask() const { return ((mHasValues & fConFltrExclMask) != 0); }
+                bool hasRplcFltrFindMask() const { return ((mHasValues & fRplcFltrFindMask) != 0); }
+                bool hasRplcFltrCaseMask() const { return ((mHasValues & fRplcFltrCaseMask) != 0); }
+                bool hasConFltrEnable() const { return ((mHasValues & fConFltrEnable) != 0); }
+                bool hasConFltrRplcEnable() const { return ((mHasValues & fConFltrRplcEnable) != 0); }
+                bool hasWarnEffectEnabled() const { return ((mHasValues & fWarnEffectEnabled) != 0); }
+                bool hasEnvVar(const tstr& varName) const { return (mEnvVars.find(varName) != mEnvVars.end()); }
+                bool hasConsoleEncoding() const { return ((mHasValues & fConsoleEncoding) != 0); }
+                bool hasConsoleCatchShortcutKeys() const { return ((mHasValues & fConsoleCatchShortcutKeys) != 0); }
+                bool hasConsoleAnsiEscSeq() const { return ((mHasValues & fConsoleAnsiEscSeq) != 0); }
+                bool hasConsoleAppendMode() const { return ((mHasValues & fConsoleAppendMode) != 0); }
+                bool hasConsoleCdCurDir() const { return ((mHasValues & fConsoleCdCurDir) != 0); }
+                bool hasConsoleCmdHistory() const { return ((mHasValues & fConsoleCmdHistory) != 0); }
+                bool hasConsoleNoIntMsgs() const { return ((mHasValues & fConsoleNoIntMsgs) != 0); }
+                bool hasConsolePrintMsgReady() const { return ((mHasValues & fConsolePrintMsgReady) != 0); }
+                bool hasConsoleNoCmdAliases() const { return ((mHasValues & fConsoleNoCmdAliases) != 0); }
+                bool hasConsoleSetOutputVar() const { return ((mHasValues & fConsoleSetOutputVar) != 0); }
+                bool hasConsoleNoEmptyVars() const { return ((mHasValues & fConsoleNoEmptyVars) != 0); }
+                bool hasConsoleDialogVisible() const { return ((mHasValues & fConsoleDialogVisible) != 0); }
+                bool hasConsoleIsOutputEnabled() const { return ((mHasValues & fConsoleIsOutputEnabled) != 0); }
+                bool hasSendMsgBufLen() const { return ((mHasValues & fSendMsgBufLen) != 0); }
+
+                void Restore(CNppExec* pNppExec)
+                {
+                    if ( mHasValues != 0 )
+                    {
+                        restoreConColors(pNppExec);
+                        restoreConFilters(pNppExec);
+                        restoreNpeConsole(pNppExec);
+                        restoreNpeNoEmptyVars(pNppExec);
+                        restoreNpeSendMsgBufLen(pNppExec);
+                        restoreNppConsole(pNppExec);
+                        restoreUI(pNppExec); // the last one here
+                    }
+                    if ( !mEnvVars.empty() )
+                    {
+                        restoreEnvVars();
+                    }
+                }
+
+            protected:
+                void restoreConColors(CNppExec* pNppExec)
+                {
+                    if ( hasColorTextNorm() )
+                    {
+                        pNppExec->GetConsole().SetCurrentColorTextNorm(mColorTextNorm);
+                        pNppExec->GetConsole().RestoreDefaultTextStyle(true);
+                    }
+                    if ( hasColorBkgnd() )
+                    {
+                        pNppExec->GetConsole().SetCurrentColorBkgnd(mColorBkgnd);
+                        pNppExec->GetConsole().UpdateColours();
+                    }
+                }
+
+                void restoreConFilters(CNppExec* pNppExec)
+                {
+                    if ( hasConFltrInclMask() )
+                    {
+                        pNppExec->GetOptions().SetInt(OPTI_CONFLTR_INCLMASK, mConFltrInclMask);
+                    }
+                    if ( hasConFltrExclMask() )
+                    {
+                        pNppExec->GetOptions().SetInt(OPTI_CONFLTR_EXCLMASK, mConFltrExclMask);
+                    }
+                    if ( hasRplcFltrFindMask() )
+                    {
+                        pNppExec->GetOptions().SetInt(OPTI_CONFLTR_R_FINDMASK, mRplcFltrFindMask);
+                    }
+                    if ( hasRplcFltrCaseMask() )
+                    {
+                        pNppExec->GetOptions().SetInt(OPTI_CONFLTR_R_CASEMASK, mRplcFltrCaseMask);
+                    }
+                    if ( hasConFltrEnable() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONFLTR_ENABLE, mConFltrEnable);
+                    }
+                    if ( hasConFltrRplcEnable() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONFLTR_R_ENABLE, mConFltrRplcEnable);
+                    }
+                    if ( hasWarnEffectEnabled() )
+                    {
+                        CWarningAnalyzer& WarnAn = pNppExec->GetWarningAnalyzer();
+                        for ( int i = 0; i < WARN_MAX_FILTER; ++i )
+                        {
+                            WarnAn.EnableEffect(i, mWarnEffectEnabled[i]);
+                        }
+                    }
+                }
+
+                void restoreNpeConsole(CNppExec* pNppExec)
+                {
+                    if ( hasConsoleEncoding() )
+                    {
+                        pNppExec->GetOptions().SetUint(OPTU_CONSOLE_ENCODING, mConsoleEncoding);
+                    }
+                    if ( hasConsoleCatchShortcutKeys() )
+                    {
+                        pNppExec->GetOptions().SetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS, mConsoleCatchShortcutKeys);
+                    }
+                    if ( hasConsoleAnsiEscSeq() )
+                    {
+                        pNppExec->GetOptions().SetInt(OPTI_CONSOLE_ANSIESCSEQ, mConsoleAnsiEscSeq);
+                    }
+                    if ( hasConsoleAppendMode() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_APPENDMODE, mConsoleAppendMode);
+                    }
+                    if ( hasConsoleCdCurDir() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_CDCURDIR, mConsoleCdCurDir);
+                    }
+                    if ( hasConsoleCmdHistory() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_CMDHISTORY, mConsoleCmdHistory);
+                    }
+                    if ( hasConsoleNoIntMsgs() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOINTMSGS, mConsoleNoIntMsgs);
+                    }
+                    if ( hasConsolePrintMsgReady() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_PRINTMSGREADY, mConsolePrintMsgReady);
+                    }
+                    if ( hasConsoleNoCmdAliases() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOCMDALIASES, mConsoleNoCmdAliases);
+                    }
+                    if ( hasConsoleSetOutputVar() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_SETOUTPUTVAR, mConsoleSetOutputVar);
+                    }
+                }
+
+                void restoreNpeNoEmptyVars(CNppExec* pNppExec)
+                {
+                    if ( hasConsoleNoEmptyVars() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOEMPTYVARS, mConsoleNoEmptyVars);
+                    }
+                }
+
+                void restoreNpeSendMsgBufLen(CNppExec* pNppExec)
+                {
+                    if ( hasSendMsgBufLen() )
+                    {
+                        pNppExec->GetOptions().SetInt(OPTI_SENDMSG_MAXBUFLEN, mSendMsgBufLen);
+                    }
+                }
+
+                void restoreNppConsole(CNppExec* pNppExec)
+                {
+                    if ( hasConsoleIsOutputEnabled() )
+                    {
+                        if ( mConsoleIsOutputEnabled )
+                        {
+                            pNppExec->GetConsole().SetOutputEnabled(true);
+                            pNppExec->GetConsole().LockConsoleEndPos();
+                        }
+                        else
+                        {
+                            pNppExec->GetConsole().LockConsoleEndPos();
+                            pNppExec->GetConsole().SetOutputEnabled(false);
+                        }
+                    }
+                    if ( hasConsoleDialogVisible() )
+                    {
+                        if ( mConsoleDialogVisible )
+                        {
+                            pNppExec->showConsoleDialog(CNppExec::showIfHidden, CNppExec::scfCmdNppConsole);
+                        }
+                        else
+                        {
+                            pNppExec->showConsoleDialog(CNppExec::hideIfShown, CNppExec::scfCmdNppConsole);
+                            pNppExec->_consoleIsVisible = true;
+                            auto pScriptEngine = pNppExec->GetCommandExecutor().GetRunningScriptEngine();
+                            if ( pScriptEngine )
+                                pScriptEngine->updateFocus();
+                        }
+                    }
+                }
+
+                void restoreEnvVars()
+                {
+                    const auto itrEnd = mEnvVars.cend();
+                    auto itr = mEnvVars.cbegin();
+                    while ( itr != itrEnd )
+                    {
+                        const tstr& varName = itr->first;
+                        const tstr& varValue = itr->second;
+                        SetEnvironmentVariable( varName.c_str(), (varValue.GetMemSize() != 0) ? varValue.c_str() : NULL );
+                        ++itr;
+                    }
+                }
+
+                void restoreUI(CNppExec* pNppExec)
+                {
+                    extern FuncItem  g_funcItem[nbFunc + MAX_USERMENU_ITEMS + 1];
+
+                    if ( hasConFltrEnable() || hasConFltrRplcEnable() )
+                    {
+                        pNppExec->UpdateOutputFilterMenuItem();
+                    }
+                    if ( hasWarnEffectEnabled() )
+                    {
+                        pNppExec->UpdateGoToErrorMenuItem();
+                    }
+                    if ( hasConsoleEncoding() )
+                    {
+                        pNppExec->updateConsoleEncodingFlags();
+                        pNppExec->UpdateConsoleEncoding();
+                    }
+                    
+                    if ( hasConsoleCdCurDir() || hasConsoleCmdHistory() ||
+                         hasConsoleNoIntMsgs() || hasConsoleNoCmdAliases() )
+                    {
+                        HMENU hMenu = pNppExec->GetNppMainMenu();
+                        if ( hMenu )
+                        {
+                            if ( hasConsoleCdCurDir() )
+                            {
+                                ::CheckMenuItem(hMenu, g_funcItem[N_CDCURDIR]._cmdID,
+                                    MF_BYCOMMAND | (mConsoleCdCurDir ? MF_CHECKED : MF_UNCHECKED));
+                            }
+                            if ( hasConsoleCmdHistory() )
+                            {
+                                ::CheckMenuItem(hMenu, g_funcItem[N_CMDHISTORY]._cmdID,
+                                    MF_BYCOMMAND | (mConsoleCmdHistory ? MF_CHECKED : MF_UNCHECKED));
+                            }
+                            if ( hasConsoleNoIntMsgs() )
+                            {
+                                ::CheckMenuItem(hMenu, g_funcItem[N_NOINTMSGS]._cmdID,
+                                    MF_BYCOMMAND | (mConsoleNoIntMsgs ? MF_CHECKED : MF_UNCHECKED));
+                            }
+                            if ( hasConsoleNoCmdAliases() )
+                            {
+                                ::CheckMenuItem(hMenu, g_funcItem[N_NOCMDALIASES]._cmdID,
+                                    MF_BYCOMMAND | (mConsoleNoCmdAliases ? MF_CHECKED : MF_UNCHECKED));
+                            }
+                        }
+                    }
+                }
+
+            protected:
+                enum eHasFlags : unsigned int {
+                    fColorTextNorm            = 0x00000001,
+                    fColorBkgnd               = 0x00000002,
+                    fConFltrInclMask          = 0x00000004,
+                    fConFltrExclMask          = 0x00000008,
+                    fRplcFltrFindMask         = 0x00000010,
+                    fRplcFltrCaseMask         = 0x00000020,
+                    fConFltrEnable            = 0x00000040,
+                    fConFltrRplcEnable        = 0x00000080,
+                    fWarnEffectEnabled        = 0x00000100,
+                    fConsoleEncoding          = 0x00000200,
+                    fConsoleCatchShortcutKeys = 0x00000400,
+                    fConsoleAnsiEscSeq        = 0x00000800,
+                    fConsoleAppendMode        = 0x00001000,
+                    fConsoleCdCurDir          = 0x00002000,
+                    fConsoleCmdHistory        = 0x00004000,
+                    fConsoleNoIntMsgs         = 0x00008000,
+                    fConsolePrintMsgReady     = 0x00010000,
+                    fConsoleNoCmdAliases      = 0x00020000,
+                    fConsoleSetOutputVar      = 0x00040000,
+                    fConsoleNoEmptyVars       = 0x00080000,
+                    fConsoleDialogVisible     = 0x00100000,
+                    fConsoleIsOutputEnabled   = 0x00200000,
+                    fSendMsgBufLen            = 0x00400000
+                };
+
+                // we might use std::optional (C++17) instead, but would it be so fun? :)
+                unsigned int mHasValues;
+
+                // DoConColour:
+                COLORREF mColorTextNorm;
+                COLORREF mColorBkgnd;
+
+                // DoConFilter:
+                int mConFltrInclMask;
+                int mConFltrExclMask;
+                int mRplcFltrFindMask;
+                int mRplcFltrCaseMask;
+                bool mConFltrEnable;
+                bool mConFltrRplcEnable;
+                bool mWarnEffectEnabled[WARN_MAX_FILTER];
+
+                // DoNpeConsole:
+                unsigned int mConsoleEncoding;
+                unsigned int mConsoleCatchShortcutKeys;
+                int  mConsoleAnsiEscSeq;
+                bool mConsoleAppendMode;
+                bool mConsoleCdCurDir;
+                bool mConsoleCmdHistory;
+                bool mConsoleNoIntMsgs;
+                bool mConsolePrintMsgReady;
+                bool mConsoleNoCmdAliases;
+                bool mConsoleSetOutputVar;
+
+                // DoNpeNoEmptyVars:
+                bool mConsoleNoEmptyVars;
+
+                // DoNpeSendMsgBufLen:
+                int mSendMsgBufLen;
+
+                // DoNppConsole:
+                bool mConsoleDialogVisible;
+                bool mConsoleIsOutputEnabled;
+
+                // DoEnvSet:
+                std::map<tstr, tstr> mEnvVars;
+        };
+
         class ScriptContext {
             public:
-                tstr              ScriptName;
-                tCmdRange         CmdRange;
-                tLabels           Labels;
-                tMacroVars        LocalMacroVars; // use with GetMacroVars().GetCsUserMacroVars()
-                CStrSplitT<TCHAR> Args;
-                bool              IsNppExeced;
+                tstr               ScriptName;
+                tCmdRange          CmdRange;
+                tLabels            Labels;
+                tMacroVars         LocalMacroVars; // use with GetMacroVars().GetCsUserMacroVars()
+                SavedConfiguration SavedConf;
+                CStrSplitT<TCHAR>  Args;
+                bool               IsNppExeced;
 
             protected:
                 CBufT<eIfState> IfState;
@@ -902,6 +1374,11 @@ class CScriptEngine : public IScriptEngine
                     CmdRange.pBegin = 0;
                     CmdRange.pEnd = 0;
                     IsNppExeced = false;
+                }
+
+                ~ScriptContext()
+                {
+                    SavedConf.Restore( &Runtime::GetNppExec() );
                 }
 
                 const int GetIfDepth() const
