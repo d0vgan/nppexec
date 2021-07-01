@@ -204,7 +204,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("npe_debuglog <on/off>  -  enable/disable Debug Log") _T_RE_EOL \
   _T("npe_debug <1/0>  -  see \"npe_debuglog\"") _T_RE_EOL \
   _T("npe_noemptyvars <1/0>  -  enable/disable replacement of empty vars") _T_RE_EOL \
-  _T("npe_noemptyvars local ...  -  sets empty vars' mode locally (within the current script)") _T_RE_EOL \
+  _T("npe_noemptyvars local ...  -  sets empty vars on/off locally (within the current script)") _T_RE_EOL \
   _T("npe_queue <command>  -  queue NppExec's command to be executed") _T_RE_EOL \
   _T("npe_sendmsgbuflen <max_len>  -  set npp/sci_sendmsg's buffer length") _T_RE_EOL \
   _T("npe_sendmsgbuflen local ...  -  sets the buffer length locally (within the current script)") _T_RE_EOL \
