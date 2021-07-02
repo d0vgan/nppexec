@@ -3171,6 +3171,13 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
         NppExecHelpers::StrDelLeadingTabSpaces(varValue);
         NppExecHelpers::StrDelTrailingTabSpaces(varValue);
 
+        if ( isLocal && varName.IsEmpty() )
+        {
+            // env_set local = ...
+            varName = _T("LOCAL");
+            isLocal = false;
+        }
+
         if ( varName.length() > 0 )
         {
             NppExecHelpers::StrUpper(varName);
@@ -3219,10 +3226,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
 
     // show the value
     tstr varName = args.Arg(0);
-    isLocalParam(varName);
+    bool isLocal = isLocalParam(varName);
         
     NppExecHelpers::StrDelLeadingTabSpaces(varName);
     NppExecHelpers::StrDelTrailingTabSpaces(varName);
+
+    if ( isLocal && varName.IsEmpty() )
+    {
+        // env_set local = ...
+        varName = _T("LOCAL");
+        isLocal = false;
+    }
 
     if ( varName.length() > 0 )
     {
@@ -6617,6 +6631,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
     tstr CmdParams = params;
     {
         CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
+        // the variable's value will be set here:
         if ( !MacroVars.CheckAllMacroVars(this, CmdParams, true, CMDTYPE_SET) )
             nCmdResult = CMDRESULT_FAILED;
     }
@@ -6635,7 +6650,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
     {
         varName = CmdParams;
         int k = varName.Find( _T("=") );
-        if ( k >= 0 )  
+        if ( k >= 0 )
         {
             varName.SetSize(k);
             isInternal = true;
@@ -6643,6 +6658,12 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
         NppExecHelpers::StrDelLeadingTabSpaces(varName);
         NppExecHelpers::StrDelTrailingTabSpaces(varName);
         bLocalVar = m_pNppExec->GetMacroVars().IsLocalMacroVar(varName);
+        if ( bLocalVar && (k >= 0) && varName.IsEmpty() )
+        {
+            // set local = ...
+            varName = _T("LOCAL");
+            bLocalVar = false;
+        }
         if ( varName.length() > 0 )
         {
             CNppExecMacroVars::MakeCompleteVarName(varName);
@@ -7563,6 +7584,12 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
       }
 
       bool bLocalVar = IsLocalMacroVar(varName);
+      if ( bLocalVar && varName.IsEmpty() )
+      {
+        // set local = ...
+        varName = _T("LOCAL");
+        bLocalVar = false;
+      }
 
       S = bLocalVar ? _T("local ") : _T("");
       S += varName;
@@ -7572,7 +7599,7 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
       if ( SetUserMacroVar(pScriptEngine, varName, varValue, bLocalVar ? CNppExecMacroVars::svLocalVar : 0) )
       {
         
-          Runtime::GetLogger().AddEx( _T("; OK: %s%s = %s"), bLocalVar ? _T("local ") : _T(""), varName.c_str(), varValue.c_str() );
+        Runtime::GetLogger().AddEx( _T("; OK: %s%s = %s"), bLocalVar ? _T("local ") : _T(""), varName.c_str(), varValue.c_str() );
 
       }
       else
@@ -7602,6 +7629,12 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
     NppExecHelpers::StrDelTrailingTabSpaces(varName);
 
     bool bLocalVar = IsLocalMacroVar(varName);
+    if ( bLocalVar && varName.IsEmpty() )
+    {
+      // set local = ...
+      varName = _T("LOCAL");
+      bLocalVar = false;
+    }
     unsigned int nFlags = CNppExecMacroVars::svRemoveVar;
     if ( bLocalVar )
         nFlags |= CNppExecMacroVars::svLocalVar;
