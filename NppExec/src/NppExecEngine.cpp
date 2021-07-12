@@ -7631,7 +7631,7 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
     bool bLocalVar = IsLocalMacroVar(varName);
     if ( bLocalVar && varName.IsEmpty() )
     {
-      // set local = ...
+      // unset local
       varName = _T("LOCAL");
       bLocalVar = false;
     }
@@ -7822,53 +7822,63 @@ bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& 
         Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );
     }
 
-    int n1 = S.Find(_T("$("));
-    if ( n1 >= 0 )
+    int n1 = 0;
+    for ( ; ; )
     {
+        n1 = S.Find(_T("$("), n1);
+        if ( n1 < 0 )
+            break;
+
         //  $( ...
         //  n1
         int n2 = S.Find(_T("$("), n1 + 2);
-        if ( n2 >= 0 )
+        if ( n2 < 0 )
+            break;
+
+        //  $( ... $(
+        //  n1     n2
+        unsigned int nBracketDepth = 0;
+        int n1_end = n1 + 2;
+        for ( ; n1_end < S.length(); ++n1_end )
         {
-            //  $( ... $(
-            //  n1     n2
-            unsigned int nBracketDepth = 0;
-            int n1_end = n1 + 2;
-            for ( ; n1_end < S.length(); ++n1_end )
+            const TCHAR ch = S[n1_end];
+            if ( ch == _T(')') )
             {
-                const TCHAR ch = S[n1_end];
-                if ( ch == _T(')') )
-                {
-                    if ( nBracketDepth != 0 )
-                        --nBracketDepth;
-                    else
-                        break;
-                }
-                else if ( ch == _T('(') )
-                {
-                    ++nBracketDepth;
-                }
+                if ( nBracketDepth != 0 )
+                    --nBracketDepth;
+                else
+                    break;
+            }
+            else if ( ch == _T('(') )
+            {
+                ++nBracketDepth;
+            }
+        }
+
+        if ( n2 < n1_end )
+        {
+            //  $( ... $( ... )  ...
+            //  n1     n2     n1_end
+            tstr SubVal;
+            SubVal.Assign(S.c_str() + n2, n1_end - n2);
+
+            Runtime::GetLogger().Add(   _T("; checking inner vars...") );
+
+            CheckAllMacroVars(pScriptEngine, SubVal, useLogging);
+            if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
+            {
+                // forcing no empty vars
+                CheckEmptyMacroVars(SubVal);
             }
 
-            if ( n2 < n1_end )
-            {
-                //  $( ... $( ... ) ... )
-                //  n1     n2           n1_end
-                tstr SubVal;
-                SubVal.Assign(S.c_str() + n2, n1_end - n2);
-
-                Runtime::GetLogger().Add(   _T("; checking inner vars...") );
-
-                CheckAllMacroVars(pScriptEngine, SubVal, useLogging);
-                if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
-                {
-                    // forcing no empty vars
-                    CheckEmptyMacroVars(SubVal);
-                }
-
-                S.Replace(n2, n1_end - n2, SubVal);
-                isSubstituted = true;
-            }
+            S.Replace(n2, n1_end - n2, SubVal);
+            isSubstituted = true;
+        }
+        else
+        {
+            //  $( ... )  ...  $(
+            //  n1     n1_end  n2
+            n1 = n2;
         }
     }
 
