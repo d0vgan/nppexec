@@ -426,6 +426,9 @@ namespace NppExecHelpers
     bool IsStrNotQuoted(const tstr& S); // no " at start & at end
     bool IsStrNotQuotedEx(const tstr& S); // no " or ' or ` at start & at end
 
+    void StrEscape(tstr& S); // '\' -> '\\', '<TAB>' -> '\t', '<CR>' -> '\r', '<LF>' -> '\n', '"' -> '\"'
+    void StrUnescape(tstr& S); // '\\' -> '\', '\t' -> '<TAB>', '\r' -> '<CR>', '\n' -> '<LF>', '\?' -> '?'
+
     int StrCmpNoCase(const tstr& S1, const tstr& S2); // comparing case-insensitively
     int StrCmpNoCase(const tstr& S1, const TCHAR* S2); // comparing case-insensitively
     int StrCmpNoCase(const TCHAR* S1, const tstr& S2); // comparing case-insensitively

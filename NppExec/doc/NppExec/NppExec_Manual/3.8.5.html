@@ -63,6 +63,12 @@ echo ab$(tab)cd</pre>
 </blockquote>
 
 <p>The '\r' is 0D 00 and '\n' is 0A 00 here.</p>
+<p>Here is an example that uses <i>strunescape</i> to construct a multi-line message:</p>
+<blockquote>  
+  <pre>set local msg ~ strunescape Drive1 is C:\\\nDrive2 is D:\\
+messagebox `$(msg)`</pre>
+</blockquote>
+
 <p>See also: Calculations, strlen and so on <a href="3.8.4.html">[3.8.4]</a>.</p>
 
 <blockquote>  

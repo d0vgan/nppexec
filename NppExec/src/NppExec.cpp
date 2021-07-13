@@ -55,9 +55,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        set <var> ~ strfind <s> <t> - returns the first position of <t> in <s>
  *        set <var> ~ strrfind <s> <t> - returns the last position of <t> in <s>
  *        set <var> ~ strreplace <s> <t0> <t1> - replaces all <t0> with <t1>
- *        set <var> ~ strquote <s>  -  surrounds <s> with "" quotes
- *        set <var> ~ strunquote <s>  -  removes the surrounding "" quotes
- *        set <var> ~ normpath <path>  -  returns a normalized path
+ *        set <var> ~ strquote <s> - surrounds <s> with "" quotes
+ *        set <var> ~ strunquote <s> - removes the surrounding "" quotes
+ *        set <var> ~ strescape <s> - simple character escaping (e.g. <TAB> to '\t')
+ *        set <var> ~ strunescape <s> - simple character unescaping (e.g. '\n' to <LF>)
+ *        set <var> ~ normpath <path> - returns a normalized path
  *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
  *        set <var> ~ strtohex <s> - returns a hex-string from the string
  *        set <var> ~ chr <n> - returns a character from a character code <n>

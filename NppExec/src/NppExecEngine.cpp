@@ -1205,6 +1205,10 @@ static FParserWrapper g_fp;
  *   - surrounds <s> with "" quotes
  * set <var> ~ strunquote <s>
  *   - removes the surrounding "" quotes
+ * set <var> ~ strescape <s>
+ *   - simple character escaping (e.g. <TAB> to '\t')
+ * set <var> ~ strunescape <s>
+ *   - simple character unescaping (e.g. '\n' to <LF>)
  * set <var> ~ normpath <path>
  *   - returns a normalized path
  * set <var> ~ strfromhex <hs>
@@ -6565,35 +6569,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoSelSetTextEx(const tstr& params)
     if ( !reportCmdAndParams( DoSelSetTextExCommand::Name(), params, fMessageToConsole ) )
         return CMDRESULT_INVALIDPARAM;
 
-    int  pos = params.Find( _T('\\') );
-    if ( pos >= 0 )
+    if ( params.Find(_T('\\')) >= 0 )
     {
         tstr S = params;
-        while ( pos < S.length() )
-        {
-            if ( S[pos] == _T('\\') )
-            {
-                switch ( S.GetAt(pos + 1) )
-                {
-                    case _T('n'):
-                        S[pos] = _T('\n');
-                        S.Delete(pos + 1, 1);
-                        break;
-                    case _T('r'):
-                        S[pos] = _T('\r');
-                        S.Delete(pos + 1, 1);
-                        break;
-                    case _T('t'):
-                        S[pos] = _T('\t');
-                        S.Delete(pos + 1, 1);
-                        break;
-                    case _T('\\'):
-                        S.Delete(pos + 1, 1);
-                        break;
-                }
-            }
-            ++pos;
-        }
+        NppExecHelpers::StrUnescape(S);
         m_pNppExec->textSetText( S.c_str(), true );
     }
     else
@@ -8014,27 +7993,29 @@ bool CNppExecMacroVars::StrCalc::Process()
         } tCalcType;
 
         static const tCalcType arrCalcType[] = {
-            { _T("STRLENSCI"),  CT_STRLENSCI  },
-            { _T("STRLENS"),    CT_STRLENSCI  },
-            { _T("STRLENUTF8"), CT_STRLENUTF8 },
-            { _T("STRLENU"),    CT_STRLENUTF8 },
-            { _T("STRLENA"),    CT_STRLEN     },
-            { _T("STRLEN"),     CT_STRLEN     },
-            { _T("STRUPPER"),   CT_STRUPPER   },
-            { _T("STRLOWER"),   CT_STRLOWER   },
-            { _T("SUBSTR"),     CT_SUBSTR     },
-            { _T("STRFIND"),    CT_STRFIND    },
-            { _T("STRRFIND"),   CT_STRRFIND   },
-            { _T("STRREPLACE"), CT_STRREPLACE },
-            { _T("STRRPLC"),    CT_STRREPLACE },
-            { _T("STRQUOTE"),   CT_STRQUOTE   },
-            { _T("STRUNQUOTE"), CT_STRUNQUOTE },
-            { _T("NORMPATH"),   CT_NORMPATH   },
-            { _T("STRFROMHEX"), CT_STRFROMHEX },
-            { _T("STRTOHEX"),   CT_STRTOHEX   },
-            { _T("CHR"),        CT_CHR        },
-            { _T("ORD"),        CT_ORD        },
-            { _T("ORDX"),       CT_ORDX       }
+            { _T("STRLENSCI"),   CT_STRLENSCI   },
+            { _T("STRLENS"),     CT_STRLENSCI   },
+            { _T("STRLENUTF8"),  CT_STRLENUTF8  },
+            { _T("STRLENU"),     CT_STRLENUTF8  },
+            { _T("STRLENA"),     CT_STRLEN      },
+            { _T("STRLEN"),      CT_STRLEN      },
+            { _T("STRUPPER"),    CT_STRUPPER    },
+            { _T("STRLOWER"),    CT_STRLOWER    },
+            { _T("SUBSTR"),      CT_SUBSTR      },
+            { _T("STRFIND"),     CT_STRFIND     },
+            { _T("STRRFIND"),    CT_STRRFIND    },
+            { _T("STRREPLACE"),  CT_STRREPLACE  },
+            { _T("STRRPLC"),     CT_STRREPLACE  },
+            { _T("STRQUOTE"),    CT_STRQUOTE    },
+            { _T("STRUNQUOTE"),  CT_STRUNQUOTE  },
+            { _T("STRESCAPE"),   CT_STRESCAPE   },
+            { _T("STRUNESCAPE"), CT_STRUNESCAPE },
+            { _T("NORMPATH"),    CT_NORMPATH    },
+            { _T("STRFROMHEX"),  CT_STRFROMHEX  },
+            { _T("STRTOHEX"),    CT_STRTOHEX    },
+            { _T("CHR"),         CT_CHR         },
+            { _T("ORD"),         CT_ORD         },
+            { _T("ORDX"),        CT_ORDX        }
         };
 
         NppExecHelpers::StrUpper(m_param);
@@ -8078,6 +8059,10 @@ bool CNppExecMacroVars::StrCalc::Process()
         case CT_STRQUOTE:
         case CT_STRUNQUOTE:
             bSucceded = calcStrQuote();
+            break;
+        case CT_STRESCAPE:
+        case CT_STRUNESCAPE:
+            bSucceded = calcStrEscape();
             break;
         case CT_NORMPATH:
             bSucceded = calcNormPath();
@@ -8363,6 +8348,31 @@ bool CNppExecMacroVars::StrCalc::calcStrQuote()
     Runtime::GetLogger().AddEx( 
       _T("; %s: %s"), 
       isQuote ? _T("strquote") : _T("strunquote"),
+      m_varValue.c_str() 
+    );
+
+    return true;
+}
+
+bool CNppExecMacroVars::StrCalc::calcStrEscape()
+{
+    const bool isEscape = (m_calcType == CT_STRESCAPE);
+    tstr S(m_pVar);
+
+    if ( isEscape ) // strescape
+    {
+        NppExecHelpers::StrEscape(S);
+    }
+    else // strunescape
+    {
+        NppExecHelpers::StrUnescape(S);
+    }
+
+    m_varValue.Swap(S);
+
+    Runtime::GetLogger().AddEx( 
+      _T("; %s: %s"), 
+      isEscape ? _T("strescape") : _T("strunescape"),
       m_varValue.c_str() 
     );
 

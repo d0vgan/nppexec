@@ -612,6 +612,102 @@ namespace NppExecHelpers
                  firstChar != _T('`')  && lastChar != _T('`') );
     }
 
+    void StrEscape(tstr& S)
+    {
+        tstr R;
+        R.Reserve(2 * S.length());
+
+        const TCHAR* p = S.c_str();
+        TCHAR ch;
+
+        while ( (ch = *p) != 0 )
+        {
+            switch ( ch )
+            {
+                case _T('\n'):
+                    R += _T('\\');
+                    R += _T('n');
+                    break;
+                case _T('\r'):
+                    R += _T('\\');
+                    R += _T('r');
+                    break;
+                case _T('\t'):
+                    R += _T('\\');
+                    R += _T('t');
+                    break;
+                case _T('\\'):
+                    R += _T('\\');
+                    R += _T('\\');
+                    break;
+                case _T('"'):
+                    R += _T('\\');
+                    R += _T('"');
+                    break;
+                default:
+                    R += ch;
+                    break;
+            }
+
+            ++p;
+        }
+
+        S.Swap(R);
+    }
+
+    void StrUnescape(tstr& S)
+    {
+        if ( S.Find(_T('\\')) >= 0 )
+        {
+            tstr R;
+            R.Reserve(S.length());
+
+            const TCHAR* p = S.c_str();
+            TCHAR ch;
+
+            while ( (ch = *p) != 0 )
+            {
+                if ( ch == _T('\\') )
+                {
+                    switch ( *(p + 1) )
+                    {
+                        case _T('n'):
+                            R += _T('\n');
+                            ++p;
+                            break;
+                        case _T('r'):
+                            R += _T('\r');
+                            ++p;
+                            break;
+                        case _T('t'):
+                            R += _T('\t');
+                            ++p;
+                            break;
+                        case _T('\\'):
+                            R += _T('\\');
+                            ++p;
+                            break;
+                        case 0:
+                            // trailing '\'
+                            R += _T('\\');
+                            break;
+                        default:
+                            // e.g. '\q' becomes 'q'
+                            break;
+                    }
+                }
+                else
+                {
+                    R += ch;
+                }
+
+                ++p;
+            }
+
+            S.Swap(R);
+        }
+    }
+
     int StrCmpNoCase(const tstr& S1, const tstr& S2)
     {
         return strCompareNoCase( S1.c_str(), S1.length(), 
