@@ -4660,7 +4660,12 @@ void ConsoleDlg::printConsoleReady()
   if (NppExec.GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) &&
       !NppExec.GetCommandExecutor().IsChildProcessRunning())
   {
-    NppExec.GetConsole().PrintMessage( _T("================ READY ================"), false );
+    tstr sMsgReady = NppExec.GetOptions().GetStr(OPTS_CONSOLE_CUSTOMMSGREADY);
+    if (CNppExecMacroVars::ContainsMacroVar(sMsgReady))
+    {
+      NppExec.GetMacroVars().CheckAllMacroVars(nullptr, sMsgReady, true);
+    }
+    NppExec.GetConsole().PrintMessage( sMsgReady.c_str(), false, true, false );
   }
 }
 

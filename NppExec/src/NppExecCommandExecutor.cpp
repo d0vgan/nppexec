@@ -60,7 +60,12 @@ static DWORD WINAPI dwRunCollateralScriptThread(LPVOID lpScrptEngnRnr)
     {
         if ( pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) )
         {
-            pNppExec->GetConsole().PrintMessage( _T("================ READY ================"), false );
+            tstr sMsgReady = pNppExec->GetOptions().GetStr(OPTS_CONSOLE_CUSTOMMSGREADY);
+            if ( CNppExecMacroVars::ContainsMacroVar(sMsgReady) )
+            {
+                pNppExec->GetMacroVars().CheckAllMacroVars(pScriptEngine.get(), sMsgReady, true);
+            }
+            pNppExec->GetConsole().PrintMessage( sMsgReady.c_str(), false, true, false );
         }
         pNppExec->GetConsole().RestoreDefaultTextStyle(true);
     }
@@ -963,7 +968,12 @@ DWORD CNppExecCommandExecutor::ScriptableCommand::RunConsoleScript(Command* pCom
                 if ( pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) &&
                      !pNppExec->GetCommandExecutor().GetRunningScriptEngine() )
                 {
-                    pNppExec->GetConsole().PrintMessage( _T("================ READY ================"), false );
+                    tstr sMsgReady = pNppExec->GetOptions().GetStr(OPTS_CONSOLE_CUSTOMMSGREADY);
+                    if ( CNppExecMacroVars::ContainsMacroVar(sMsgReady) )
+                    {
+                        pNppExec->GetMacroVars().CheckAllMacroVars(pScriptEngine.get(), sMsgReady, true);
+                    }
+                    pNppExec->GetConsole().PrintMessage( sMsgReady.c_str(), false, true, false );
                 }
                 ConsoleDlg::GoToError_nCurrentLine = -1;
             }

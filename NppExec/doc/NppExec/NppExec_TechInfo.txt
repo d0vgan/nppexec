@@ -35,6 +35,7 @@
  |  Visible                         |  0                     (FALSE)  |  BOOL  |
  |  ShowHelp                        |  0                     (FALSE)  |  BOOL  |
  |  PrintMsgReady                   |  1                     (TRUE)   |  BOOL  |
+ |  CustomMsgReady                  |  ========== READY ==========\r  | string |
  |  NoEmptyVars                     |  1                     (TRUE)   |  BOOL  |
  |  SaveCmdHistory                  |  1                     (TRUE)   |  BOOL  |
  |  TextColorNormal                 |  00 00 00                       |  HEX   |
@@ -84,6 +85,7 @@
    Visible=0
    ShowHelp=0
    PrintMsgReady=1
+   CustomMsgReady= ================ READY ================\r
    OEM=1
    CmdHistory=1
    ChildProcess_StartupTimeout_ms=240
@@ -364,6 +366,30 @@
    is printed in the Console after an NppExec's script is executed.
    If this option is disabled (set to 0), a message "==== READY ===="
    is not printed.
+   See also: CustomMsgReady.
+
+
+ CustomMsgReady
+ --------------
+   When PrintMsgReady is enabled (set to 1), the CustomMsgReady specifies
+   the message to be printed in the Console after an NppExec's script is
+   executed.
+   The CustomMsgReady message supports special characters:
+     \r - new line
+     \t - tab character
+     \\ - single \ character
+   If you do not specify "\r" at the end of the CustomMsgReady message,
+   NppExec's Console will not jump to the new line after this message is
+   printed.
+   The CustomMsgReady message also supports variables. For example:
+
+     CustomMsgReady= === Ready, $(SYS.USERNAME)! ===\r
+
+   or
+
+     CustomMsgReady= === Done. Last process id is $(pid) ===\r
+
+   See also: PrintMsgReady.
 
 
  NoEmptyVars

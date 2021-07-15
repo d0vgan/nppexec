@@ -49,6 +49,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: set <var> ~ strescape <s>, set <var> ~ strunescape <s>
  + added: file names "npes_temp.txt" and "npes_saved.txt" can be customized
    (see "NppExec_TechInfo.txt" for details)
+ - fixed: indirect variable reference in e.g. "echo #$(i) = $(#$(i))"
+ + new advanced option "CustomMsgReady" (see "NppExec_TechInfo.txt")
  + NppExec Manual updated 
 
 
@@ -722,6 +724,7 @@ enum EPluginOptions {
 
     OPTB_CONSOLE_NOINTMSGS,
     OPTB_CONSOLE_PRINTMSGREADY,
+    OPTS_CONSOLE_CUSTOMMSGREADY,
     OPTB_CONSOLE_NOEMPTYVARS,
     OPTB_CONSOLE_NOCMDALIASES,
     OPTD_EXECDLG_FONT,
@@ -1114,7 +1117,7 @@ public:
 
     // print...
     void PrintError(LPCTSTR cszMessage, bool bLogThisMsg = true);
-    void PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg = true, bool bLogThisMsg = true);
+    void PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg = true, bool bLogThisMsg = true, bool bNewLine = true);
     void PrintOutput(LPCTSTR cszMessage, bool bNewLine = true, bool bLogThisMsg = true);
     void PrintStr(LPCTSTR cszStr, bool bNewLine, bool bLogThisMsg = true);
     void PrintSysError(LPCTSTR cszFunctionName, DWORD dwErrorCode, bool bLogThisMsg = true);
@@ -1213,7 +1216,7 @@ protected:
     void _setCurrentColorBkgnd(COLORREF colorBkgnd);
 
     void _printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool bLogThisMsg);
-    void _printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool bIsInternalMsg, bool bLogThisMsg);
+    void _printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool bIsInternalMsg, bool bLogThisMsg, bool bNewLine);
     void _printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool bNewLine, bool bLogThisMsg);
     void _printStr(ScriptEngineId scrptEngnId, LPCTSTR cszStr, bool bNewLine, bool bLogThisMsg);
     void _printSysError(ScriptEngineId scrptEngnId, LPCTSTR cszFunctionName, DWORD dwErrorCode, bool bLogThisMsg);

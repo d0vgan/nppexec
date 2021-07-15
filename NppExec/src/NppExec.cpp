@@ -383,6 +383,8 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
       INI_SECTION_CONSOLE, _T("NoInternalMsgs"), -1, NULL },
     { OPTB_CONSOLE_PRINTMSGREADY, OPTT_INT | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("PrintMsgReady"), -1, NULL },
+    { OPTS_CONSOLE_CUSTOMMSGREADY, OPTT_STR | OPTF_READONLY,
+      INI_SECTION_CONSOLE, _T("CustomMsgReady"), -1, _T("================ READY ================\\r") },
     { OPTD_CONSOLE_FONT, OPTT_DATA | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("Font"), 0, NULL },
     { OPTI_CONSOLE_ANSIESCSEQ, OPTT_INT | OPTF_READWRITE,
@@ -5372,6 +5374,12 @@ void CNppExec::ReadOptions()
   {
     GetOptions().SetBool(OPTB_CONSOLE_PRINTMSGREADY, true);
   }
+  tstr sMsgReady = GetOptions().GetStr(OPTS_CONSOLE_CUSTOMMSGREADY);
+  if (!sMsgReady.IsEmpty())
+  {
+    NppExecHelpers::StrUnescape(sMsgReady);
+    GetOptions().SetStr(OPTS_CONSOLE_CUSTOMMSGREADY, sMsgReady.c_str());
+  }
 
   int nAnsiEscSeq = GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
   if ( (nAnsiEscSeq < 0) || (nAnsiEscSeq >= CChildProcess::escTotalCount) )
@@ -6411,7 +6419,7 @@ void CNppExecConsole::_printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage
     }
 }
 
-void CNppExecConsole::PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg , bool bLogThisMsg )
+void CNppExecConsole::PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg , bool bLogThisMsg , bool bNewLine )
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6425,7 +6433,7 @@ void CNppExecConsole::PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg , boo
 
     if ( !postponeThisCall(scrptEngnId) )
     {
-        _printMessage(scrptEngnId, cszMessage, bIsInternalMsg, bLogThisMsg);
+        _printMessage(scrptEngnId, cszMessage, bIsInternalMsg, bLogThisMsg, bNewLine);
     }
     else
     {
@@ -6433,18 +6441,21 @@ void CNppExecConsole::PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg , boo
         ConsoleState& state = _getState(scrptEngnId);
         auto& postponedStrings = state.PostponedStrings;
         postponedStrings.push_back( tstr(cszMessage) );
-        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printMessage, this, scrptEngnId, postponedStrings.back().c_str(), bIsInternalMsg, bLogThisMsg);
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printMessage, this, scrptEngnId, postponedStrings.back().c_str(), bIsInternalMsg, bLogThisMsg, bNewLine);
         state.PostponedCalls.push_back(postponedCall);
     }
 }
 
-void CNppExecConsole::_printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool /*bIsInternalMsg*/, bool bLogThisMsg)
+void CNppExecConsole::_printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool /*bIsInternalMsg*/, bool bLogThisMsg, bool bNewLine)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
-    m_reConsole.AddLine( cszMessage, FALSE, _getCurrentColorTextMsg() ); 
+    if ( bNewLine )
+        m_reConsole.AddLine( cszMessage, FALSE, _getCurrentColorTextMsg() );
+    else
+        m_reConsole.AddStr( cszMessage, FALSE, _getCurrentColorTextMsg() );
     m_reConsole.AddStr( _T(""), _isScrollToEnd(), _getCurrentColorTextNorm() );
     _lockConsoleEndPos(scrptEngnId);
 

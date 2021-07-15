@@ -1776,7 +1776,8 @@ void CScriptEngine::Run(unsigned int nRunFlags)
     {
         ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
         CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-        m_pNppExec->GetMacroVars().GetUserConsoleMacroVars().swap(currentScript.LocalMacroVars);
+        //m_pNppExec->GetMacroVars().GetUserConsoleMacroVars().swap(currentScript.LocalMacroVars);
+        m_pNppExec->GetMacroVars().GetUserConsoleMacroVars() = currentScript.LocalMacroVars; // copying
     }
     if ( m_nRunFlags & rfShareConsoleState ) // <-- another script can enable the output, but usually that does not affect the parent's state
     {
