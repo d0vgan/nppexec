@@ -3417,7 +3417,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
             {
                 if (Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRunning())
                 {
-                    Runtime::GetNppExec().GetConsole().PrintStr( _T("^Z"), true );
+                    Runtime::GetNppExec().GetConsole().PrintStr( _T("^Z") );
                     Runtime::GetNppExec().GetConsole().LockConsoleEndPos();
                     Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput( _T("\x1A") ); // ^Z
                     Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput( Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER) );
@@ -3436,7 +3436,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
             {
                 if (Runtime::GetNppExec().isChildProcessRunning())
                 {
-                    Runtime::GetNppExec().GetConsole().PrintStr( _T("^D"), true );
+                    Runtime::GetNppExec().GetConsole().PrintStr( _T("^D") );
                     Runtime::GetNppExec().GetConsole().LockConsoleEndPos();
                     Runtime::GetNppExec().WriteChildProcessInput( _T("\x04") ); // ^D ???
                     Runtime::GetNppExec().WriteChildProcessInput( Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER) );
@@ -4665,7 +4665,8 @@ void ConsoleDlg::printConsoleReady()
     {
       NppExec.GetMacroVars().CheckAllMacroVars(nullptr, sMsgReady, true);
     }
-    NppExec.GetConsole().PrintMessage( sMsgReady.c_str(), false, true, false );
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg;
+    NppExec.GetConsole().PrintMessage( sMsgReady.c_str(), nMsgFlags );
   }
 }
 
@@ -4677,7 +4678,8 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
   {
     if (S == CONSOLE_CMD_HELP)
     {
-      NppExec.GetConsole().PrintMessage(CONSOLE_COMMANDS_INFO, false);
+      const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+      NppExec.GetConsole().PrintMessage(CONSOLE_COMMANDS_INFO, nMsgFlags);
       printConsoleReady();
       return true;
     }
@@ -4703,13 +4705,14 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
           NppExecHelpers::StrUpper(S1);
           if (S1 == _T("ALL"))
           {
-            NppExec.GetConsole().PrintMessage( _T(""), false );
-            NppExec.GetConsole().PrintMessage(CONSOLE_COMMANDS_INFO, false);
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+            NppExec.GetConsole().PrintMessage( _T(""), nMsgFlags );
+            NppExec.GetConsole().PrintMessage(CONSOLE_COMMANDS_INFO, nMsgFlags);
 
             for (const tCmdItemInfo& ci : CONSOLE_CMD_INFO)
             {
-              NppExec.GetConsole().PrintMessage( _T("------------------------------------------------------------------------------"), false );
-              NppExec.GetConsole().PrintMessage( ci.info, false );
+              NppExec.GetConsole().PrintMessage( _T("------------------------------------------------------------------------------"), nMsgFlags );
+              NppExec.GetConsole().PrintMessage( ci.info, nMsgFlags );
             }
             printConsoleReady();
             return true;
@@ -4764,8 +4767,9 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
             {
               if (S1 == ci.name)
               {
-                NppExec.GetConsole().PrintMessage( _T(""), false );
-                NppExec.GetConsole().PrintMessage( ci.info, false );
+                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                NppExec.GetConsole().PrintMessage( _T(""), nMsgFlags );
+                NppExec.GetConsole().PrintMessage( ci.info, nMsgFlags );
                 printConsoleReady();
                 return true;
               }
@@ -4782,7 +4786,8 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
       NppExec.OnHelpManual();
     else
       NppExec.OnHelpAbout();
-    NppExec.GetConsole().PrintMessage( _T(""), false );
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+    NppExec.GetConsole().PrintMessage( _T(""), nMsgFlags );
     printConsoleReady();
     return true;
   }
@@ -4794,8 +4799,9 @@ bool ConsoleDlg::IsConsoleVerCommand(const tstr& S)
     if (S == CONSOLE_CMD_VER)
     {
         CNppExec& NppExec = Runtime::GetNppExec();
-        NppExec.GetConsole().PrintMessage( _T(""), false );
-        NppExec.GetConsole().PrintMessage( PLUGIN_CURRENT_VER, false );
+        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+        NppExec.GetConsole().PrintMessage( _T(""), nMsgFlags );
+        NppExec.GetConsole().PrintMessage( PLUGIN_CURRENT_VER, nMsgFlags );
         printConsoleReady();
         return true;
     }

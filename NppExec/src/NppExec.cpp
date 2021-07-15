@@ -2115,7 +2115,7 @@ int CNppExec::conLoadFrom(LPCTSTR cszFile)
 
     while ( _consoleIsVisible && (!_consoleCommandBreak) && (fbuf.GetLine(Line) >= 0) )
     {
-      GetConsole().PrintOutput(Line.c_str(), true);
+      GetConsole().PrintOutput(Line.c_str());
     }
 
     _consoleCommandIsRunning = false;
@@ -3232,7 +3232,8 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
 
         bool isConsoleProcessRunning = true;
     
-        m_pNppExec->GetConsole().PrintMessage( tstr().Format(80, _T("Process started (PID=%u) >>>"), m_ProcessInfo.dwProcessId) );
+        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+        m_pNppExec->GetConsole().PrintMessage( tstr().Format(80, _T("Process started (PID=%u) >>>"), m_ProcessInfo.dwProcessId), nMsgFlags );
 
         {
             TCHAR szProcessId[50];
@@ -3341,11 +3342,16 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
                                 break;
                         }
                         Msg += _T('.');
-                        m_pNppExec->GetConsole().PrintMessage( Msg.c_str() );
+                        const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+                        m_pNppExec->GetConsole().PrintMessage( Msg.c_str(), nPrintMsgFlags );
                     }
                     else
                     {
-                        if (nPrevState != 1 /* new line */ )  m_pNppExec->GetConsole().PrintMessage( _T(""), false );
+                        if (nPrevState != 1 /* new line */ )
+                        {
+                            const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                            m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
+                        }
                     }
                 }
                 else
@@ -3358,11 +3364,16 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
 
                         if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
                         {
-                            m_pNppExec->GetConsole().PrintMessage( tstr().Format(80, _T("<<< Process has been terminated (PID=%d)."), m_ProcessInfo.dwProcessId) );
+                            const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+                            m_pNppExec->GetConsole().PrintMessage( tstr().Format(80, _T("<<< Process has been terminated (PID=%d)."), m_ProcessInfo.dwProcessId), nPrintMsgFlags );
                         }
                         else
                         {
-                            if (nPrevState != 1 /* new line */ )  m_pNppExec->GetConsole().PrintMessage( _T(""), false );
+                            if (nPrevState != 1 /* new line */ )
+                            {
+                                const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                                m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
+                            }
                         }
                     }
                     else
@@ -3386,11 +3397,16 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
         {
             if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
             {
-                m_pNppExec->GetConsole().PrintMessage( tstr().Format(100, _T("<<< Process finished (PID=%u). (Exit code %d)"), m_ProcessInfo.dwProcessId, m_nExitCode) ); 
+                const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+                m_pNppExec->GetConsole().PrintMessage( tstr().Format(100, _T("<<< Process finished (PID=%u). (Exit code %d)"), m_ProcessInfo.dwProcessId, m_nExitCode), nPrintMsgFlags ); 
             }
             else
             {
-                if (nPrevState != 1 /* new line */ )  m_pNppExec->GetConsole().PrintMessage( _T(""), false );
+                if (nPrevState != 1 /* new line */ )
+                {
+                    const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                    m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
+                }
             }
         }
 
@@ -3836,7 +3852,10 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                         }
                                     }
 
-                                    m_pNppExec->GetConsole().PrintOutput( printLine.c_str(), (nIsNewLine == 1) ? true : false );
+                                    UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg;
+                                    if ( nIsNewLine == 1 )
+                                        nPrintOutFlags |= CNppExecConsole::pfNewLine;
+                                    m_pNppExec->GetConsole().PrintOutput( printLine.c_str(), nPrintOutFlags );
                                 }
 
                                 // if the current line is not over, then the current filter 
@@ -4193,7 +4212,7 @@ void CNppExec::printScriptLog(const TCHAR* str, int)
     if ( CNppExec::_bIsNppShutdown ) // if it is called _after_ NPPN_SHUTDOWN, ~CNppExec() may have been called already
         return;
 
-    Runtime::GetNppExec().GetConsole().PrintError( str, false );
+    Runtime::GetNppExec().GetConsole().PrintError( str, 0 );
 }
 
 void CNppExec::printScriptString(const TCHAR* str, int)
@@ -4202,7 +4221,8 @@ void CNppExec::printScriptString(const TCHAR* str, int)
     if ( CNppExec::_bIsNppShutdown ) // if it is called _after_ NPPN_SHUTDOWN, ~CNppExec() may have been called already
         return;
 
-    Runtime::GetNppExec().GetConsole().PrintMessage( str, false, false );
+    const UINT nMsgFlags = CNppExecConsole::pfNewLine;
+    Runtime::GetNppExec().GetConsole().PrintMessage( str, nMsgFlags );
 }
 
 bool CNppExec::SendChildProcessExitCommand()
@@ -4250,7 +4270,7 @@ bool CNppExec::SendChildProcessExitCommand()
 
             if ( macro_name == MACRO_EXIT_CMD )
             {
-                GetConsole().PrintStr( exit_cmd.c_str(), true );
+                GetConsole().PrintStr( exit_cmd.c_str() );
             }
             GetCommandExecutor().ExecuteChildProcessCommand( exit_cmd );
         }
@@ -4287,7 +4307,7 @@ bool CNppExec::ShowChildProcessExitDialog()
                 std::shared_ptr<CScriptEngine> pScriptEngine = GetCommandExecutor().GetRunningScriptEngine();
                 if ( pScriptEngine && !pScriptEngine->IsCollateral() )
                 {
-                    GetConsole().PrintStr( exit_cmd.c_str(), true );
+                    GetConsole().PrintStr( exit_cmd.c_str() );
                 }
                 GetCommandExecutor().ExecuteChildProcessCommand( exit_cmd );
             }
@@ -6014,7 +6034,8 @@ void CNppExec::showConsoleDialog(eShowConsoleAction showAction, unsigned int nSh
 
 void CNppExec::printConsoleHelpInfo()
 {
-  GetConsole().PrintMessage(SZ_CONSOLE_HELP_INFO, false);
+  const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+  GetConsole().PrintMessage(SZ_CONSOLE_HELP_INFO, nMsgFlags);
 }
 
 void CNppExec::ShowError(LPCTSTR szMessage)
@@ -6377,7 +6398,7 @@ void CNppExecConsole::_setCurrentColorBkgnd(COLORREF colorBkgnd)
     m_colorBkgnd = colorBkgnd;
 }
 
-void CNppExecConsole::PrintError(LPCTSTR cszMessage, bool bLogThisMsg )
+void CNppExecConsole::PrintError(LPCTSTR cszMessage, UINT nPrintFlags )
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6388,7 +6409,7 @@ void CNppExecConsole::PrintError(LPCTSTR cszMessage, bool bLogThisMsg )
 
     if ( !postponeThisCall(scrptEngnId) )
     {
-        _printError(scrptEngnId, cszMessage, bLogThisMsg);
+        _printError(scrptEngnId, cszMessage, nPrintFlags);
     }
     else
     {
@@ -6396,12 +6417,12 @@ void CNppExecConsole::PrintError(LPCTSTR cszMessage, bool bLogThisMsg )
         ConsoleState& state = _getState(scrptEngnId);
         auto& postponedStrings = state.PostponedStrings;
         postponedStrings.push_back( tstr(cszMessage) );
-        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printError, this, scrptEngnId, postponedStrings.back().c_str(), bLogThisMsg);
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printError, this, scrptEngnId, postponedStrings.back().c_str(), nPrintFlags);
         state.PostponedCalls.push_back(postponedCall);
     }
 }
 
-void CNppExecConsole::_printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool bLogThisMsg)
+void CNppExecConsole::_printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6411,7 +6432,7 @@ void CNppExecConsole::_printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage
     m_reConsole.AddStr( _T(""), _isScrollToEnd(), _getCurrentColorTextNorm() );
     _lockConsoleEndPos(scrptEngnId);
 
-    if ( bLogThisMsg && Runtime::GetLogger().IsLogFileOpen() )
+    if ( (nPrintFlags & pfLogThisMsg) && Runtime::GetLogger().IsLogFileOpen() )
     {
         tstr S = _T("<ERR> ");
         S += cszMessage;
@@ -6419,7 +6440,7 @@ void CNppExecConsole::_printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage
     }
 }
 
-void CNppExecConsole::PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg , bool bLogThisMsg , bool bNewLine )
+void CNppExecConsole::PrintMessage(LPCTSTR cszMessage, UINT nPrintFlags)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6428,12 +6449,12 @@ void CNppExecConsole::PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg , boo
     if ( !_isOutputEnabled(scrptEngnId) )
         return;
 
-    if ( bIsInternalMsg && Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
+    if ( (nPrintFlags & pfIsInternalMsg) && Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
         return;
 
     if ( !postponeThisCall(scrptEngnId) )
     {
-        _printMessage(scrptEngnId, cszMessage, bIsInternalMsg, bLogThisMsg, bNewLine);
+        _printMessage(scrptEngnId, cszMessage, nPrintFlags);
     }
     else
     {
@@ -6441,25 +6462,25 @@ void CNppExecConsole::PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg , boo
         ConsoleState& state = _getState(scrptEngnId);
         auto& postponedStrings = state.PostponedStrings;
         postponedStrings.push_back( tstr(cszMessage) );
-        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printMessage, this, scrptEngnId, postponedStrings.back().c_str(), bIsInternalMsg, bLogThisMsg, bNewLine);
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printMessage, this, scrptEngnId, postponedStrings.back().c_str(), nPrintFlags);
         state.PostponedCalls.push_back(postponedCall);
     }
 }
 
-void CNppExecConsole::_printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool /*bIsInternalMsg*/, bool bLogThisMsg, bool bNewLine)
+void CNppExecConsole::_printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
-    if ( bNewLine )
+    if ( nPrintFlags & pfNewLine )
         m_reConsole.AddLine( cszMessage, FALSE, _getCurrentColorTextMsg() );
     else
         m_reConsole.AddStr( cszMessage, FALSE, _getCurrentColorTextMsg() );
     m_reConsole.AddStr( _T(""), _isScrollToEnd(), _getCurrentColorTextNorm() );
     _lockConsoleEndPos(scrptEngnId);
 
-    if ( bLogThisMsg && Runtime::GetLogger().IsLogFileOpen() )
+    if ( (nPrintFlags & pfLogThisMsg) && Runtime::GetLogger().IsLogFileOpen() )
     {
         tstr S = _T("<MSG> ");
         S += cszMessage;
@@ -6467,7 +6488,7 @@ void CNppExecConsole::_printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessa
     }
 }
 
-void CNppExecConsole::PrintOutput(LPCTSTR cszMessage, bool bNewLine , bool bLogThisMsg )
+void CNppExecConsole::PrintOutput(LPCTSTR cszMessage, UINT nPrintFlags )
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6478,7 +6499,7 @@ void CNppExecConsole::PrintOutput(LPCTSTR cszMessage, bool bNewLine , bool bLogT
 
     if ( !postponeThisCall(scrptEngnId) )
     {
-        _printOutput(scrptEngnId, cszMessage, bNewLine, bLogThisMsg);
+        _printOutput(scrptEngnId, cszMessage, nPrintFlags);
     }
     else
     {
@@ -6486,12 +6507,12 @@ void CNppExecConsole::PrintOutput(LPCTSTR cszMessage, bool bNewLine , bool bLogT
         ConsoleState& state = _getState(scrptEngnId);
         auto& postponedStrings = state.PostponedStrings;
         postponedStrings.push_back( tstr(cszMessage) );
-        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printOutput, this, scrptEngnId, postponedStrings.back().c_str(), bNewLine, bLogThisMsg);
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printOutput, this, scrptEngnId, postponedStrings.back().c_str(), nPrintFlags);
         state.PostponedCalls.push_back(postponedCall);
     }
 }
 
-void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool bNewLine, bool bLogThisMsg)
+void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6507,7 +6528,7 @@ void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessag
         style = WarningAnalyzer.GetStyle();
     }
 
-    if ( bNewLine )
+    if ( nPrintFlags & pfNewLine )
     {
         m_reConsole.AddLine( cszMessage, _isScrollToEnd(), color, CFM_EFFECTS, style );
     }
@@ -6518,7 +6539,7 @@ void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessag
 
     _lockConsoleEndPos(scrptEngnId);
 
-    if ( bLogThisMsg && Runtime::GetLogger().IsLogFileOpen() )
+    if ( (nPrintFlags & pfLogThisMsg) && Runtime::GetLogger().IsLogFileOpen() )
     {
         tstr S = _T("<OUT> ");
         S += cszMessage;
@@ -6527,7 +6548,7 @@ void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessag
     }
 }
 
-void CNppExecConsole::PrintStr(LPCTSTR cszStr, bool bNewLine, bool bLogThisMsg )
+void CNppExecConsole::PrintStr(LPCTSTR cszStr, UINT nPrintFlags )
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6538,7 +6559,7 @@ void CNppExecConsole::PrintStr(LPCTSTR cszStr, bool bNewLine, bool bLogThisMsg )
 
     if ( !postponeThisCall(scrptEngnId) )
     {
-        _printStr(scrptEngnId, cszStr, bNewLine, bLogThisMsg);
+        _printStr(scrptEngnId, cszStr, nPrintFlags);
     }
     else
     {
@@ -6546,23 +6567,23 @@ void CNppExecConsole::PrintStr(LPCTSTR cszStr, bool bNewLine, bool bLogThisMsg )
         ConsoleState& state = _getState(scrptEngnId);
         auto& postponedStrings = state.PostponedStrings;
         postponedStrings.push_back( tstr(cszStr) );
-        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printStr, this, scrptEngnId, postponedStrings.back().c_str(), bNewLine, bLogThisMsg);
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printStr, this, scrptEngnId, postponedStrings.back().c_str(), nPrintFlags);
         state.PostponedCalls.push_back(postponedCall);
     }
 }
 
-void CNppExecConsole::_printStr(ScriptEngineId /*scrptEngnId*/, LPCTSTR cszStr, bool bNewLine, bool bLogThisMsg)
+void CNppExecConsole::_printStr(ScriptEngineId /*scrptEngnId*/, LPCTSTR cszStr, UINT nPrintFlags)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
-    if ( bNewLine )
+    if ( nPrintFlags & pfNewLine )
         m_reConsole.AddLine( cszStr, _isScrollToEnd(), _getCurrentColorTextNorm(), CFM_EFFECTS, 0 );
     else
         m_reConsole.AddStr( cszStr, _isScrollToEnd(), _getCurrentColorTextNorm(), CFM_EFFECTS, 0 );
 
-    if ( bLogThisMsg && Runtime::GetLogger().IsLogFileOpen() )
+    if ( (nPrintFlags & pfLogThisMsg) && Runtime::GetLogger().IsLogFileOpen() )
     {
         tstr S = _T("<STR> ");
         S += cszStr;
@@ -6570,7 +6591,7 @@ void CNppExecConsole::_printStr(ScriptEngineId /*scrptEngnId*/, LPCTSTR cszStr, 
     }
 }
 
-void CNppExecConsole::PrintSysError(LPCTSTR cszFunctionName, DWORD dwErrorCode, bool bLogThisMsg )
+void CNppExecConsole::PrintSysError(LPCTSTR cszFunctionName, DWORD dwErrorCode, UINT nPrintFlags )
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6581,7 +6602,7 @@ void CNppExecConsole::PrintSysError(LPCTSTR cszFunctionName, DWORD dwErrorCode, 
 
     if ( !postponeThisCall(scrptEngnId) )
     {
-        _printSysError(scrptEngnId, cszFunctionName, dwErrorCode, bLogThisMsg);
+        _printSysError(scrptEngnId, cszFunctionName, dwErrorCode, nPrintFlags);
     }
     else
     {
@@ -6589,12 +6610,12 @@ void CNppExecConsole::PrintSysError(LPCTSTR cszFunctionName, DWORD dwErrorCode, 
         ConsoleState& state = _getState(scrptEngnId);
         auto& postponedStrings = state.PostponedStrings;
         postponedStrings.push_back( tstr(cszFunctionName) );
-        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printSysError, this, scrptEngnId, postponedStrings.back().c_str(), dwErrorCode, bLogThisMsg);
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printSysError, this, scrptEngnId, postponedStrings.back().c_str(), dwErrorCode, nPrintFlags);
         state.PostponedCalls.push_back(postponedCall);
     }
 }
 
-void CNppExecConsole::_printSysError(ScriptEngineId scrptEngnId, LPCTSTR cszFunctionName, DWORD dwErrorCode, bool bLogThisMsg)
+void CNppExecConsole::_printSysError(ScriptEngineId scrptEngnId, LPCTSTR cszFunctionName, DWORD dwErrorCode, UINT nPrintFlags)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6615,8 +6636,8 @@ void CNppExecConsole::_printSysError(ScriptEngineId scrptEngnId, LPCTSTR cszFunc
             0, 
             NULL );
 
-        _printError( scrptEngnId, szText, bLogThisMsg );
-        _printError( scrptEngnId, lpMsgBuf, bLogThisMsg );
+        _printError( scrptEngnId, szText, nPrintFlags );
+        _printError( scrptEngnId, lpMsgBuf, nPrintFlags );
 
         ::LocalFree(lpMsgBuf);
     }

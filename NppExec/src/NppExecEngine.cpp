@@ -179,7 +179,8 @@ class PrintMacroVarFunc
             {
                 S += itrVar->second;
             }
-            m_pNppExec->GetConsole().PrintMessage( S.c_str(), false );
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+            m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
 
             return true;
         }
@@ -895,9 +896,10 @@ class FParserWrapper
 
                 Runtime::GetLogger().AddEx( _T("; no *.h files found in \"%s\""), path.c_str() );
 
-                pNppExec->GetConsole().PrintMessage( _T("- Warning: fparser's constants have not been initialized because"), false );
-                pNppExec->GetConsole().PrintMessage( _T("the following folder either does not exist or is empty:"), false );
-                pNppExec->GetConsole().PrintMessage( path.c_str(), false );
+                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                pNppExec->GetConsole().PrintMessage( _T("- Warning: fparser's constants have not been initialized because"), nMsgFlags );
+                pNppExec->GetConsole().PrintMessage( _T("the following folder either does not exist or is empty:"), nMsgFlags );
+                pNppExec->GetConsole().PrintMessage( path.c_str(), nMsgFlags );
             }
 
             Runtime::GetLogger().DecIndentLevel();
@@ -2380,7 +2382,8 @@ void CScriptEngine::errorCmdNotEnoughParams(const TCHAR* cszCmd, const TCHAR* cs
     tstr Cmd = cszCmd;
     tstr Err = Cmd;
     Err += _T(':');
-    m_pNppExec->GetConsole().PrintMessage( Err.c_str(), false );
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+    m_pNppExec->GetConsole().PrintMessage( Err.c_str(), nMsgFlags );
     NppExecHelpers::StrLower(Cmd);
     Err.Format( 250, _T("- %s; type \"help %s\" for help"), cszErrorMessage ? cszErrorMessage : _T("empty command (no parameters given)"), Cmd.c_str() );
     m_pNppExec->GetConsole().PrintError( Err.c_str() );
@@ -2398,7 +2401,8 @@ void CScriptEngine::messageConsole(const TCHAR* cszCmd, const TCHAR* cszParams)
     tstr S = cszCmd;
     S += _T(": ");
     S += cszParams;
-    m_pNppExec->GetConsole().PrintMessage( S.c_str() );
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+    m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
 }
 
 bool CScriptEngine::reportCmdAndParams(const TCHAR* cszCmd, const tstr& params, unsigned int uFlags)
@@ -2433,7 +2437,10 @@ bool CScriptEngine::reportCmdAndParams(const TCHAR* cszCmd, const tstr& params, 
         else
         {
             if ( params.IsEmpty() )
-                m_pNppExec->GetConsole().PrintMessage( cszCmd );
+            {
+                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+                m_pNppExec->GetConsole().PrintMessage( cszCmd, nMsgFlags );
+            }
             else
                 messageConsole( cszCmd, params.c_str() );
         }
@@ -2466,7 +2473,8 @@ CScriptEngine::eCmdResult CScriptEngine::Do(const tstr& params)
     Runtime::GetLogger().AddEx( _T("; about to start a child process: \"%s\""), params.c_str() );
     m_sLoggedCmd.Format( 1020, _T("; about to start a child process: \"%.960s\""), params.c_str() );
 
-    m_pNppExec->GetConsole().PrintMessage( params.c_str() );
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+    m_pNppExec->GetConsole().PrintMessage( params.c_str(), nMsgFlags );
 
     std::shared_ptr<CChildProcess> proc(new CChildProcess(this));
     m_execState.pChildProcess = proc;
@@ -2605,7 +2613,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoCd(const tstr& params)
     GetCurrentDirectory( FILEPATH_BUFSIZE - 1, szPath );
     tstr S = _T("Current directory: ");
     S += szPath;
-    m_pNppExec->GetConsole().PrintMessage( S.c_str(), false );
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+    m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
 
     return nCmdResult;
 }
@@ -2755,14 +2764,15 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
         c_base::_tbuf2hexstr( (const c_base::byte_t*) &color, 3, buf, 16, _T(" ") );
         S = _T("Foreground (text) colour:  ");
         S += buf;
-        m_pNppExec->GetConsole().PrintMessage( S.c_str(), false );
+        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+        m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
 
         color = m_pNppExec->GetConsole().GetCurrentColorBkgnd();
         buf[0] = 0;
         c_base::_tbuf2hexstr( (const c_base::byte_t*) &color, 3, buf, 16, _T(" ") );
         S = _T("Background colour:         ");
         S += buf;
-        m_pNppExec->GetConsole().PrintMessage( S.c_str(), false );
+        m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
     }
 
     return nCmdResult;
@@ -3017,7 +3027,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoConSaveTo(const tstr& params)
     S += _T("\"");
     if ( nBytes >= 0 )
     {
-        m_pNppExec->GetConsole().PrintMessage( S.c_str() );
+        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+        m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
     }
     else
     {
@@ -3047,8 +3058,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoDir(const tstr& params)
 CScriptEngine::eCmdResult CScriptEngine::DoEcho(const tstr& params)
 {
     reportCmdAndParams( DoEchoCommand::Name(), params, 0 );
-     
-    m_pNppExec->GetConsole().PrintMessage( params.c_str(), false );
+
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+    m_pNppExec->GetConsole().PrintMessage( params.c_str(), nMsgFlags );
 
     return CMDRESULT_SUCCEEDED;
 }
@@ -3263,7 +3275,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
             {
                 S += sValue;
             }
-            m_pNppExec->GetConsole().PrintMessage( S.c_str(), isInternal );
+            UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+            if ( isInternal )
+                nMsgFlags |= CNppExecConsole::pfIsInternalMsg;
+            m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
             bSysVarOK = true;
         }
         if ( !bSysVarOK )
@@ -3271,7 +3286,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
             tstr S = _T("$(SYS.");
             S += varName;
             S += _T(") is empty or does not exist");
-            m_pNppExec->GetConsole().PrintMessage( S.c_str(), false );
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+            m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
         }
     }
     else
@@ -3343,7 +3359,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvUnset(const tstr& params)
             S.Insert(0, _T("- can not unset this environment variable: "));
             nCmdResult = CMDRESULT_FAILED;
         }
-        m_pNppExec->GetConsole().PrintMessage( S.c_str(), bResult ? true : false );
+        UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+        if ( bResult )
+            nMsgFlags |= CNppExecConsole::pfIsInternalMsg;
+        m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
     }
     else
     {
@@ -4135,7 +4154,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                         S += aliasName;
                     }
 
-                    m_pNppExec->GetConsole().PrintMessage( S.c_str() );
+                    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+                    m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                 }
                 else
                 {
@@ -4147,14 +4167,16 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                         S = aliasName;
                         S += _T(" -> ");
                         S += aliasValue;
-                        m_pNppExec->GetConsole().PrintMessage( S.c_str() );
+                        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+                        m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                     }
                     else
                     {
                         // tried to remove non-existent command alias
                         S = _T("- no such command alias: ");
                         S += aliasName;
-                        m_pNppExec->GetConsole().PrintMessage( S.c_str(), false );
+                        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                        m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                         nCmdResult = CMDRESULT_FAILED;
                     }
                 }
@@ -4195,7 +4217,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
 
     if ( cmdAliases.empty() )
     {
-        m_pNppExec->GetConsole().PrintMessage( _T("- no command aliases"), false );
+        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+        m_pNppExec->GetConsole().PrintMessage( _T("- no command aliases"), nMsgFlags );
     }
     else
     {
@@ -4207,7 +4230,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                 S = itrAlias->first;
                 S += _T(" -> ");
                 S += itrAlias->second;
-                m_pNppExec->GetConsole().PrintMessage( S.c_str(), false );
+                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
             }
         }
         else
@@ -4220,7 +4244,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                 S = itrAlias->first;
                 S += _T(" -> ");
                 S += itrAlias->second;
-                m_pNppExec->GetConsole().PrintMessage( S.c_str(), false );
+                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                 bFound = true;
             }
 
@@ -4228,7 +4253,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
             {
                 tstr t = _T("- no such command alias: ");
                 t += aliasName;
-                m_pNppExec->GetConsole().PrintMessage( t.c_str(), false );
+                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                m_pNppExec->GetConsole().PrintMessage( t.c_str(), nMsgFlags );
                 nCmdResult = CMDRESULT_FAILED;
             }
         }
@@ -4625,8 +4651,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S2 += _T(", in_enc: ");
         appendEnc( enc_opt, true, S1, S2 );
         // finally...
-        m_pNppExec->GetConsole().PrintMessage( S1.c_str(), false );
-        m_pNppExec->GetConsole().PrintMessage( S2.c_str(), false );
+        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+        m_pNppExec->GetConsole().PrintMessage( S1.c_str(), nMsgFlags );
+        m_pNppExec->GetConsole().PrintMessage( S2.c_str(), nMsgFlags );
     }
 
     return nCmdResult;
@@ -4655,8 +4682,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeDebugLog(const tstr& params)
         ScriptError( ET_REPORT, Err.c_str() );
         nCmdResult = CMDRESULT_INVALIDPARAM;
     }
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
     m_pNppExec->GetConsole().PrintMessage( m_pNppExec->GetOptions().GetBool(OPTB_NPE_DEBUGLOG) ? 
-        _T("Debug Log is On (1)") : _T("Debug Log is Off (0)"), false );
+        _T("Debug Log is On (1)") : _T("Debug Log is Off (0)"), nMsgFlags );
 
     return nCmdResult;
 }
@@ -4688,9 +4716,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeNoEmptyVars(const tstr& params)
         ScriptError( ET_REPORT, Err.c_str() );
         nCmdResult = CMDRESULT_INVALIDPARAM;
     }
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
     m_pNppExec->GetConsole().PrintMessage( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) ? 
           _T("Replace empty (uninitialized) vars with empty str:  On (1)") : 
-            _T("Replace empty (uninitialized) vars with empty str:  Off (0)"), false );
+            _T("Replace empty (uninitialized) vars with empty str:  Off (0)"), nMsgFlags );
 
     return nCmdResult;
 }
@@ -4778,7 +4807,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeSendMsgBufLen(const tstr& params)
     {
         TCHAR szMsg[64];
         wsprintf(szMsg, _T("SendMsgBufLen = %d"), nBufLen);
-        m_pNppExec->GetConsole().PrintMessage(szMsg, false);
+        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+        m_pNppExec->GetConsole().PrintMessage(szMsg, nMsgFlags);
     }
 
     return nCmdResult;
@@ -5385,8 +5415,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppSaveAll(const tstr& params)
         ScriptError( ET_REPORT, _T("- unexpected parameter(s)") );
         nCmdResult = CMDRESULT_INVALIDPARAM;
     }
-          
-    m_pNppExec->GetConsole().PrintMessage(DoNppSaveAllCommand::Name());
+
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+    m_pNppExec->GetConsole().PrintMessage(DoNppSaveAllCommand::Name(), nMsgFlags);
     if ( !m_pNppExec->nppSaveAllFiles() )
         nCmdResult = CMDRESULT_FAILED;
 
@@ -6231,7 +6262,10 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
             ::SendMessage(hSci, SCI_ENDUNDOACTION, 0, 0);
 
         S.Format(50, _T("- %u occurrences %s."), nOccurrences, bReplacingAll ? _T("replaced") : _T("found"));
-        m_pNppExec->GetConsole().PrintMessage(S.c_str(), (nFlags & NPE_SF_PRINTALL) == 0);
+        UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+        if ( (nFlags & NPE_SF_PRINTALL) == 0 )
+            nMsgFlags |= CNppExecConsole::pfIsInternalMsg;
+        m_pNppExec->GetConsole().PrintMessage(S.c_str(), nMsgFlags);
     }
     else
     {
@@ -6320,11 +6354,13 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
                 tstr S = (cmdType == CMDTYPE_SCIREPLACE) ? _T("- replaced") : _T("- found");
                 S += _T(" at pos ");
                 S += szNum;
-                m_pNppExec->GetConsole().PrintMessage( S.c_str() );
+                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+                m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
             }
             else
             {
-                m_pNppExec->GetConsole().PrintMessage( _T("- not found") );
+                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+                m_pNppExec->GetConsole().PrintMessage( _T("- not found"), nMsgFlags );
             }
         }
 
@@ -6476,7 +6512,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoSleep(const tstr& params)
         NppExecHelpers::StrUnquoteEx(Text);
         if ( !Text.IsEmpty() )
         {
-            m_pNppExec->GetConsole().PrintMessage( Text.c_str(), false );
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+            m_pNppExec->GetConsole().PrintMessage( Text.c_str(), nMsgFlags );
         }
     }
 
@@ -6532,7 +6569,8 @@ CScriptEngine::eCmdResult CScriptEngine::doTextSave(const tstr& params, eCmdType
     S += _T("\"");
     if ( nBytes >= 0 )
     {
-        m_pNppExec->GetConsole().PrintMessage( S.c_str() );
+        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+        m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
     }
     else
     {
@@ -6658,12 +6696,14 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
 
         if ( userLocalMacroVars.empty() && bLocalVar )
         {
-            m_pNppExec->GetConsole().PrintMessage( _T("- no user-defined local variables"), false );
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+            m_pNppExec->GetConsole().PrintMessage( _T("- no user-defined local variables"), nMsgFlags );
             nCmdResult = CMDRESULT_FAILED;
         }
         else if ( userLocalMacroVars.empty() && userMacroVars.empty() )
         {
-            m_pNppExec->GetConsole().PrintMessage( _T("- no user-defined variables"), false );
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+            m_pNppExec->GetConsole().PrintMessage( _T("- no user-defined variables"), nMsgFlags );
             nCmdResult = CMDRESULT_FAILED;
         }
         else
@@ -6700,7 +6740,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
                     {
                         S += itrVar->second;
                     }
-                    m_pNppExec->GetConsole().PrintMessage( S.c_str(), isInternal );
+                    UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                    if ( isInternal )
+                        nMsgFlags |= CNppExecConsole::pfIsInternalMsg;
+                    m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                 }
                 else
                 {
@@ -6708,7 +6751,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
                     if ( bLocalVar ) t += _T("local ");
                     t += _T("variable: ");
                     t += varName;
-                    m_pNppExec->GetConsole().PrintMessage( t.c_str(), false );
+                    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                    m_pNppExec->GetConsole().PrintMessage( t.c_str(), nMsgFlags );
                     nCmdResult = CMDRESULT_FAILED;
                 }
             }
@@ -7627,7 +7671,8 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
       if ( bLocalVar ) t += _T("local ");
       t += _T("variable has been removed: ");
       t += varName;
-      m_pNppExec->GetConsole().PrintMessage( t.c_str() /*, false*/ );
+      const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+      m_pNppExec->GetConsole().PrintMessage( t.c_str(), nMsgFlags );
     }
     else
     {
@@ -7638,7 +7683,8 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
       if ( bLocalVar ) t += _T("local ");
       t += _T("variable: ");
       t += varName;
-      m_pNppExec->GetConsole().PrintMessage( t.c_str(), false );
+      const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+      m_pNppExec->GetConsole().PrintMessage( t.c_str(), nMsgFlags );
 
       bResult = false;
     }
@@ -8742,7 +8788,7 @@ bool PrintDirContent(CNppExec* pNppExec, const TCHAR* szPath, const TCHAR* szFil
                 S.Append( pszFileName, len );
                 pszFileName = S.c_str();
             }
-            pNppExec->GetConsole().PrintStr( pszFileName, true );
+            pNppExec->GetConsole().PrintStr( pszFileName );
         }
     }
     while ( DirFileLst.GetNext() );
@@ -8812,7 +8858,8 @@ void runInputBox(CScriptEngine* pScriptEngine, const tstr& msg)
     S += varName;
     S += _T(" = ");
     S += InputBoxDlg.m_OutputValue;
-    pNppExec->GetConsole().PrintMessage( S.c_str(), true );
+    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+    pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
 
     Runtime::GetLogger().AddEx( _T("[out] %s"), S.c_str() );
 
@@ -8825,7 +8872,8 @@ void runInputBox(CScriptEngine* pScriptEngine, const tstr& msg)
         S += varName;
         S += _T(" = ");
         S += fields.GetArg(i - 1);
-        pNppExec->GetConsole().PrintMessage( S.c_str(), true );
+        const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+        pNppExec->GetConsole().PrintMessage( S.c_str(), nPrintMsgFlags );
 
         Runtime::GetLogger().AddEx( _T("[out] %s"), S.c_str() );
 

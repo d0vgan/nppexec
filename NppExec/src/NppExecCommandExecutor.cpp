@@ -65,7 +65,8 @@ static DWORD WINAPI dwRunCollateralScriptThread(LPVOID lpScrptEngnRnr)
             {
                 pNppExec->GetMacroVars().CheckAllMacroVars(pScriptEngine.get(), sMsgReady, true);
             }
-            pNppExec->GetConsole().PrintMessage( sMsgReady.c_str(), false, true, false );
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg;
+            pNppExec->GetConsole().PrintMessage( sMsgReady.c_str(), nMsgFlags );
         }
         pNppExec->GetConsole().RestoreDefaultTextStyle(true);
     }
@@ -973,7 +974,8 @@ DWORD CNppExecCommandExecutor::ScriptableCommand::RunConsoleScript(Command* pCom
                     {
                         pNppExec->GetMacroVars().CheckAllMacroVars(pScriptEngine.get(), sMsgReady, true);
                     }
-                    pNppExec->GetConsole().PrintMessage( sMsgReady.c_str(), false, true, false );
+                    const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg;
+                    pNppExec->GetConsole().PrintMessage( sMsgReady.c_str(), nMsgFlags );
                 }
                 ConsoleDlg::GoToError_nCurrentLine = -1;
             }

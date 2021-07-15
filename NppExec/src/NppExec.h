@@ -1116,11 +1116,16 @@ public:
     void SetCurrentColorBkgnd(COLORREF colorBkgnd);
 
     // print...
-    void PrintError(LPCTSTR cszMessage, bool bLogThisMsg = true);
-    void PrintMessage(LPCTSTR cszMessage, bool bIsInternalMsg = true, bool bLogThisMsg = true, bool bNewLine = true);
-    void PrintOutput(LPCTSTR cszMessage, bool bNewLine = true, bool bLogThisMsg = true);
-    void PrintStr(LPCTSTR cszStr, bool bNewLine, bool bLogThisMsg = true);
-    void PrintSysError(LPCTSTR cszFunctionName, DWORD dwErrorCode, bool bLogThisMsg = true);
+    enum ePrintFlags {
+        pfLogThisMsg    = 0x01,
+        pfNewLine       = 0x02,
+        pfIsInternalMsg = 0x04
+    };
+    void PrintError(LPCTSTR cszMessage, UINT nPrintFlags = pfLogThisMsg);
+    void PrintMessage(LPCTSTR cszMessage, UINT nPrintFlags);
+    void PrintOutput(LPCTSTR cszMessage, UINT nPrintFlags = pfLogThisMsg|pfNewLine);
+    void PrintStr(LPCTSTR cszStr, UINT nPrintFlags = pfLogThisMsg|pfNewLine);
+    void PrintSysError(LPCTSTR cszFunctionName, DWORD dwErrorCode, UINT nPrintFlags = pfLogThisMsg);
 
     void LockConsolePos(INT nPos, bool bForce = false);
     void LockConsoleEndPos(bool bForce = false);
@@ -1215,11 +1220,11 @@ protected:
     void _setCurrentColorTextErr(COLORREF colorTextErr);
     void _setCurrentColorBkgnd(COLORREF colorBkgnd);
 
-    void _printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool bLogThisMsg);
-    void _printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool bIsInternalMsg, bool bLogThisMsg, bool bNewLine);
-    void _printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, bool bNewLine, bool bLogThisMsg);
-    void _printStr(ScriptEngineId scrptEngnId, LPCTSTR cszStr, bool bNewLine, bool bLogThisMsg);
-    void _printSysError(ScriptEngineId scrptEngnId, LPCTSTR cszFunctionName, DWORD dwErrorCode, bool bLogThisMsg);
+    void _printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
+    void _printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
+    void _printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
+    void _printStr(ScriptEngineId scrptEngnId, LPCTSTR cszStr, UINT nPrintFlags);
+    void _printSysError(ScriptEngineId scrptEngnId, LPCTSTR cszFunctionName, DWORD dwErrorCode, UINT nPrintFlags);
 
     void _lockConsolePos(ScriptEngineId scrptEngnId, INT nPos);
     void _lockConsoleEndPos(ScriptEngineId scrptEngnId);

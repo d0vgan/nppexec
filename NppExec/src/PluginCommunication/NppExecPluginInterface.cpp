@@ -636,7 +636,7 @@ void CNppExecPluginInterfaceImpl::conPrintLine(tstr& Line)
         // remove trailing '\r'
         Line.SetSize(Line.length() - 1);
     }
-    m_pNppExec->GetConsole().PrintOutput( Line.c_str(), true );
+    m_pNppExec->GetConsole().PrintOutput( Line.c_str() );
 }
 
 void CNppExecPluginInterfaceImpl::npemPrint(const TCHAR* szText)
