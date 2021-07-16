@@ -33,10 +33,9 @@
   unset PS_ID
 endif
 // running a new process and saving its id...
-npe_console v+ --
+npe_console local v+ --
 cmd /C echo. | PowerShell -ExecutionPolicy Unrestricted -Command &quot;(start-process -PassThru PowerShell -ArgumentList '-File &quot;&quot;$(FULL_CURRENT_PATH)&quot;&quot;').Id&quot;
 set PS_ID = $(OUTPUT)
-npe_console v- --
 </pre>
 </blockquote>
 <p>In case of a batch script file (.bat or .cmd), the NppExec's script will be slightly different:</p>
@@ -47,10 +46,9 @@ npe_console v- --
   unset PS_ID
 endif
 // running a new process and saving its id...
-npe_console v+ --
+npe_console local v+ --
 cmd /C echo. | PowerShell -Command &quot;(start-process -PassThru cmd -ArgumentList '/c &quot;&quot;$(FULL_CURRENT_PATH)&quot;&quot;').Id&quot;
 set PS_ID = $(OUTPUT)
-npe_console v- --
 </pre>
 </blockquote>
 <p>Finally, we can merge these two NppExec's scripts into a new NppExec's script that will take care of both PowerShell and batch script files:</p>
@@ -70,7 +68,7 @@ else if &quot;$(EXT_PART)&quot; ~= &quot;.cmd&quot; then
   set local IS_BATCH_FILE = true
 endif
 // running a new process and saving its id...
-npe_console v+ --
+npe_console local v+ --
 if &quot;$(IS_BATCH_FILE)&quot; == &quot;true&quot; then
   cmd /C echo. | PowerShell -Command &quot;(start-process -PassThru cmd -ArgumentList '/c &quot;&quot;$(FULL_CURRENT_PATH)&quot;&quot;').Id&quot;
   set PS_ID = $(OUTPUT)
@@ -80,7 +78,6 @@ else if &quot;$(EXT_PART)&quot; ~= &quot;.ps1&quot; then
 else
   messagebox &quot;File type has not been configured in NppExec's 'Run' script&quot; : &quot;NppExec: Run - Unknown File Type&quot; : warn
 endif
-npe_console v- --
 </pre>
 </blockquote>
 

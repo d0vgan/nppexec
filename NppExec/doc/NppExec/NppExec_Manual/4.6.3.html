@@ -58,8 +58,8 @@ SEL_SETTEXT $(OUTPUT)</pre>
 <p>The very last approach needs several additional steps. The $(OUTPUT) variable stores the whole external tool's output while NPE_CONSOLE V+ has been set. Let's see an example of such approach. </p>
 <p>Let's assume you select a word such as &quot;copy&quot;, &quot;dir&quot;, &quot;cd&quot; etc. and want to replace this word with its description from cmd's help. You can use $(CURRENT_WORD) variable to pass the selected word to cmd.exe. Also you want to replace the selected word with cmd's output. You can use $(OUTPUT) variable to do it. Here is the full NppExec's script which allows you to get the desired result: </p>
 <blockquote>
-  <pre>// enable $(OUTPUT) variable
-NPE_CONSOLE v+
+  <pre>// enable $(OUTPUT) variable within the current NppExec's script
+NPE_CONSOLE local v+
 // run cmd.exe with the selected word as parameter
 cmd.exe /c $(CURRENT_WORD) /?
 // (optional) replace the selected text: previously selected word
@@ -68,8 +68,7 @@ SEL_SETTEXT $(CURRENT_WORD)
 SEL_SETTEXT+ \n
 // replace the selected text: cmd's output
 SEL_SETTEXT $(OUTPUT)
-// finally, disable $(OUTPUT) variable
-NPE_CONSOLE v-</pre>
+</pre>
 </blockquote>
 <p>That's all. Now try the following: </p>
 <ol>

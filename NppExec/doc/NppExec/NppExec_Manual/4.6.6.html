@@ -13,16 +13,14 @@
 <p>To sum up, the following NppExec script should be used:</p>
 
 <blockquote>
-  <pre>// enable the $(OUTPUT) variable
-NPE_CONSOLE v+
+  <pre>// enable the $(OUTPUT) variable for the current NppExec's script
+NPE_CONSOLE local v+
 // your command here... for example, let it be &quot;cmd /?&quot;
 cmd /?
 // open new editor pane
 NPP_SENDMSG WM_COMMAND IDM_FILE_NEW
 // set the text in the new editor pane
-SEL_SETTEXT $(OUTPUT)
-// finally, disable $(OUTPUT) variable
-NPE_CONSOLE v-</pre>
+SEL_SETTEXT $(OUTPUT)</pre>
 </blockquote>
 
 </BODY>

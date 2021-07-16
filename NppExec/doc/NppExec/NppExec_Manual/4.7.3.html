@@ -61,26 +61,19 @@ SET local VCDIR = C:\Program Files\Microsoft Visual Studio 8\VC
 SET local VSCOMMON = C:\Program Files\Microsoft Visual Studio 8\Common7\IDE
 SET local MSSDK = C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2
 
-// saving previous values of environment variables (just in case)
-SET local PATH_0 = $(SYS.PATH)
-SET local INCLUDE_0 = $(SYS.INCLUDE)
-SET local LIB_0 = $(SYS.LIB)
-// setting NppExec's child process'es environment variables 
-ENV_SET PATH = $(VCDIR)\bin;$(MSSDK)\bin;$(VSCOMMON);$(SYS.PATH)
-ENV_SET INCLUDE = $(MSSDK)\include;$(VCDIR)\include;$(SYS.INCLUDE)
-ENV_SET LIB = $(MSSDK)\lib;$(VCDIR)\lib;$(SYS.LIB)
+// setting NppExec's child process'es environment variables
+// (due to "local", the previous values of the environment
+//  variables will be restored when this script ends)
+ENV_SET local PATH = $(VCDIR)\bin;$(MSSDK)\bin;$(VSCOMMON);$(SYS.PATH)
+ENV_SET local INCLUDE = $(MSSDK)\include;$(VCDIR)\include;$(SYS.INCLUDE)
+ENV_SET local LIB = $(MSSDK)\lib;$(VCDIR)\lib;$(SYS.LIB)
 
 // executing the child process with specified environment variables 
 rc /r /Fo&quot;$(CURRENT_DIRECTORY)\Resources.res&quot; &quot;$(CURRENT_DIRECTORY)\Resources.rc&quot;
 cl.exe &quot;$(FULL_CURRENT_PATH)&quot;
-
-// restoring previous values of environment variables 
-ENV_SET PATH = $(PATH_0)
-ENV_SET INCLUDE = $(INCLUDE_0)
-ENV_SET LIB = $(LIB_0)</pre>
+</pre>
 </blockquote>
-<p>Don't forget that ENV_SET does not
-    understand
+<p>Don't forget that ENV_SET does not understand
 such form of existing environment variables as &quot;%PATH%&quot; because NppExec does not accept such declaration. &quot;$(SYS.PATH)&quot; should be used instead of &quot;%PATH%&quot;.</p>
 <p>In general, it's not a good idea to set and then restore the environment every time it is needed by some tool. Instead, you can set all the required environment in NppExec's start-up script <a href="4.2.html">[4.2]</a>. Such approach would allow you to use any of your tools without further specifying of full paths or additional environment variables.</p>
 <p>4. Using ENV_SET, VS 10 + clang</p>
@@ -95,15 +88,12 @@ SET local VCDIR = $(VCBASE)\VC
 SET local VSCOMMON = $(VCBASE)\Common7\IDE
 SET local MSSDK = C:\Program Files\Microsoft SDKs\Windows\v7.0A
 
-// saving previous values of environment variables (just in case)
-SET local PATH_0 = $(SYS.PATH)
-SET local INCLUDE_0 = $(SYS.INCLUDE)
-SET local LIB_0 = $(SYS.LIB)
-
 // setting NppExec's child process'es environment variables
-ENV_SET PATH = $(VCDIR)\bin;$(MSSDK)\bin;$(VSCOMMON);$(SYS.PATH)
-ENV_SET INCLUDE = $(MSSDK)\include;$(VCDIR)\include;$(SYS.INCLUDE)
-ENV_SET LIB = $(MSSDK)\lib;$(VCDIR)\lib;$(SYS.LIB)
+// (due to "local", the previous values of the environment
+//  variables will be restored when this script ends)
+ENV_SET local PATH = $(VCDIR)\bin;$(MSSDK)\bin;$(VSCOMMON);$(SYS.PATH)
+ENV_SET local INCLUDE = $(MSSDK)\include;$(VCDIR)\include;$(SYS.INCLUDE)
+ENV_SET local LIB = $(MSSDK)\lib;$(VCDIR)\lib;$(SYS.LIB)
 
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 ///! NOTE: change the following to the folder where your clang binary resides
@@ -115,11 +105,6 @@ SET local obj = $(CURRENT_DIRECTORY)\$(NAME_PART)
 // run clang
 &quot;$(clangc)&quot; &quot;$(FULL_CURRENT_PATH)&quot; -o &quot;$(obj).exe&quot;
 cmd /c &quot;$(obj).exe&quot;
-
-// restoring previous values of environment variables
-ENV_SET PATH = $(PATH_0)
-ENV_SET INCLUDE = $(INCLUDE_0)
-ENV_SET LIB = $(LIB_0)
 </pre>
 </blockquote>
 <p>Things to note: I am using Visual Studio 2010 (installed in C:\Program Files\) on a 32-bit Windows 7 box with NppExec 0.4.2.1 and my clang 3.0 binaries reside at D:\llvm_workspace\llvm\build\bin\Debug\ (built with Visual Studio 2010). You will need to change the appropriate paths in the script of course depending on your installation.</p>

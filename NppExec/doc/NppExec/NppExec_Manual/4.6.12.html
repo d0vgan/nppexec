@@ -14,7 +14,7 @@
 <p>For example, the following NppExec's scripts collects all the opened files with .cpp extension and outputs them to NppExec's Console:</p>
 
 <blockquote>
-  <pre>npp_console -              // disable output to the Console
+  <pre>npp_console local -        // disable output to the Console
 set local MatchExt = .cpp  // file extension to match
 set local FileList =       // output file list
 set local i = 1
@@ -42,7 +42,7 @@ set local i ~ $(i) + 1
 goto NextOpenedFile
 
 :OutOfOpenedFiles
-npp_console +  // enable output to the Console
+npp_console local +  // enable output to the Console
 echo $(FileList)</pre>
 </blockquote>
 
@@ -56,15 +56,14 @@ echo $(FileList)</pre>
 <p>Then, using sfk, the NppExec's script will look like the following:</p>
 
 <blockquote>
-  <pre>npp_console -              // disable output to the Console
+  <pre>npp_console local -        // disable output to the Console
 set local MatchExt = .cpp  // file extension to match
 
-npe_console v+
+npe_console local v+
 sfk list -quot -dir . -file $(MatchExt) +xed "/[xwhite]/ /"
 set local FileList = $(OUTPUTL)
-npe_console v-
 
-npp_console +  // enable output to the Console
+npp_console local +  // enable output to the Console
 echo $(FileList)</pre>
 </blockquote>
 

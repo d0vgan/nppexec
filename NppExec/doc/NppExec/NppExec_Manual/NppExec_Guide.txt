@@ -206,9 +206,7 @@ file types we want.
 For example:
 
   // setting internal messages off
-  npe_console m- --
-  // queueing internal messages on
-  npe_queue -s npe_console m+ --
+  npe_console local m- --
   // saving current file
   NPP_SAVE
   // file extension in lower case
@@ -217,8 +215,7 @@ For example:
   if $(ext) == .c
     "C:\tools\tcc\tcc.exe" -run "$(FULL_CURRENT_PATH)"
   else if $(ext) == .cpp
-    set local path = $(SYS.PATH)
-    env_set PATH = $(path);C:\mingw32\bin;
+    env_set local PATH = $(path);C:\mingw32\bin;
     set local obj = $(CURRENT_DIRECTORY)\$(NAME_PART)
     cmd /C del "$(obj).o" 2>nul & del "$(obj).exe" 2>nul
     echo Compiling...
@@ -228,7 +225,6 @@ For example:
       echo Running...
       NPP_RUN cmd /C if exist "$(obj).exe" "$(obj).exe" && echo. && pause
     endif
-    env_set PATH = $(path)
   else if $(ext) == .awk
     "C:\tools\gawk\gawk.exe" -f "$(FULL_CURRENT_PATH)"
   else

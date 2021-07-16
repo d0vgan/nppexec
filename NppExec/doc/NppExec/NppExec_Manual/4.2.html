@@ -35,6 +35,7 @@ ENV_UNSET a              // removed</pre>
 </blockquote>
 <p>I.e. you can use &quot;$(SYS.variable_name)&quot; to read the variable's value and use &quot;ENV_SET variable_name = value&quot; to
 set the variables's value.</p>
+<p>If there is a need to set/modify an environment variable temporarily (in the scope of the current NppExec's script), use &quot;ENV_SET local &lt;var&gt; = &lt;value&gt;&quot;. Once the current NppExec's script ends, the previous value of &lt;var&gt; is restored automatically.</p>
 <p>Type &quot;help env_set&quot; in NppExec's
     Console
 for more details.</p>

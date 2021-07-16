@@ -10,10 +10,9 @@
 
 <p>1. To grab current date to NppExec variable, you can create the following simple auxiliary script:</p>
 <blockquote>
-  <pre>NPE_CONSOLE v+
+  <pre>NPE_CONSOLE local v+
 cmd /c date /t
-set DATE = $(OUTPUTL)
-NPE_CONSOLE v-</pre>
+set DATE = $(OUTPUTL)</pre>
 </blockquote>
 <p>and give it a name &quot;date&quot;, for example.</p>
 <p>Then you can use &quot;NPP_EXEC date&quot; or just &quot;\date&quot; to call this script which sets an internal environment variable $(DATE).</p>
@@ -28,10 +27,9 @@ echo %CUR_DATE%</pre>
 </blockquote>
 <p>Then create the following NppExec's script which will use this bat-file:</p>
 <blockquote>
-  <pre>NPE_CONSOLE v+
+  <pre>NPE_CONSOLE local v+
 &quot;$(NPP_DIRECTORY)\date.bat&quot;
-set DATE = $(OUTPUTL) // the bat-file's output
-NPE_CONSOLE v-</pre>
+set DATE = $(OUTPUTL) // the bat-file's output</pre>
 </blockquote>
 <p>Now your date format is definitely determined by this line:</p>
 <blockquote>

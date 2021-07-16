@@ -54,8 +54,7 @@ NPP_SAVE
 <blockquote>
   <pre>NPP_SAVE // save current file
 set local PathToFpcExe = C:\FPC\2.6.0\bin\i386-win32 // path to fpc.exe
-env_unset PATH // restore original %PATH% if it was changed before
-env_set PATH = $(SYS.PATH);$(PathToFpcExe) // add the path to fpc.exe to %PATH%
+env_set local PATH = $(SYS.PATH);$(PathToFpcExe) // add the path to fpc.exe to %PATH%
 cd $(CURRENT_DIRECTORY) // go to directory of the current file
 fpc &quot;$(FILE_NAME)&quot; // use fpc.exe to compile</pre>
 </blockquote>
