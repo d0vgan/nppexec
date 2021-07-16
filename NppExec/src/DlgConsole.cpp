@@ -280,6 +280,10 @@ typedef struct sCmdItemInfo {
   #define _T_STRHEX_CYRILLIC       _T("CF F0 E8 E2 E5 F2")
 #endif
 
+#define _T_LOCAL_CMD_HINT \
+  _T("  When \"local\" is specified, the changes are applied locally to the current") _T_RE_EOL \
+  _T("  NppExec's script and are reverted back when the current script ends.") _T_RE_EOL
+
 #ifdef UNICODE
   #define _T_HELP_STRTOHEX_STRFROMHEX \
   _T("  // strfromhex (unicode version)") _T_RE_EOL \
@@ -508,16 +512,19 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  con_colour fg = 0") _T_RE_EOL \
     _T("  con_colour bg = 0") _T_RE_EOL \
     _T("  con_colour fg = 0 bg = 0") _T_RE_EOL \
+    _T("  con_colour local fg = <RR GG BB> bg = <RR GG BB>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  fg - sets foreground (text) colour of the Console;") _T_RE_EOL \
     _T("  bg - sets background colour of the Console;") _T_RE_EOL \
     _T("  without parameters - shows current values of the colours;") _T_RE_EOL \
     _T("  the value of 0 restores the original colour(s).") _T_RE_EOL \
+    _T_LOCAL_CMD_HINT \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  con_colour bg=303030 fg=d0d0d0     // white text on dark-grey") _T_RE_EOL \
     _T("  con_colour fg = 303030 bg = D0D0D0 // dark text on light-grey") _T_RE_EOL \
     _T("  con_colour FG = 20 20 90           // dark-blue text") _T_RE_EOL \
     _T("  con_colour fg = 0                  // restore original text colour") _T_RE_EOL \
+    _T("  con_colour local fg = 303030       // dark-grey text locally") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  The foreground (text) colour is applied to new text only.") _T_RE_EOL \
     _T("  The background colour is applied to the whole Console\'s background. And") _T_RE_EOL \
@@ -540,6 +547,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  con_filter") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  con_filter +x5/-x5 +i1/-i1 +fr4/-fr4 +frc1/-frc1 +h10/-h10") _T_RE_EOL \
+    _T("  con_filter local ...") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  Enables or disables the eXclude/Include/Replace/Highlight Filters") _T_RE_EOL \
     _T("  +x<N>/-x<N>     - enables/disables the Nth eXclude Mask (N = 1..5)") _T_RE_EOL \
@@ -549,9 +557,11 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  +frc<N>/-frc<N> - enables/disables the Nth Replacing Filter and") _T_RE_EOL \
     _T("                    activates \"Match case\" (N = 1..4)") _T_RE_EOL \
     _T("  +h<N>/-h<N>     - enables/disables the Nth Highlight Mask (N = 1..10)") _T_RE_EOL \
+    _T_LOCAL_CMD_HINT \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  con_filter +frc3 +fr2 -i5 +x2 +h1") _T_RE_EOL \
     _T("  con_filter -x4 +h2 +i1 -fr3 +i2 -h7 +x1 +fr1 +frc2") _T_RE_EOL \
+    _T("  con_filter local -x4 +h2 +i1 -fr3  // has local effect") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  This command allows to enable and disable the Console Output Filters from") _T_RE_EOL \
     _T("  your script.") _T_RE_EOL \
@@ -642,18 +652,21 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  npp_console <enable/disable>") _T_RE_EOL \
     _T("  npp_console <1/0/?>") _T_RE_EOL \
     _T("  npp_console <+/->") _T_RE_EOL \
+    _T("  npp_console local ...") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  Shows/hides the Console window.") _T_RE_EOL \
     _T("  Enables/disables output to the Console.") _T_RE_EOL \
     _T("  Usually the Console window is automatically opened each time you execute") _T_RE_EOL \
     _T("  some command or script, so the purpose of this command is to change the") _T_RE_EOL \
     _T("  default behaviour.") _T_RE_EOL \
+    _T_LOCAL_CMD_HINT \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  npp_console ?  // keep the Console\'s state: hidden Console is not shown") _T_RE_EOL \
     _T("  npp_console 1  // open (show) the Console") _T_RE_EOL \
     _T("  npp_console 0  // close (hide) the Console") _T_RE_EOL \
     _T("  npp_console -  // disable output to the Console") _T_RE_EOL \
     _T("  npp_console +  // enable output to the Console") _T_RE_EOL \
+    _T("  npp_console local 0  // close the Console locally") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  You can use \'NPP_CONSOLE ?\' as a first command of your script in order to") _T_RE_EOL \
     _T("  keep the Console\'s state: don\'t open hidden Console or don\'t hide opened one.") _T_RE_EOL \
@@ -1325,11 +1338,14 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("USAGE:") _T_RE_EOL \
     _T("  env_set <var>") _T_RE_EOL \
     _T("  env_set <var> = <value>") _T_RE_EOL \
+    _T("  env_set local <var> = <value>") _T_RE_EOL \
     _T("  env_unset <var>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  1. Shows the value of environment variable (\"env_set\" without \"=\")") _T_RE_EOL \
     _T("  2. Sets the value of environment variable (\"env_set <var> = <value>\")") _T_RE_EOL \
-    _T("  3. Removes/restores the environment variable <var> (\"env_unset <var>\")") _T_RE_EOL \
+    _T("  3. Sets the value of environment variable locally (with \"local\" specified)") _T_RE_EOL \
+    _T("  4. Removes/restores the environment variable <var> (\"env_unset <var>\")") _T_RE_EOL \
+    _T_LOCAL_CMD_HINT \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  env_set NPPHOME = $(NPP_DIRECTORY)  // new environment variable: NPPHOME") _T_RE_EOL \
     _T("  env_set PATH = $(SYS.NPPHOME);$(SYS.PATH)  // modifying the PATH variable") _T_RE_EOL \
@@ -1337,6 +1353,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("                      // (NPPHOME is the first path in the PATH variable)") _T_RE_EOL \
     _T("  env_unset NPPHOME  // removing the environment variable NPPHOME") _T_RE_EOL \
     _T("  env_unset PATH     // restoring initial value of PATH") _T_RE_EOL \
+    _T("  env_set local PATH = C:\\tools;$(SYS.PATH)  // has local effect") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  Unlike set/unset, these commands deal with Notepad++\'es environment vars") _T_RE_EOL \
     _T("  which are inherited by child processes (programs, tools) started from") _T_RE_EOL \
@@ -1359,6 +1376,12 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  Other environment variables (such as PATH, TEMP etc.) are not removed") _T_RE_EOL \
     _T("  by ENV_UNSET because these variables were not created by ENV_SET.") _T_RE_EOL \
     _T("  Instead, ENV_UNSET restores initial values of these variables.") _T_RE_EOL \
+    _T("  The usage of \"env_set local <var> = ...\" is similar to the sequence of") _T_RE_EOL \
+    _T("  \"env_set <var> = ...\", doing something with the <var> and finally doing") _T_RE_EOL \
+    _T("  \"env_unset <var>\". There is a difference, though: ENV_UNSET restores the") _T_RE_EOL \
+    _T("  _initial_ value of <var> (i.e. before any ENV_SET), while \"env_set local\"") _T_RE_EOL \
+    _T("  restores the _previous_ value of <var> (e.g. after the last ENV_SET) once") _T_RE_EOL \
+    _T("  the current NppExec's script ends.") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  set/unset") _T_RE_EOL
   },
@@ -1526,6 +1549,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  npe_console a+/a- d+/d- e0/e1 h+/h- m+/m- p+/p- q+/q- v+/v- f+/f- r+/r- k0..3") _T_RE_EOL \
     _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
     _T("  npe_console <options> --") _T_RE_EOL \
+    _T("  npe_console local <options>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  1. Without parameter - shows current Console options/mode") _T_RE_EOL \
     _T("  2. X+/X-  enables/disables the option/mode X:") _T_RE_EOL \
@@ -1544,6 +1568,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("       o0/o1/o2  console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
     _T("       i0/i1/i2  console input encoding: ANSI/OEM/UTF8") _T_RE_EOL \
     _T("  4. --  silent (don\'t print Console mode info)") _T_RE_EOL \
+    _T("  5. local within the current NppExec's script") _T_RE_EOL \
+    _T_LOCAL_CMD_HINT \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  npe_console o1 i1 a+ --") _T_RE_EOL \
     _T("    //// OEM/OEM, append mode, silent") _T_RE_EOL \
@@ -1555,6 +1581,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  cmd /c time /t       // cmd prints current time; $(OUTPUT) is set") _T_RE_EOL \
     _T("  echo $(OUTPUT)       // NppExec prints $(OUTPUT) i.e. current time") _T_RE_EOL \
     _T("  npe_console -- v- m+ // don\'t forget to disable the $(OUTPUT) var") _T_RE_EOL \
+    _T("  npe_console local -- v+ m- // has local effect") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  a+/a-  Console append mode on/off.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
@@ -1640,10 +1667,13 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  npe_noemptyvars") _T_RE_EOL \
     _T("  npe_noemptyvars 1") _T_RE_EOL \
     _T("  npe_noemptyvars 0") _T_RE_EOL \
+    _T("  npe_noemptyvars local 1/0") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  1. Without parameter - shows current option\'s state") _T_RE_EOL \
     _T("  2. 1 or On - enables replacement of empty (uninitialized) vars") _T_RE_EOL \
     _T("  3. 0 or Off - disables replacement of empty (uninitialized) vars") _T_RE_EOL \
+    _T("  4. local - enables/disables locally") _T_RE_EOL \
+    _T_LOCAL_CMD_HINT \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  unset var            // to be sure that $(var) is uninitialized") _T_RE_EOL \
     _T("  unset local var      // to be sure that $(var) is uninitialized") _T_RE_EOL \
@@ -1651,6 +1681,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  echo var = \"$(var)\"  // prints: var = \"$(var)\"") _T_RE_EOL \
     _T("  npe_noemptyvars 1    // enabled") _T_RE_EOL \
     _T("  echo var = \"$(var)\"  // prints: var = \"\"") _T_RE_EOL \
+    _T("  npe_noemptyvars local 1    // enabled locally") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  Refer to NppExec.ini, parameter NoEmptyVars in the [Console] section.") _T_RE_EOL \
     _T("  This option is not saved when you close Notepad++.") _T_RE_EOL \
@@ -1692,13 +1723,11 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  echo 1st") _T_RE_EOL \
     _T("  echo 2nd") _T_RE_EOL \
     _T("  // just a nice script that looks elegant:") _T_RE_EOL \
-    _T("  npp_console -") _T_RE_EOL \
-    _T("  npe_console -- v+") _T_RE_EOL \
+    _T("  npp_console local -      // within this script") _T_RE_EOL \
+    _T("  npe_console local -- v+  // within this script") _T_RE_EOL \
     _T("  cmd /c time /t") _T_RE_EOL \
     _T("  npe_queue -v -s echo $(OUTPUT)") _T_RE_EOL \
-    _T("  npe_console -- v-") _T_RE_EOL \
-    _T("  npp_console +") _T_RE_EOL \
-    _T("  // now something really crazy, just because we _can_ do it:") _T_RE_EOL \
+     _T("  // now something really crazy, just because we _can_ do it:") _T_RE_EOL \
     _T("  npe_queue npe_queue npe_queue sleep 2000 Let's sleep for 2 seconds...") _T_RE_EOL \
     _T("  npe_queue -s npe_queue -s npe_queue -s sleep 2000 Let's sleep for 2 seconds...") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
@@ -1748,12 +1777,15 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  npe_sendmsgbuflen") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_sendmsgbuflen <max_length>") _T_RE_EOL \
+    _T("  npe_sendmsgbuflen local <max_length>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  Sets npp_sendmsg/sci_sendmsg's maximum buffer length") _T_RE_EOL \
+    _T_LOCAL_CMD_HINT \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  npe_sendmsgbuflen  // current buffer length") _T_RE_EOL \
     _T("  npe_sendmsgbuflen 1048576  // 1 MB") _T_RE_EOL \
     _T("  npe_sendmsgbuflen 8M  // 8 MB") _T_RE_EOL \
+    _T("  npe_sendmsgbuflen local 4M  // 4 MB locally") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  If the specified value is less than 65536, NppExec sets it to 65536.") _T_RE_EOL \
     _T("  This value is not saved when Notepad++ exits.") _T_RE_EOL \
