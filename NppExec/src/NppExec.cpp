@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /****************************************************************************
- * NppExec plugin ver. 0.6.2 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - February 2021
+ * NppExec plugin ver. 0.6.9.9 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - July 2021
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -153,7 +153,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        nppexec:: - always executes a command in a collateral (parallel) script
  *        (*) these commands work with a partial file path/name also
  *            i.e.  npp_save c:\dir\f.txt  is the same as  npp_save f.txt
- *        (**) within the current script
+ *        (**) within the current NppExec's script
  *   5) Additional console commands (Console Dlg only):
  *        help           - show available commands
  *        help <command> - information on the specific command (e.g. "help cls")

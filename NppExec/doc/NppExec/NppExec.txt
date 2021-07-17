@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.6.2 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - February 2021
+ * NppExec plugin ver. 0.6.9.9 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - July 2021
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -38,9 +38,11 @@
  *        set <var> ~ strfind <s> <t> - returns the first position of <t> in <s>
  *        set <var> ~ strrfind <s> <t> - returns the last position of <t> in <s>
  *        set <var> ~ strreplace <s> <t0> <t1> - replaces all <t0> with <t1>
- *        set <var> ~ strquote <s>  -  surrounds <s> with "" quotes
- *        set <var> ~ strunquote <s>  -  removes the surrounding "" quotes
- *        set <var> ~ normpath <path>  -  returns a normalized path
+ *        set <var> ~ strquote <s> - surrounds <s> with "" quotes
+ *        set <var> ~ strunquote <s> - removes the surrounding "" quotes
+ *        set <var> ~ strescape <s> - simple character escaping (e.g. <TAB> to '\t')
+ *        set <var> ~ strunescape <s> - simple character unescaping (e.g. '\n' to <LF>)
+ *        set <var> ~ normpath <path> - returns a normalized path
  *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
  *        set <var> ~ strtohex <s> - returns a hex-string from the string
  *        set <var> ~ chr <n> - returns a character from a character code <n>
@@ -54,15 +56,20 @@
  *        unset local <var> - removes user's local variable <var>
  *        env_set <var> - shows the value of environment variable <var>
  *        env_set <var> = <value> - sets the value of environment variable <var>
+ *        env_set local ... - sets an environment variable locally         (**)
  *        env_unset <var> - removes/restores the environment variable <var>
  *        inputbox "message" - shows InputBox, sets $(INPUT)
  *        inputbox "message" : initial_value - InputBox, sets $(INPUT)
  *        inputbox "message" : "value_name" : initial_value - InputBox customization
+ *        inputbox "message" : "value_name" : "initial_value" : time_ms - expirable
  *        messagebox "text" - shows a simple MessageBox
  *        messagebox "text" : "title" - shows a MessageBox with a custom title
  *        messagebox "text" : "title" : type - shows a MessageBox of a given type
+ *        messagebox "text" : "title" : type : time_ms - expirable MessageBox
  *        con_colour <colours> - sets the Console's colours
+ *        con_colour local ... - sets the colours locally                  (**)
  *        con_filter <filters> - enables/disables the Console's output filters
+ *        con_filter local ... - sets the filters locally                  (**)
  *        con_loadfrom <file> - loads a file's content to the Console
  *        con_load <file> - see "con_loadfrom"
  *        con_saveto <file> - saves the Console's content to a file
@@ -88,6 +95,7 @@
  *        npp_console <enable/disable> - enable/disable output to the Console
  *        npp_console <1/0/?> - show/hide the Console window
  *        npp_console <+/-> - enable/disable output to the Console
+ *        npp_console local ... - Console on/off locally                   (**)
  *        npp_menucommand <menu\item\name> - executes (invokes) a menu item
  *        npp_open <file> - open a file in Notepad++
  *        npp_open <mask> - open files matched the mask
@@ -116,15 +124,19 @@
  *        npe_cmdalias <alias> = - removes the command alias
  *        npe_cmdalias <alias> = <command> - sets the command alias
  *        npe_console <options> - set/modify Console options/mode
+ *        npe_console local ... - sets Console's mode locally              (**)
  *        npe_debuglog <on/off> - enable/disable Debug Log
  *        npe_debug <1/0> - see "npe_debuglog"
  *        npe_noemptyvars <1/0> - enable/disable replacement of empty vars
+ *        npe_noemptyvars local ... - sets empty vars on/off locally       (**)
  *        npe_queue <command> - queue NppExec's command to be executed
  *        npe_sendmsgbuflen <max_len> - set npp/sci_sendmsg's buffer length
+ *        npe_sendmsgbuflen local ... - sets the buffer length locally     (**)
  *        nppexec: - prefix for NppExec's commands (e.g. "nppexec:npp_console off")
  *        nppexec:: - always executes a command in a collateral (parallel) script
  *        (*) these commands work with a partial file path/name also
  *            i.e.  npp_save c:\dir\f.txt  is the same as  npp_save f.txt
+ *        (**) within the current NppExec's script
  *   5) Additional console commands (Console Dlg only):
  *        help           - show available commands
  *        help <command> - information on the specific command (e.g. "help cls")
@@ -192,6 +204,40 @@
  *************
  *  HISTORY  *
  *************
+
+ v0.6.9.9 - July 2021
+ --------------------
+ + added: now NppExec supports the "Dark Mode" of Notepad++ v8
+   (Thanks to Peter Jones for the updated icons!)
+   NppExec is still compatible with previous versions of Notepad++.
+ * changed: now NppExec supports quoted strings in the form of "abc", 'abc'
+   and `abc`.
+   This allows to pass quote characters within a quoted string: `"`, '"',
+   '"abc" `def`' and so on.
+   Now, if you want to pass a text that includes ' or ` character, you need
+   to enquote this text in a different pair of quotes. For example:
+   `'t was brillig...`, "Can't stop", "Press `Esc`", etc.
+ * changed: now NppExec's Console and the Toolbar button explicitly mention
+   "NppExec" in their names
+ + added: new menu item "Change Execute Script Font..."
+ + added: now MESSAGEBOX and INPUTBOX can accept 4th parameter 'time_ms'
+ * changed: now the InputBox can be closed by pressing Esc. When it happens,
+   the value of $(INPUT) will be empty.
+ + added: now con_colour, con_filter, env_set, npe_console, npe_noemptyvars,
+   npe_sendmsgbuflen and npp_console support a new keyword "local".
+   This new keyword means: the changes are applied locally to the current
+   NppExec's script and are reverted back when the current script ends.
+   Thus, the "local" keyword does not make sense in a single command executed
+   directly in NppExec's Console because the previous state is restored right
+   after the execution of this single "local" command, so you will not see any
+   effect of it.
+ + added: set <var> ~ strescape <s>, set <var> ~ strunescape <s>
+ + added: file names "npes_temp.txt" and "npes_saved.txt" can be customized
+   (see "NppExec_TechInfo.txt" for details)
+ - fixed: indirect variable reference in e.g. "echo #$(i) = $(#$(i))"
+ + new advanced option "CustomMsgReady" (see "NppExec_TechInfo.txt")
+ + NppExec Manual updated
+
 
  v0.6.2 - February 2021
  ----------------------

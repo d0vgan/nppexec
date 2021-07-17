@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.7 - July 2021
- ----------------
+ v0.6.9.9 - July 2021
+ --------------------
  + added: now NppExec supports the "Dark Mode" of Notepad++ v8
    (Thanks to Peter Jones for the updated icons!)
    NppExec is still compatible with previous versions of Notepad++.
@@ -51,7 +51,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    (see "NppExec_TechInfo.txt" for details)
  - fixed: indirect variable reference in e.g. "echo #$(i) = $(#$(i))"
  + new advanced option "CustomMsgReady" (see "NppExec_TechInfo.txt")
- + NppExec Manual updated 
+ + NppExec Manual updated
 
 
  v0.6.2 - February 2021
@@ -625,8 +625,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x06F2
-#define NPPEXEC_VER_STR   _T("0.6.2")
+#define NPPEXEC_VER_DWORD 0x06F9
+#define NPPEXEC_VER_STR   _T("0.6.9.9")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
