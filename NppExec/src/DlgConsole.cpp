@@ -94,7 +94,9 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("dir <mask or path\\mask>  -  lists files/subdirs matched the mask") _T_RE_EOL \
   _T("echo <text>  -  prints a text in the Console") _T_RE_EOL \
   _T("if <condition> goto <label>  -  jumps to the label if the condition is true") _T_RE_EOL \
+  _T("if~ <condition> goto <label>  -  calculates and checks the condition") _T_RE_EOL \
   _T("if ... else if ... else ... endif  -  conditional execution") _T_RE_EOL \
+  _T("if~ ... else if~ ... else ... endif  -  conditional execution") _T_RE_EOL \
   _T("goto <label>  -  jumps to the label") _T_RE_EOL \
   _T("exit  -  exits the current NppExec's script") _T_RE_EOL \
   _T("exit <type>  -  exits the NppExec's script") _T_RE_EOL \
@@ -1992,7 +1994,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  Thus, \"if 3 == 1 + 2 goto Label\" is not a valid numeric comparison") _T_RE_EOL \
     _T("  because \"1 + 2\" is not calculated and remains as is, so the string") _T_RE_EOL \
     _T("  comparison is used in this case (\"3\" is compared with \"1 + 2\").") _T_RE_EOL \
-    _T("  All the calculations should be performed in advance.") _T_RE_EOL \
+    _T("  All the calculations should be performed in advance - or use IF~ .") _T_RE_EOL \
     _T("  ***** Notice the usage of double quotes and spaces between the") _T_RE_EOL \
     _T("  operands while comparing strings that contain '>', '<' and so on:") _T_RE_EOL \
     _T("    if \"1 >\" < \"2\" goto Label1  // \"1 >\" vs. \"2\"") _T_RE_EOL \
@@ -2066,7 +2068,56 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  This allows to apply more-or-less complicated conditional logic") _T_RE_EOL \
     _T("  inside NppExec\'s scripts.") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  else, endif, goto, label, set") _T_RE_EOL
+    _T("  if~, else, endif, goto, label, set") _T_RE_EOL
+  },
+
+  // IF~
+  {
+    CScriptEngine::DoCalcIfCommand::Name(),
+    _T("COMMAND:  if~") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  1. if~ <condition> goto <label>") _T_RE_EOL \
+    _T("  2. if~ <condition> then") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     endif") _T_RE_EOL \
+    _T("  3. if~ <condition> then") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     else") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     endif") _T_RE_EOL \
+    _T("  4. if~ <condition1> then") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     else if~ <condition2> then") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     else") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     endif") _T_RE_EOL \
+    _T("  5. if~ <condition1> goto <label1>") _T_RE_EOL \
+    _T("     else if~ <condition2> goto <label2>") _T_RE_EOL \
+    _T("     else") _T_RE_EOL \
+    _T("       ...") _T_RE_EOL \
+    _T("     endif") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  First calculates the operands, then checks the condition.") _T_RE_EOL \
+    _T("  If the condition is true, jumps to the specified label.") _T_RE_EOL \
+    _T("  If the condition is false, proceeds to the next line.") _T_RE_EOL \
+    _T("  * If the specified label can not be found within the current script,") _T_RE_EOL \
+    _T("  this command reports an error and proceeds to the next line.") _T_RE_EOL \
+    _T("  ** You should always place \"if\" and \"goto\" on the same line.") _T_RE_EOL \
+    _T("  Available conditions:") _T_RE_EOL \
+    _T("  a == b  - equal:             1 == 1,  NPPMSG == WM_USER + 1000") _T_RE_EOL \
+    _T("  a = b   - equal:             2 = 2,   $(x) + 5 = $(x) + 5") _T_RE_EOL \
+    _T("  a != b  - not equal:         1 != 2,  $(x) + 1 != sin($(y))") _T_RE_EOL \
+    _T("  a <> b  - not equal:         1 <> 2,  NPPMSG <> pi") _T_RE_EOL \
+    _T("  a > b   - greater:           2 > 1,   $(x) + 1 > 1") _T_RE_EOL \
+    _T("  a < b   - less:             -2 < 1,   $(x) - 10 < $(x) - 5") _T_RE_EOL \
+    _T("  a >= b  - greater or equal:  0 >= 0,  $(x) + 0 >= $(x)") _T_RE_EOL \
+    _T("  a <= b  - less or equal:     1 <= 2,  $(x) - 2 <= $(y) - 2") _T_RE_EOL \
+    _T("REMARKS:") _T_RE_EOL \
+    _T("  IF~ deals only with numbers and numeric calculations.") _T_RE_EOL \
+    _T("  A string operand will cause a syntax error.") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  if, else, endif, goto, label, set") _T_RE_EOL
   },
 
   // LABEL
@@ -2102,7 +2153,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  \"exist\" in different scripts, even if SomeScript1 then uses") _T_RE_EOL \
     _T("  NPP_EXEC to execute SomeScript2 or vice versa.") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  goto, if") _T_RE_EOL
+    _T("  goto, if, if~") _T_RE_EOL
   },
 
   // GOTO
@@ -2160,7 +2211,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  whereas any declared variable is visible and exists everywhere - unless") _T_RE_EOL \
     _T("  it is a local variable, of course.)") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  label, if, exit") _T_RE_EOL
+    _T("  label, if, if~, exit") _T_RE_EOL
   },
 
   // ELSE
@@ -2184,7 +2235,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  see: if") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  if, endif") _T_RE_EOL
+    _T("  if, if~, endif") _T_RE_EOL
   },
 
   // ENDIF
@@ -2200,7 +2251,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  see: if, else") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  if, else") _T_RE_EOL
+    _T("  if, if~, else") _T_RE_EOL
   },
 
   // EXIT
@@ -2259,7 +2310,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  endif") _T_RE_EOL \
     _T("  echo There was no error, continuing...") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  goto, if") _T_RE_EOL
+    _T("  goto, if, if~") _T_RE_EOL
   },
 
   // PROC_SIGNAL

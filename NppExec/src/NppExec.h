@@ -46,6 +46,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    directly in NppExec's Console because the previous state is restored right
    after the execution of this single "local" command, so you will not see any
    effect of it.
+ + added: if~ <condition> - first calculates, then checks the condition
  + added: set <var> ~ strescape <s>, set <var> ~ strunescape <s>
  + added: file names "npes_temp.txt" and "npes_saved.txt" can be customized
    (see "NppExec_TechInfo.txt" for details)

@@ -96,6 +96,7 @@ class CScriptEngine : public IScriptEngine
             CMDTYPE_MESSAGEBOX,
             CMDTYPE_EXIT,
             CMDTYPE_NPESENDMSGBUFLEN,
+            CMDTYPE_CALCIF,
 
             CMDTYPE_TOTAL_COUNT
         };
@@ -161,6 +162,7 @@ class CScriptEngine : public IScriptEngine
         eCmdResult DoExit(const tstr& params);
         eCmdResult DoGoTo(const tstr& params);
         eCmdResult DoIf(const tstr& params);
+        eCmdResult DoCalcIf(const tstr& params);
         eCmdResult DoInputBox(const tstr& params);
         eCmdResult DoLabel(const tstr& params);
         eCmdResult DoMessageBox(const tstr& params);
@@ -331,6 +333,14 @@ class CScriptEngine : public IScriptEngine
             static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_IF; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoIf(params); }
+        };
+
+        struct DoCalcIfCommand
+        {
+            static const TCHAR* const Name() { return _T("IF~"); }
+            static const TCHAR* const AltName() { return nullptr; }
+            static eCmdType           Type() { return CMDTYPE_CALCIF; }
+            static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoCalcIf(params); }
         };
 
         struct DoInputBoxCommand
@@ -708,6 +718,7 @@ class CScriptEngine : public IScriptEngine
                     registerCommand<DoExitCommand>();
                     registerCommand<DoGoToCommand>();
                     registerCommand<DoIfCommand>();
+                    registerCommand<DoCalcIfCommand>();
                     registerCommand<DoInputBoxCommand>();
                     registerCommand<DoLabelCommand>();
                     registerCommand<DoMessageBoxCommand>();
@@ -1506,7 +1517,7 @@ class CScriptEngine : public IScriptEngine
 
         eCmdResult doSendMsg(const tstr& params, int cmdType);
         eCmdResult doSciFindReplace(const tstr& params, eCmdType cmdType);
-        eCmdResult doIf(const tstr& params, bool isElseIf);
+        eCmdResult doIf(const tstr& params, bool isElseIf, bool isCalc);
         eCmdResult doTextLoad(const tstr& params, eCmdType cmdType);
         eCmdResult doTextSave(const tstr& params, eCmdType cmdType);
 

@@ -1169,7 +1169,11 @@ static FParserWrapper g_fp;
  *   - prints a text in the Console
  * if <condition> goto <label>
  *   - jumps to the label if the condition is true
+ * if~ <condition> goto <label>
+ *   - calculates and checks the condition
  * if ... else if ... else ... endif
+ *   - conditional execution
+ * if~ ... else if~ ... else ... endif
  *   - conditional execution
  * goto <label>
  *   - jumps to the label
@@ -1618,7 +1622,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                     Runtime::GetLogger().AddEx( _T("; skipping - waiting for %s"),
                         (ifState == IF_WANT_ENDIF || ifState == IF_WANT_SILENT_ENDIF || ifState == IF_EXECUTING) ? DoEndIfCommand::Name() : DoElseCommand::Name() );
                 
-                    if ( nCmdType == CMDTYPE_IF )
+                    if ( nCmdType == CMDTYPE_IF || nCmdType == CMDTYPE_CALCIF )
                     {
                         // nested IF inside a conditional block that is being skipped
                         currentScript.PushIfState(IF_WANT_SILENT_ENDIF);
@@ -2214,6 +2218,7 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
          (nCmdType == CMDTYPE_CONCOLOUR) ||
          (nCmdType == CMDTYPE_CONFILTER) ||
          (nCmdType == CMDTYPE_IF) || 
+         (nCmdType == CMDTYPE_CALCIF) ||
          (nCmdType == CMDTYPE_GOTO) || 
          (nCmdType == CMDTYPE_ELSE) ||
          (nCmdType == CMDTYPE_SLEEP) ||
@@ -3104,9 +3109,15 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
 
             static const TCHAR* arrIf[] = {
                 _T("IF "),
-                _T("IF\t"),
+                _T("IF\t")
             };
 
+            static const TCHAR* arrCalcIf[] = {
+                _T("IF~ "),
+                _T("IF~\t")
+            };
+
+            bool isCalc = false;
             int n = -1;
             for ( const TCHAR* const& i : arrIf )
             {
@@ -3117,17 +3128,30 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
 
             if ( n < 0 )
             {
+                for ( const TCHAR* const& i : arrCalcIf )
+                {
+                    n = paramsUpperCase.RFind(i);
+                    if ( n >= 0 )
+                    {
+                        isCalc = true;
+                        break;
+                    }
+                }
+            }
+
+            if ( n < 0 )
+            {
                 ScriptError( ET_UNPREDICTABLE, _T("- ELSE IF expected, but IF was not found.") );
                 nCmdResult = CMDRESULT_FAILED;
             }
             else
             {
                 tstr ifParams;
-                ifParams.Assign( params.c_str() + n + 3 );
+                ifParams.Assign( params.c_str() + n + (isCalc ? 4 : 3) );
                 NppExecHelpers::StrDelLeadingTabSpaces(ifParams);
                 NppExecHelpers::StrDelTrailingTabSpaces(ifParams);
 
-                doIf(ifParams, true);
+                doIf(ifParams, true, isCalc);
             }
         }
     }
@@ -3671,7 +3695,7 @@ class CondOperand
         eDecNumberType m_type;
 };
 
-static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
+static bool IsConditionTrue(const tstr& Condition, bool isCalc, bool* pHasSyntaxError)
 {
     if ( pHasSyntaxError )  *pHasSyntaxError = false;
 
@@ -3797,29 +3821,67 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
         Runtime::GetLogger().Add(   _T("{") );
         Runtime::GetLogger().IncIndentLevel();
 
-        // As the original quotes around op1 and op2 are kept (if any),
-        // we treat "123" as a string and 123 as a number
-        CondOperand co1(op1);
-        CondOperand co2(op2);
-
-        Runtime::GetLogger().AddEx( _T("op1 (%s) :  %s"), co1.type_as_str(), op1.c_str() );
-        Runtime::GetLogger().AddEx( _T("op2 (%s) :  %s"), co2.type_as_str(), op2.c_str() );
-        Runtime::GetLogger().AddEx( _T("condition :  %s"), cond.c_str() );
-
-        if ( (co1.type() == DNT_NOTNUMBER) || (co2.type() == DNT_NOTNUMBER) )
+        if ( isCalc )
         {
-            // compare as string values
-            ret = OperandComparator<tstr>(co1.value_str(), co2.value_str()).compare(condType);
-        }
-        else if ( (co1.type() == DNT_FLOATNUMBER) || (co2.type() == DNT_FLOATNUMBER) )
-        {
-            // compare as floating-point values
-            ret = OperandComparator<double>(co1.value_dbl(), co2.value_dbl()).compare(condType);
+            Runtime::GetLogger().AddEx( _T("op1 :  %s"), op1.c_str() );
+            Runtime::GetLogger().AddEx( _T("op2 :  %s"), op2.c_str() );
+            Runtime::GetLogger().AddEx( _T("condition :  %s"), cond.c_str() );
+
+            // making fparser-compatible condition...
+            switch ( condType )
+            {
+                case COND_EQUAL:
+                case COND_EQUALNOCASE:
+                    cond = _T("=");
+                    break;
+                case COND_NOTEQUAL:
+                    cond = _T("!=");
+                    break;
+            }
+
+            // fparser expression...
+            tstr expr = op1;
+            expr += cond;
+            expr += op2;
+
+            // calculating...
+            tstr calcErr, calcResult;
+            if ( g_fp.Calculate(&Runtime::GetNppExec(), expr, calcErr, calcResult) )
+            {
+                ret = (calcResult == _T("1"));
+            }
+            else
+            {
+                if ( pHasSyntaxError )  *pHasSyntaxError = true;
+                ret = false;
+            }
         }
         else
         {
-            // compare as integer values
-            ret = OperandComparator<__int64>(co1.value_int64(), co2.value_int64()).compare(condType);
+            // As the original quotes around op1 and op2 are kept (if any),
+            // we treat "123" as a string and 123 as a number
+            CondOperand co1(op1);
+            CondOperand co2(op2);
+
+            Runtime::GetLogger().AddEx( _T("op1 (%s) :  %s"), co1.type_as_str(), op1.c_str() );
+            Runtime::GetLogger().AddEx( _T("op2 (%s) :  %s"), co2.type_as_str(), op2.c_str() );
+            Runtime::GetLogger().AddEx( _T("condition :  %s"), cond.c_str() );
+
+            if ( (co1.type() == DNT_NOTNUMBER) || (co2.type() == DNT_NOTNUMBER) )
+            {
+                // compare as string values
+                ret = OperandComparator<tstr>(co1.value_str(), co2.value_str()).compare(condType);
+            }
+            else if ( (co1.type() == DNT_FLOATNUMBER) || (co2.type() == DNT_FLOATNUMBER) )
+            {
+                // compare as floating-point values
+                ret = OperandComparator<double>(co1.value_dbl(), co2.value_dbl()).compare(condType);
+            }
+            else
+            {
+                // compare as integer values
+                ret = OperandComparator<__int64>(co1.value_int64(), co2.value_int64()).compare(condType);
+            }
         }
 
         Runtime::GetLogger().DecIndentLevel();
@@ -3837,17 +3899,22 @@ static bool IsConditionTrue(const tstr& Condition, bool* pHasSyntaxError)
 
 CScriptEngine::eCmdResult CScriptEngine::DoIf(const tstr& params)
 {
-    return doIf(params, false);
+    return doIf(params, false, false);
 }
 
-CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
+CScriptEngine::eCmdResult CScriptEngine::DoCalcIf(const tstr& params)
+{
+    return doIf(params, false, true);
+}
+
+CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf, bool isCalc)
 {
     enum eIfMode {
         IF_GOTO = 0,
         IF_THEN
     };
 
-    if ( !reportCmdAndParams( DoIfCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+    if ( !reportCmdAndParams( isCalc ? DoCalcIfCommand::Name() : DoIfCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
         return CMDRESULT_INVALIDPARAM;
 
     tstr paramsUpperCase = params;
@@ -3920,7 +3987,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf)
     }
 
     bool hasSyntaxError = false;
-    bool isConditionOK = IsConditionTrue(ifCondition, &hasSyntaxError);
+    bool isConditionOK = IsConditionTrue(ifCondition, isCalc, &hasSyntaxError);
 
     if ( hasSyntaxError )
     {
