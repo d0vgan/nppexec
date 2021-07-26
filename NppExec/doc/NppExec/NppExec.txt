@@ -1,6 +1,6 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.6.9.9 for Notepad++
+ * NppExec plugin ver. 0.7 for Notepad++
  * by DV <dvv81 @ ukr.net>, December 2006 - July 2021
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
@@ -207,8 +207,8 @@
  *  HISTORY  *
  *************
 
- v0.6.9.9 - July 2021
- --------------------
+ v0.7 - July 2021
+ ----------------
  + added: now NppExec supports the "Dark Mode" of Notepad++ v8
    (Thanks to Peter Jones for the updated icons!)
    NppExec is still compatible with previous versions of Notepad++.

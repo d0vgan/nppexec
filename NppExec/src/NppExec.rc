@@ -153,9 +153,9 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,95,262,50,14
 //    PUSHBUTTON      "Donate...",IDC_BT_DONATE,180,262,50,14
 #ifdef UNICODE
-    CTEXT           "NppExec ver. 0.6.9.9 Unicode for Notepad++",
+    CTEXT           "NppExec ver. 0.7 Unicode for Notepad++",
 #else
-    CTEXT           "NppExec ver. 0.6.9.9 ANSI for Notepad++",
+    CTEXT           "NppExec ver. 0.7 ANSI for Notepad++",
 #endif
                     IDC_STATIC,7,7,225,13
                     CTEXT           "(C)  Dec 2006 - Jul 2021,  Vitaliy Dovgan aka DV <dvv81 @ ukr.net>",
@@ -544,8 +544,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0, 6, 9, 9
- PRODUCTVERSION 0, 6, 9, 9
+ FILEVERSION 0, 7, 0, 0
+ PRODUCTVERSION 0, 7, 0, 0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -563,12 +563,12 @@ BEGIN
             VALUE "Comments", "The wall is thin - and our foreheads are hard :-)"
             VALUE "CompanyName", "Full of Madness Co."
             VALUE "FileDescription", "NppExec plugin for Notepad++"
-            VALUE "FileVersion", "0, 6, 9, 9"
+            VALUE "FileVersion", "0, 7, 0, 0"
             VALUE "InternalName", "NppExec"
             VALUE "LegalCopyright", "(C) Dec 2006 - Jul 2021, Vitaliy Dovgan aka DV"
             VALUE "OriginalFilename", "NppExec.dll"
             VALUE "ProductName", "NppExec plugin for Notepad++"
-            VALUE "ProductVersion", "0, 6, 9, 9"
+            VALUE "ProductVersion", "0, 7, 0, 0"
         END
     END
     BLOCK "VarFileInfo"
