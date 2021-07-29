@@ -128,6 +128,7 @@
  *        npe_console <options> - set/modify Console options/mode
  *        npe_console local ... - sets Console's mode locally              (**)
  *        npe_debuglog <on/off> - enable/disable Debug Log
+ *        npe_debuglog local ... - enable/disable Debug Log locally        (**)
  *        npe_debug <1/0> - see "npe_debuglog"
  *        npe_noemptyvars <1/0> - enable/disable replacement of empty vars
  *        npe_noemptyvars local ... - sets empty vars on/off locally       (**)

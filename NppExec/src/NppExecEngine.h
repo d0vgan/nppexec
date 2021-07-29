@@ -983,6 +983,18 @@ class CScriptEngine : public IScriptEngine
                     mHasValues |= fConsoleSetOutputVar;
                 }
 
+                void setConsoleDebugLog(bool bConsoleDebugLog)
+                {
+                    mConsoleDebugLog = bConsoleDebugLog;
+                    mHasValues |= fConsoleDebugLog;
+                }
+
+                void setLoggerOutputMode(bool bLoggerOutputMode)
+                {
+                    mLoggerOutputMode = bLoggerOutputMode;
+                    mHasValues |= fLoggerOutputMode;
+                }
+
                 void setConsoleNoEmptyVars(bool bConsoleNoEmptyVars)
                 {
                     mConsoleNoEmptyVars = bConsoleNoEmptyVars;
@@ -1027,6 +1039,8 @@ class CScriptEngine : public IScriptEngine
                 bool hasConsolePrintMsgReady() const { return ((mHasValues & fConsolePrintMsgReady) != 0); }
                 bool hasConsoleNoCmdAliases() const { return ((mHasValues & fConsoleNoCmdAliases) != 0); }
                 bool hasConsoleSetOutputVar() const { return ((mHasValues & fConsoleSetOutputVar) != 0); }
+                bool hasConsoleDebugLog() const { return ((mHasValues & fConsoleDebugLog) != 0); }
+                bool hasLoggerOutputMode() const { return ((mHasValues & fLoggerOutputMode) != 0); }
                 bool hasConsoleNoEmptyVars() const { return ((mHasValues & fConsoleNoEmptyVars) != 0); }
                 bool hasConsoleDialogVisible() const { return ((mHasValues & fConsoleDialogVisible) != 0); }
                 bool hasConsoleIsOutputEnabled() const { return ((mHasValues & fConsoleIsOutputEnabled) != 0); }
@@ -1036,6 +1050,7 @@ class CScriptEngine : public IScriptEngine
                 {
                     if ( mHasValues != 0 )
                     {
+                        restoreNpeDebugLog(pNppExec);
                         restoreConColors(pNppExec);
                         restoreConFilters(pNppExec);
                         restoreNpeConsole(pNppExec);
@@ -1142,6 +1157,21 @@ class CScriptEngine : public IScriptEngine
                     if ( hasConsoleSetOutputVar() )
                     {
                         pNppExec->GetOptions().SetBool(OPTB_CONSOLE_SETOUTPUTVAR, mConsoleSetOutputVar);
+                    }
+                }
+
+                void restoreNpeDebugLog(CNppExec* pNppExec)
+                {
+                    if ( hasConsoleDebugLog() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_NPE_DEBUGLOG, mConsoleDebugLog);
+                    }
+                    if ( hasLoggerOutputMode() )
+                    {
+                        if ( mLoggerOutputMode )
+                            Runtime::GetLogger().SetOutputMode(true, CNppExec::printScriptString);
+                        else
+                            Runtime::GetLogger().SetOutputMode(false);
                     }
                 }
 
@@ -1278,7 +1308,9 @@ class CScriptEngine : public IScriptEngine
                     fConsoleNoEmptyVars       = 0x00080000,
                     fConsoleDialogVisible     = 0x00100000,
                     fConsoleIsOutputEnabled   = 0x00200000,
-                    fSendMsgBufLen            = 0x00400000
+                    fSendMsgBufLen            = 0x00400000,
+                    fConsoleDebugLog          = 0x00800000,
+                    fLoggerOutputMode         = 0x01000000
                 };
 
                 // we might use std::optional (C++17) instead, but would it be so fun? :)
@@ -1308,6 +1340,10 @@ class CScriptEngine : public IScriptEngine
                 bool mConsolePrintMsgReady;
                 bool mConsoleNoCmdAliases;
                 bool mConsoleSetOutputVar;
+
+                // DoNpeDebugLog
+                bool mConsoleDebugLog;
+                bool mLoggerOutputMode;
 
                 // DoNpeNoEmptyVars:
                 bool mConsoleNoEmptyVars;

@@ -1388,6 +1388,8 @@ static FParserWrapper g_fp;
  *   - sets Console's mode locally (within the current script)
  * npe_debuglog <on/off>
  *   - enable/disable Debug Log
+ * npe_debuglog local ...
+ *   - enable/disable Debug Log locally (within the current script)
  * npe_noemptyvars <1/0>
  *   - enable/disable replacement of empty vars
  * npe_noemptyvars local ...
@@ -3820,10 +3822,10 @@ static bool IsConditionTrue(CScriptEngine* pScriptEngine, const tstr& Condition,
         CNppExec* pNppExec = pScriptEngine->GetNppExec();
         CNppExecMacroVars& MacroVars = pNppExec->GetMacroVars();
 
-        Runtime::GetLogger().Add(   _T("; IF: op1: CheckAllMacroVars") );
+        Runtime::GetLogger().Add(   _T("; IF: op1: calling CheckAllMacroVars") );
         MacroVars.CheckAllMacroVars(pScriptEngine, op1, true);
 
-        Runtime::GetLogger().Add(   _T("; IF: op2: CheckAllMacroVars") );
+        Runtime::GetLogger().Add(   _T("; IF: op2: calling CheckAllMacroVars") );
         MacroVars.CheckAllMacroVars(pScriptEngine, op2, true);
 
         Runtime::GetLogger().Add(   _T("IsConditionTrue()") );
@@ -4740,16 +4742,30 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeDebugLog(const tstr& params)
     reportCmdAndParams( DoNpeDebugLogCommand::Name(), params, fMessageToConsole );
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
-    int nParam = getOnOffParam(params);
-    if (nParam == PARAM_ON)
+    tstr sParams = params;
+    bool isLocal = isLocalParam(sParams);
+    int nParam = getOnOffParam(sParams);
+    if (nParam == PARAM_ON || nParam == PARAM_OFF)
     {
-        m_pNppExec->GetOptions().SetBool(OPTB_NPE_DEBUGLOG, true);
-        Runtime::GetLogger().SetOutputMode(true, CNppExec::printScriptString);
-    }
-    else if (nParam == PARAM_OFF)
-    {
-        m_pNppExec->GetOptions().SetBool(OPTB_NPE_DEBUGLOG, false);
-        Runtime::GetLogger().SetOutputMode(false);
+        if (isLocal)
+        {
+            ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+            SavedConfiguration& savedConf = currentScript.SavedConf;
+            if ( !savedConf.hasConsoleDebugLog() )
+                savedConf.setConsoleDebugLog( m_pNppExec->GetOptions().GetBool(OPTB_NPE_DEBUGLOG) );
+            if ( !savedConf.hasLoggerOutputMode() )
+                savedConf.setLoggerOutputMode( Runtime::GetLogger().IsOutputMode() );
+        }
+        if (nParam == PARAM_ON)
+        {
+            m_pNppExec->GetOptions().SetBool(OPTB_NPE_DEBUGLOG, true);
+            Runtime::GetLogger().SetOutputMode(true, CNppExec::printScriptString);
+        }
+        else // nParam == PARAM_OFF
+        {
+            m_pNppExec->GetOptions().SetBool(OPTB_NPE_DEBUGLOG, false);
+            Runtime::GetLogger().SetOutputMode(false);
+        }
     }
     else if (nParam != PARAM_EMPTY)
     {

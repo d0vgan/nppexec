@@ -20,6 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.7.1 - (August) 2021
+ ----------------------
+ * changed: now IF/IF~/ELSE IF use delayed $(var) substitution.
+   It means that IF "$(var)" != "" will work even when the value of $(var)
+   contains inner " quote character(s).
+ + added: now npe_debuglog supports the keyword "local".
+
+
  v0.7 - July 2021
  ----------------
  + added: now NppExec supports the "Dark Mode" of Notepad++ v8

@@ -206,6 +206,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("npe_console <options>  -  set/modify Console options/mode") _T_RE_EOL \
   _T("npe_console local ...  -  sets Console's mode locally (within the current script)") _T_RE_EOL \
   _T("npe_debuglog <on/off>  -  enable/disable Debug Log") _T_RE_EOL \
+  _T("npe_debuglog local ...  -  enable/disable Debug Log locally (within the current script)") _T_RE_EOL \
   _T("npe_debug <1/0>  -  see \"npe_debuglog\"") _T_RE_EOL \
   _T("npe_noemptyvars <1/0>  -  enable/disable replacement of empty vars") _T_RE_EOL \
   _T("npe_noemptyvars local ...  -  sets empty vars on/off locally (within the current script)") _T_RE_EOL \
@@ -1655,10 +1656,13 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  npe_debuglog 1") _T_RE_EOL \
     _T("  npe_debuglog off") _T_RE_EOL \
     _T("  npe_debuglog 0") _T_RE_EOL \
+    _T("  npe_debuglog local 1/0") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  1. Without parameter - shows current Debug Log state (On/Off)") _T_RE_EOL \
     _T("  2. On or 1 - enables the Debug Log in NppExec's Console") _T_RE_EOL \
-    _T("  3. Off or 0 - disables the Debug Log in NppExec's Console") _T_RE_EOL
+    _T("  3. Off or 0 - disables the Debug Log in NppExec's Console") _T_RE_EOL \
+    _T("  4. local - enables/disables the Debug Log locally") _T_RE_EOL \
+    _T_LOCAL_CMD_HINT
   },
 
   // NPE_NOEMPTYVARS
@@ -1674,7 +1678,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  1. Without parameter - shows current option\'s state") _T_RE_EOL \
     _T("  2. 1 or On - enables replacement of empty (uninitialized) vars") _T_RE_EOL \
     _T("  3. 0 or Off - disables replacement of empty (uninitialized) vars") _T_RE_EOL \
-    _T("  4. local - enables/disables locally") _T_RE_EOL \
+    _T("  4. local - enables/disables empty vars locally") _T_RE_EOL \
     _T_LOCAL_CMD_HINT \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  unset var            // to be sure that $(var) is uninitialized") _T_RE_EOL \
