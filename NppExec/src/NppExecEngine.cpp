@@ -2085,6 +2085,27 @@ bool CScriptEngine::isSkippingThisCommandDueToIfState(eCmdType cmdType, eIfState
              ((ifState == IF_EXECUTING) && (cmdType == CMDTYPE_ELSE)) );
 }
 
+bool CScriptEngine::usesDelayedVarSubstitution(eCmdType cmdType)
+{
+    switch ( cmdType )
+    {
+        case CMDTYPE_SET:
+        case CMDTYPE_UNSET:
+        case CMDTYPE_IF:
+        case CMDTYPE_CALCIF:
+        case CMDTYPE_ELSE:
+        case CMDTYPE_NPPSENDMSG:
+        case CMDTYPE_NPPSENDMSGEX:
+        case CMDTYPE_SCISENDMSG:
+        case CMDTYPE_SCIFIND:
+        case CMDTYPE_SCIREPLACE:
+        case CMDTYPE_NPECMDALIAS:
+        case CMDTYPE_NPEQUEUE:
+            return true;
+    }
+    return false;
+}
+
 CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptEngine, tstr& Cmd, eIfState ifState)
 {
     Runtime::GetLogger().Add(   _T("ModifyCommandLine()") );
@@ -2154,16 +2175,7 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
         return nCmdType;
     }
   
-    if ( (nCmdType != CMDTYPE_SET) &&
-         (nCmdType != CMDTYPE_UNSET) &&
-         (nCmdType != CMDTYPE_NPPSENDMSG) &&
-         (nCmdType != CMDTYPE_NPPSENDMSGEX) &&
-         (nCmdType != CMDTYPE_SCISENDMSG) &&
-         (nCmdType != CMDTYPE_SCIFIND) &&
-         (nCmdType != CMDTYPE_SCIREPLACE) &&
-         (nCmdType != CMDTYPE_NPECMDALIAS) &&
-         (nCmdType != CMDTYPE_NPEQUEUE) &&
-         (nCmdType != CMDTYPE_CONFILTER) )
+    if ( !usesDelayedVarSubstitution(nCmdType) )
     {
         bool bCmdStartsWithMacroVar = Cmd.StartsWith(_T("$("));
 
@@ -2207,22 +2219,11 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
     // ... do we need "" around the command's argument? ...
     
     bool bDone = false;
-    if ( (nCmdType == CMDTYPE_SET) ||
-         (nCmdType == CMDTYPE_UNSET) ||
-         (nCmdType == CMDTYPE_NPECMDALIAS) ||
-         (nCmdType == CMDTYPE_NPPSENDMSG) ||
-         (nCmdType == CMDTYPE_NPPSENDMSGEX) || 
-         (nCmdType == CMDTYPE_SCISENDMSG) ||
-         (nCmdType == CMDTYPE_SCIFIND) ||
-         (nCmdType == CMDTYPE_SCIREPLACE) ||
-         (nCmdType == CMDTYPE_CONCOLOUR) ||
+    if ( (nCmdType == CMDTYPE_CONCOLOUR) ||
          (nCmdType == CMDTYPE_CONFILTER) ||
-         (nCmdType == CMDTYPE_IF) || 
-         (nCmdType == CMDTYPE_CALCIF) ||
          (nCmdType == CMDTYPE_GOTO) || 
-         (nCmdType == CMDTYPE_ELSE) ||
          (nCmdType == CMDTYPE_SLEEP) ||
-         (nCmdType == CMDTYPE_NPEQUEUE) )
+         usesDelayedVarSubstitution(nCmdType) )
     {
         bDone = true;
     }
@@ -3695,7 +3696,7 @@ class CondOperand
         eDecNumberType m_type;
 };
 
-static bool IsConditionTrue(const tstr& Condition, bool isCalc, bool* pHasSyntaxError)
+static bool IsConditionTrue(CScriptEngine* pScriptEngine, const tstr& Condition, bool isCalc, bool* pHasSyntaxError)
 {
     if ( pHasSyntaxError )  *pHasSyntaxError = false;
 
@@ -3816,6 +3817,14 @@ static bool IsConditionTrue(const tstr& Condition, bool isCalc, bool* pHasSyntax
 
     if ( condType != COND_NONE )
     {
+        CNppExec* pNppExec = pScriptEngine->GetNppExec();
+        CNppExecMacroVars& MacroVars = pNppExec->GetMacroVars();
+
+        Runtime::GetLogger().Add(   _T("; IF: op1: CheckAllMacroVars") );
+        MacroVars.CheckAllMacroVars(pScriptEngine, op1, true);
+
+        Runtime::GetLogger().Add(   _T("; IF: op2: CheckAllMacroVars") );
+        MacroVars.CheckAllMacroVars(pScriptEngine, op2, true);
 
         Runtime::GetLogger().Add(   _T("IsConditionTrue()") );
         Runtime::GetLogger().Add(   _T("{") );
@@ -3846,7 +3855,7 @@ static bool IsConditionTrue(const tstr& Condition, bool isCalc, bool* pHasSyntax
 
             // calculating...
             tstr calcErr, calcResult;
-            if ( g_fp.Calculate(&Runtime::GetNppExec(), expr, calcErr, calcResult) )
+            if ( g_fp.Calculate(pNppExec, expr, calcErr, calcResult) )
             {
                 ret = (calcResult == _T("1"));
             }
@@ -3987,7 +3996,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf,
     }
 
     bool hasSyntaxError = false;
-    bool isConditionOK = IsConditionTrue(ifCondition, isCalc, &hasSyntaxError);
+    bool isConditionOK = IsConditionTrue(this, ifCondition, isCalc, &hasSyntaxError);
 
     if ( hasSyntaxError )
     {

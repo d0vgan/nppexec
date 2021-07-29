@@ -797,6 +797,7 @@ class CScriptEngine : public IScriptEngine
         static int      getOnOffParam(const tstr& param);
         static bool     isCommentOrEmpty(CNppExec* pNppExec, tstr& Cmd);
         static bool     isSkippingThisCommandDueToIfState(eCmdType cmdType, eIfState ifState);
+        static bool     usesDelayedVarSubstitution(eCmdType cmdType);
         static eCmdType modifyCommandLine(CScriptEngine* pScriptEngine, tstr& Cmd, eIfState ifState);
         static bool     isLocalParam(tstr& param);
 

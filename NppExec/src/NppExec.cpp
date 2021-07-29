@@ -1465,8 +1465,9 @@ void globalInitialize()
         szMenuItem[len] = 0;
       if ( (len < 0) && (lstrcmp(szMenuItem, cszUserMenuSeparator) == 0) )
       {
+        // separator
         InitFuncItem(nbFunc + g_nUserMenuItems + 1, // g_funcItem[nbFunc] is a separator
-          _T(""), empty_func, NULL); // separator, use empty_func here!!!
+          _T(""), empty_func, NULL); // empty_func is used here to be able to move this menu item (see RemoveMenu)
       }
       else
       {
@@ -1480,7 +1481,7 @@ void globalInitialize()
   if ( g_nUserMenuItems > 0 )
   {
     // separator
-    InitFuncItem(nbFunc, _T(""), empty_func, NULL); // <-- use empty_func here!!!
+    InitFuncItem(nbFunc, _T(""), empty_func, NULL); // empty_func is used here to be able to move this menu item (see RemoveMenu)
   }
 
   g_bInitialized = true;

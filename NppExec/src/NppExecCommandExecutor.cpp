@@ -582,14 +582,7 @@ void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd)
         tstr s = cmd;
         const CScriptEngine::eCmdType cmdType = CScriptEngine::getCmdType(m_pNppExec, s, CScriptEngine::ctfIgnorePrefix);
 
-        if ( (cmdType != CScriptEngine::CMDTYPE_NPPSENDMSG) &&
-             (cmdType != CScriptEngine::CMDTYPE_NPPSENDMSGEX) &&
-             (cmdType != CScriptEngine::CMDTYPE_SCISENDMSG) &&
-             (cmdType != CScriptEngine::CMDTYPE_SCIFIND) &&
-             (cmdType != CScriptEngine::CMDTYPE_SCIREPLACE) &&
-             (cmdType != CScriptEngine::CMDTYPE_NPECMDALIAS) &&
-             (cmdType != CScriptEngine::CMDTYPE_NPEQUEUE) &&
-             (cmdType != CScriptEngine::CMDTYPE_CONFILTER) )
+        if ( !CScriptEngine::usesDelayedVarSubstitution(cmdType) )
         {
             m_pNppExec->GetMacroVars().CheckCmdAliases(cmd, true);
             m_pNppExec->GetMacroVars().CheckAllMacroVars(nullptr, cmd, true);
