@@ -1306,7 +1306,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set local x = 123") _T_RE_EOL \
     _T("  set local y = $") _T_RE_EOL \
     _T("  set local z ~ strexpand $(y)(x) // $(y)(x) -> $(x) -> 123") _T_RE_EOL \
-    _T("  // strexpand: let's assume the clipboard contains \"$(x)\"") _T_RE_EOL \
+    _T("  clip_settext $(y)(x) // now the clipboard contains \"$(x)\"") _T_RE_EOL \
     _T("  set local c ~ strexpand $(CLIPBOARD_TEXT) // $(x) -> 123") _T_RE_EOL \
     _T("  // normpath") _T_RE_EOL \
     _T("  set s ~ normpath C:\\A\\.\\B\\X\\..\\C  // C:\\A\\B\\C") _T_RE_EOL \
