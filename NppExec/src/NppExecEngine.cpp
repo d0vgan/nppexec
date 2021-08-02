@@ -35,6 +35,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <shellapi.h>
 #include <limits>
 
+#ifdef _DEBUG
+  #include <cassert>
+#endif
+
 #ifdef UNICODE
   #define _t_sprintf  swprintf
   #ifndef __MINGW32__
@@ -182,7 +186,7 @@ class PrintMacroVarFunc
             const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
             m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
 
-            return true;
+            return false; // don't stop
         }
 
     protected:
@@ -195,7 +199,7 @@ class SubstituteMacroVarFunc
         typedef const CNppExecMacroVars::tMacroVars container_type;
         typedef container_type::const_iterator iterator_type;
 
-        SubstituteMacroVarFunc(tstr& Value) : m_Value(Value)
+        SubstituteMacroVarFunc(tstr& Value, int& pos) : m_Value(Value), m_Pos(pos)
         {
             m_ValueUpper = Value;
             NppExecHelpers::StrUpper(m_ValueUpper);
@@ -205,28 +209,25 @@ class SubstituteMacroVarFunc
 
         bool operator()(iterator_type itrVar, bool /*isLocalVar*/)
         {
-            int pos = m_ValueUpper.Find(_T("$("), 0);
-            if ( pos < 0 )
-                return false;
-
             const tstr& varName = itrVar->first;
-            while ( (pos = m_ValueUpper.Find(varName, pos)) >= 0 )
+            if ( StrUnsafeSubCmp(m_ValueUpper.c_str() + m_Pos, varName.c_str()) == 0 )
             {
                 const tstr& varValue = itrVar->second;
-                m_ValueUpper.Replace( pos, varName.length(), varValue.c_str(), varValue.length() );
-                m_Value.Replace( pos, varName.length(), varValue.c_str(), varValue.length() );
-                pos += varValue.length();
+                m_Value.Replace( m_Pos, varName.length(), varValue.c_str(), varValue.length() );
+                m_Pos += varValue.length();
+                return true; // substituted; stop!
             }
 
-            return true;
+            return false; // don't stop
         }
 
     protected:
+        int& m_Pos;
         tstr& m_Value;
         tstr m_ValueUpper;
 };
 
-template<class MacroVarFunc> void IterateUserMacroVars(
+template<class MacroVarFunc> bool IterateUserMacroVars(
     typename MacroVarFunc::container_type& userMacroVars,
     typename MacroVarFunc::container_type& userLocalMacroVars,
     MacroVarFunc func)
@@ -255,10 +256,12 @@ template<class MacroVarFunc> void IterateUserMacroVars(
         if ( isLocalVars ||
              (userLocalMacroVars.find(itrVar->first) == userLocalMacroVars.end()) )
         {
-            if ( !func(itrVar, isLocalVars) )
-                break;
+            if ( func(itrVar, isLocalVars) )
+                return true;
         }
     }
+
+    return false;
 }
 
 
@@ -6736,51 +6739,76 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
     reportCmdAndParams( DoSetCommand::Name(), params, fMessageToConsole );
     
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
+    bool isInternalMsg = false;
+    bool bLocalVar = false;
+    tstr varName;
 
     // sets the value of user's variable
-    tstr CmdParams = params;
+    if ( !params.IsEmpty() )
     {
-        CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
-        // the variable's value will be set here:
-        if ( !MacroVars.CheckAllMacroVars(this, CmdParams, true, CMDTYPE_SET) )
-            nCmdResult = CMDRESULT_FAILED;
-    }
+        const TCHAR* const DEF_OP  = _T("=");
+        const TCHAR* const CALC_OP = _T("~");
+        const int i1 = params.Find(DEF_OP);    
+        const int i2 = params.Find(CALC_OP);
+        const bool bSep1 = ((i1 < i2 && i1 >= 0) || (i2 < 0));
+        const TCHAR* const sep = bSep1 ? DEF_OP : CALC_OP;
+        CStrSplitT<TCHAR> args;
 
-    bool isInternal = false;
-    bool bLocalVar = false;
-    
-    tstr varName;
-    if ( CmdParams.IsEmpty() )
-    {
-          
-        Runtime::GetLogger().Add(   _T("; no arguments given - showing all user\'s variables") );
+        if ( args.Split(params, sep, 2) == 2 )
+        {
+            varName = args.Arg(0);
+            isInternalMsg = true;
 
+            tstr& varValue = args.Arg(1);
+            NppExecHelpers::StrDelLeadingTabSpaces(varName);
+            NppExecHelpers::StrDelTrailingTabSpaces(varName);
+            NppExecHelpers::StrDelLeadingTabSpaces(varValue);
+            NppExecHelpers::StrDelTrailingTabSpaces(varValue);
+
+            CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
+            MacroVars.CheckAllMacroVars(this, varName, true, CMDTYPE_SET);
+            MacroVars.CheckAllMacroVars(this, varValue, true);
+
+            if ( !bSep1 )
+            {
+                if ( !CNppExecMacroVars::StrCalc(varValue, m_pNppExec).Process() )
+                    nCmdResult = CMDRESULT_FAILED;
+            }
+
+            bLocalVar = CNppExecMacroVars::IsLocalMacroVar(varName);
+            if ( bLocalVar && varName.IsEmpty() )
+            {
+                // set local = ...
+                varName = _T("LOCAL");
+                bLocalVar = false;
+            }
+
+            tstr S = bLocalVar ? _T("local ") : _T("");
+            S += varName;
+            S += _T(" = ");
+            S += varValue;
+
+            if ( MacroVars.SetUserMacroVar(this, varName, varValue, bLocalVar ? CNppExecMacroVars::svLocalVar : 0) )
+            {
+                Runtime::GetLogger().AddEx( _T("; OK: %s%s = %s"), bLocalVar ? _T("local ") : _T(""), varName.c_str(), varValue.c_str() );
+            }
+            else
+            {
+                Runtime::GetLogger().AddEx( _T("; failed to set %s%s = %s"), bLocalVar ? _T("local ") : _T(""), varName.c_str(), varValue.c_str() );
+                nCmdResult = CMDRESULT_FAILED;
+            }
+        }
+        else
+        {
+            // "set $(var)" returns the value of var
+            // "set" returns all vars and values
+        }
     }
     else
     {
-        varName = CmdParams;
-        int k = varName.Find( _T("=") );
-        if ( k >= 0 )
-        {
-            varName.SetSize(k);
-            isInternal = true;
-        }
-        NppExecHelpers::StrDelLeadingTabSpaces(varName);
-        NppExecHelpers::StrDelTrailingTabSpaces(varName);
-        bLocalVar = m_pNppExec->GetMacroVars().IsLocalMacroVar(varName);
-        if ( bLocalVar && (k >= 0) && varName.IsEmpty() )
-        {
-            // set local = ...
-            varName = _T("LOCAL");
-            bLocalVar = false;
-        }
-        if ( varName.length() > 0 )
-        {
-            CNppExecMacroVars::MakeCompleteVarName(varName);
-            NppExecHelpers::StrUpper(varName);
-        }
+        Runtime::GetLogger().Add(   _T("; no arguments given - showing all user\'s variables") );
     }
-
+    
     {
         CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
         const CNppExecMacroVars::tMacroVars& userLocalMacroVars = m_pNppExec->GetMacroVars().GetUserLocalMacroVars(this);
@@ -6833,7 +6861,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
                         S += itrVar->second;
                     }
                     UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-                    if ( isInternal )
+                    if ( isInternalMsg )
                         nMsgFlags |= CNppExecConsole::pfIsInternalMsg;
                     m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                 }
@@ -6861,14 +6889,53 @@ CScriptEngine::eCmdResult CScriptEngine::DoUnset(const tstr& params)
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
 
     // unsets the user's variable
-    tstr CmdParams = params;
+    if ( !params.IsEmpty() )
     {
+        tstr varName = params;
+        int k = varName.Find( _T("=") );
+        if ( k >= 0 )  varName.SetSize(k);
+        NppExecHelpers::StrDelLeadingTabSpaces(varName);
+        NppExecHelpers::StrDelTrailingTabSpaces(varName);
+
         CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
-        if ( !MacroVars.CheckAllMacroVars(this, CmdParams, true, CMDTYPE_UNSET) )
+        MacroVars.CheckAllMacroVars(this, varName, true, CMDTYPE_UNSET);
+
+        bool bLocalVar = CNppExecMacroVars::IsLocalMacroVar(varName);
+        if ( bLocalVar && varName.IsEmpty() )
+        {
+            // unset local
+            varName = _T("LOCAL");
+            bLocalVar = false;
+        }
+        unsigned int nFlags = CNppExecMacroVars::svRemoveVar;
+        if ( bLocalVar )
+            nFlags |= CNppExecMacroVars::svLocalVar;
+        if ( MacroVars.SetUserMacroVar(this, varName, _T(""), nFlags) )
+        {
+            Runtime::GetLogger().AddEx( _T("; OK: %s%s has been removed"), bLocalVar ? _T("local ") : _T(""), varName.c_str() );
+
+            tstr t = _T("- the user\'s ");
+            if ( bLocalVar ) t += _T("local ");
+            t += _T("variable has been removed: ");
+            t += varName;
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+            m_pNppExec->GetConsole().PrintMessage( t.c_str(), nMsgFlags );
+        }
+        else
+        {
+            Runtime::GetLogger().AddEx( _T("; failed to unset %s%s (no such user\'s variable)"), bLocalVar ? _T("local ") : _T(""), varName.c_str() );
+
+            tstr t = _T("- no such user\'s ");
+            if ( bLocalVar ) t += _T("local ");
+            t += _T("variable: ");
+            t += varName;
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+            m_pNppExec->GetConsole().PrintMessage( t.c_str(), nMsgFlags );
+
             nCmdResult = CMDRESULT_FAILED;
+        }
     }
-    
-    if ( CmdParams.IsEmpty() )
+    else
     {
         errorCmdNoParam(DoUnsetCommand::Name());
         nCmdResult = CMDRESULT_INVALIDPARAM;
@@ -6957,52 +7024,52 @@ CCriticalSection& CNppExecMacroVars::GetCsCmdAliases()
     return m_csCmdAliases;
 }
 
-void CNppExecMacroVars::CheckCmdArgs(tstr& Cmd, const CStrSplitT<TCHAR>& args)
+bool CNppExecMacroVars::CheckCmdArgs(tstr& Cmd, int& pos, const CStrSplitT<TCHAR>& args)
 {
-  
-  Runtime::GetLogger().Add(   _T("CheckCmdArgs()") );
-  Runtime::GetLogger().Add(   _T("{") );
-  Runtime::GetLogger().IncIndentLevel();
-  Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), Cmd.c_str() );   
-    
-  if ( ContainsMacroVar(Cmd) )
+  const TCHAR* const funcName = _T("CheckCmdArgs()");
+
+  assert( StrUnsafeSubCmp(Cmd.c_str() + pos, _T("$(")) == 0 );
+  //if ( StrUnsafeSubCmp(Cmd.c_str() + pos, _T("$(")) == 0 )
   {
+    TCHAR szNum[3*sizeof(int) + 2];
     tstr S = Cmd;
     NppExecHelpers::StrUpper(S);
-      
-    TCHAR szNum[3*sizeof(int) + 2];
-    c_base::_tint2str(args.GetArgCount(), szNum);
 
-    int   len = lstrlen(MACRO_ARGC);
-    int   pos = 0;
-    while ( (pos = S.Find(MACRO_ARGC, pos)) >= 0 )
+    if ( StrUnsafeSubCmp(S.c_str() + pos, MACRO_ARGC) == 0 )
     {
-      S.Replace(pos, len, szNum);
+      logInput(funcName, Cmd.c_str(), pos);
+
+      c_base::_tint2str(args.GetArgCount(), szNum);
+      const int len = lstrlen(MACRO_ARGC);
       Cmd.Replace(pos, len, szNum);
       pos += lstrlen(szNum);
+
+      logOutput(Cmd.c_str());
+      return true;
     }
 
-    int  len1 = lstrlen(MACRO_ARGV);
-    int  len2 = lstrlen(MACRO_RARGV);
+    int len = -1;
     bool bReverse = false;
-    if ( (pos = S.Find(MACRO_RARGV)) >= 0 )
+    if ( StrUnsafeSubCmp(S.c_str() + pos, MACRO_ARGV) == 0 )
     {
-      len = len2;
-      bReverse = true;
-    }
-    else if ( (pos = S.Find(MACRO_ARGV)) >= 0 )
-    {
-      len = len1;
+      len = lstrlen(MACRO_ARGV);
       bReverse = false;
     }
-    while ( pos >= 0 )
+    else if ( StrUnsafeSubCmp(S.c_str() + pos, MACRO_RARGV) == 0 )
     {
+      len = lstrlen(MACRO_RARGV);
+      bReverse = true;
+    }
+
+    if ( len >= 0 )
+    {
+      logInput(funcName, Cmd.c_str(), pos);
+
       switch ( S.GetAt(pos+len) )
       {
         case 0:
         {
           const tstr& t = bReverse ? args.GetRArgs() : args.GetArgs();
-          S.Replace( pos, len, t.c_str(), t.length() );
           Cmd.Replace( pos, len, t.c_str(), t.length() );
           pos += t.length();
           break;
@@ -7010,7 +7077,6 @@ void CNppExecMacroVars::CheckCmdArgs(tstr& Cmd, const CStrSplitT<TCHAR>& args)
         case _T(')'):
         {
           const tstr& t = bReverse ? args.GetRArgs() : args.GetArgs();
-          S.Replace( pos, len + 1, t.c_str(), t.length() );
           Cmd.Replace( pos, len + 1, t.c_str(), t.length() );
           pos += t.length();
           break;
@@ -7034,36 +7100,23 @@ void CNppExecMacroVars::CheckCmdArgs(tstr& Cmd, const CStrSplitT<TCHAR>& args)
             ch = S.GetAt(pos + len + k + 1);
           }
           const tstr& t = bReverse ? args.GetRArg( _ttoi(szNum) ) : args.GetArg( _ttoi(szNum) );
-          S.Replace( pos, len + k + 2, t.c_str(), t.length() );
           Cmd.Replace( pos, len + k + 2, t.c_str(), t.length() );
           pos += t.length();
           break;
         }
         default:
         {
-          pos += len;
-          break;
+          // may be "$(ARGVx" or "$(RARGVx"
+          return false;
         }
       }
-      
-      int pos0 = pos;
-      if ( (pos = S.Find(MACRO_RARGV, pos0)) >= 0 )
-      {
-        len = len2;
-        bReverse = true;
-      }
-      else if ( (pos = S.Find(MACRO_ARGV, pos0)) >= 0 )
-      {
-        len = len1;
-        bReverse = false;
-      }
+
+      logOutput(Cmd.c_str());
+      return true;
     }
   }
 
-  Runtime::GetLogger().AddEx( _T("[out] \"%s\""), Cmd.c_str() );
-  Runtime::GetLogger().DecIndentLevel();
-  Runtime::GetLogger().Add(   _T("}") );
-
+  return false;
 }
 
 void CNppExecMacroVars::CheckCmdAliases(tstr& S, bool useLogging)
@@ -7134,107 +7187,101 @@ void CNppExecMacroVars::CheckCmdAliases(tstr& S, bool useLogging)
     }
 }
 
-void CNppExecMacroVars::CheckNppMacroVars(tstr& S)
+bool CNppExecMacroVars::CheckNppMacroVars(tstr& S, int& pos)
 {
-  const int    NPPSTR_COUNT = 9; // strings
-  const int    NPPVAR_COUNT = NPPSTR_COUNT + 2; // strings + numbers
-  const TCHAR* NPPVAR_STRINGS[NPPVAR_COUNT] = {
-    // getting strings:
-    MACRO_FILE_FULLPATH,
-    MACRO_FILE_DIRPATH,
-    MACRO_FILE_FULLNAME,
-    MACRO_FILE_NAMEONLY,
-    MACRO_FILE_EXTONLY,
-    MACRO_NPP_DIRECTORY,
-    MACRO_NPP_FULL_FILE_PATH,
-    MACRO_CURRENT_WORD,
-    MACRO_FILE_NAME_AT_CURSOR,
-    // getting numbers:
-    MACRO_CURRENT_LINE,   // (int) line number
-    MACRO_CURRENT_COLUMN  // (int) column number
-  };
-  const UINT   NPPVAR_MESSAGES[NPPVAR_COUNT] = {
-    // getting strings:
-    NPPM_GETFULLCURRENTPATH,
-    NPPM_GETCURRENTDIRECTORY,
-    NPPM_GETFILENAME,
-    NPPM_GETNAMEPART,
-    NPPM_GETEXTPART,
-    NPPM_GETNPPDIRECTORY,
-    NPPM_GETNPPFULLFILEPATH,
-    NPPM_GETCURRENTWORD,
-    NPPM_GETFILENAMEATCURSOR,
-    // getting numbers:
-    NPPM_GETCURRENTLINE,
-    NPPM_GETCURRENTCOLUMN
-  };
-  
-  Runtime::GetLogger().Add(   _T("CheckNppMacroVars()") );
-  Runtime::GetLogger().Add(   _T("{") );
-  Runtime::GetLogger().IncIndentLevel();
-  Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );
-  
-  if ( ContainsMacroVar(S) )
+  const TCHAR* const funcName = _T("CheckNppMacroVars()");
+
+  assert( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 );
+  //if (StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0)
   {
+    const int    NPPSTR_COUNT = 9; // strings
+    const int    NPPVAR_COUNT = NPPSTR_COUNT + 2; // strings + numbers
+    const TCHAR* NPPVAR_STRINGS[NPPVAR_COUNT] = {
+      // getting strings:
+      MACRO_FILE_FULLPATH,
+      MACRO_FILE_DIRPATH,
+      MACRO_FILE_FULLNAME,
+      MACRO_FILE_NAMEONLY,
+      MACRO_FILE_EXTONLY,
+      MACRO_NPP_DIRECTORY,
+      MACRO_NPP_FULL_FILE_PATH,
+      MACRO_CURRENT_WORD,
+      MACRO_FILE_NAME_AT_CURSOR,
+      // getting numbers:
+      MACRO_CURRENT_LINE,   // (int) line number
+      MACRO_CURRENT_COLUMN  // (int) column number
+    };
+    const UINT   NPPVAR_MESSAGES[NPPVAR_COUNT] = {
+      // getting strings:
+      NPPM_GETFULLCURRENTPATH,
+      NPPM_GETCURRENTDIRECTORY,
+      NPPM_GETFILENAME,
+      NPPM_GETNAMEPART,
+      NPPM_GETEXTPART,
+      NPPM_GETNPPDIRECTORY,
+      NPPM_GETNPPFULLFILEPATH,
+      NPPM_GETCURRENTWORD,
+      NPPM_GETFILENAMEATCURSOR,
+      // getting numbers:
+      NPPM_GETCURRENTLINE,
+      NPPM_GETCURRENTCOLUMN
+    };
+
     tstr Cmd = S;
     NppExecHelpers::StrUpper(Cmd);
-
-    const int MACRO_SIZE = CONSOLECOMMAND_BUFSIZE;
-    TCHAR     szMacro[MACRO_SIZE];
 
     for (int j = 0; j < NPPVAR_COUNT; j++)
     {
       const TCHAR* macro_str = NPPVAR_STRINGS[j];
       const int    macro_len = lstrlen(macro_str);
 
-      int  len = -1;
-      int  pos = 0;
-      while ( (pos = Cmd.Find(macro_str, /*macro_len,*/ pos)) >= 0 )
+      if (StrUnsafeSubCmp(Cmd.c_str() + pos, macro_str) == 0)
       {
-        if (len < 0)
+        logInput(funcName, S.c_str(), pos);
+
+        const UINT uNppMsg = NPPVAR_MESSAGES[j];
+        const int MACRO_SIZE = CONSOLECOMMAND_BUFSIZE;
+        TCHAR     szMacro[MACRO_SIZE];
+
+        szMacro[0] = 0;
+        if (j < NPPSTR_COUNT)
         {
-          const UINT uNppMsg = NPPVAR_MESSAGES[j];
+          INT_PTR nAnchor = 0, nCaret = 0;
 
-          szMacro[0] = 0;
-          if (j < NPPSTR_COUNT)
+          if (uNppMsg == NPPM_GETFILENAMEATCURSOR)
           {
-            INT_PTR nAnchor = 0, nCaret = 0;
-
-            if (uNppMsg == NPPM_GETFILENAMEATCURSOR)
-            {
-              HWND hSci = m_pNppExec->GetScintillaHandle();
-              nAnchor = (INT_PTR) ::SendMessage(hSci, SCI_GETANCHOR, 0, 0);
-              nCaret = (INT_PTR) ::SendMessage(hSci, SCI_GETCURRENTPOS, 0, 0);
-              ::SendMessage(hSci, WM_SETREDRAW, FALSE, 0);
-            }
-
-            m_pNppExec->SendNppMsg(uNppMsg, (WPARAM) (MACRO_SIZE - 1), (LPARAM) szMacro);
-
-            if (uNppMsg == NPPM_GETFILENAMEATCURSOR)
-            {
-              HWND hSci = m_pNppExec->GetScintillaHandle();
-              ::SendMessage(hSci, SCI_SETSEL, nAnchor, nCaret);
-              ::SendMessage(hSci, WM_SETREDRAW, TRUE, 0);
-            }
+            HWND hSci = m_pNppExec->GetScintillaHandle();
+            nAnchor = (INT_PTR) ::SendMessage(hSci, SCI_GETANCHOR, 0, 0);
+            nCaret = (INT_PTR) ::SendMessage(hSci, SCI_GETCURRENTPOS, 0, 0);
+            ::SendMessage(hSci, WM_SETREDRAW, FALSE, 0);
           }
-          else
+
+          m_pNppExec->SendNppMsg(uNppMsg, (WPARAM) (MACRO_SIZE - 1), (LPARAM) szMacro);
+
+          if (uNppMsg == NPPM_GETFILENAMEATCURSOR)
           {
-            int nn = (int) m_pNppExec->SendNppMsg(uNppMsg, 0, 0);
-            wsprintf(szMacro, _T("%d"), nn);
+            HWND hSci = m_pNppExec->GetScintillaHandle();
+            ::SendMessage(hSci, SCI_SETSEL, nAnchor, nCaret);
+            ::SendMessage(hSci, WM_SETREDRAW, TRUE, 0);
           }
-          len = lstrlen(szMacro);
         }
+        else
+        {
+          int nn = (int) m_pNppExec->SendNppMsg(uNppMsg, 0, 0);
+          wsprintf(szMacro, _T("%d"), nn);
+        }
+
+        int len = lstrlen(szMacro);
         S.Replace(pos, macro_len, szMacro, len);
-        Cmd.Replace(pos, macro_len, szMacro, len);
         pos += len;
+
+        logOutput(S.c_str());
+        return true;
       }
     }
   }
 
-  Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );
-  Runtime::GetLogger().DecIndentLevel();
-  Runtime::GetLogger().Add(   _T("}") );
-  
+  return false;
 }
 
 static tstr uptr2tstr(UINT_PTR uptr)
@@ -7252,57 +7299,61 @@ static tstr uptr2tstr(UINT_PTR uptr)
   return S;
 };
 
-void CNppExecMacroVars::substituteMacroVar(tstr& Cmd, tstr& S, const TCHAR* varName, 
-                                           tstr (*getValue)(CNppExec* pNppExec) )
+void CNppExecMacroVars::logInput(const TCHAR* funcName, const TCHAR* inputVar, int pos)
 {
-  tstr varValue;
-  bool isValueOK = false;
-  int nVarNameLen = -1;
-  int pos = 0;
-  while ((pos = Cmd.Find(varName, pos)) >= 0)
-  {
-    if (!isValueOK)
-    {
-      varValue = getValue(m_pNppExec);
-      isValueOK = true;
-    }
-
-    if (nVarNameLen == -1)
-    {
-      nVarNameLen = lstrlen(varName);
-    }
-
-    Cmd.Replace(pos, nVarNameLen, varValue);
-    S.Replace(pos, nVarNameLen, varValue);
-    pos += varValue.length();
-  }
-}
-
-void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
-{
-  
-  Runtime::GetLogger().Add(   _T("CheckPluginMacroVars()") );
+  Runtime::GetLogger().Add(   funcName );
   Runtime::GetLogger().Add(   _T("{") );
   Runtime::GetLogger().IncIndentLevel();
-  Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );  
-    
-  if ( ContainsMacroVar(S) )
+  if ( pos == 0 )
+    Runtime::GetLogger().AddEx( _T("[in]  \"%.896s\", pos = 0"), inputVar );
+  else
+    Runtime::GetLogger().AddEx( _T("[in]  \"%.896s\", pos = %d: \"%.80s\""), inputVar, pos, inputVar + pos );
+}
+
+void CNppExecMacroVars::logOutput(const TCHAR* outputVar)
+{
+  Runtime::GetLogger().AddEx( _T("[out] \"%s\""), outputVar );
+  Runtime::GetLogger().DecIndentLevel();
+  Runtime::GetLogger().Add(   _T("}") );
+}
+
+bool CNppExecMacroVars::substituteMacroVar(const TCHAR* funcName,
+                                           const tstr& Cmd, tstr& S, int& pos,
+                                           const TCHAR* varName,
+                                           tstr (*getValue)(CNppExec* pNppExec) )
+{
+  if (StrUnsafeSubCmp(Cmd.c_str() + pos, varName) == 0)
+  {
+    logInput(funcName, S.c_str(), pos);
+
+    tstr varValue = getValue(m_pNppExec);
+    int nVarNameLen = lstrlen(varName);
+
+    S.Replace(pos, nVarNameLen, varValue);
+    pos += varValue.length();
+
+    logOutput(S.c_str());
+    return true;
+  }
+
+  return false;
+}
+
+bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
+{
+  const TCHAR* const funcName = _T("CheckPluginMacroVars()");
+
+  assert( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 );
+  //if (StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0)
   {
     tstr Cmd = S;
     NppExecHelpers::StrUpper(Cmd);
 
-    tstr      sub;
-    int       len;
-    int       pos;
-    bool      bMacroOK;
-    const int MACRO_SIZE = 0x200;
-    TCHAR     szMacro[MACRO_SIZE];
-
-    bMacroOK = false;
-    len = lstrlen(MACRO_DOCNUMBER); // "$(#"
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_DOCNUMBER, pos)) >= 0)
+    if (StrUnsafeSubCmp(Cmd.c_str() + pos, MACRO_DOCNUMBER) == 0)
     {
+      logInput(funcName, S.c_str(), pos);
+
+      const int len = lstrlen(MACRO_DOCNUMBER); // "$(#"
       int   k;
       tstr  snum = _T("");
       
@@ -7319,24 +7370,21 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
           break;
       }
       k -= pos;
-      Cmd.Delete(pos, k+1);
       S.Delete(pos, k+1);
 
       if (snum.length() > 0)
       {
+        const int MACRO_SIZE = 0x200;
+        TCHAR     szMacro[MACRO_SIZE];
+
         k = _ttoi(snum.c_str());
         if (k > 0) 
         {
           // #doc = 1..nbFiles
-          if (!bMacroOK)
-          {
-            m_pNppExec->nppGetOpenFileNames();
-            bMacroOK = true;
-          }
+          m_pNppExec->nppGetOpenFileNames();
           if (k <= m_pNppExec->npp_nbFiles)
           {
             lstrcpy(szMacro, m_pNppExec->npp_bufFileNames[k-1]);
-            Cmd.Insert(pos, szMacro);
             S.Insert(pos, szMacro);
             pos += lstrlen(szMacro);
           }
@@ -7345,19 +7393,20 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
         {
           // #doc = 0 means notepad++ full path
           ::GetModuleFileName(NULL, szMacro, MACRO_SIZE-1);
-          Cmd.Insert(pos, szMacro);
           S.Insert(pos, szMacro);
           pos += lstrlen(szMacro);
         }
       }
 
+      logOutput(S.c_str());
+      return true;
     }
 
-    sub.Clear();
-    len = lstrlen(MACRO_SYSVAR); // $(SYS.
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_SYSVAR, pos)) >= 0)
+    if (StrUnsafeSubCmp(Cmd.c_str() + pos, MACRO_SYSVAR) == 0)
     {
+      logInput(funcName, S.c_str(), pos);
+
+      const int len = lstrlen(MACRO_SYSVAR); // $(SYS.
       bool bSysVarOK = false;
       int  i1 = pos + len;
       int  i2 = i1;
@@ -7376,13 +7425,12 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
           ++nBracketDepth;
         }
       }
-      sub.Assign(Cmd.c_str() + i1, i2 - i1);
+      tstr sub(Cmd.c_str() + i1, i2 - i1);
       if (sub.length() > 0)
       {
         tstr sValue = NppExecHelpers::GetEnvironmentVar(sub);
         if (!sValue.IsEmpty())
         {
-          Cmd.Replace(pos, i2 - pos + 1, sValue);
           S.Replace(pos, i2 - pos + 1, sValue);
           pos += sValue.length();
           bSysVarOK = true;
@@ -7390,494 +7438,315 @@ void CNppExecMacroVars::CheckPluginMacroVars(tstr& S)
       }
       if (!bSysVarOK)
       {
-        Cmd.Replace(pos, i2 - pos + 1, _T(""), 0);
         S.Replace(pos, i2 - pos + 1, _T(""), 0);
       }
+
+      logOutput(S.c_str());
+      return true;
     }
 
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_LEFT_VIEW_FILE,
-      [](CNppExec* pNppExec)
-      {
-        int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, MAIN_VIEW, MAIN_VIEW);
-        if (pNppExec->nppGetOpenFileNamesInView(PRIMARY_VIEW, ind + 1) == ind + 1)
-          return tstr(pNppExec->npp_bufFileNames.GetAt(ind));
-        else
-          return tstr();
-      }
-    );
-
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_RIGHT_VIEW_FILE,
-      [](CNppExec* pNppExec)
-      {
-        int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, SUB_VIEW, SUB_VIEW);
-        if (pNppExec->nppGetOpenFileNamesInView(SECOND_VIEW, ind + 1) == ind + 1)
-          return tstr(pNppExec->npp_bufFileNames.GetAt(ind));
-        else
-          return tstr();
-      }
-    );
-
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_CURRENT_WORKING_DIR,
-      [](CNppExec* pNppExec)
-      {
-        (pNppExec);
-        return NppExecHelpers::GetCurrentDir();
-      }
-    );
-
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_PLUGINS_CONFIG_DIR,
-      [](CNppExec* pNppExec)
-      {
-        return tstr(pNppExec->getConfigPath());
-      }
-    );
-
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_CLIPBOARD_TEXT,
-      [](CNppExec* pNppExec)
-      {
-        (pNppExec);
-        return NppExecHelpers::GetClipboardText();
-      }
-    );
-
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_CLOUD_LOCATION_PATH,
-      [](CNppExec* pNppExec)
-      {
-        return pNppExec->nppGetSettingsCloudPath();
-      }
-    );
-
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_NPP_HWND,
-      [](CNppExec* pNppExec)
-      {
-        return uptr2tstr((UINT_PTR)(pNppExec->m_nppData._nppHandle));
-      }
-    );
-
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_SCI_HWND,
-      [](CNppExec* pNppExec)
-      {
-        return uptr2tstr((UINT_PTR)(pNppExec->GetScintillaHandle()));
-      }
-    );
-
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_CON_HWND,
-      [](CNppExec* pNppExec)
-      {
-        return uptr2tstr((UINT_PTR)(pNppExec->GetConsole().GetConsoleWnd()));
-      }
-    );
-
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_FOCUSED_HWND,
-      [](CNppExec* pNppExec)
-      {
-        (pNppExec);
-        return uptr2tstr((UINT_PTR)(NppExecHelpers::GetFocusedWnd()));
-      }
-    );
-
-    /*
-    CListT<tstr> listOfRootFolders;
-    bMacroOK = false;
-    len = lstrlen(MACRO_WORKSPACE_FOLDER);
-    pos = 0;
-    while ((pos = Cmd.Find(MACRO_WORKSPACE_FOLDER, pos)) >= 0)
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_LEFT_VIEW_FILE,
+           [](CNppExec* pNppExec)
+           {
+             int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, MAIN_VIEW, MAIN_VIEW);
+             if (pNppExec->nppGetOpenFileNamesInView(PRIMARY_VIEW, ind + 1) == ind + 1)
+               return tstr(pNppExec->npp_bufFileNames.GetAt(ind));
+             else
+               return tstr();
+           }
+         )
+       )
     {
-      sub.Clear();
-
-      bool bSyntaxMismatch = false;
-      int len_n = len;
-      int k = pos + len;
-
-      if (Cmd[k] == _T('['))
-      {
-        tstr snum = _T("");
-
-        ++k;
-        for (; k < Cmd.length(); k++)
-        {
-          if (isDecNumChar(Cmd[k]))
-            snum += Cmd[k];
-          else
-            break;
-        }
-
-        if (Cmd[k] == _T(']'))
-        {
-          ++k;
-          if (Cmd[k] == _T(')'))
-            ++k;
-          else
-            bSyntaxMismatch = true;
-        }
-        else
-          bSyntaxMismatch = true;
-
-        len_n = k - pos;
-
-        if (!bSyntaxMismatch)
-        {
-          if (!snum.IsEmpty())
-          {
-            if (!bMacroOK)
-            {
-              m_pNppExec->nppGetWorkspaceRootFolders(listOfRootFolders);
-              bMacroOK = true;
-            }
-
-            k = _ttoi(snum.c_str());
-            if (k > 0 && k <= listOfRootFolders.GetCount())
-            {
-              const CListItemT<tstr>* pItem = listOfRootFolders.GetFirst();
-              while (--k != 0)
-              {
-                pItem = pItem->GetNext();
-              }
-              sub = pItem->GetItem();
-            }
-          }
-          else
-            bSyntaxMismatch = true;
-        }
-      }
-      else
-        bSyntaxMismatch = true;
-
-      if (!bSyntaxMismatch)
-      {
-        Cmd.Replace(pos, len_n, sub.c_str());
-        S.Replace(pos, len_n, sub.c_str());
-        pos += sub.length();
-      }
-      else
-        pos += len_n;
+      return true;
     }
-    */
 
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_WORKSPACE_ITEM_PATH,
-      [](CNppExec* pNppExec)
-      {
-        tstr sWorkspaceItem;
-        pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem);
-        return sWorkspaceItem;
-      }
-    );
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_RIGHT_VIEW_FILE,
+           [](CNppExec* pNppExec)
+           {
+             int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, SUB_VIEW, SUB_VIEW);
+             if (pNppExec->nppGetOpenFileNamesInView(SECOND_VIEW, ind + 1) == ind + 1)
+               return tstr(pNppExec->npp_bufFileNames.GetAt(ind));
+             else
+               return tstr();
+           }
+         )
+       )
+    {
+      return true;
+    }
 
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_WORKSPACE_ITEM_DIR,
-      [](CNppExec* pNppExec)
-      {
-        tstr sWorkspaceItem;
-        if (pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem))
-        {
-          sWorkspaceItem = NppExecHelpers::GetFileNamePart(sWorkspaceItem, NppExecHelpers::fnpDirPath);
-          if (sWorkspaceItem.EndsWith(_T('\\')) || sWorkspaceItem.EndsWith(_T('/')))
-            sWorkspaceItem.DeleteLastChar();
-        }
-        return sWorkspaceItem;
-      }
-    );
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_CURRENT_WORKING_DIR,
+           [](CNppExec* pNppExec)
+           {
+             (pNppExec);
+             return NppExecHelpers::GetCurrentDir();
+           }
+         )
+       )
+    {
+      return true;
+    }
 
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_WORKSPACE_ITEM_NAME,
-      [](CNppExec* pNppExec)
-      {
-        tstr sWorkspaceItem;
-        if (pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem))
-        {
-          sWorkspaceItem = NppExecHelpers::GetFileNamePart(sWorkspaceItem, NppExecHelpers::fnpNameExt);
-        }
-        return sWorkspaceItem;
-      }
-    );
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_PLUGINS_CONFIG_DIR,
+           [](CNppExec* pNppExec)
+           {
+             return tstr(pNppExec->getConfigPath());
+           }
+         )
+       )
+    {
+      return true;
+    }
 
-    substituteMacroVar(
-      Cmd,
-      S,
-      MACRO_WORKSPACE_ITEM_ROOT,
-      [](CNppExec* pNppExec)
-      {
-        tstr sWorkspaceItem;
-        pNppExec->nppGetWorkspaceRootItemPath(sWorkspaceItem);
-        return sWorkspaceItem;
-      }
-    );
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_CLIPBOARD_TEXT,
+           [](CNppExec* pNppExec)
+           {
+             (pNppExec);
+             return NppExecHelpers::GetClipboardText();
+           }
+         )
+       )
+    {
+      return true;
+    }
+
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_CLOUD_LOCATION_PATH,
+           [](CNppExec* pNppExec)
+           {
+             return pNppExec->nppGetSettingsCloudPath();
+           }
+         )
+       )
+    {
+      return true;
+    }
+
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_NPP_HWND,
+           [](CNppExec* pNppExec)
+           {
+             return uptr2tstr((UINT_PTR)(pNppExec->m_nppData._nppHandle));
+           }
+         )
+       )
+    {
+      return true;
+    }
+
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_SCI_HWND,
+           [](CNppExec* pNppExec)
+           {
+             return uptr2tstr((UINT_PTR)(pNppExec->GetScintillaHandle()));
+           }
+         )
+       )
+    {
+      return true;
+    }
+
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_CON_HWND,
+           [](CNppExec* pNppExec)
+           {
+             return uptr2tstr((UINT_PTR)(pNppExec->GetConsole().GetConsoleWnd()));
+           }
+         )
+       )
+    {
+      return true;
+    }
+
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_FOCUSED_HWND,
+           [](CNppExec* pNppExec)
+           {
+             (pNppExec);
+             return uptr2tstr((UINT_PTR)(NppExecHelpers::GetFocusedWnd()));
+           }
+         )
+       )
+    {
+      return true;
+    }
+
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_WORKSPACE_ITEM_PATH,
+           [](CNppExec* pNppExec)
+           {
+             tstr sWorkspaceItem;
+             pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem);
+             return sWorkspaceItem;
+           }
+         )
+       )
+    {
+      return true;
+    }
+
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_WORKSPACE_ITEM_DIR,
+           [](CNppExec* pNppExec)
+           {
+             tstr sWorkspaceItem;
+             if (pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem))
+             {
+               sWorkspaceItem = NppExecHelpers::GetFileNamePart(sWorkspaceItem, NppExecHelpers::fnpDirPath);
+               if (sWorkspaceItem.EndsWith(_T('\\')) || sWorkspaceItem.EndsWith(_T('/')))
+                 sWorkspaceItem.DeleteLastChar();
+             }
+             return sWorkspaceItem;
+           }
+         )
+       )
+    {
+      return true;
+    }
+
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_WORKSPACE_ITEM_NAME,
+           [](CNppExec* pNppExec)
+           {
+             tstr sWorkspaceItem;
+             if (pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem))
+             {
+               sWorkspaceItem = NppExecHelpers::GetFileNamePart(sWorkspaceItem, NppExecHelpers::fnpNameExt);
+             }
+             return sWorkspaceItem;
+           }
+         )
+       )
+    {
+      return true;
+    }
+
+    if ( substituteMacroVar(
+           funcName,
+           Cmd, S, pos,
+           MACRO_WORKSPACE_ITEM_ROOT,
+           [](CNppExec* pNppExec)
+           {
+             tstr sWorkspaceItem;
+             pNppExec->nppGetWorkspaceRootItemPath(sWorkspaceItem);
+             return sWorkspaceItem;
+           }
+         )
+       )
+    {
+      return true;
+    }
   }
 
-  Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );
-  Runtime::GetLogger().DecIndentLevel();
-  Runtime::GetLogger().Add(   _T("}") );
-
+  return false;
 }
 
-bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S, int nCmdType )
+bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S, int& pos)
 {
-  bool bResult = true;
-  
-  Runtime::GetLogger().Add(   _T("CheckUserMacroVars()") );
-  Runtime::GetLogger().Add(   _T("{") );
-  Runtime::GetLogger().IncIndentLevel();
-  Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );
-    
-  if ( nCmdType == CScriptEngine::CMDTYPE_SET )
+  assert( ContainsMacroVar(S) );
+  //if ( ContainsMacroVar(S) )
   {
-    
-    Runtime::GetLogger().AddEx( _T("; %s command found"), CScriptEngine::DoSetCommand::Name() );
-      
-    const TCHAR* DEF_OP  = _T("=");
-    const TCHAR* CALC_OP = _T("~");
-    const int i1 = S.Find(DEF_OP);    
-    const int i2 = S.Find(CALC_OP);
-    const bool bSep1 = ((i1 < i2 && i1 >= 0) || (i2 < 0));
-    const TCHAR* sep = bSep1 ? DEF_OP : CALC_OP;
-    CStrSplitT<TCHAR> args;
+    assert( !CheckInnerMacroVars(pScriptEngine, S, pos, true) );
 
-    if ( args.Split(S, sep, 2) == 2 )
-    {
-      tstr& varName = args.Arg(0);
-      tstr& varValue = args.Arg(1);
-      NppExecHelpers::StrDelLeadingTabSpaces(varName);
-      NppExecHelpers::StrDelTrailingTabSpaces(varName);
-      NppExecHelpers::StrDelLeadingTabSpaces(varValue);
-      NppExecHelpers::StrDelTrailingTabSpaces(varValue);
+    bool bResult = false;
+    int pos0 = pos;
+    tstr S0 = S;
 
-      if ( ContainsMacroVar(varValue) )
-      {
-        CheckUserMacroVars(pScriptEngine, varValue);
-        if ( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
-        {
-          CheckEmptyMacroVars(varValue);
-        }
-      
-        {
-          CCriticalSectionLockGuard lock(GetCsUserMacroVars());
-          const tMacroVars& userLocalMacroVars = GetUserLocalMacroVars(pScriptEngine);
-          const tMacroVars& userMacroVars = GetUserMacroVars();
-          IterateUserMacroVars<SubstituteMacroVarFunc>(userMacroVars, userLocalMacroVars, SubstituteMacroVarFunc(varValue));
-        }
-      }
-
-      if ( !bSep1 )
-      {
-        bResult = StrCalc(varValue, m_pNppExec).Process();
-      }
-
-      bool bLocalVar = IsLocalMacroVar(varName);
-      if ( bLocalVar && varName.IsEmpty() )
-      {
-        // set local = ...
-        varName = _T("LOCAL");
-        bLocalVar = false;
-      }
-
-      S = bLocalVar ? _T("local ") : _T("");
-      S += varName;
-      S += _T(" = ");
-      S += varValue;
-
-      if ( SetUserMacroVar(pScriptEngine, varName, varValue, bLocalVar ? CNppExecMacroVars::svLocalVar : 0) )
-      {
-        
-        Runtime::GetLogger().AddEx( _T("; OK: %s%s = %s"), bLocalVar ? _T("local ") : _T(""), varName.c_str(), varValue.c_str() );
-
-      }
-      else
-      {
-
-        Runtime::GetLogger().AddEx( _T("; failed to set %s%s = %s"), bLocalVar ? _T("local ") : _T(""), varName.c_str(), varValue.c_str() );
-
-        bResult = false;
-
-      }
-    }
-    else
-    {
-      // "set $(var)" returns the value of var
-      // "set" returns all vars and values
-    }
-  }
-  else if ( nCmdType == CScriptEngine::CMDTYPE_UNSET )
-  {
-    
-    Runtime::GetLogger().AddEx( _T("; %s command found"), CScriptEngine::DoUnsetCommand::Name() );
-
-    tstr varName = S;
-    int k = varName.Find( _T("=") );
-    if ( k >= 0 )  varName.SetSize(k);
-    NppExecHelpers::StrDelLeadingTabSpaces(varName);
-    NppExecHelpers::StrDelTrailingTabSpaces(varName);
-
-    bool bLocalVar = IsLocalMacroVar(varName);
-    if ( bLocalVar && varName.IsEmpty() )
-    {
-      // unset local
-      varName = _T("LOCAL");
-      bLocalVar = false;
-    }
-    unsigned int nFlags = CNppExecMacroVars::svRemoveVar;
-    if ( bLocalVar )
-        nFlags |= CNppExecMacroVars::svLocalVar;
-    if ( SetUserMacroVar(pScriptEngine, varName, S, nFlags) )
-    {
-
-      Runtime::GetLogger().AddEx( _T("; OK: %s%s has been removed"), bLocalVar ? _T("local ") : _T(""), varName.c_str() );
-
-      tstr t = _T("- the user\'s ");
-      if ( bLocalVar ) t += _T("local ");
-      t += _T("variable has been removed: ");
-      t += varName;
-      const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
-      m_pNppExec->GetConsole().PrintMessage( t.c_str(), nMsgFlags );
-    }
-    else
-    {
-
-      Runtime::GetLogger().AddEx( _T("; failed to unset %s%s (no such user\'s variable)"), bLocalVar ? _T("local ") : _T(""), varName.c_str() );
-
-      tstr t = _T("- no such user\'s ");
-      if ( bLocalVar ) t += _T("local ");
-      t += _T("variable: ");
-      t += varName;
-      const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-      m_pNppExec->GetConsole().PrintMessage( t.c_str(), nMsgFlags );
-
-      bResult = false;
-    }
-  }
-  else if ( ContainsMacroVar(S) )
-  {
-    if ( CheckInnerMacroVars(pScriptEngine, S, true) )
-    {
-      CheckAllMacroVars(pScriptEngine, S, true);
-    }
-    else
     {
       CCriticalSectionLockGuard lock(GetCsUserMacroVars());
       const tMacroVars& userLocalMacroVars = GetUserLocalMacroVars(pScriptEngine);
       const tMacroVars& userMacroVars = GetUserMacroVars();
-      IterateUserMacroVars<SubstituteMacroVarFunc>(userMacroVars, userLocalMacroVars, SubstituteMacroVarFunc(S));
+      bResult = IterateUserMacroVars<SubstituteMacroVarFunc>(userMacroVars, userLocalMacroVars, SubstituteMacroVarFunc(S, pos));
+    }
+
+    if ( bResult )
+    {
+      logInput(_T("CheckUserMacroVars()"), S0.c_str(), pos0);
+      logOutput(S.c_str());
+      return true;
     }
   }
 
-  Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );
-  Runtime::GetLogger().DecIndentLevel();
-  Runtime::GetLogger().Add(   _T("}") );
-
-  return bResult;
+  return false;
 }
 
-void CNppExecMacroVars::CheckEmptyMacroVars(tstr& S, int nCmdType )
+bool CNppExecMacroVars::CheckEmptyMacroVars(tstr& S, int& pos)
 {
   // Note: be sure to check the value of OPTB_CONSOLE_NOEMPTYVARS
   // _before_ you call CheckEmptyMacroVars!!!
 
-  Runtime::GetLogger().Add(   _T("CheckEmptyMacroVars()") );
-  Runtime::GetLogger().Add(   _T("{") );
-  Runtime::GetLogger().IncIndentLevel();
-  Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );   
-
-  CStrSplitT<TCHAR> args;
-  if ( (nCmdType == CScriptEngine::CMDTYPE_SET) || 
-       (nCmdType == CScriptEngine::CMDTYPE_UNSET) )
+  assert( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 );
+  //if ( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 )
   {
-    if ( args.Split(S, _T("="), 2) == 2 )
-    {
-      S = args.Arg(1);
-    }
-  }
+    logInput(_T("CheckEmptyMacroVars()"), S.c_str(), pos);
 
-  if ( S.length() > 0 )
-  {
-    int i;
-    while ( (i = S.Find(_T("$("))) >= 0 )
+    int j = pos + 2;
+    unsigned int nBracketDepth = 0;
+    for ( ; j < S.length(); ++j )
     {
-      int j = i + 2;
-      unsigned int nBracketDepth = 0;
-      for ( ; j < S.length(); ++j )
+      const TCHAR ch = S[j];
+      if ( ch == _T(')') )
       {
-        const TCHAR ch = S[j];
-        if ( ch == _T(')') )
-        {
-          if ( nBracketDepth != 0 )
-            --nBracketDepth;
-          else
-            break;
-        }
-        else if ( ch == _T('(') )
-        {
-          ++nBracketDepth;
-        }
+        if ( nBracketDepth != 0 )
+          --nBracketDepth;
+        else
+          break;
       }
-      
-      if ( j < S.length() )
-        S.Delete(i, j - i + 1);
-      else
-        S.Delete(i, -1);
+      else if ( ch == _T('(') )
+      {
+        ++nBracketDepth;
+      }
     }
+    
+    if ( j < S.length() )
+      S.Delete(pos, j - pos + 1);
+    else
+      S.Delete(pos, -1);
+
+    logOutput(S.c_str());
+    return true;
   }
 
-  if ( (nCmdType == CScriptEngine::CMDTYPE_SET) || 
-       (nCmdType == CScriptEngine::CMDTYPE_UNSET) )
-  {
-    if (args.GetArgCount() == 2)
-    {
-      S.Insert( 0, _T("=") );
-      S.Insert( 0, args.Arg(0) );
-    }
-  }
-
-  Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );
-  Runtime::GetLogger().DecIndentLevel();
-  Runtime::GetLogger().Add(   _T("}") );
-
+  return false;
 }
 
 bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging, int nCmdType )
 {
     // Note: pScriptEngine can be nullptr!
 
-    bool bResult = false;
-    
-    if ( (nCmdType == CScriptEngine::CMDTYPE_SET) ||
-         (nCmdType == CScriptEngine::CMDTYPE_UNSET) ||
-         ContainsMacroVar(S) )
+    int pos = S.Find(_T("$("));
+    if ( pos >= 0 )
     {
         bool isLoggerActive = true;
 
@@ -7887,33 +7756,52 @@ bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S,
             if ( isLoggerActive )
                 Runtime::GetLogger().Activate(false);
         }
-
-        CheckInnerMacroVars(pScriptEngine, S, useLogging);
-
-        if ( nCmdType != CScriptEngine::CMDTYPE_UNSET )
+        else
         {
-            if ( pScriptEngine && pScriptEngine->GetExecState().ScriptContextList.GetLast() )
-            {
-                const CScriptEngine::ScriptContext& scriptContext = pScriptEngine->GetExecState().GetCurrentScriptContext();
-                const CStrSplitT<TCHAR>& args = scriptContext.Args;
-                CheckCmdArgs(S, args);
-            }
-            else
-            {
-                CStrSplitT<TCHAR> args;
-                CheckCmdArgs(S, args);
-            }
+            logInput(_T("CheckAllMacroVars()"), S.c_str(), pos);
         }
 
-        CheckNppMacroVars(S);
-        CheckPluginMacroVars(S);
-        bResult = CheckUserMacroVars(pScriptEngine, S, nCmdType); // <-- in case of CMDTYPE_SET/UNSET, sets/unsets a var
-        if ( nCmdType != CScriptEngine::CMDTYPE_UNSET ) // <-- required for 'unset $(var)'
+        while ( pos >= 0 )
         {
-            if ( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
+            if ( !CheckInnerMacroVars(pScriptEngine, S, pos, useLogging) )
             {
-                CheckEmptyMacroVars(S, nCmdType);
+                bool bCmdArg = false;
+                if ( nCmdType != CScriptEngine::CMDTYPE_UNSET )
+                {
+                    if ( pScriptEngine && pScriptEngine->GetExecState().ScriptContextList.GetLast() )
+                    {
+                        const CScriptEngine::ScriptContext& scriptContext = pScriptEngine->GetExecState().GetCurrentScriptContext();
+                        const CStrSplitT<TCHAR>& args = scriptContext.Args;
+                        bCmdArg = CheckCmdArgs(S, pos, args);
+                    }
+                    else
+                    {
+                        CStrSplitT<TCHAR> args;
+                        bCmdArg = CheckCmdArgs(S, pos, args);
+                    }
+                }
+
+                if ( nCmdType == CScriptEngine::CMDTYPE_SET ||  // to keep $(varName) in 'set $(varName) = ...'
+                     nCmdType == CScriptEngine::CMDTYPE_UNSET ) // to keep $(varName) in 'unset $(varName)'
+                {
+                    pos += 2; // right after "$("
+                }
+                else if ( !bCmdArg &&
+                          !CheckNppMacroVars(S, pos) &&
+                          !CheckPluginMacroVars(S, pos) )
+                {
+                    if ( !CheckUserMacroVars(pScriptEngine, S, pos) )
+                    {
+                        if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) ||
+                             !CheckEmptyMacroVars(S, pos) )
+                        {
+                            pos += 2; // right after "$("
+                        }
+                    }
+                }
             }
+
+            pos = S.Find(_T("$("), pos);
         }
 
         if ( !useLogging )
@@ -7921,93 +7809,94 @@ bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S,
             if ( isLoggerActive )
                 Runtime::GetLogger().Activate(true);
         }
+        else
+        {
+            logOutput(S.c_str());
+        }
+
+        return true;
     }
 
-    return bResult;
+    return false;
 }
 
-bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging)
+bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& S, int& pos, bool useLogging)
 {
     // Note: pScriptEngine can be nullptr!
 
-    bool isSubstituted = false;
+    const TCHAR* const funcName = _T("CheckInnerMacroVars()");
 
-    if ( useLogging )
+    assert( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 );
+    //if (StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0)
     {
-        Runtime::GetLogger().Add(   _T("CheckInnerMacroVars()") );
-        Runtime::GetLogger().Add(   _T("{") );
-        Runtime::GetLogger().IncIndentLevel();
-        Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );
-    }
-
-    int n1 = 0;
-    for ( ; ; )
-    {
-        n1 = S.Find(_T("$("), n1);
-        if ( n1 < 0 )
-            break;
-
+        bool isSubstituted = false;
+        int n1 = pos; // outer "$("
         //  $( ...
         //  n1
-        int n2 = S.Find(_T("$("), n1 + 2);
-        if ( n2 < 0 )
-            break;
 
-        //  $( ... $(
-        //  n1     n2
-        unsigned int nBracketDepth = 0;
-        int n1_end = n1 + 2;
-        for ( ; n1_end < S.length(); ++n1_end )
+        int n2 = S.Find(_T("$("), n1 + 2); // inner "$(" or next "$("
+        if ( n2 >= 0 )
         {
-            const TCHAR ch = S[n1_end];
-            if ( ch == _T(')') )
+            //  $( ... $(
+            //  n1     n2
+            unsigned int nBracketDepth = 0;
+            int n1_end = n1 + 2;
+            for ( ; n1_end < S.length(); ++n1_end )
             {
-                if ( nBracketDepth != 0 )
-                    --nBracketDepth;
-                else
-                    break;
-            }
-            else if ( ch == _T('(') )
-            {
-                ++nBracketDepth;
-            }
-        }
-
-        if ( n2 < n1_end )
-        {
-            //  $( ... $( ... )  ...
-            //  n1     n2     n1_end
-            tstr SubVal;
-            SubVal.Assign(S.c_str() + n2, n1_end - n2);
-
-            Runtime::GetLogger().Add(   _T("; checking inner vars...") );
-
-            CheckAllMacroVars(pScriptEngine, SubVal, useLogging);
-            if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
-            {
-                // forcing no empty vars
-                CheckEmptyMacroVars(SubVal);
+                const TCHAR ch = S[n1_end];
+                if ( ch == _T(')') )
+                {
+                    if ( nBracketDepth != 0 )
+                        --nBracketDepth;
+                    else
+                        break;
+                }
+                else if ( ch == _T('(') )
+                {
+                    ++nBracketDepth;
+                }
             }
 
-            S.Replace(n2, n1_end - n2, SubVal);
-            isSubstituted = true;
-        }
-        else
-        {
-            //  $( ... )  ...  $(
-            //  n1     n1_end  n2
-            n1 = n2;
+            if ( n2 < n1_end )
+            {
+                if ( useLogging )
+                {
+                    logInput(funcName, S.c_str(), pos);
+                }
+
+                //  $( ... $( ... )  ...
+                //  n1     n2     n1_end
+                tstr SubVal(S.c_str() + n2, n1_end - n2);
+
+                if ( useLogging )
+                {
+                    Runtime::GetLogger().Add(   _T("; checking inner vars...") );
+                }
+
+                CheckAllMacroVars(pScriptEngine, SubVal, useLogging);
+                if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) )
+                {
+                    // forcing no empty vars
+                    int sub_pos = 0;
+                    while ( (sub_pos = SubVal.Find(_T("$("), sub_pos)) >= 0 )
+                    {
+                        CheckEmptyMacroVars(SubVal, sub_pos);
+                    }
+                }
+
+                S.Replace(n2, n1_end - n2, SubVal);
+                
+                if ( useLogging )
+                {
+                    logOutput(S.c_str());
+                }
+
+                return true;
+            }
         }
     }
 
-    if ( useLogging )
-    {
-        Runtime::GetLogger().AddEx( _T("[out] \"%s\""), S.c_str() );
-        Runtime::GetLogger().DecIndentLevel();
-        Runtime::GetLogger().Add(   _T("}") );
-    }
-
-    return isSubstituted;
+    return false;
 }
 
 bool CNppExecMacroVars::SetUserMacroVar(CScriptEngine* pScriptEngine, tstr& varName, const tstr& varValue, unsigned int nFlags )

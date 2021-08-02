@@ -24,7 +24,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <memory>
 #include <map>
 #include <list>
-#include <cassert>
+
+#ifdef _DEBUG
+  #include <cassert>
+#endif
 
 LRESULT CALLBACK nppPluginWndProc(HWND, UINT, WPARAM, LPARAM);
 

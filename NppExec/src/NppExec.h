@@ -1283,20 +1283,24 @@ public:
     CCriticalSection& GetCsCmdAliases();
 
     // check macro vars...
-    static void CheckCmdArgs(tstr& Cmd, const CStrSplitT<TCHAR>& args);
+    static bool CheckCmdArgs(tstr& Cmd, int& pos, const CStrSplitT<TCHAR>& args);
     void        CheckCmdAliases(tstr& S, bool useLogging);
-    void        CheckNppMacroVars(tstr& S);
-    void        CheckPluginMacroVars(tstr& S);
-    bool        CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S, int nCmdType = 0);
-    static void CheckEmptyMacroVars(tstr& S, int nCmdType = 0);
+    bool        CheckNppMacroVars(tstr& S, int& pos);
+    bool        CheckPluginMacroVars(tstr& S, int& pos);
+    bool        CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S, int& pos);
+    static bool CheckEmptyMacroVars(tstr& S, int& pos);
     bool        CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging, int nCmdType = 0);
-    bool        CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging);
+    bool        CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& S, int& pos, bool useLogging);
     bool        SetUserMacroVar(CScriptEngine* pScriptEngine, tstr& varName, const tstr& varValue, unsigned int nFlags = 0);
 
     static void MakeCompleteVarName(tstr& varName);
 
 protected:
-    void substituteMacroVar(tstr& Cmd, tstr& S, const TCHAR* varName, 
+    static void logInput(const TCHAR* funcName, const TCHAR* inputVar, int pos);
+    static void logOutput(const TCHAR* outputVar);
+    bool substituteMacroVar(const TCHAR* funcName,
+                            const tstr& Cmd, tstr& S, int& pos,
+                            const TCHAR* varName,
                             tstr (*getValue)(CNppExec* pNppExec) );
 
 public:

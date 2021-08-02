@@ -4958,8 +4958,16 @@ void CNppExec::OnHelpManual()
     tstr sHelpFile = GetOptions().GetStr(OPTS_PLUGIN_HELPFILE);
     if ( !sHelpFile.IsEmpty() )  // not empty
     {
-        GetMacroVars().CheckPluginMacroVars(sHelpFile);
-        GetMacroVars().CheckNppMacroVars(sHelpFile);
+        CNppExecMacroVars& MacroVars = GetMacroVars();
+        int pos = 0;
+        while ( (pos = sHelpFile.Find(_T("$("), pos)) >= 0 )
+        {
+            if ( !MacroVars.CheckPluginMacroVars(sHelpFile, pos) &&
+                 !MacroVars.CheckNppMacroVars(sHelpFile, pos) )
+            {
+                break;
+            }
+        }
 
         sHelpFile.Replace( _T('/'), _T('\\') );
         if ( NppExecHelpers::IsFullPath(sHelpFile) )
@@ -5105,14 +5113,21 @@ void CNppExec::ReadOptions()
     ::time(&rawTime);
     timeInfo = ::localtime(&rawTime);
 
-    GetMacroVars().CheckPluginMacroVars(sLogsDir);
-    GetMacroVars().CheckNppMacroVars(sLogsDir);
+    CNppExecMacroVars& MacroVars = GetMacroVars();
+    int pos = 0;
+    while ( (pos = sLogsDir.Find(_T("$("), pos)) >= 0 )
+    {
+        if ( !MacroVars.CheckPluginMacroVars(sLogsDir, pos) &&
+             !MacroVars.CheckNppMacroVars(sLogsDir, pos) )
+        {
+            break;
+        }
+    }
 
     sLogsDir.Replace( _T('/'), _T('\\') );
     if ( !NppExecHelpers::IsFullPath(sLogsDir) )
     {
-      tstr sBaseDir = _T("$(SYS.TEMP)");
-      GetMacroVars().CheckPluginMacroVars(sBaseDir);
+      tstr sBaseDir = NppExecHelpers::GetEnvironmentVar(_T("TEMP"));
       if ( sBaseDir.IsEmpty() )
       {
         sBaseDir = getConfigPath();
