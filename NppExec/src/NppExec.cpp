@@ -61,6 +61,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        set <var> ~ strunquote <s> - removes the surrounding "" quotes
  *        set <var> ~ strescape <s> - simple character escaping (e.g. <TAB> to '\t')
  *        set <var> ~ strunescape <s> - simple character unescaping (e.g. '\n' to <LF>)
+ *        set <var> ~ strexpand <s> - expands all $(sub) values within <s>
  *        set <var> ~ normpath <path> - returns a normalized path
  *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
  *        set <var> ~ strtohex <s> - returns a hex-string from the string

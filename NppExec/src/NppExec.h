@@ -1322,6 +1322,7 @@ public:
             CT_STRUNQUOTE,
             CT_STRESCAPE,
             CT_STRUNESCAPE,
+            CT_STREXPAND,
             CT_NORMPATH,
             CT_STRFROMHEX,
             CT_STRTOHEX,
@@ -1350,6 +1351,7 @@ public:
         bool calcOrd();
         bool calcStrQuote();
         bool calcStrEscape();
+        bool calcStrExpand();
         bool calcNormPath();
 
     protected:

@@ -119,6 +119,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("set <var> ~ strunquote <s>  -  removes the surrounding \"\" quotes") _T_RE_EOL \
   _T("set <var> ~ strescape <s>  -  simple character escaping (e.g. <TAB> to '\\t')") _T_RE_EOL \
   _T("set <var> ~ strunescape <s>  -  simple character unescaping (e.g. '\\n' to <LF>)") _T_RE_EOL \
+  _T("set <var> ~ strexpand <s>  -  expands all $(sub) values within <s>") _T_RE_EOL \
   _T("set <var> ~ normpath <path>  -  returns a normalized path") _T_RE_EOL \
   _T("set <var> ~ strfromhex <hs>  -  returns a string from the hex-string") _T_RE_EOL \
   _T("set <var> ~ strtohex <s>  -  returns a hex-string from the string") _T_RE_EOL \
@@ -1185,12 +1186,13 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  5k. set <var> ~ strunquote <string>") _T_RE_EOL \
     _T("  5l. set <var> ~ strescape <string>") _T_RE_EOL \
     _T("  5m. set <var> ~ strunescape <string>") _T_RE_EOL \
-    _T("  5n. set <var> ~ normpath <path>") _T_RE_EOL \
-    _T("  5o. set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
-    _T("  5p. set <var> ~ strtohex <string>") _T_RE_EOL \
-    _T("  5q. set <var> ~ chr <n>") _T_RE_EOL \
-    _T("  5r. set <var> ~ ord <c>") _T_RE_EOL \
-    _T("  5s. set <var> ~ ordx <c>") _T_RE_EOL \
+    _T("  5n. set <var> ~ strexpand <string>") _T_RE_EOL \
+    _T("  5o. set <var> ~ normpath <path>") _T_RE_EOL \
+    _T("  5p. set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
+    _T("  5q. set <var> ~ strtohex <string>") _T_RE_EOL \
+    _T("  5r. set <var> ~ chr <n>") _T_RE_EOL \
+    _T("  5s. set <var> ~ ord <c>") _T_RE_EOL \
+    _T("  5t. set <var> ~ ordx <c>") _T_RE_EOL \
     _T("  6.  set local") _T_RE_EOL \
     _T("      set local <var>") _T_RE_EOL \
     _T("      set local <var> = ...") _T_RE_EOL \
@@ -1219,12 +1221,13 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("      '<CR>' -> '\\r', '<LF>' -> '\\n', '\"' -> '\\\"'") _T_RE_EOL \
     _T("  5m. Simple character unescaping: '\\\\' -> '\\', '\\t' -> '<TAB>',") _T_RE_EOL \
     _T("      '\\r' -> '<CR>', '\\n' -> '<LF>', '\\?' -> '?'") _T_RE_EOL \
-    _T("  5n. Returns a normalized path") _T_RE_EOL \
-    _T("  5o. Returns a string from the <hexstring>") _T_RE_EOL \
-    _T("  5p. Returns a hex-string from the <string>") _T_RE_EOL \
-    _T("  5q. Returns a character from a character code <n>") _T_RE_EOL \
-    _T("  5r. Returns a decimal character code of a character <c>") _T_RE_EOL \
-    _T("  5s. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
+    _T("  5n. Expands all $(sub) values within the <string>") _T_RE_EOL \
+    _T("  5o. Returns a normalized path") _T_RE_EOL \
+    _T("  5p. Returns a string from the <hexstring>") _T_RE_EOL \
+    _T("  5q. Returns a hex-string from the <string>") _T_RE_EOL \
+    _T("  5r. Returns a character from a character code <n>") _T_RE_EOL \
+    _T("  5s. Returns a decimal character code of a character <c>") _T_RE_EOL \
+    _T("  5t. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
     _T("  6.  Shows/sets the value of local variable (\"set local <var> ...\")") _T_RE_EOL \
     _T("  7.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
     _T("  8.  Removes the local variable <var> (\"unset local <var>\")") _T_RE_EOL \
@@ -1299,6 +1302,12 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set local t ~ strescape \"$(s)\"  // \\\"C:\\\\A\\tb\\\\C\\nd\\\\Ef\\\"") _T_RE_EOL \
     _T("  set local s2 ~ strunescape $(t)\\x  // \"C:\\A<TAB>b\\C<LF>d\\Ef\"x") _T_RE_EOL \
     _T("  set local s3 ~ strunescape $(s2)  // \"C:A<TAB>bC<LF>dEf\"x") _T_RE_EOL \
+    _T("  // strexpand") _T_RE_EOL \
+    _T("  set local x = 123") _T_RE_EOL \
+    _T("  set local y = $") _T_RE_EOL \
+    _T("  set local z ~ strexpand $(y)(x) // $(y)(x) -> $(x) -> 123") _T_RE_EOL \
+    _T("  // strexpand: let's assume the clipboard contains \"$(x)\"") _T_RE_EOL \
+    _T("  set local c ~ strexpand $(CLIPBOARD_TEXT) // $(x) -> 123") _T_RE_EOL \
     _T("  // normpath") _T_RE_EOL \
     _T("  set s ~ normpath C:\\A\\.\\B\\X\\..\\C  // C:\\A\\B\\C") _T_RE_EOL \
     _T("  set s ~ normpath \"\\\\A\\B\\..\\..\\C\"  // \"\\\\C\"") _T_RE_EOL \
@@ -4839,6 +4848,7 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
                      S1 == _T("STRREPLACE") || S1 == _T("STRRPLC")     ||
                      S1 == _T("STRQUOTE")   || S1 == _T("STRUNQUOTE")  ||
                      S1 == _T("STRESCAPE")  || S1 == _T("STRUNESCAPE") ||
+                     S1 == _T("STREXPAND")  ||
                      S1 == _T("NORMPATH")   ||
                      S1 == _T("STRFROMHEX") || S1 == _T("STRTOHEX")    ||
                      S1 == _T("CHR")        ||

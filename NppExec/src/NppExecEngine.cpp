@@ -1218,6 +1218,8 @@ static FParserWrapper g_fp;
  *   - simple character escaping (e.g. <TAB> to '\t')
  * set <var> ~ strunescape <s>
  *   - simple character unescaping (e.g. '\n' to <LF>)
+ * set <var> ~ strexpand <s>
+ *   - expands all $(sub) values within <s>
  * set <var> ~ normpath <path>
  *   - returns a normalized path
  * set <var> ~ strfromhex <hs>
@@ -8052,6 +8054,7 @@ bool CNppExecMacroVars::StrCalc::Process()
             { _T("STRUNQUOTE"),  CT_STRUNQUOTE  },
             { _T("STRESCAPE"),   CT_STRESCAPE   },
             { _T("STRUNESCAPE"), CT_STRUNESCAPE },
+            { _T("STREXPAND"),   CT_STREXPAND   },
             { _T("NORMPATH"),    CT_NORMPATH    },
             { _T("STRFROMHEX"),  CT_STRFROMHEX  },
             { _T("STRTOHEX"),    CT_STRTOHEX    },
@@ -8105,6 +8108,9 @@ bool CNppExecMacroVars::StrCalc::Process()
         case CT_STRESCAPE:
         case CT_STRUNESCAPE:
             bSucceded = calcStrEscape();
+            break;
+        case CT_STREXPAND:
+            bSucceded = calcStrExpand();
             break;
         case CT_NORMPATH:
             bSucceded = calcNormPath();
@@ -8416,6 +8422,28 @@ bool CNppExecMacroVars::StrCalc::calcStrEscape()
       _T("; %s: %s"), 
       isEscape ? _T("strescape") : _T("strunescape"),
       m_varValue.c_str() 
+    );
+
+    return true;
+}
+
+bool CNppExecMacroVars::StrCalc::calcStrExpand()
+{
+    if ( *m_pVar )
+    {
+        tstr S(m_pVar);
+        std::shared_ptr<CScriptEngine> pScriptEngine = m_pNppExec->GetCommandExecutor().GetRunningScriptEngine();
+        m_pNppExec->GetMacroVars().CheckAllMacroVars(pScriptEngine.get(), S, true);
+        m_varValue.Swap(S);
+    }
+    else
+    {
+        m_varValue.Clear();
+    }
+
+    Runtime::GetLogger().AddEx( 
+        _T("; strexpand: %s"), 
+        m_varValue.c_str() 
     );
 
     return true;
