@@ -7028,7 +7028,9 @@ bool CNppExecMacroVars::CheckCmdArgs(tstr& Cmd, int& pos, const CStrSplitT<TCHAR
 {
   const TCHAR* const funcName = _T("CheckCmdArgs()");
 
+#ifdef _DEBUG
   assert( StrUnsafeSubCmp(Cmd.c_str() + pos, _T("$(")) == 0 );
+#endif
   //if ( StrUnsafeSubCmp(Cmd.c_str() + pos, _T("$(")) == 0 )
   {
     TCHAR szNum[3*sizeof(int) + 2];
@@ -7191,7 +7193,9 @@ bool CNppExecMacroVars::CheckNppMacroVars(tstr& S, int& pos)
 {
   const TCHAR* const funcName = _T("CheckNppMacroVars()");
 
+#ifdef _DEBUG
   assert( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 );
+#endif
   //if (StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0)
   {
     const int    NPPSTR_COUNT = 9; // strings
@@ -7343,7 +7347,9 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
 {
   const TCHAR* const funcName = _T("CheckPluginMacroVars()");
 
+#ifdef _DEBUG
   assert( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 );
+#endif
   //if (StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0)
   {
     tstr Cmd = S;
@@ -7674,10 +7680,14 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
 
 bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S, int& pos)
 {
+#ifdef _DEBUG
   assert( ContainsMacroVar(S) );
+#endif
   //if ( ContainsMacroVar(S) )
   {
+  #ifdef _DEBUG
     assert( !CheckInnerMacroVars(pScriptEngine, S, pos, true) );
+  #endif
 
     bool bResult = false;
     int pos0 = pos;
@@ -7706,7 +7716,9 @@ bool CNppExecMacroVars::CheckEmptyMacroVars(tstr& S, int& pos)
   // Note: be sure to check the value of OPTB_CONSOLE_NOEMPTYVARS
   // _before_ you call CheckEmptyMacroVars!!!
 
+#ifdef _DEBUG
   assert( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 );
+#endif
   //if ( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 )
   {
     logInput(_T("CheckEmptyMacroVars()"), S.c_str(), pos);
@@ -7826,7 +7838,9 @@ bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& 
 
     const TCHAR* const funcName = _T("CheckInnerMacroVars()");
 
+#ifdef _DEBUG
     assert( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 );
+#endif
     //if (StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0)
     {
         bool isSubstituted = false;
