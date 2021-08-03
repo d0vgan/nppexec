@@ -44,6 +44,7 @@
  *        set <var> ~ strunquote <s> - removes the surrounding "" quotes
  *        set <var> ~ strescape <s> - simple character escaping (e.g. <TAB> to '\t')
  *        set <var> ~ strunescape <s> - simple character unescaping (e.g. '\n' to <LF>)
+ *        set <var> ~ strexpand <s> - expands all $(sub) values within <s>
  *        set <var> ~ normpath <path> - returns a normalized path
  *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
  *        set <var> ~ strtohex <s> - returns a hex-string from the string
@@ -207,6 +208,16 @@
  *************
  *  HISTORY  *
  *************
+
+ v0.7.1 (dev) - 2021
+ -------------------
+ * changed: now IF/IF~/ELSE IF use delayed $(var) substitution.
+   It means that IF "$(var)" != "" will work even when the value of $(var)
+   contains inner " quote character(s).
+ + added: now npe_debuglog supports the keyword "local".
+ * changed: $(var) substitution has been reworked and improved
+ + added: set <var> ~ strexpand <s>
+
 
  v0.7 - July 2021
  ----------------
