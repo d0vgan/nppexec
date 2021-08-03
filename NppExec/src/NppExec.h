@@ -26,6 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    It means that IF "$(var)" != "" will work even when the value of $(var)
    contains inner " quote character(s).
  + added: now npe_debuglog supports the keyword "local".
+ * changed: $(var) substitution has been reworked and improved
+ + added: set <var> ~ strexpand <s>
 
 
  v0.7 - July 2021
@@ -1297,9 +1299,10 @@ public:
 
 protected:
     static void logInput(const TCHAR* funcName, const TCHAR* inputVar, int pos);
+    static void logInput(const TCHAR* funcName, const TCHAR* inputVar);
     static void logOutput(const TCHAR* outputVar);
-    bool substituteMacroVar(const TCHAR* funcName,
-                            const tstr& Cmd, tstr& S, int& pos,
+    static void logNoOutput();
+    bool substituteMacroVar(const tstr& Cmd, tstr& S, int& pos,
                             const TCHAR* varName,
                             tstr (*getValue)(CNppExec* pNppExec) );
 
