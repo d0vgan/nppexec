@@ -13,7 +13,7 @@ def run():
 
 
 def update_version_and_date(filename: str, update_verdate: bool):
-    path_to_file = os.path.join(get_py_file_dir(), filename)
+    path_to_file = os.path.normpath(os.path.join(get_py_file_dir(), filename))
     with open(path_to_file) as f:
         lines = f.readlines()
     is_ver_replaced = False
@@ -50,7 +50,7 @@ def update_version_and_date(filename: str, update_verdate: bool):
 
 
 def update_h_file(filename: str):
-    path_to_file = os.path.join(get_py_file_dir(), filename)
+    path_to_file = os.path.normpath(os.path.join(get_py_file_dir(), filename))
     with open(path_to_file) as f:
         lines = f.readlines()
     is_ver_date_replaced = False
@@ -88,7 +88,7 @@ def update_h_file(filename: str):
 
 
 def update_rc_file(filename: str):
-    path_to_file = os.path.join(get_py_file_dir(), filename)
+    path_to_file = os.path.normpath(os.path.join(get_py_file_dir(), filename))
     with open(path_to_file) as f:
         lines = f.readlines()
     is_ver_unicode_replaced = False
@@ -190,6 +190,8 @@ def get_line_end(line: str):
     i = -1
     while line[i].isspace():
         i -= 1
+    if i == -1:
+        return ""  # no trailing whitespaces
     return line[i+1:]  # includes the trailing '\n' and '\r', if any
 
 
