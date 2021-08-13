@@ -2697,12 +2697,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                 NppExecHelpers::StrDelTrailingTabSpaces(colorFG);
                 if ( (!colorFG.IsEmpty()) && getColorFromStr(colorFG.c_str(), &color) )
                 {
+                    ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+                    SavedConfiguration& savedConf = currentScript.SavedConf;
                     if ( isLocal )
                     {
-                        ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-                        SavedConfiguration& savedConf = currentScript.SavedConf;
                         if ( !savedConf.hasColorTextNorm() )
                             savedConf.setColorTextNorm( m_pNppExec->GetConsole().GetCurrentColorTextNorm() );
+                    }
+                    else
+                    {
+                        if ( savedConf.hasColorTextNorm() )
+                            savedConf.removeColorTextNorm();
                     }
                     m_pNppExec->GetConsole().SetCurrentColorTextNorm(color);
                 }
@@ -2735,12 +2740,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                 NppExecHelpers::StrDelTrailingTabSpaces(colorBG);
                 if ( (!colorBG.IsEmpty()) && getColorFromStr(colorBG.c_str(), &color) )
                 {
+                    ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+                    SavedConfiguration& savedConf = currentScript.SavedConf;
                     if ( isLocal )
                     {
-                        ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-                        SavedConfiguration& savedConf = currentScript.SavedConf;
                         if ( !savedConf.hasColorBkgnd() )
                             savedConf.setColorBkgnd( m_pNppExec->GetConsole().GetCurrentColorBkgnd() );
+                    }
+                    else
+                    {
+                        if ( savedConf.hasColorBkgnd() )
+                            savedConf.removeColorBkgnd();
                     }
                     m_pNppExec->GetConsole().SetCurrentColorBkgnd(color);
                     m_pNppExec->GetConsole().UpdateColours();
@@ -2891,6 +2901,18 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                                 if ( !savedConf.hasConFltrEnable() )
                                     savedConf.setConFltrEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_ENABLE) );
                             }
+                            else
+                            {
+                                if ( savedConf.hasConFltrInclMask() )
+                                {
+                                    int nVal = savedConf.getConFltrInclMask();
+                                    nVal |= nIndexMask;
+                                    if ( !bEnable )  nVal ^= nIndexMask;
+                                    savedConf.setConFltrInclMask(nVal);
+                                }
+                                if ( savedConf.hasConFltrEnable() )
+                                    savedConf.removeConFltrEnable();
+                            }
                             nConFltrInclMask |= nIndexMask;
                             if ( !bEnable )  nConFltrInclMask ^= nIndexMask;
                             m_pNppExec->GetOptions().SetInt(OPTI_CONFLTR_INCLMASK, nConFltrInclMask);
@@ -2912,6 +2934,18 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                                     savedConf.setConFltrExclMask(nConFltrExclMask);
                                 if ( !savedConf.hasConFltrEnable() )
                                     savedConf.setConFltrEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_ENABLE) );
+                            }
+                            else
+                            {
+                                if ( savedConf.hasConFltrExclMask() )
+                                {
+                                    int nVal = savedConf.getConFltrExclMask();
+                                    nVal |= nIndexMask;
+                                    if ( !bEnable )  nVal ^= nIndexMask;
+                                    savedConf.setConFltrExclMask(nVal);
+                                }
+                                if ( savedConf.hasConFltrEnable() )
+                                    savedConf.removeConFltrEnable();
                             }
                             nConFltrExclMask |= nIndexMask;
                             if ( !bEnable )  nConFltrExclMask ^= nIndexMask;
@@ -2937,14 +2971,37 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                                 if ( !savedConf.hasConFltrRplcEnable() )
                                     savedConf.setConFltrRplcEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_R_ENABLE) );
                             }
+                            else
+                            {
+                                if ( savedConf.hasRplcFltrFindMask() )
+                                {
+                                    int nVal = savedConf.getRplcFltrFindMask();
+                                    nVal |= nIndexMask;
+                                    if ( !bEnable )  nVal ^= nIndexMask;
+                                    savedConf.setRplcFltrFindMask(nVal);
+                                }
+                                if ( savedConf.hasConFltrRplcEnable() )
+                                    savedConf.removeConFltrRplcEnable();
+                            }
                             nRplcFltrFindMask |= nIndexMask;
                             if ( !bEnable )  nRplcFltrFindMask ^= nIndexMask;
                             m_pNppExec->GetOptions().SetInt(OPTI_CONFLTR_R_FINDMASK, nRplcFltrFindMask);
+
                             int nRplcFltrCaseMask = m_pNppExec->GetOptions().GetInt(OPTI_CONFLTR_R_CASEMASK);
                             if ( isLocal )
                             {
                                 if ( !savedConf.hasRplcFltrCaseMask() )
                                     savedConf.setRplcFltrCaseMask(nRplcFltrCaseMask);
+                            }
+                            else
+                            {
+                                if ( savedConf.hasRplcFltrCaseMask() )
+                                {
+                                    int nVal = savedConf.getRplcFltrCaseMask();
+                                    nVal |= nIndexMask;
+                                    if ( !bMatchCase )  nVal ^= nIndexMask;
+                                    savedConf.setRplcFltrCaseMask(nVal);
+                                }
                             }
                             nRplcFltrCaseMask |= nIndexMask;
                             if ( !bMatchCase )  nRplcFltrCaseMask ^= nIndexMask;
@@ -2970,6 +3027,20 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                                         WarnEffectEnabled[i] = WarnAn.IsEffectEnabled(i);
                                     }
                                     savedConf.setWarnEffectEnabled(WarnEffectEnabled);
+                                }
+                            }
+                            else
+                            {
+                                if ( savedConf.hasWarnEffectEnabled() )
+                                {
+                                    const bool* savedWarnEffectEnabled = savedConf.getWarnEffectEnabled();
+                                    bool updatedWarnEffectEnabled[WARN_MAX_FILTER];
+                                    for ( int i = 0; i < WARN_MAX_FILTER; ++i )
+                                    {
+                                        updatedWarnEffectEnabled[i] = savedWarnEffectEnabled[i];
+                                    }
+                                    updatedWarnEffectEnabled[nIndex] = bEnable;
+                                    savedConf.setWarnEffectEnabled(updatedWarnEffectEnabled);
                                 }
                             }
                             m_pNppExec->GetWarningAnalyzer().EnableEffect(nIndex, bEnable);
@@ -3255,12 +3326,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
                 }
             }
 
+            ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+            SavedConfiguration& savedConf = currentScript.SavedConf;
             if ( isLocal )
             {
-                ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-                SavedConfiguration& savedConf = currentScript.SavedConf;
                 if ( !savedConf.hasEnvVar(varName) )
                     savedConf.setEnvVar( varName, NppExecHelpers::GetEnvironmentVar(varName) );
+            }
+            else
+            {
+                if ( savedConf.hasEnvVar(varName) )
+                    savedConf.removeEnvVar(varName);
             }
 
             if ( !SetEnvironmentVariable(varName.c_str(), varValue.c_str()) )
@@ -4400,6 +4476,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                     if ( !savedConf.hasConsoleAppendMode() )
                                         savedConf.setConsoleAppendMode( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_APPENDMODE) );
                                 }
+                                else
+                                {
+                                    if ( savedConf.hasConsoleAppendMode() )
+                                        savedConf.removeConsoleAppendMode();
+                                }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_APPENDMODE, bOn);
                                 isOK = true;
                             }
@@ -4414,6 +4495,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                 {
                                     if ( !savedConf.hasConsoleCdCurDir() )
                                         savedConf.setConsoleCdCurDir( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CDCURDIR) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConsoleCdCurDir() )
+                                        savedConf.removeConsoleCdCurDir();
                                 }
                                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                                 if ( hMenu )
@@ -4438,6 +4524,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                         if ( !savedConf.hasConsoleAnsiEscSeq() )
                                             savedConf.setConsoleAnsiEscSeq( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ) );
                                     }
+                                    else
+                                    {
+                                        if ( savedConf.hasConsoleAnsiEscSeq() )
+                                            savedConf.removeConsoleAnsiEscSeq();
+                                    }
                                     m_pNppExec->GetOptions().SetInt(OPTI_CONSOLE_ANSIESCSEQ, nAnsiEscSeq);
                                     isOK = true;
                                 }
@@ -4453,6 +4544,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                 {
                                     if ( !savedConf.hasConsoleCmdHistory() )
                                         savedConf.setConsoleCmdHistory( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CMDHISTORY) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConsoleCmdHistory() )
+                                        savedConf.removeConsoleCmdHistory();
                                 }
                                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                                 if ( hMenu )
@@ -4475,6 +4571,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                     if ( !savedConf.hasConsoleNoIntMsgs() )
                                         savedConf.setConsoleNoIntMsgs( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) );
                                 }
+                                else
+                                {
+                                    if ( savedConf.hasConsoleNoIntMsgs() )
+                                        savedConf.removeConsoleNoIntMsgs();
+                                }
                                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                                 if ( hMenu )
                                 {
@@ -4496,6 +4597,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                     if ( !savedConf.hasConsolePrintMsgReady() )
                                         savedConf.setConsolePrintMsgReady( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) );
                                 }
+                                else
+                                {
+                                    if ( savedConf.hasConsolePrintMsgReady() )
+                                        savedConf.removeConsolePrintMsgReady();
+                                }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_PRINTMSGREADY, bOn);
                                 isOK = true;
                             }
@@ -4513,6 +4619,16 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                     {
                                         if ( !savedConf.hasConsoleEncoding() )
                                             savedConf.setConsoleEncoding( enc_opt );
+                                    }
+                                    else
+                                    {
+                                        if ( savedConf.hasConsoleEncoding() )
+                                        {
+                                            unsigned int nVal = savedConf.getConsoleEncoding();
+                                            nVal &= 0xFFF0;
+                                            nVal |= enc;
+                                            savedConf.setConsoleEncoding(nVal);
+                                        }
                                     }
                                     enc_opt &= 0xFFF0;
                                     enc_opt |= enc;
@@ -4536,6 +4652,16 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                         if ( !savedConf.hasConsoleEncoding() )
                                             savedConf.setConsoleEncoding( enc_opt );
                                     }
+                                    else
+                                    {
+                                        if ( savedConf.hasConsoleEncoding() )
+                                        {
+                                            unsigned int nVal = savedConf.getConsoleEncoding();
+                                            nVal &= 0xFF0F;
+                                            nVal |= (enc * 0x10);
+                                            savedConf.setConsoleEncoding(nVal);
+                                        }
+                                    }
                                     enc_opt &= 0xFF0F;
                                     enc_opt |= (enc * 0x10);
                                     m_pNppExec->GetOptions().SetUint(OPTU_CONSOLE_ENCODING, enc_opt);
@@ -4554,6 +4680,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                 {
                                     if ( !savedConf.hasConsoleNoCmdAliases() )
                                         savedConf.setConsoleNoCmdAliases( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOCMDALIASES) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConsoleNoCmdAliases() )
+                                        savedConf.removeConsoleNoCmdAliases();
                                 }
                                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                                 if ( hMenu )
@@ -4576,6 +4707,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                     if ( !savedConf.hasConsoleSetOutputVar() )
                                         savedConf.setConsoleSetOutputVar( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_SETOUTPUTVAR) );
                                 }
+                                else
+                                {
+                                    if ( savedConf.hasConsoleSetOutputVar() )
+                                        savedConf.removeConsoleSetOutputVar();
+                                }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_SETOUTPUTVAR, bOn);
                                 isOK = true;
                             }
@@ -4590,6 +4726,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                 {
                                     if ( !savedConf.hasConFltrEnable() )
                                         savedConf.setConFltrEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_ENABLE) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConFltrEnable() )
+                                        savedConf.removeConFltrEnable();
                                 }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONFLTR_ENABLE, bOn);
                                 isFilterChanged = true;
@@ -4606,6 +4747,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                 {
                                     if ( !savedConf.hasConFltrRplcEnable() )
                                         savedConf.setConFltrRplcEnable( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_R_ENABLE) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConFltrRplcEnable() )
+                                        savedConf.removeConFltrRplcEnable();
                                 }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONFLTR_R_ENABLE, bOn);
                                 isFilterChanged = true;
@@ -4624,6 +4770,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                     {
                                         if ( !savedConf.hasConsoleCatchShortcutKeys() )
                                             savedConf.setConsoleCatchShortcutKeys( m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS) );
+                                    }
+                                    else
+                                    {
+                                        if ( savedConf.hasConsoleCatchShortcutKeys() )
+                                            savedConf.removeConsoleCatchShortcutKeys();
                                     }
                                     m_pNppExec->GetOptions().SetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS, k);
                                     isOK = true;
@@ -4752,14 +4903,21 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeDebugLog(const tstr& params)
     int nParam = getOnOffParam(sParams);
     if (nParam == PARAM_ON || nParam == PARAM_OFF)
     {
+        ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+        SavedConfiguration& savedConf = currentScript.SavedConf;
         if (isLocal)
         {
-            ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-            SavedConfiguration& savedConf = currentScript.SavedConf;
             if ( !savedConf.hasConsoleDebugLog() )
                 savedConf.setConsoleDebugLog( m_pNppExec->GetOptions().GetBool(OPTB_NPE_DEBUGLOG) );
             if ( !savedConf.hasLoggerOutputMode() )
                 savedConf.setLoggerOutputMode( Runtime::GetLogger().IsOutputMode() );
+        }
+        else
+        {
+            if ( savedConf.hasConsoleDebugLog() )
+                savedConf.removeConsoleDebugLog();
+            if ( savedConf.hasLoggerOutputMode() )
+                savedConf.removeLoggerOutputMode();
         }
         if (nParam == PARAM_ON)
         {
@@ -4797,12 +4955,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeNoEmptyVars(const tstr& params)
     if (nParam == PARAM_ON || nParam == PARAM_OFF)
     {
         bool bOnOff = (nParam == PARAM_ON) ? true : false;
+        ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+        SavedConfiguration& savedConf = currentScript.SavedConf;
         if (isLocal)
         {
-            ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-            SavedConfiguration& savedConf = currentScript.SavedConf;
             if ( !savedConf.hasConsoleNoEmptyVars() )
                 savedConf.setConsoleNoEmptyVars( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOEMPTYVARS) );
+        }
+        else
+        {
+            if ( savedConf.hasConsoleNoEmptyVars() )
+                savedConf.removeConsoleNoEmptyVars();
         }
         m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOEMPTYVARS, bOnOff);
     }
@@ -4870,13 +5033,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeSendMsgBufLen(const tstr& params)
         nBufLen = c_base::_tstr2int(sParams.c_str());
         if ( nBufLen > 0 )
         {
+            ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+            SavedConfiguration& savedConf = currentScript.SavedConf;
             if ( isLocal )
             {
-                ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-                SavedConfiguration& savedConf = currentScript.SavedConf;
-
                 if ( !savedConf.hasSendMsgBufLen() )
                     savedConf.setSendMsgBufLen( m_pNppExec->GetOptions().GetInt(OPTI_SENDMSG_MAXBUFLEN) );
+            }
+            else
+            {
+                if ( savedConf.hasSendMsgBufLen() )
+                    savedConf.removeSendMsgBufLen();
             }
 
             if ( nBufLen < 0x10000 )
@@ -4976,6 +5143,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
                         savedConf.setConsoleDialogVisible(false);
                 }
             }
+            else
+            {
+                if ( savedConf.hasConsoleDialogVisible() )
+                    savedConf.removeConsoleDialogVisible();
+            }
             m_pNppExec->showConsoleDialog(CNppExec::showIfHidden, CNppExec::scfCmdNppConsole);
             break;
 
@@ -4988,6 +5160,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
                 {
                     if ( !savedConf.hasConsoleDialogVisible() )
                         savedConf.setConsoleDialogVisible(true);
+                }
+                else
+                {
+                    if ( savedConf.hasConsoleDialogVisible() )
+                        savedConf.removeConsoleDialogVisible();
                 }
                 m_isClosingConsole = true;
                 m_pNppExec->showConsoleDialog(CNppExec::hideIfShown, CNppExec::scfCmdNppConsole);
@@ -5017,6 +5194,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
                         savedConf.setConsoleIsOutputEnabled(false);
                 }
             }
+            else
+            {
+                if ( savedConf.hasConsoleIsOutputEnabled() )
+                    savedConf.removeConsoleIsOutputEnabled();
+            }
             m_pNppExec->GetConsole().SetOutputEnabled(true);
             m_pNppExec->GetConsole().LockConsoleEndPos();
             break;
@@ -5030,6 +5212,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppConsole(const tstr& params)
                     if ( m_pNppExec->GetConsole().IsOutputEnabled() )
                         savedConf.setConsoleIsOutputEnabled(true);
                 }
+            }
+            else
+            {
+                if ( savedConf.hasConsoleIsOutputEnabled() )
+                    savedConf.removeConsoleIsOutputEnabled();
             }
             m_pNppExec->GetConsole().LockConsoleEndPos();
             m_pNppExec->GetConsole().SetOutputEnabled(false);

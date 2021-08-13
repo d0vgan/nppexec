@@ -1049,6 +1049,40 @@ class CScriptEngine : public IScriptEngine
                 bool hasConsoleIsOutputEnabled() const { return ((mHasValues & fConsoleIsOutputEnabled) != 0); }
                 bool hasSendMsgBufLen() const { return ((mHasValues & fSendMsgBufLen) != 0); }
 
+                int getConFltrInclMask() const { return mConFltrInclMask; }
+                int getConFltrExclMask() const { return mConFltrExclMask; }
+                int getRplcFltrFindMask() const { return mRplcFltrFindMask; }
+                int getRplcFltrCaseMask() const { return mRplcFltrCaseMask; }
+                const bool* getWarnEffectEnabled() const { return mWarnEffectEnabled; }
+                unsigned int getConsoleEncoding() const { return mConsoleEncoding; }
+
+                void removeColorTextNorm() { mHasValues &= ~fColorTextNorm; }
+                void removeColorBkgnd() { mHasValues &= ~fColorBkgnd; }
+                void removeConFltrInclMask() { mHasValues &= ~fConFltrInclMask; }
+                void removeConFltrExclMask() { mHasValues &= ~fConFltrExclMask; }
+                void removeRplcFltrFindMask() { mHasValues &= ~fRplcFltrFindMask; }
+                void removeRplcFltrCaseMask() { mHasValues &= ~fRplcFltrCaseMask; }
+                void removeConFltrEnable() { mHasValues &= ~fConFltrEnable; }
+                void removeConFltrRplcEnable() { mHasValues &= ~fConFltrRplcEnable; }
+                void removeWarnEffectEnabled() { mHasValues &= ~fWarnEffectEnabled; }
+                void removeEnvVar(const tstr& varName) { auto itr = mEnvVars.find(varName); if (itr != mEnvVars.end()) mEnvVars.erase(itr); }
+                void removeConsoleEncoding() { mHasValues &= ~fConsoleEncoding; }
+                void removeConsoleCatchShortcutKeys() { mHasValues &= ~fConsoleCatchShortcutKeys; }
+                void removeConsoleAnsiEscSeq() { mHasValues &= ~fConsoleAnsiEscSeq; }
+                void removeConsoleAppendMode() { mHasValues &= ~fConsoleAppendMode; }
+                void removeConsoleCdCurDir() { mHasValues &= ~fConsoleCdCurDir; }
+                void removeConsoleCmdHistory() { mHasValues &= ~fConsoleCmdHistory; }
+                void removeConsoleNoIntMsgs() { mHasValues &= ~fConsoleNoIntMsgs; }
+                void removeConsolePrintMsgReady() { mHasValues &= ~fConsolePrintMsgReady; }
+                void removeConsoleNoCmdAliases() { mHasValues &= ~fConsoleNoCmdAliases; }
+                void removeConsoleSetOutputVar() { mHasValues &= ~fConsoleSetOutputVar; }
+                void removeConsoleDebugLog() { mHasValues &= ~fConsoleDebugLog; }
+                void removeLoggerOutputMode() { mHasValues &= ~fLoggerOutputMode; }
+                void removeConsoleNoEmptyVars() { mHasValues &= ~fConsoleNoEmptyVars; }
+                void removeConsoleDialogVisible() { mHasValues &= ~fConsoleDialogVisible; }
+                void removeConsoleIsOutputEnabled() { mHasValues &= ~fConsoleIsOutputEnabled; }
+                void removeSendMsgBufLen() { mHasValues &= ~fSendMsgBufLen; }
+
                 void Restore(CNppExec* pNppExec)
                 {
                     if ( mHasValues != 0 )
