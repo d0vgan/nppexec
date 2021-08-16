@@ -153,12 +153,12 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,95,262,50,14
 //    PUSHBUTTON      "Donate...",IDC_BT_DONATE,180,262,50,14
 #ifdef UNICODE
-    CTEXT           "NppExec ver. 0.7 Unicode for Notepad++",
+    CTEXT           "NppExec ver. 0.7.1 Unicode for Notepad++",
 #else
-    CTEXT           "NppExec ver. 0.7 ANSI for Notepad++",
+    CTEXT           "NppExec ver. 0.7.1 ANSI for Notepad++",
 #endif
                     IDC_STATIC,7,7,225,13
-                    CTEXT           "(C)  Dec 2006 - Jul 2021,  Vitaliy Dovgan aka DV <dvv81 @ ukr.net>",
+                    CTEXT           "(C)  Dec 2006 - Aug 2021,  Vitaliy Dovgan aka DV <dvv81 @ ukr.net>",
                     IDC_STATIC,5,22,229,33
     LTEXT           "",IDC_ED_INFO,7,98,225,134,0,WS_EX_STATICEDGE
     CTEXT           "Thanks to:\r\nDon HO for Notepad++,\r\nJens Lorenz for the docking feature,\r\nJuha Nieminen and Joel Yliluoma for Function Parser\r\nand myself for this plugin :-)",
@@ -544,8 +544,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0, 7, 0, 0
- PRODUCTVERSION 0, 7, 0, 0
+ FILEVERSION 0, 7, 1, 0
+ PRODUCTVERSION 0, 7, 1, 0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -563,12 +563,12 @@ BEGIN
             VALUE "Comments", "The wall is thin - and our foreheads are hard :-)"
             VALUE "CompanyName", "Full of Madness Co."
             VALUE "FileDescription", "NppExec plugin for Notepad++"
-            VALUE "FileVersion", "0, 7, 0, 0"
+            VALUE "FileVersion", "0, 7, 1, 0"
             VALUE "InternalName", "NppExec"
-            VALUE "LegalCopyright", "(C) Dec 2006 - Jul 2021, Vitaliy Dovgan aka DV"
+            VALUE "LegalCopyright", "(C) Dec 2006 - Aug 2021, Vitaliy Dovgan aka DV"
             VALUE "OriginalFilename", "NppExec.dll"
             VALUE "ProductName", "NppExec plugin for Notepad++"
-            VALUE "ProductVersion", "0, 7, 0, 0"
+            VALUE "ProductVersion", "0, 7, 1, 0"
         END
     END
     BLOCK "VarFileInfo"

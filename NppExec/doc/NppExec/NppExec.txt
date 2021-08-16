@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.7 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - July 2021
+ * NppExec plugin ver. 0.7.1 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - August 2021
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -209,13 +209,15 @@
  *  HISTORY  *
  *************
 
- v0.7.1 (dev) - 2021
- -------------------
+ v0.7.1 - August 2021
+ --------------------
  * changed: now IF/IF~/ELSE IF use delayed $(var) substitution.
    It means that IF "$(var)" != "" will work even when the value of $(var)
    contains inner " quote character(s).
  + added: now npe_debuglog supports the keyword "local".
- * changed: $(var) substitution has been reworked and improved
+ - fixed: when there was a "local" command followed by a similar "non-local"
+   command, the "non-local" one behaved as if it was "local".
+ * changed: $(var) substitution has been reworked and improved.
  + added: set <var> ~ strexpand <s>
 
 

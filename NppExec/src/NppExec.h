@@ -20,13 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.7.1 - (August) 2021
- ----------------------
+ v0.7.1 - August 2021
+ --------------------
  * changed: now IF/IF~/ELSE IF use delayed $(var) substitution.
    It means that IF "$(var)" != "" will work even when the value of $(var)
    contains inner " quote character(s).
  + added: now npe_debuglog supports the keyword "local".
- * changed: $(var) substitution has been reworked and improved
+ - fixed: when there was a "local" command followed by a similar "non-local"
+   command, the "non-local" one behaved as if it was "local".
+ * changed: $(var) substitution has been reworked and improved.
  + added: set <var> ~ strexpand <s>
 
 
@@ -636,8 +638,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x07F0
-#define NPPEXEC_VER_STR   _T("0.7")
+#define NPPEXEC_VER_DWORD 0x07F1
+#define NPPEXEC_VER_STR   _T("0.7.1")")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
