@@ -639,7 +639,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iterator>
 
 #define NPPEXEC_VER_DWORD 0x07F1
-#define NPPEXEC_VER_STR   _T("0.7.1")")
+#define NPPEXEC_VER_STR   _T("0.7.1")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

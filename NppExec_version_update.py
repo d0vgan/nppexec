@@ -72,7 +72,7 @@ def update_h_file(filename: str):
         elif not is_ver_str_replaced and line.startswith("#define NPPEXEC_VER_STR "):
             pos_1 = line.find('_T("') + 4
             pos_2 = line.find('")')
-            lines[line_idx] = line[0:pos_1] + VERSION_TO_SET + '")' + line[pos_2:]
+            lines[line_idx] = line[0:pos_1] + VERSION_TO_SET + line[pos_2:]
             is_ver_str_replaced = True
         if is_ver_date_replaced and is_ver_dword_replaced and is_ver_str_replaced:
             break
