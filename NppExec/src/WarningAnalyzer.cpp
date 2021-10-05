@@ -20,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NppExecEngine.h"
 #include "tchar.h"
 #include "richedit.h"
-
+#include <regex>
 
 static bool match_mask_2( const TCHAR*, const TCHAR*, TCHAR*, TCHAR*, TCHAR*, TCHAR* );
 static void preprocessMask( TCHAR* outMask, const TCHAR* inMask, unsigned int& outMaskType );
@@ -422,6 +422,66 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         postr4 = skip_tabspaces(postr4);
         m_nChar = _ttoi(postr4);
     }
+    else // *** START: New regex Warning/Error parser
+    {	 // *** All of the new regex Warning/Error parser is within this else block ***
+        std::wsmatch match;
+        const std::wstring HeyStack = str;
+        static std::map<int,int> ErrPositionIndicator;
+        static std::wstring PreviousFileName;
+        static int PreviousLineNo = 0;
+        std::wregex std_Needle = std::wregex( L"(?:(([a-zA-Z]:[\\\\/]|\\.\\.\\.)[^.]*\\.[^:\\\"\\(\\s]{1,8})|(^\\w[^\\s:\\\\/]*\\.\\w{1,8}))(?=[^0-9]{1,9}[0-9]+)" ); // Regex to find file name
+        if ( std::regex_search( HeyStack, match, std_Needle ) && match[0].str().size() ) // Find file name (find needle in a hey stack)
+        {	
+            std::wstring filename = match[0].str().size() > 2 && match[0].str().substr( 0, 3 ) == L"..." ? match[0].str().substr( 3 ) : match[0].str();
+            if ( filename != PreviousFileName )
+            {
+                PreviousFileName = filename;
+                ErrPositionIndicator.clear();
+            }
+            wcscpy_s( m_FileName, sizeof( m_FileName )/sizeof( m_FileName[0]), filename.c_str() );
+            m_nLastFoundIndex = 0;
+            *m_Filter = TFilter();
+            std_Needle = std::wregex( L"(?:^[^0-9a-zA-Z_]+|.*line )([0-9]+).*" );// Regex to find file number with file name preceeding it
+            std::wstring Suffix = match.suffix();
+            std::wstring strLineNo = std::regex_replace( Suffix, std_Needle, L"$1" ); // Replace to get file number only
+            if ( strLineNo.size() && isdigit( strLineNo[0] ) )
+            {
+                *(COLORREF*)(&m_Filter->Effect.Red) = COLOR_CON_TEXTERR; //Only color if found file name and line number
+                m_nLine = std::stoi( strLineNo.c_str() );
+                PreviousLineNo = m_nLine;
+                std_Needle = std::wregex( L".*[^a-zA-Z](?:[0-9][,:]\\s*|[0-9] char[,:])([0-9]+).*" ); // Regex to find nChar with file number preceeding it
+                std::wstring strCharNo = std::regex_replace( HeyStack, std_Needle, L"$1" ); // (if exist) replace to get nChar only
+                if ( strCharNo.size() && isdigit( strCharNo[0] ) )
+                    m_nChar = std::stoi( strCharNo.c_str() );
+                else
+                {
+                    Suffix = match.suffix();
+                    std_Needle = std::wregex( L"\\s+[\\x5E~]" ); // Regex to find error possition indicator
+                    if ( std::regex_search( Suffix, match, std_Needle ) ) // Find error possition indicator
+                        ErrPositionIndicator[m_nLine] = static_cast<int>(match[0].str().size());
+                    m_nChar = ErrPositionIndicator[m_nLine];
+                }
+            } 
+            else
+            {
+                m_nLine = 0;
+                m_nChar = 0;
+            }
+            m_Filter->Effect.Bold = true;
+            m_Filter->Effect.Enable = true;
+            pszMask = m_Filter->Mask;
+        }
+        else
+        {
+            std_Needle = std::wregex( L"^[\\.\\s]+[\\x5E~]" ); // Regex to find error possition indicator starting at the begging of a line
+            if ( std::regex_search( HeyStack, match, std_Needle ) ) // Find error possition indicator
+            {
+                std::wstring ErrorPositionIndicator = match[0].str().size() > 2 && match[0].str().substr( 0, 3 ) == L"..." ? match[0].str().substr( 3 ) : match[0].str();
+                ErrPositionIndicator[PreviousLineNo] = static_cast<int>(ErrorPositionIndicator.size());
+            }
+        }
+
+    } // *** END: New regex Warning/Error parser
 
     return ( pszMask ? true : false );
 }
