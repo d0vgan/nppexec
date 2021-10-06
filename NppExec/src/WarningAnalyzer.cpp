@@ -438,7 +438,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
                 PreviousFileName = filename;
                 ErrPositionIndicator.clear();
             }
-			wcscpy_s( m_FileName, sizeof( m_FileName )/sizeof( m_FileName[0]), filename.c_str() );
+            wcscpy_s( m_FileName, sizeof( m_FileName )/sizeof( m_FileName[0]), filename.c_str() );
             m_nLastFoundIndex = 0;
             *m_Filter = TFilter();
             std_Needle = std::wregex( L"(?:^[^0-9a-zA-Z_]+|.*line )([0-9]+).*" );// Regex to find file number with file name preceeding it
@@ -469,9 +469,9 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             }
             m_Filter->Effect.Bold = true;
             m_Filter->Effect.Enable = true;
-			std::transform( filename.begin(), filename.end(), filename.begin(), ::tolower );
-			if ( filename.size() > 4 && filename.substr( filename.size() - 4 ) == L".exe" )
-				return false;
+            std::transform( filename.begin(), filename.end(), filename.begin(), ::tolower );
+            if ( filename.size() > 4 && filename.substr( filename.size() - 4 ) == L".exe" )
+                return false;
             pszMask = m_Filter->Mask;
         }
         else
