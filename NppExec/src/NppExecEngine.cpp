@@ -6503,8 +6503,8 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
                     }
                 }
                 Sci_TextRange tr;
-                tr.chrg.cpMin = nPos;        // I believe Sci_CharacterRange will use INT_PTR
-                tr.chrg.cpMax = nPos + nLen; // or UINT_PTR to deal with 64-bit ranges
+                tr.chrg.cpMin = static_cast<Sci_PositionCR>(nPos);        // I believe Sci_CharacterRange will use INT_PTR
+                tr.chrg.cpMax = static_cast<Sci_PositionCR>(nPos + nLen) ; // or UINT_PTR to deal with 64-bit ranges
                 S.Reserve(50 + static_cast<int>(nLen)); // enough for both char* and TCHAR* buffer
                 tr.lpstrText = (char *) S.c_str(); // temporary using S as a char* buffer
                 ::SendMessage(hSci, SCI_GETTEXTRANGE, 0, (LPARAM) &tr);
