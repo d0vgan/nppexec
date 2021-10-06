@@ -1,0 +1,239 @@
+// * Run any file base on the file extension type
+//    ** If script file, run it (using *[Run Handler]*)
+//    ** If source code, compile and run
+//    ** If Unknown type display a message or modifty this script to perform some other default behavior
+//    ** If needed, add additional if conditions for other file types, and the desired execution behavior
+
+// *** Saving current file  *******************************
+NPP_SAVE
+// *** Turn off internal messages
+npe_console local m- --
+
+// *** Option: Set to 1 to turn on console logging which is saved in $(CURRENT_DIRECTORY)
+set NppExecConsoleLogging=0
+
+ // ToDo: For non-default installations, modify below paths to match your COMPILER or LANGUAGE RUNNER installation
+// *** Compilers  *******************************
+// set CppCompilerPath=C:\DMC\dm\bin
+// set CppCompiler="$(CppCompilerPath)\dmc.exe"
+set CppCompilerPath=C:\MinGW\bin
+set CppCompiler="$(CppCompilerPath)\g++.exe"
+set C_Compiler="$(CppCompilerPath)\gcc.exe"
+set FortranCompiler="$(CppCompilerPath)\gfortran.exe"
+set AdaCompiler="$(CppCompilerPath)\xx.exe"
+set ObjC_Compiler="$(CppCompilerPath)\gcc.exe"
+set CSharpCompiler="C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc"
+set VbCompiler="C:\Program Files (x86)\Microsoft Visual Studio\Shared\Packages\Microsoft.Net.Compilers.2.6.1\tools\vbc.exe"
+set JavaCompiler="C:\Program Files\Java\jdk1.8.0_202\bin\javac.exe"
+set D_CompilerPath=C:\D\dmd2\windows\bin64
+set MimPath=C:\Nim\bin
+
+// *** Language Runners  *******************************
+set JavaRunner="C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.exe"
+set AwkRunner="C:\Program Files (x86)\GnuWin32\bin\gawk.exe"
+set AutoItRunner="C:\Program Files (x86)\AutoIt3\AutoIt3.exe"
+set AutoHotKeyRunner="C:\Program Files\AutoHotkey\AutoHotkey.exe"
+set R_Runner="C:\Program Files\R\R-4.1.1\bin\x64\Rscript.exe"
+set RubyRunner="C:\Ruby30-x64\bin\Ruby.exe"
+set RubyWRunner="C:\Ruby30-x64\bin\RubyW.exe"
+set LuaRunnerX86="C:\Program Files (x86)\Lua\5.1\lua.exe"
+set LuaRunnerX64="C:\Program Files\Lua\lua54.exe"
+
+// *** Set common variables  *******************************
+set local ext ~ strlower $(EXT_PART)
+set obj =$(CURRENT_DIRECTORY)\$(NAME_PART)
+set CompiledBinary=$(obj).exe
+set ExecuteBinary="$(CompiledBinary)"
+set CompileIt =""
+set PostCompile =Echo Compile Success
+set NameOfItemToRun =$(NAME_PART)$(EXT_PART)
+
+if $(ext) == .cmd
+	cmd /c if not exist "$(CURRENT_DIRECTORY)\$(NAME_PART).cmd" exit 1
+	if $(EXITCODE) == 0
+		cmd /c $(CURRENT_DIRECTORY)\$(NAME_PART).cmd
+		goto :ShowRunStatusResults
+	endif
+endif
+cmd /c if not exist "$(CURRENT_DIRECTORY)\BuildProject.cmd" exit 1
+if $(EXITCODE) == 0
+	cmd /c $(CURRENT_DIRECTORY)\BuildProject.cmd
+	goto :ShowRunStatusResults
+endif
+cmd /c if not exist "$(CURRENT_DIRECTORY)\..\BuildProject.cmd" exit 1
+if $(EXITCODE) == 0
+	cmd /c $(CURRENT_DIRECTORY)\..\BuildProject.cmd
+	goto :ShowRunStatusResults
+endif
+cmd /c if not exist "$(CURRENT_DIRECTORY)\..\..\BuildProject.cmd" exit 1
+if $(EXITCODE) == 0
+	cmd /c $(CURRENT_DIRECTORY)\..\..\BuildProject.cmd
+	goto :ShowRunStatusResults
+endif
+
+// ToDo: If your script file type is not listed below, create a new *[Run Handler]* by appending a new "else if" block specifying how to handle it.
+// *** Common script file types *[Run Handler]*  *******************************
+if $(ext) == .awk
+	$(AwkRunner) -f "$(FULL_CURRENT_PATH)"
+else if $(ext) == .au3
+	$(AutoItRunner) "$(FULL_CURRENT_PATH)"
+else if $(ext) == .ahk
+	$(AutoHotKeyRunner) "$(FULL_CURRENT_PATH)"
+else if $(ext) == .bat
+	cmd /c ("$(FULL_CURRENT_PATH)")
+else if $(ext) == .cmd
+	cmd /c ("$(FULL_CURRENT_PATH)")
+else if $(ext) == .go
+	C:\Program Files\Go\bin\go.exe run "$(FULL_CURRENT_PATH)"
+else if $(ext) == .py
+	python "$(FULL_CURRENT_PATH)"
+else if $(ext) == .pyw
+	pythonw "$(FULL_CURRENT_PATH)"
+else if $(ext) == .ps1
+	powershell -executionpolicy bypass -File "$(FULL_CURRENT_PATH)"
+else if $(ext) == .r
+	$(R_Runner) "$(FULL_CURRENT_PATH)"
+else if $(ext) == .rb
+	$(RubyRunner) "$(FULL_CURRENT_PATH)"
+else if $(ext) == .rbw
+	$(RubyWRunner) "$(FULL_CURRENT_PATH)"
+else if $(ext) == .lua
+	cmd /c if not exist $(LuaRunnerX64) exit 1
+	if $(EXITCODE) == 0
+		$(LuaRunnerX64) "$(FULL_CURRENT_PATH)"
+	else
+		$(LuaRunnerX86) "$(FULL_CURRENT_PATH)"
+	endif
+else if $(ext) == .inputrc
+	NPP_RUN cmd 
+else if $(ext) == .vbs
+	echo "*** Using CScript to get output to NppExec console window ***"
+	cscript.exe "$(FULL_CURRENT_PATH)"
+else if $(ext) == .js
+	node "$(FULL_CURRENT_PATH)"
+else if $(ext) == .php
+	php "$(FULL_CURRENT_PATH)"
+
+// *** Common source code file types needing to be compiled before running associated binaries  *******************************
+else if $(ext) == .cs
+	set CompileIt =$(CSharpCompiler) "$(FULL_CURRENT_PATH)"
+	goto :CompileAndExecute
+else if $(ext) == .vb
+	set CompileIt =$(VbCompiler) "$(FULL_CURRENT_PATH)"
+	goto :CompileAndExecute
+else if $(ext) == .c
+	env_set local PATH = $(path);$(CppCompilerPath);
+	set CompileIt =$(C_Compiler) -c  "$(FULL_CURRENT_PATH)"
+	set PostCompile =$(C_Compiler) "$(obj).o" -o "$(CompiledBinary)"
+	goto :CompileAndExecute
+else if $(ext) == .cpp
+	env_set local PATH = $(path);$(CppCompilerPath);
+	set CompileIt =$(CppCompiler) -c  "$(FULL_CURRENT_PATH)"
+	set PostCompile =$(CppCompiler) "$(obj).o" -o "$(CompiledBinary)"
+	goto :CompileAndExecute
+else if $(ext) == .d
+	env_set local PATH = $(path);$(D_CompilerPath);
+	set CompileIt =$(D_CompilerPath)\dmd.exe -i -run "$(FULL_CURRENT_PATH)"
+	goto :CompileAndExecute
+else if $(ext) == .nim
+	env_set local PATH = $(path);$(MimPath);
+	set CompileIt =$(MimPath)\nim c --verbosity:0 "$(FULL_CURRENT_PATH)"
+	goto :CompileAndExecute
+else if $(ext) == .f90
+	env_set local PATH = $(path);$(CppCompilerPath);
+	set CompileIt =$(FortranCompiler)  "$(FULL_CURRENT_PATH)" -o $(NAME_PART)
+	goto :CompileAndExecute
+else if $(ext) == .java
+	set CompileIt =$(JavaCompiler) "$(FULL_CURRENT_PATH)"
+	set ExecuteBinary=$(JavaRunner) $(NAME_PART)
+	set CompiledBinary=$(NAME_PART).class
+	goto :CompileAndExecute
+else if $(ext) == .m
+	env_set local PATH = $(path);$(CppCompilerPath);$(CppCompilerPath)\include;
+	set CompileIt =$(ObjC_Compiler)  -I"c:/GNUstep/GNUstep/System/Library/Headers" -L "c:/GNUstep/GNUstep/System/Library/Libraries" -o $(NAME_PART) "$(FULL_CURRENT_PATH)" -lobjc -lgnustep-base -fconstant-string-class=NSConstantString
+	set CompileIt =$(ObjC_Compiler)  `gnustep-config --objc-flags` -o $(NAME_PART) "$(FULL_CURRENT_PATH)" -L /GNUstep/System/Library/Libraries -lobjc -lgnustep-base
+	set CompileIt =$(ObjC_Compiler)  --objc-gc -Wall -Werror -g -v "$(FULL_CURRENT_PATH)" -lobjc -o $(NAME_PART)
+	goto :CompileAndExecute
+else if $(ext) == .objc
+	env_set local PATH = $(path);$(CppCompilerPath);
+	set CompileIt =$(CppCompiler) -c 
+	set PostCompile =$(CppCompiler) "$(obj).o" -o "$(CompiledBinary)"
+
+	// --------------------------------------------------------------------------------------
+	// ToDo: ********** If needed, append your new *[Run Handler]* HERE by adding another "else if" block to handle your file extension type. **********
+	// --------------------------------------------------------------------------------------
+	// Example #1 *[Run Handler]* for files with extension .foo, where MyFooScriptRunner.exe is an executable that knows what to do with (.foo) files.
+	else if $(ext) == .foo
+	MyFooScriptRunner.exe "$(FULL_CURRENT_PATH)"
+	// --------------------------------------------------------------------------------------
+	// Example #2 *[Run Handler]* for files with extension .foobar, where DOS knows how to handle (.foobar) files.
+	else if $(ext) == .foobar
+	cmd /c  "$(FULL_CURRENT_PATH)"
+	// --------------------------------------------------------------------------------------
+	// Example #3 *[Run Handler]* for files with extension .axter, that is compiled by "a++.exe" which is stored in folder "C:\Program Files\axter". The binary created is of type (*.exe)
+	else if $(ext) == .axter
+	// Add the compiler folder to PATH so (if needed) it can access other associated binaries in order to compile or link
+	env_set local PATH = $(path);"C:\Program Files\axter";
+	// Set the compile command so the common handler knows how to compile the file
+	set CompileIt ="C:\Program Files\axter\a++.exe" "$(FULL_CURRENT_PATH)"
+	// Call the common handler which will compile and then execute the newly created *.exe file.
+	goto :CompileAndExecute
+	// --------------------------------------------------------------------------------------
+	//  Note: 
+	//			If binary created is NOT *.exe type, reset CompiledBinary to appropriate binary name.
+	//			If compiler has a link phase, use PostCompile to set link details
+	// --------------------------------------------------------------------------------------
+	// --------------------------------------------------------------------------------------
+
+// *** None of the if conditions were able to handle the file type, so notify user with a warning  *******************************
+else
+	// If needed, replace the following line with desired default behavior
+	set local msg ~ strunescape Warning: Unknown file type!\t[$(EXT_PART)]\nAdd file extension handler to NppExec script.
+	messagebox `$(msg)` : "File Type Warning" : warn
+	// Example alternate default behavior
+	// cmd /c "$(FULL_CURRENT_PATH)"
+endif
+
+// *** Show if successful run
+:ShowRunStatusResults
+if $(EXITCODE) == 0
+	echo =============== SUCCESS =============== ===============
+	echo **********  Success running $(NameOfItemToRun) **********
+else
+	echo ============ Run ERROR! =============== ===============
+	echo !!!! Error: $(NameOfItemToRun) failed with error: $(EXITCODE) !!!!
+	echo $(FULL_CURRENT_PATH) : 1
+endif
+goto :END
+
+// *** Common Compile handler wrapper  *******************************
+:CompileAndExecute
+echo Compiling '$(NAME_PART)' to create '$(CompiledBinary)'
+echo $(CompileIt) 
+$(CompileIt)
+if $(EXITCODE) == 0
+	$(PostCompile)
+	if $(EXITCODE) == 0
+		set NameOfItemToRun=$(CompiledBinary)
+		echo Running $(ExecuteBinary) ...
+		cmd /C if exist "$(CompiledBinary)" $(ExecuteBinary)
+		goto :ShowRunStatusResults
+	else
+		echo =========== Link ERROR! =============== ===============
+		echo !!!! Error: Linker error $(FULL_CURRENT_PATH) with error: $(EXITCODE) !!!!
+		echo Linker Command=$(PostCompile)
+	endif
+else
+	echo ======== Compile ERROR! =============== ===============
+	echo !!!! Error: Failed to compile $(FULL_CURRENT_PATH) with error: $(EXITCODE) !!!!
+	echo Compiler Command=$(CompileIt)
+endif
+:END
+
+if $(NppExecConsoleLogging) == 1
+	con_save $(CURRENT_DIRECTORY)\LoggingNppExecuteConsole.tmp
+	cmd /c echo ************************************************************************************************************************************************************************************>>$(CURRENT_DIRECTORY)\LoggingNppExecuteConsole.log
+	cmd /c echo ***>>$(CURRENT_DIRECTORY)\LoggingNppExecuteConsole.log
+	cmd /c type $(CURRENT_DIRECTORY)\LoggingNppExecuteConsole.tmp >> $(CURRENT_DIRECTORY)\LoggingNppExecuteConsole.log
+endif
+echo ===================================== ===============
