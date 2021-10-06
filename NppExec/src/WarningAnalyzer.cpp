@@ -429,16 +429,16 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         static std::map<int,int> ErrPositionIndicator;
         static std::wstring PreviousFileName;
         static int PreviousLineNo = 0;
-        std::wregex std_Needle = std::wregex( L"(?:(([a-zA-Z]:[\\\\/]|\\.\\.\\.)[^.]*\\.[^:\\\"\\(\\s]{1,8})|(^\\w[^\\s:\\\\/]*\\.\\w{1,8}))(?=[^0-9]{1,9}[0-9]+)" ); // Regex to find file name
-        if ( std::regex_search( HeyStack, match, std_Needle ) && match[0].str().size() ) // Find file name (find needle in a hey stack)
+        std::wregex std_Needle = std::wregex( L"(?:(([a-zA-Z]:[\\\\/]|\\.)[^.]*\\.[^:\"\\(\\s]{1,8})|(^\\w[^\\s:\\\\/]*\\.\\w{1,8}))(?=[\\s:(\",oline]{1,9}[0-9]+)" ); // Regex to find file name
+        if ( std::regex_search( HeyStack, match, std_Needle ) && match[0].str().size()) // Find file name (find needle in a hey stack)
         {	
-            std::wstring filename = match[0].str().size() > 2 && match[0].str().substr( 0, 3 ) == L"..." ? match[0].str().substr( 3 ) : match[0].str();
+            std::wstring filename = match[0].str().size() > 1 && match[0].str()[0] == L'.' ? match[0].str().substr( 1 ) : match[0].str();
             if ( filename != PreviousFileName )
             {
                 PreviousFileName = filename;
                 ErrPositionIndicator.clear();
             }
-            wcscpy_s( m_FileName, sizeof( m_FileName )/sizeof( m_FileName[0]), filename.c_str() );
+			wcscpy_s( m_FileName, sizeof( m_FileName )/sizeof( m_FileName[0]), filename.c_str() );
             m_nLastFoundIndex = 0;
             *m_Filter = TFilter();
             std_Needle = std::wregex( L"(?:^[^0-9a-zA-Z_]+|.*line )([0-9]+).*" );// Regex to find file number with file name preceeding it
@@ -469,6 +469,9 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             }
             m_Filter->Effect.Bold = true;
             m_Filter->Effect.Enable = true;
+			std::transform( filename.begin(), filename.end(), filename.begin(), ::tolower );
+			if ( filename.size() > 4 && filename.substr( filename.size() - 4 ) == L".exe" )
+				return false;
             pszMask = m_Filter->Mask;
         }
         else
