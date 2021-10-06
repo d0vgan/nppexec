@@ -18,6 +18,7 @@ x64/
 x86/
 #[Bb]in/
 [Oo]bj/
+temp/
 *.pdb
 
 #-- Visual C++ cache files
