@@ -1,16 +1,19 @@
-// * Run any file base on the file extension type
+// * Run in debug mode any file base on the file extension type
 //    ** If script file, run it (using *[Run Handler]*)
 //    ** If source code, compile and run
 //    ** If Unknown type display a message or modifty this script to perform some other default behavior
 //    ** If needed, add additional if conditions for other file types, and the desired execution behavior
+//    ** If there is a BuildProject.cmd file, that file will be used to Build and Execute.  The file type handler will be ignored.
 
 // *** Saving current file  *******************************
 NPP_SAVE
 // *** Turn off internal messages
 npe_console local m- --
 
-// *** Option: Set to 1 to turn on console logging which is saved in $(CURRENT_DIRECTORY)
-set NppExecConsoleLogging=0
+// *** Option: Set to 0 to turn off console logging which is saved in $(CURRENT_DIRECTORY)
+set NppExecConsoleLogging=1
+
+Echo .
 
  // ToDo: For non-default installations, modify below paths to match your COMPILER or LANGUAGE RUNNER installation
 // *** Compilers  *******************************
@@ -39,6 +42,7 @@ set RubyWRunner="C:\Ruby30-x64\bin\RubyW.exe"
 set LuaRunnerX86="C:\Program Files (x86)\Lua\5.1\lua.exe"
 set LuaRunnerX64="C:\Program Files\Lua\lua54.exe"
 
+
 // *** Set common variables  *******************************
 set local ext ~ strlower $(EXT_PART)
 set obj =$(CURRENT_DIRECTORY)\$(NAME_PART)
@@ -48,29 +52,35 @@ set CompileIt =""
 set PostCompile =Echo Compile Success
 set NameOfItemToRun =$(NAME_PART)$(EXT_PART)
 
-if $(ext) == .cmd
+Echo ..
+// *** Check if there's a script CMD file associated with current file which has build and/or excecute script
+if $(ext) != .cmd
 	cmd /c if not exist "$(CURRENT_DIRECTORY)\$(NAME_PART).cmd" exit 1
 	if $(EXITCODE) == 0
-		cmd /c $(CURRENT_DIRECTORY)\$(NAME_PART).cmd
+		cmd /c "$(CURRENT_DIRECTORY)\$(NAME_PART).cmd"
 		goto :ShowRunStatusResults
 	endif
 endif
+
+Echo ...
+// *** Check if there's a BuildProject.CMD file in current folder lever or 1 or 2 folder levels up
 cmd /c if not exist "$(CURRENT_DIRECTORY)\BuildProject.cmd" exit 1
 if $(EXITCODE) == 0
-	cmd /c $(CURRENT_DIRECTORY)\BuildProject.cmd
+	cmd /c "$(CURRENT_DIRECTORY)\BuildProject.cmd"
 	goto :ShowRunStatusResults
 endif
 cmd /c if not exist "$(CURRENT_DIRECTORY)\..\BuildProject.cmd" exit 1
 if $(EXITCODE) == 0
-	cmd /c $(CURRENT_DIRECTORY)\..\BuildProject.cmd
+	cmd /c "$(CURRENT_DIRECTORY)\..\BuildProject.cmd"
 	goto :ShowRunStatusResults
 endif
 cmd /c if not exist "$(CURRENT_DIRECTORY)\..\..\BuildProject.cmd" exit 1
 if $(EXITCODE) == 0
-	cmd /c $(CURRENT_DIRECTORY)\..\..\BuildProject.cmd
+	cmd /c "$(CURRENT_DIRECTORY)\..\..\BuildProject.cmd"
 	goto :ShowRunStatusResults
 endif
 
+Echo ....
 // ToDo: If your script file type is not listed below, create a new *[Run Handler]* by appending a new "else if" block specifying how to handle it.
 // *** Common script file types *[Run Handler]*  *******************************
 if $(ext) == .awk
@@ -82,6 +92,7 @@ else if $(ext) == .ahk
 else if $(ext) == .bat
 	cmd /c ("$(FULL_CURRENT_PATH)")
 else if $(ext) == .cmd
+	echo cmd /c ("$(FULL_CURRENT_PATH)")
 	cmd /c ("$(FULL_CURRENT_PATH)")
 else if $(ext) == .go
 	C:\Program Files\Go\bin\go.exe run "$(FULL_CURRENT_PATH)"
