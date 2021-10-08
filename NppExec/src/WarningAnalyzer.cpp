@@ -431,7 +431,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
     }
     else // *** START: New regex Warning/Error parser
     {	 // *** All of the new regex Warning/Error parser is within this else block ***
-		tsmatch match;
+        tsmatch match;
         const tstring HeyStack = str;
         static std::map<int,int> ErrPositionIndicator;
         static tstring PreviousFileName;
@@ -451,7 +451,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             tstring strLineNo = std::regex_replace( Suffix, m_rgxFindFileLineNo, _T("$1") ); // Replace to get file number only
             if ( strLineNo.size() && isdigit( strLineNo[0] ) )
             {
-				m_Filter->Effect.rgb = COLOR_CON_TEXTERR; //Only color if found file name and line number
+                m_Filter->Effect.rgb = COLOR_CON_TEXTERR; //Only color if found file name and line number
                 m_nLine = std::stoi( strLineNo.c_str() );
                 PreviousLineNo = m_nLine;
                 tstring strCharNo = std::regex_replace( HeyStack, m_rgxFindFileLinePos, _T("$1") ); // (if exist) replace to get nChar only
@@ -472,8 +472,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             }
             m_Filter->Effect.Bold = true;
             m_Filter->Effect.Enable = true;
-            std::transform( filename.begin(), filename.end(), filename.begin(), ::tolower );
-            if ( filename.size() > 4 && filename.substr( filename.size() - 4 ) == _T(".exe") )
+            if ( lstrcmpi( filename.c_str(), _T( ".exe" ) ) != 0)
                 return false;
             pszMask = m_Filter->Mask;
         }
