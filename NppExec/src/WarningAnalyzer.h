@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _warning_analyzer_h_
 //---------------------------------------------------------------------------
 #include "base.h"
+#include <regex>
 
 #define WARN_MASK_SIZE    ( 150 )
 #define WARN_MAX_FILTER   ( 10 )
@@ -64,6 +65,9 @@ public:
             Mask[0] = 0;
         }
     };
+	typedef std::basic_string<TCHAR> tstring;
+	typedef std::basic_regex<TCHAR> tregex;
+	typedef std::match_results<tstring::const_iterator> tsmatch;
 
 public:
     CWarningAnalyzer();
@@ -92,6 +96,11 @@ private:
     int     m_nLine;
     int     m_nChar;
     int     m_nLastFoundIndex;
+	static const tregex m_rgxFindFilename;// Regex to find file name with file number proceeding it
+	static const tregex m_rgxFindFileLineNo;// Regex to find file line number with file name preceeding it
+	static const tregex m_rgxFindFileLinePos;// Regex to find error possition number
+	static const tregex m_rgxFindErrPosIndicator;// Regex to find error possition indicator
+	static const tregex m_rgxFindErrPosIndicatorAtStartOfLine;// Regex to find error possition indicator
 };
 
 //---------------------------------------------------------------------------

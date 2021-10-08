@@ -294,6 +294,13 @@ const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*Mas
     return ( Mask );
 }
 
+const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindFilename = CWarningAnalyzer::tregex( _T("(?:(([a-zA-Z]:[\\\\/]|\\.)[^.]*\\.[^:\"\\(\\s]{1,8})|(^\\w[^\\s:\\\\/]*\\.\\w{1,8}))(?=[\\s:(\",oline]{1,9}[0-9]+)") );
+const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindFileLineNo = CWarningAnalyzer::tregex( _T("(?:^[^0-9a-zA-Z_]+|.*line )([0-9]+).*") );
+const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindFileLinePos = CWarningAnalyzer::tregex( _T(".*[^a - zA - Z]( ? : [0 - 9][, :]\\s* | [0 - 9] char[, :] )([0 - 9] + ).*") );
+const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindErrPosIndicator = CWarningAnalyzer::tregex( _T( "\\s+[\\x5E~]" ) );
+const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindErrPosIndicatorAtStartOfLine = CWarningAnalyzer::tregex( _T( "^[\\.\\s]+[\\x5E~]" ) );
+
+
 bool CWarningAnalyzer::match( const TCHAR* str )
 {
     TCHAR  ostr1[WARN_MAX_FILENAME + 5];
@@ -424,15 +431,14 @@ bool CWarningAnalyzer::match( const TCHAR* str )
     }
     else // *** START: New regex Warning/Error parser
     {	 // *** All of the new regex Warning/Error parser is within this else block ***
-        std::wsmatch match;
-        const std::wstring HeyStack = str;
+		tsmatch match;
+        const tstring HeyStack = str;
         static std::map<int,int> ErrPositionIndicator;
-        static std::wstring PreviousFileName;
+        static tstring PreviousFileName;
         static int PreviousLineNo = 0;
-        std::wregex std_Needle = std::wregex( L"(?:(([a-zA-Z]:[\\\\/]|\\.)[^.]*\\.[^:\"\\(\\s]{1,8})|(^\\w[^\\s:\\\\/]*\\.\\w{1,8}))(?=[\\s:(\",oline]{1,9}[0-9]+)" ); // Regex to find file name
-        if ( std::regex_search( HeyStack, match, std_Needle ) && match[0].str().size()) // Find file name (find needle in a hey stack)
+        if ( std::regex_search( HeyStack, match, m_rgxFindFilename ) && match[0].str().size()) // Find file name (find needle in a hey stack)
         {	
-            std::wstring filename = match[0].str().size() > 1 && match[0].str()[0] == L'.' ? match[0].str().substr( 1 ) : match[0].str();
+            tstring filename = match[0].str().size() > 1 && match[0].str()[0] == L'.' ? match[0].str().substr( 1 ) : match[0].str();
             if ( filename != PreviousFileName )
             {
                 PreviousFileName = filename;
@@ -441,23 +447,20 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             wcscpy_s( m_FileName, sizeof( m_FileName )/sizeof( m_FileName[0]), filename.c_str() );
             m_nLastFoundIndex = 0;
             *m_Filter = TFilter();
-            std_Needle = std::wregex( L"(?:^[^0-9a-zA-Z_]+|.*line )([0-9]+).*" );// Regex to find file number with file name preceeding it
-            std::wstring Suffix = match.suffix();
-            std::wstring strLineNo = std::regex_replace( Suffix, std_Needle, L"$1" ); // Replace to get file number only
+            tstring Suffix = match.suffix();
+            tstring strLineNo = std::regex_replace( Suffix, m_rgxFindFileLineNo, _T("$1") ); // Replace to get file number only
             if ( strLineNo.size() && isdigit( strLineNo[0] ) )
             {
                 *(COLORREF*)(&m_Filter->Effect.Red) = COLOR_CON_TEXTERR; //Only color if found file name and line number
                 m_nLine = std::stoi( strLineNo.c_str() );
                 PreviousLineNo = m_nLine;
-                std_Needle = std::wregex( L".*[^a-zA-Z](?:[0-9][,:]\\s*|[0-9] char[,:])([0-9]+).*" ); // Regex to find nChar with file number preceeding it
-                std::wstring strCharNo = std::regex_replace( HeyStack, std_Needle, L"$1" ); // (if exist) replace to get nChar only
+                tstring strCharNo = std::regex_replace( HeyStack, m_rgxFindFileLinePos, _T("$1") ); // (if exist) replace to get nChar only
                 if ( strCharNo.size() && isdigit( strCharNo[0] ) )
                     m_nChar = std::stoi( strCharNo.c_str() );
                 else
                 {
                     Suffix = match.suffix();
-                    std_Needle = std::wregex( L"\\s+[\\x5E~]" ); // Regex to find error possition indicator
-                    if ( std::regex_search( Suffix, match, std_Needle ) ) // Find error possition indicator
+                    if ( std::regex_search( Suffix, match, m_rgxFindErrPosIndicator ) ) // Find error possition indicator
                         ErrPositionIndicator[m_nLine] = static_cast<int>(match[0].str().size());
                     m_nChar = ErrPositionIndicator[m_nLine];
                 }
@@ -470,16 +473,15 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             m_Filter->Effect.Bold = true;
             m_Filter->Effect.Enable = true;
             std::transform( filename.begin(), filename.end(), filename.begin(), ::tolower );
-            if ( filename.size() > 4 && filename.substr( filename.size() - 4 ) == L".exe" )
+            if ( filename.size() > 4 && filename.substr( filename.size() - 4 ) == _T(".exe") )
                 return false;
             pszMask = m_Filter->Mask;
         }
         else
         {
-            std_Needle = std::wregex( L"^[\\.\\s]+[\\x5E~]" ); // Regex to find error possition indicator starting at the begging of a line
-            if ( std::regex_search( HeyStack, match, std_Needle ) ) // Find error possition indicator
+            if ( std::regex_search( HeyStack, match, m_rgxFindErrPosIndicatorAtStartOfLine ) ) // Find error possition indicator
             {
-                std::wstring ErrorPositionIndicator = match[0].str().size() > 2 && match[0].str().substr( 0, 3 ) == L"..." ? match[0].str().substr( 3 ) : match[0].str();
+                tstring ErrorPositionIndicator = match[0].str().size() > 2 && match[0].str().compare( 0, 3, _T("...") ) == 0 ? match[0].str().substr( 3 ) : match[0].str();
                 ErrPositionIndicator[PreviousLineNo] = static_cast<int>(ErrorPositionIndicator.size());
             }
         }
