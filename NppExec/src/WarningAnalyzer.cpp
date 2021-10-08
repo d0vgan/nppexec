@@ -473,7 +473,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             m_Filter->Effect.Bold = true;
             m_Filter->Effect.Enable = true;
 			std::transform( filename.begin(), filename.end(), filename.begin(), ::tolower );
-			if ( filename.size() > 4 && filename.substr( filename.size() - 4 ) == L".exe" )
+			if ( filename.size() > 4 && filename.substr( filename.size() - 4 ) == _T(".exe") )
                 return false;
             pszMask = m_Filter->Mask;
         }
