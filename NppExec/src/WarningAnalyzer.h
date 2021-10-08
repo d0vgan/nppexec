@@ -43,9 +43,16 @@ public:
         bool Italic;
         bool Bold;
         bool Underlined;
-        unsigned char Red;
-        unsigned char Green;
-        unsigned char Blue;
+		union
+		{
+			struct
+			{
+				unsigned char Red;
+				unsigned char Green;
+				unsigned char Blue;
+			};
+			DWORD rgb;
+		};
 
         TEffect() : Enable(false)
                   , Italic(false), Bold(false), Underlined(false)

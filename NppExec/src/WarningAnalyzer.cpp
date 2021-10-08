@@ -451,7 +451,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             tstring strLineNo = std::regex_replace( Suffix, m_rgxFindFileLineNo, _T("$1") ); // Replace to get file number only
             if ( strLineNo.size() && isdigit( strLineNo[0] ) )
             {
-                *(COLORREF*)(&m_Filter->Effect.Red) = COLOR_CON_TEXTERR; //Only color if found file name and line number
+				m_Filter->Effect.rgb = COLOR_CON_TEXTERR; //Only color if found file name and line number
                 m_nLine = std::stoi( strLineNo.c_str() );
                 PreviousLineNo = m_nLine;
                 tstring strCharNo = std::regex_replace( HeyStack, m_rgxFindFileLinePos, _T("$1") ); // (if exist) replace to get nChar only
