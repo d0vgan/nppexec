@@ -51,7 +51,7 @@ public:
 				unsigned char Green;
 				unsigned char Blue;
 			};
-			DWORD rgb;
+			COLORREF rgb;
 		};
 
         TEffect() : Enable(false)
