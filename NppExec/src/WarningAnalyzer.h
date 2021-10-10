@@ -22,6 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "base.h"
 #include <regex>
 
+typedef std::basic_string<TCHAR> tstring;
+typedef std::basic_regex<TCHAR> tregex;
+typedef std::match_results<tstring::const_iterator> tsmatch;
+
 #define WARN_MASK_SIZE    ( 150 )
 #define WARN_MAX_FILTER   ( 10 )
 #define WARN_MAX_FILENAME ( 2000 )
@@ -72,9 +76,6 @@ public:
             Mask[0] = 0;
         }
     };
-    typedef std::basic_string<TCHAR> tstring;
-    typedef std::basic_regex<TCHAR> tregex;
-    typedef std::match_results<tstring::const_iterator> tsmatch;
 
 public:
     CWarningAnalyzer();

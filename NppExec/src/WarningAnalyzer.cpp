@@ -20,13 +20,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NppExecEngine.h"
 #include "tchar.h"
 #include "richedit.h"
-#include <regex>
 
 static bool match_mask_2( const TCHAR*, const TCHAR*, TCHAR*, TCHAR*, TCHAR*, TCHAR* );
 static void preprocessMask( TCHAR* outMask, const TCHAR* inMask, unsigned int& outMaskType );
 static TCHAR* skip_tabspaces(TCHAR* s);
 static const TCHAR* skip_tabspaces(const TCHAR* s);
 static bool is_num_str(const TCHAR* s);
+
+
+const tregex CWarningAnalyzer::m_rgxFindFilename = tregex( _T( "(?:(([a-zA-Z]:[\\\\/]|\\.)[^.]*\\.[^:\"\\(\\s]{1,8})|(^\\w[^\\s:\\\\/]*\\.\\w{1,8}))(?=[\\s:(\",oline]{1,9}[0-9]+)" ) );
+const tregex CWarningAnalyzer::m_rgxFindFileLineNo = tregex( _T( "(?:^[^0-9a-zA-Z_]+|.*line )([0-9]+).*" ) );
+const tregex CWarningAnalyzer::m_rgxFindFileLinePos = tregex( _T( ".*[^a - zA - Z]( ? : [0 - 9][, :]\\s* | [0 - 9] char[, :] )([0 - 9] + ).*" ) );
+const tregex CWarningAnalyzer::m_rgxFindErrPosIndicator = tregex( _T( "\\s+[\\x5E~]" ) );
+const tregex CWarningAnalyzer::m_rgxFindErrPosIndicatorAtStartOfLine = tregex( _T( "^[\\.\\s]+[\\x5E~]" ) );
+
 
 #define  TCM_FILE1  _T('1')
 #define  TCM_FILE2  _T('2')
@@ -294,13 +301,6 @@ const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*Mas
     return ( Mask );
 }
 
-const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindFilename = CWarningAnalyzer::tregex( _T("(?:(([a-zA-Z]:[\\\\/]|\\.)[^.]*\\.[^:\"\\(\\s]{1,8})|(^\\w[^\\s:\\\\/]*\\.\\w{1,8}))(?=[\\s:(\",oline]{1,9}[0-9]+)") );
-const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindFileLineNo = CWarningAnalyzer::tregex( _T("(?:^[^0-9a-zA-Z_]+|.*line )([0-9]+).*") );
-const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindFileLinePos = CWarningAnalyzer::tregex( _T(".*[^a - zA - Z]( ? : [0 - 9][, :]\\s* | [0 - 9] char[, :] )([0 - 9] + ).*") );
-const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindErrPosIndicator = CWarningAnalyzer::tregex( _T( "\\s+[\\x5E~]" ) );
-const CWarningAnalyzer::tregex CWarningAnalyzer::m_rgxFindErrPosIndicatorAtStartOfLine = CWarningAnalyzer::tregex( _T( "^[\\.\\s]+[\\x5E~]" ) );
-
-
 bool CWarningAnalyzer::match( const TCHAR* str )
 {
     TCHAR  ostr1[WARN_MAX_FILENAME + 5];
@@ -472,7 +472,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             }
             m_Filter->Effect.Bold = true;
             m_Filter->Effect.Enable = true;
-			if ( filename.size() > 4 && lstrcmpi( filename.c_str() + (filename.size() - 4), _T(".exe")) == 0 )
+            if ( filename.size() > 4 && lstrcmpi( filename.c_str() + (filename.size() - 4), _T(".exe")) == 0 )
                 return false;
             pszMask = m_Filter->Mask;
         }
@@ -484,7 +484,6 @@ bool CWarningAnalyzer::match( const TCHAR* str )
                 ErrPositionIndicator[PreviousLineNo] = static_cast<int>(ErrorPositionIndicator.size());
             }
         }
-
     } // *** END: New regex Warning/Error parser
 
     return ( pszMask ? true : false );

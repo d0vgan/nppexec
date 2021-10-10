@@ -7,82 +7,10 @@
 
 // *** Saving current file  *******************************
 NPP_SAVE
-// *** Turn off internal messages
-npe_console local m- --
-
 // *** Option: Set to 1 to turn on console logging which is saved in $(CURRENT_DIRECTORY)
 set NppExecConsoleLogging=0
 
-Echo .
 
- // ToDo: For non-default installations, modify below paths to match your COMPILER or LANGUAGE RUNNER installation
- // *** Compiler Path  *******************************
-set CppCompilerPath=
-set MASM_CompilerPath=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\bin\Hostx64\x64\
-set MS_SDKs=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\x64
-set C_CompilerPath=
-set FortranCompilerPath=
-set JavaCompilerPath=
-set ObjC_CompilerPath=
-set CSharp_CompilerPath=
-set Vb_CompilerPath=
-set D_CompilerPath=
-set R_RunnerPath=
-set Ruby_RunnerPath=
-set Lua_RunnerPath=
-
-// Other paths  --------------------------------------------------------
-// set MASM_CompilerPath=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\bin\Hostx86\x64
-// set MASM_CompilerPath=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\bin\Hostx86\x86
-// set MASM_CompilerPath=C:\masm 615\BIN
-// set CppCompilerPath=C:\Program Files\CodeBlocks\MinGW\bin
-// set MS_SDKs=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\lib\x64
-// set MS_SDKs=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64
-// set MS_SDKs=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x86
-// set MS_SDKs=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\arm64
-// set MS_SDKs=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\x64
-// set MS_SDKs=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.20348.0\um\x64
-// set MS_SDKs=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.20348.0\ucrt\x64
-// set MS_SDKs=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.20348.0\ucrt_enclave\x64
-// set MS_SDKs=C:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um\x64
-
-// *** Compiler Names  *******************************
-set CppCompiler=g++.exe
-set C_Compiler=gcc.exe
-set MASM_Compiler=ml64.exe
-set FortranCompiler=gfortran.exe
-set AdaCompiler=xx.exe
-set ObjC_Compiler=gcc.exe
-set CSharpCompiler=C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc
-set VbCompiler=C:\Program Files (x86)\Microsoft Visual Studio\Shared\Packages\Microsoft.Net.Compilers.2.6.1\tools\vbc.exe
-set JavaCompiler=C:\Program Files\Java\jdk1.8.0_202\bin\javac.exe
-set D_CompilerPath=C:\D\dmd2\windows\bin64
-// Other names  --------------------------------------------------------
-// set CppCompiler=c++.exe
-// set C_Compiler=cc.exe
-// set MASM_Compiler=ml.exe
-
-// *** Language Runners  *******************************
-set JavaRunner=C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.exe
-set AwkRunner=C:\Program Files (x86)\GnuWin32\bin\gawk.exe
-set AutoItRunner=C:\Program Files (x86)\AutoIt3\AutoIt3.exe
-set AutoHotKeyRunner=C:\Program Files\AutoHotkey\AutoHotkey.exe
-set R_Runner=C:\Program Files\R\R-4.1.1\bin\x64\Rscript.exe
-set RubyRunner=Ruby.exe
-set RubyWRunner=RubyW.exe
-set LuaRunner=lua.exe
-
-// *** Set common variables  *******************************
-set local ext ~ strlower $(EXT_PART)
-set local filename ~ strlower $(NAME_PART)$(EXT_PART)
-set obj =$(CURRENT_DIRECTORY)\$(NAME_PART)
-set CompiledBinary=$(obj).exe
-set ExecuteBinary="$(CompiledBinary)"
-set CompileIt =""
-set PostCompile =Echo Compile Success
-set NameOfItemToRun =$(NAME_PART)$(EXT_PART)
-
-Echo ...
 // *** Check if there's a BuildProject.CMD file in current folder lever or 1 or 2 folder levels up
 cmd /c if not exist "$(CURRENT_DIRECTORY)\BuildProject.cmd" exit 1
 if $(EXITCODE) == 0
@@ -100,9 +28,85 @@ if $(EXITCODE) == 0
 	goto :ShowRunStatusResults
 endif
 
+// *** Turn off internal messages
+if $(NppExecConsoleLogging) == 0
+	npe_console local m- --
+	cls
+endif
+
+Echo .
+ // ToDo: For non-default installations, modify below paths to match your COMPILER or LANGUAGE RUNNER installation
+ // *** Compiler Path  *******************************
+set CppCompilerPath=
+set MASM_CompilerPath=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\bin\Hostx64\x64\
+set MS_SDKs=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\x64
+set C_CompilerPath=
+set FortranCompilerPath=
+set JavaCompilerPath=
+set ObjC_CompilerPath=
+set CSharp_CompilerPath=
+set Vb_CompilerPath=
+set D_CompilerPath=
+set R_RunnerPath=
+set Ruby_RunnerPath=
+set Lua_RunnerPath=
+// Other paths  --------------------------------------------------------
+// set MASM_CompilerPath=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\bin\Hostx86\x64
+// set MASM_CompilerPath=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\bin\Hostx86\x86
+// set MASM_CompilerPath=C:\masm 615\BIN
+// set CppCompilerPath=C:\Program Files\CodeBlocks\MinGW\bin
+// set MS_SDKs=C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Tools\MSVC\14.16.27023\lib\x64
+// set MS_SDKs=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x64
+// set MS_SDKs=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\x86
+// set MS_SDKs=C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Tools\MSVC\14.29.30133\lib\arm64
+// set MS_SDKs=C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\Lib\x64
+// set MS_SDKs=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.20348.0\um\x64
+// set MS_SDKs=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.20348.0\ucrt\x64
+// set MS_SDKs=C:\Program Files (x86)\Windows Kits\10\Lib\10.0.20348.0\ucrt_enclave\x64
+// set MS_SDKs=C:\Program Files (x86)\Windows Kits\8.0\Lib\win8\um\x64
+
+Echo ..
+// *** Compiler Names  *******************************
+set CppCompiler=g++.exe
+set C_Compiler=gcc.exe
+set MASM_Compiler=ml64.exe
+set FortranCompiler=gfortran.exe
+set AdaCompiler=xx.exe
+set ObjC_Compiler=gcc.exe
+set CSharpCompiler=C:\Windows\Microsoft.NET\Framework\v4.0.30319\csc
+set VbCompiler=C:\Program Files (x86)\Microsoft Visual Studio\Shared\Packages\Microsoft.Net.Compilers.2.6.1\tools\vbc.exe
+set JavaCompiler=C:\Program Files\Java\jdk1.8.0_202\bin\javac.exe
+set D_CompilerPath=C:\D\dmd2\windows\bin64
+// Other names  --------------------------------------------------------
+// set CppCompiler=c++.exe
+// set C_Compiler=cc.exe
+// set MASM_Compiler=ml.exe
+
+Echo ...
+// *** Language Runners  *******************************
+set JavaRunner=C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.exe
+set AwkRunner=C:\Program Files (x86)\GnuWin32\bin\gawk.exe
+set AutoItRunner=C:\Program Files (x86)\AutoIt3\AutoIt3.exe
+set AutoHotKeyRunner=C:\Program Files\AutoHotkey\AutoHotkey.exe
+set R_Runner=C:\Program Files\R\R-4.1.1\bin\x64\Rscript.exe
+set RubyRunner=Ruby.exe
+set RubyWRunner=RubyW.exe
+set LuaRunner=lua.exe
+
+Echo ....
+// *** Set common variables  *******************************
+set local ext ~ strlower $(EXT_PART)
+set FILE_NAME =$(NAME_PART)$(EXT_PART)
+set FILE_EXEC =$(FILE_NAME)
+set filename ~ strlower $(FILE_NAME)
+set obj =$(CURRENT_DIRECTORY)\$(NAME_PART)
+set CompiledBinary=$(obj).exe
+set ExecuteBinCmd="$(CompiledBinary)"
+set CompileIt =""
+set PostCompile =Echo Compile Success
 set ExecuteCMD=
 
-Echo .... FULL_CURRENT_PATH="$(FULL_CURRENT_PATH)";NameOfItemToRun=$(NameOfItemToRun)
+Echo .....
 // ToDo: If your script file type is not listed below, create a new *[Run Handler]* by appending a new "else if" block specifying how to handle it.
 // *** Common script file types *[Run Handler]*  *******************************
 if $(ext) == .awk
@@ -174,7 +178,7 @@ else if $(ext) == .f90
 	goto :CompileAndExecute
 else if $(ext) == .java
 	set CompileIt ="$(JavaCompiler)" "$(FULL_CURRENT_PATH)"
-	set ExecuteBinary=$(JavaRunner) $(NAME_PART)
+	set ExecuteBinCmd=$(JavaRunner) $(NAME_PART)
 	set CompiledBinary=$(NAME_PART).class
 	goto :CompileAndExecute
 else if $(ext) == .m
@@ -182,47 +186,47 @@ else if $(ext) == .m
 //	set CompileIt =$(ObjC_Compiler)  -I"c:/GNUstep/GNUstep/System/Library/Headers" -L "c:/GNUstep/GNUstep/System/Library/Libraries" -o $(NAME_PART) "$(FULL_CURRENT_PATH)" -lobjc -lgnustep-base -fconstant-string-class=NSConstantString
 //	set CompileIt =$(ObjC_Compiler)  `gnustep-config --objc-flags` -o $(NAME_PART) "$(FULL_CURRENT_PATH)" -L /GNUstep/System/Library/Libraries -lobjc -lgnustep-base
 //	set CompileIt =$(ObjC_Compiler)  --objc-gc -Wall -Werror -g -v "$(FULL_CURRENT_PATH)" -lobjc -o $(NAME_PART)
-//	set CompileIt =gcc 'gnustep-config --objc-flags' -L /GNUstep/System/Library/Libraries $(NameOfItemToRun)  -o $(NAME_PART) -lgnustep-base -lobjc
-	set CompileIt ="C:\C\SB\c\bin\gcc.exe" -arch i386 -o $(NAME_PART) -l objc $(NAME_PART)$(EXT_PART)
+//	set CompileIt =gcc 'gnustep-config --objc-flags' -L /GNUstep/System/Library/Libraries $(FILE_NAME)  -o $(NAME_PART) -lgnustep-base -lobjc
+	set CompileIt ="C:\C\SB\c\bin\gcc.exe" -arch i386 -o $(NAME_PART) -l objc $(FILE_NAME)
 	goto :CompileAndExecute
 else if $(ext) == .objc
 	set CompileIt ="$(CppCompilerPath)$(CppCompiler)" -c 
 	set PostCompile ="$(CppCompilerPath)$(CppCompiler)" "$(obj).o" -o "$(CompiledBinary)"
 else if $(ext) == .swift
-	set CompileIt =swiftc.exe  -o $(ExecuteBinary) "$(FULL_CURRENT_PATH)"
+	set CompileIt =swiftc.exe  -o $(CompiledBinary) "$(FULL_CURRENT_PATH)"
 	goto :CompileAndExecute
 else if $(ext) == .sed
-	set CompileIt =sed -f "$(FULL_CURRENT_PATH)" $(CURRENT_DIRECTORY)\..\input\$(NAME_PART)$(EXT_PART).txt
+	set CompileIt =sed -f "$(FULL_CURRENT_PATH)" $(CURRENT_DIRECTORY)\..\input\$(FILE_NAME).txt
 	goto :CompileAndExecute
 else if $(ext) == .scala
 	set CompileIt ="C:\Scala\bin\scalac.bat"  "$(FULL_CURRENT_PATH)"
-	set ExecuteBinary=C:\Scala\bin\scala.bat $(NAME_PART)
+	set ExecuteBinCmd=C:\Scala\bin\scala.bat $(NAME_PART)
 	set CompiledBinary= $(NAME_PART).class
 	goto :CompileAndExecute
 
-	// --------------------------------------------------------------------------------------
-	// ToDo: ********** If needed, append your new *[Run Handler]* HERE by adding another "else if" block to handle your file extension type. **********
-	// --------------------------------------------------------------------------------------
-	// Example #1 *[Run Handler]* for files with extension .foo, where MyFooScriptRunner.exe is an executable that knows what to do with (.foo) files.
-	else if $(ext) == .foo
-	MyFooScriptRunner.exe "$(FULL_CURRENT_PATH)"
-	// --------------------------------------------------------------------------------------
-	// Example #2 *[Run Handler]* for files with extension .foobar, where DOS knows how to handle (.foobar) files.
-	else if $(ext) == .foobar
-	cmd /c  "$(FULL_CURRENT_PATH)"
-	// --------------------------------------------------------------------------------------
-	// Example #3 *[Run Handler]* for files with extension .axter, that is compiled by "a++.exe" which is stored in folder "C:\Program Files\axter". The binary created is of type (*.exe)
-	else if $(ext) == .axter
-	// Set the compile command so the common handler knows how to compile the file
-	set CompileIt ="C:\Program Files\axter\a++.exe" "$(FULL_CURRENT_PATH)"
-	// Call the common handler which will compile and then execute the newly created *.exe file.
-	goto :CompileAndExecute
-	// --------------------------------------------------------------------------------------
-	//  Note: 
-	//			If binary created is NOT *.exe type, reset CompiledBinary to appropriate binary name.
-	//			If compiler has a link phase, use PostCompile to set link details
-	// --------------------------------------------------------------------------------------
-	// --------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------
+// ToDo: ********** If needed, append your new *[Run Handler]* HERE by adding another "else if" block to handle your file extension type. **********
+// --------------------------------------------------------------------------------------
+// Example #1 *[Run Handler]* for files with extension .foo, where MyFooScriptRunner.exe is an executable that knows what to do with (.foo) files.
+else if $(ext) == .foo
+MyFooScriptRunner.exe "$(FULL_CURRENT_PATH)"
+// --------------------------------------------------------------------------------------
+// Example #2 *[Run Handler]* for files with extension .foobar, where DOS knows how to handle (.foobar) files.
+else if $(ext) == .foobar
+cmd /c  "$(FULL_CURRENT_PATH)"
+// --------------------------------------------------------------------------------------
+// Example #3 *[Run Handler]* for files with extension .axter, that is compiled by "a++.exe" which is stored in folder "C:\Program Files\axter". The binary created is of type (*.exe)
+else if $(ext) == .axter
+// Set the compile command so the common handler knows how to compile the file
+set CompileIt ="C:\Program Files\axter\a++.exe" "$(FULL_CURRENT_PATH)"
+// Call the common handler which will compile and then execute the newly created *.exe file.
+goto :CompileAndExecute
+// --------------------------------------------------------------------------------------
+//  Note: 
+//			If binary created is NOT *.exe type, reset CompiledBinary to appropriate binary name.
+//			If compiler has a link phase, use PostCompile to set link details
+// --------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------
 
 // *** None of the if conditions were able to handle the file type, so notify user with a warning  *******************************
 else
@@ -233,17 +237,22 @@ else
 	// cmd /c "$(FULL_CURRENT_PATH)"
 endif
 
-echo $(ExecuteCMD)
+Echo .......
+if $(NppExecConsoleLogging) == 0
+	cls
+endif
+
+echo Running $(ExecuteCMD)
 $(ExecuteCMD)
 
 // *** Show if successful run
 :ShowRunStatusResults
 if $(EXITCODE) == 0
 	echo =============== SUCCESS =============== ===============
-	echo **********  Success running $(NameOfItemToRun) **********
+	echo \t**********  Success running $(FILE_EXEC) **********
 else
 	echo ============ Run ERROR! =============== ===============
-	echo !!!! Error: $(NameOfItemToRun) failed with error: $(EXITCODE) !!!!
+	echo !!!! Error: $(FILE_EXEC) failed with error: $(EXITCODE) !!!!
 	echo $(FULL_CURRENT_PATH) : 1
 endif
 goto :END
@@ -256,9 +265,9 @@ $(CompileIt)
 if $(EXITCODE) == 0
 	$(PostCompile)
 	if $(EXITCODE) == 0
-		set NameOfItemToRun=$(CompiledBinary)
-		echo Running $(ExecuteBinary) ...
-		cmd /C if exist "$(CompiledBinary)" $(ExecuteBinary)
+		set FILE_EXEC=$(CompiledBinary)
+		echo Running $(ExecuteBinCmd) ...
+		cmd /C if exist "$(CompiledBinary)" $(ExecuteBinCmd)
 		goto :ShowRunStatusResults
 	else
 		echo =========== Link ERROR! =============== ===============
