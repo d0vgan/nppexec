@@ -188,9 +188,6 @@
       <ImportLibrary>$(OutDir)NppExec.lib</ImportLibrary>
       <AdditionalDependencies>shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>if exist "%APPDATA%\Notepad++\plugins\$(TargetName)" copy "$(TargetPath)" "%APPDATA%\Notepad++\plugins\$(TargetName)"</Command>
-    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug (ANSI)|x64'">
     <ClCompile>
