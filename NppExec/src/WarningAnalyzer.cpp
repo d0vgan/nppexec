@@ -444,7 +444,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
                 PreviousFileName = filename;
                 ErrPositionIndicator.clear();
             }
-            wcscpy_s( m_FileName, sizeof( m_FileName )/sizeof( m_FileName[0]), filename.c_str() );
+			lstrcpyn( m_FileName, filename.c_str(), sizeof( m_FileName )/sizeof( m_FileName[0]) );
             m_nLastFoundIndex = 0;
             *m_Filter = TFilter();
             tstring Suffix = match.suffix();
