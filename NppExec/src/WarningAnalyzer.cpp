@@ -21,12 +21,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "tchar.h"
 #include "richedit.h"
 
-
 static bool match_mask_2( const TCHAR*, const TCHAR*, TCHAR*, TCHAR*, TCHAR*, TCHAR* );
 static void preprocessMask( TCHAR* outMask, const TCHAR* inMask, unsigned int& outMaskType );
 static TCHAR* skip_tabspaces(TCHAR* s);
 static const TCHAR* skip_tabspaces(const TCHAR* s);
 static bool is_num_str(const TCHAR* s);
+
+
+const tregex CWarningAnalyzer::m_rgxFindFilename = tregex( _T( "(?:(([a-zA-Z]:[\\\\/]|\\.)[^.]*\\.[^:\"\\(\\s]{1,8})|(^\\w[^\\s:\\\\/]*\\.\\w{1,8}))(?=[\\s:(\",oline]{1,9}[0-9]+)" ) );
+const tregex CWarningAnalyzer::m_rgxFindFileLineNo = tregex( _T( "(?:^[^0-9a-zA-Z_]+|.*line )([0-9]+).*" ) );
+const tregex CWarningAnalyzer::m_rgxFindFileLinePos = tregex( _T( ".*[^a - zA - Z]( ? : [0 - 9][, :]\\s* | [0 - 9] char[, :] )([0 - 9] + ).*" ) );
+const tregex CWarningAnalyzer::m_rgxFindErrPosIndicator = tregex( _T( "\\s+[\\x5E~]" ) );
+const tregex CWarningAnalyzer::m_rgxFindErrPosIndicatorAtStartOfLine = tregex( _T( "^[\\.\\s]+[\\x5E~]" ) );
+
 
 #define  TCM_FILE1  _T('1')
 #define  TCM_FILE2  _T('2')
@@ -422,6 +429,62 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         postr4 = skip_tabspaces(postr4);
         m_nChar = _ttoi(postr4);
     }
+    else // *** START: New regex Warning/Error parser
+    {	 // *** All of the new regex Warning/Error parser is within this else block ***
+        tsmatch match;
+        const tstring HeyStack = str;
+        static std::map<int,int> ErrPositionIndicator;
+        static tstring PreviousFileName;
+        static int PreviousLineNo = 0;
+        if ( std::regex_search( HeyStack, match, m_rgxFindFilename ) && match[0].str().size()) // Find file name (find needle in a hey stack)
+        {	
+            tstring filename = match[0].str().size() > 1 && match[0].str()[0] == L'.' ? match[0].str().substr( 1 ) : match[0].str();
+            if ( filename != PreviousFileName )
+            {
+                PreviousFileName = filename;
+                ErrPositionIndicator.clear();
+            }
+            wcscpy_s( m_FileName, sizeof( m_FileName )/sizeof( m_FileName[0]), filename.c_str() );
+            m_nLastFoundIndex = 0;
+            *m_Filter = TFilter();
+            tstring Suffix = match.suffix();
+            tstring strLineNo = std::regex_replace( Suffix, m_rgxFindFileLineNo, _T("$1") ); // Replace to get file number only
+            if ( strLineNo.size() && isdigit( strLineNo[0] ) )
+            {
+                m_Filter->Effect.rgb = COLOR_CON_TEXTERR; //Only color if found file name and line number
+                m_nLine = std::stoi( strLineNo.c_str() );
+                PreviousLineNo = m_nLine;
+                tstring strCharNo = std::regex_replace( HeyStack, m_rgxFindFileLinePos, _T("$1") ); // (if exist) replace to get nChar only
+                if ( strCharNo.size() && isdigit( strCharNo[0] ) )
+                    m_nChar = std::stoi( strCharNo.c_str() );
+                else
+                {
+                    Suffix = match.suffix();
+                    if ( std::regex_search( Suffix, match, m_rgxFindErrPosIndicator ) ) // Find error possition indicator
+                        ErrPositionIndicator[m_nLine] = static_cast<int>(match[0].str().size());
+                    m_nChar = ErrPositionIndicator[m_nLine];
+                }
+            } 
+            else
+            {
+                m_nLine = 0;
+                m_nChar = 0;
+            }
+            m_Filter->Effect.Bold = true;
+            m_Filter->Effect.Enable = true;
+            if ( filename.size() > 4 && lstrcmpi( filename.c_str() + (filename.size() - 4), _T(".exe")) == 0 )
+                return false;
+            pszMask = m_Filter->Mask;
+        }
+        else
+        {
+            if ( std::regex_search( HeyStack, match, m_rgxFindErrPosIndicatorAtStartOfLine ) ) // Find error possition indicator
+            {
+                tstring ErrorPositionIndicator = match[0].str().size() > 2 && match[0].str().compare( 0, 3, _T("...") ) == 0 ? match[0].str().substr( 3 ) : match[0].str();
+                ErrPositionIndicator[PreviousLineNo] = static_cast<int>(ErrorPositionIndicator.size());
+            }
+        }
+    } // *** END: New regex Warning/Error parser
 
     return ( pszMask ? true : false );
 }
