@@ -369,7 +369,7 @@ typedef struct sCmdItemInfo {
   _T("      - move the caret to the position of the occurrence found") _T_RE_EOL \
   _T("    NPE_SF_SETSEL      = 0x02000000") _T_RE_EOL \
   _T("      - move the caret + select the occurrence found") _T_RE_EOL \
-  _T("    NPE_SF_REPLACEALL  = 0x10000000") _T_RE_EOL \
+  _T("    NPE_SF_REPLACEALL  = 0x10000000  // only for sci_replace") _T_RE_EOL \
   _T("      - replace all the occurrences from the current pos to the end") _T_RE_EOL \
   _T("    NPE_SF_PRINTALL    = 0x20000000") _T_RE_EOL \
   _T("      - print all the occurrences from the current pos to the end")
