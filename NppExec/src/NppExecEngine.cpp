@@ -6991,6 +6991,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
         {
             // "set $(var)" returns the value of var
             // "set" returns all vars and values
+            // "set local" returns all local vars and values
+            varName = params; // let's check for "set local"
+            NppExecHelpers::StrDelLeadingTabSpaces(varName);
+            NppExecHelpers::StrDelTrailingTabSpaces(varName);
+            bLocalVar = CNppExecMacroVars::IsLocalMacroVar(varName);
         }
     }
     else
