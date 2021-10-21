@@ -54,6 +54,7 @@
  |  HotKey                          |  F6                             | string |
  |  ToolbarBtn                      |  1                              |  int   |
  |  WatchScriptFile                 |  1                     (TRUE)   |  BOOL  |
+ |  SaveLastScript                  |  1                     (TRUE)   |  BOOL  |
  |  ScriptNppStart                  |                        (empty)  | string |
  |  ScriptNppExit                   |                        (empty)  | string |
  |  HelpFile                        |  doc\NppExec\NppExec_Manual.chm | string |
@@ -74,6 +75,7 @@
    HotKey=F6
    ToolbarBtn=1
    WatchScriptFile=1
+   SaveLastScript=1
    ScriptNppStart=
    ScriptNppExit=
    HelpFile=doc\NppExec\NppExec_Manual.chm
@@ -606,6 +608,17 @@
    the file time stamp and does not reread this file.
 
 
+ SaveLastScript
+ --------------
+   When this option is enabled (set to 1), the plugin saves the last
+   executed script to "npes_saved.txt" and restores it when Notepad++
+   starts. (So it can be run by Execute Previous NppExec Script).
+   If this option is disabled (set to 0), the plugin does not save the
+   last executed script and does not read "npes_saved.txt" when Notepad++
+   starts.
+   See also: LastScriptFile.
+
+
  ScriptNppStart
  --------------
    You can specify here a name of existing script which you want to be
@@ -653,6 +666,7 @@
  --------------
    Name of a file where NppExec stores its last executed script.
    The default file name is "npes_last.txt".
+   See also: SaveLastScript.
 
 
  SavedScriptsFile

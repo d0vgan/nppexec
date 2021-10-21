@@ -331,6 +331,8 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
       INI_SECTION_OPTIONS, _T("ToolbarBtn"), 1, NULL },
     { OPTB_WATCHSCRIPTFILE, OPTT_BOOL | OPTF_READWRITE,
       INI_SECTION_OPTIONS, _T("WatchScriptFile"), 1, NULL },
+    { OPTB_SAVELASTSCRIPT, OPTT_BOOL | OPTF_READWRITE,
+      INI_SECTION_OPTIONS, _T("SaveLastScript"), 1, NULL },
     { OPTS_SCRIPT_NPPSTART, OPTT_STR | OPTF_READWRITE,
       INI_SECTION_OPTIONS, _T("ScriptNppStart"), 0, NULL },
     { OPTS_SCRIPT_NPPEXIT, OPTT_STR | OPTF_READWRITE,
@@ -4545,14 +4547,14 @@ void CNppExec::InitPluginName(HMODULE hDllModule)
         S.Append( _T(".txt") );
         lstrcpy( CMDHISTORY_FILENAME, S.c_str() );
 
-        // Temp Script file name:
+        // Temp Script file name (initial value before ReadOptions()):
         S = plug_name;
         S.Replace( _T("NppExec"), _T("npes_temp") );
         S.Append( _T(".txt") );
         lstrcpy( SCRIPTFILE_TEMP, S.c_str() );
         Runtime::GetNppExec().GetOptions().SetStr( OPTS_PLUGIN_TEMPSCRIPTFILE, S.c_str() );
 
-        // Last Script file name:
+        // Last Script file name (initial value before ReadOptions()):
         S = plug_name;
         S.Replace( _T("NppExec"), _T("npes_last") );
         S.Append( _T(".txt") );
@@ -5513,17 +5515,20 @@ void CNppExec::ReadOptions()
     } 
   }
 
-  const tstr pathToLastScript = ExpandToFullConfigPath(SCRIPTFILE_LAST, true);
-  if (fbuf.LoadFromFile(pathToLastScript.c_str(), true, GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH)))
+  if (GetOptions().GetBool(OPTB_SAVELASTSCRIPT))
   {
-    tstr Line;
-
-    while (fbuf.GetLine(Line) >= 0)
+    const tstr pathToLastScript = ExpandToFullConfigPath(SCRIPTFILE_LAST, true);
+    if (fbuf.LoadFromFile(pathToLastScript.c_str(), true, GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH)))
     {
-      m_ScriptCmdList.Add(Line);
-    }
+      tstr Line;
 
-    m_LastSavedCmdList = m_ScriptCmdList;
+      while (fbuf.GetLine(Line) >= 0)
+      {
+        m_ScriptCmdList.Add(Line);
+      }
+
+      m_LastSavedCmdList = m_ScriptCmdList;
+    }
   }
 
   const tstr pathToSavedScripts = ExpandToFullConfigPath(SCRIPTFILE_SAVED, true);
@@ -5835,11 +5840,14 @@ void CNppExec::SaveScripts(unsigned int nSaveFlags)
     nSaved |= ssfTemp;
   }
 
-  if ((nSaveFlags & ssfSaveLastScript) && (m_LastSavedCmdList != m_ScriptCmdList))
+  if (GetOptions().GetBool(OPTB_SAVELASTSCRIPT))
   {
-    SaveScriptToFile(m_ScriptCmdList, localLastScript);
-    m_LastSavedCmdList = m_ScriptCmdList;
-    nSaved |= ssfLast;
+    if ((nSaveFlags & ssfSaveLastScript) && (m_LastSavedCmdList != m_ScriptCmdList))
+    {
+      SaveScriptToFile(m_ScriptCmdList, localLastScript);
+      m_LastSavedCmdList = m_ScriptCmdList;
+      nSaved |= ssfLast;
+    }
   }
 
   if (m_ScriptsList.IsModified())
@@ -5862,12 +5870,15 @@ void CNppExec::SaveScripts(unsigned int nSaveFlags)
       ::CopyFile(localTempScript.c_str(), cloudTempScript.c_str(), FALSE);
     }
 
-    // Back up the last script to the cloud
-    tstr cloudLastScript = cloudPluginDir;
-    cloudLastScript += SCRIPTFILE_LAST;
-    if ((nSaved & ssfLast) || !NppExecHelpers::IsValidTextFile(cloudLastScript))
+    if (GetOptions().GetBool(OPTB_SAVELASTSCRIPT))
     {
-      ::CopyFile(localLastScript.c_str(), cloudLastScript.c_str(), FALSE);
+      // Back up the last script to the cloud
+      tstr cloudLastScript = cloudPluginDir;
+      cloudLastScript += SCRIPTFILE_LAST;
+      if ((nSaved & ssfLast) || !NppExecHelpers::IsValidTextFile(cloudLastScript))
+      {
+        ::CopyFile(localLastScript.c_str(), cloudLastScript.c_str(), FALSE);
+      }
     }
 
     // Back up the saved scripts to the cloud
