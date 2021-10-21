@@ -14,7 +14,7 @@ Let's begin with several theoretical questions.
 At first, how can NppExec understand which compiler/interpreter is required
 by your current source file? NppExec is not a compiler, it does not have
 any information about your file and does not know what to do with it. 
-Moreover, Notepad++ itself is not such IDE as Visual C++ Express or Dev-C++,
+Moreover, Notepad++ itself is not such IDE as Visual Studio or Dev-C++,
 it does not include any compiler and also does not know what to do with your
 source file.
 So, the only way to compile your source file with required compiler is to tell
@@ -84,7 +84,7 @@ of this script's name: "run@$(EXT_PART)".
 It's not hard to understand that this script's name transforms to "run@.cpp"
 for .cpp source file, "run@.lua" for .lua source file and so on.
 So, let's create our general compile-or-run script which will be called each
-time you want compile or run ANY source file:
+time you want to compile or run ANY source file:
 
   // save current file
   NPP_SAVE
@@ -265,6 +265,6 @@ You can find some more notes and hints by typing
 
 Well, seems it's time to finish the guide. I hope this guide was usefull for 
 you, because otherwise it was waste of time for both of us: the reader (you) 
-and the writer (me).
+and the writer (me). Anyway, thank you for your time and for your interest!
 If you like this guide, I hope it will inspire you to find your own usefull
 application of NppExec's functions, and maybe to share it with us.

@@ -242,8 +242,8 @@
 			<param name="Local" value="Acknowledgment.html">
 			</OBJECT>
 		<LI> <OBJECT type="text/sitemap">
-			<param name="Name" value="NppExec_Guide (plain text)">
-			<param name="Local" value="NppExec_Guide.txt">
+			<param name="Name" value="NppExec_Guide">
+			<param name="Local" value="NppExec_Guide.html">
 			</OBJECT>
 	</UL>
 </UL>
