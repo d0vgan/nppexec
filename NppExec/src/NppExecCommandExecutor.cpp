@@ -1078,8 +1078,22 @@ void CNppExecCommandExecutor::ScriptableCommand::DoExecScript(LPCTSTR szScriptNa
             S += szScriptArguments;
         }
 
+        tCmdList lastCmdList;
+
+        if ( (nRunFlags & CScriptEngine::rfExitScript) ||
+             (nRunFlags & CScriptEngine::rfStartScript) )
+        {
+            lastCmdList = pNppExec->GetCmdList();
+        }
+
         pNppExec->SetCmdList( CListT<tstr>( S ) );
         OnDirectExec(bCanSaveAll, nRunFlags);
+
+        if ( (nRunFlags & CScriptEngine::rfExitScript) ||
+             (nRunFlags & CScriptEngine::rfStartScript) )
+        {
+            pNppExec->SetCmdList(lastCmdList);
+        }
 
         if ( nRunFlags & CScriptEngine::rfExitScript )
         {

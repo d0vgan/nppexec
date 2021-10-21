@@ -232,7 +232,7 @@ void CDoExecDlg::OnBtOK(BOOL bUpdateCmdList)
 
     if ( NppExec.m_bAnotherNppExecDllExists )
     {
-      NppExec.SaveScripts();
+      NppExec.SaveScripts(0);
     }
   
   } // (bUpdateCmdList || bModified)
@@ -976,7 +976,7 @@ bool CScriptNameDlg::OnBtSave()
     // no need to modify m_cbScriptName because this dialog will be closed now
     
     // saving modifications in scripts
-    Runtime::GetNppExec().SaveScripts();
+    Runtime::GetNppExec().SaveScripts(CNppExec::ssfSaveLastScript);
     return true;
   }
 }

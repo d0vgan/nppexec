@@ -58,6 +58,7 @@
  |  ScriptNppExit                   |                        (empty)  | string |
  |  HelpFile                        |  doc\NppExec\NppExec_Manual.chm | string |
  |  TempScriptFile                  |  npes_temp.txt                  | string |
+ |  LastScriptFile                  |  npes_last.txt                  | string |
  |  SavedScriptsFile                |  npes_saved.txt                 | string |
  |  LogsDir                         |                        (empty)  | string |
  |  AutoSave_Seconds                |  0                              |  int   |
@@ -77,6 +78,7 @@
    ScriptNppExit=
    HelpFile=doc\NppExec\NppExec_Manual.chm
    TempScriptFile=npes_temp.txt
+   LastScriptFile=npes_last.txt
    SavedScriptsFile=npes_saved.txt
    LogsDir=
    AutoSave_Seconds=0
@@ -645,6 +647,12 @@
  --------------
    Name of a file where NppExec stores its temporary script.
    The default file name is "npes_temp.txt".
+
+
+ LastScriptFile
+ --------------
+   Name of a file where NppExec stores its last executed script.
+   The default file name is "npes_last.txt".
 
 
  SavedScriptsFile

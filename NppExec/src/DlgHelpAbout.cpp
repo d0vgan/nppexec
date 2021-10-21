@@ -95,7 +95,10 @@ INT_PTR CALLBACK HelpAboutDlgProc(
       Notes += SCRIPTFILE_SAVED;
       Notes +=
           _T("\".\r\n") \
-          _T("- Console commands history is saved to \"npec_cmdhistory.txt\".");
+          _T("- Console commands history is saved to \"");
+      Notes += CMDHISTORY_FILENAME;
+      Notes +=
+          _T("\".");
 
       SendMessage(hEd, EM_LIMITTEXT, 2048, 0);
       SetWindowText(hEd, Notes.c_str());

@@ -69,6 +69,8 @@ private:
   void           itemQuickSort(CListItemPtr* pListItems, int lower, int upper);
   void           itemSwap(CListItemT<T>* p1, CListItemT<T>* p2);
 
+  bool           areItemsEqual(const CListT<T>& List) const;
+
 public:
   CListT();
   CListT(const CListT& List);
@@ -102,6 +104,9 @@ public:
 
   CListT&        operator=(const CListT<T>& List)  { Assign(List); return *this; }
   CListT&        operator=(CListT<T>&& List)       { Assign(std::forward<CListT>(List)); return *this; }
+
+  bool           operator==(const CListT<T>& List) const { return areItemsEqual(List); }
+  bool           operator!=(const CListT<T>& List) const { return !areItemsEqual(List); }
 
 };
 
@@ -458,6 +463,25 @@ template <class T> void CListT<T>::Swap(CListT<T>& List)
     m_pFirstItem = listFirstItem;
     m_pLastItem  = listLastItem;
     m_nCount     = listCount;
+}
+
+template <class T> bool CListT<T>::areItemsEqual(const CListT<T>& List) const
+{
+    if ( m_nCount != List.m_nCount )
+        return false;
+
+    CListItemT<T>* pItem1 = m_pFirstItem;
+    CListItemT<T>* pItem2 = List.m_pFirstItem;
+    while ( pItem1 && pItem2 )
+    {
+        if ( pItem1->GetItem() != pItem2->GetItem() )
+            return false;
+
+        pItem1 = pItem1->GetNext();
+        pItem2 = pItem2->GetNext();
+    }
+
+    return true;
 }
 
 //----------------------------------------------------------------------------

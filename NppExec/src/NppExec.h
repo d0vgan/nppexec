@@ -1069,6 +1069,7 @@ enum EPluginOptions {
 
     OPTS_PLUGIN_HELPFILE,
     OPTS_PLUGIN_TEMPSCRIPTFILE,
+    OPTS_PLUGIN_LASTSCRIPTFILE,
     OPTS_PLUGIN_SAVEDSCRIPTSFILE,
     OPTS_PLUGIN_LOGSDIR,
     OPTS_PLUGIN_SCRIPTSDIR,
@@ -1394,6 +1395,7 @@ private:
   CNppExecConsole m_Console;
   CNppExecMacroVars m_MacroVars;
   CListT<tstr> m_ScriptCmdList;
+  CListT<tstr> m_LastSavedCmdList;
 
   TCHAR   m_szPluginDllPath[FILEPATH_BUFSIZE];
   TCHAR   m_szConfigPath[FILEPATH_BUFSIZE];
@@ -1528,7 +1530,12 @@ public:
   void SaveOptions();
   void StartAutoSaveTimer();
   void StopAutoSaveTimer();
-  void SaveScripts();
+
+  enum eSaveScriptsFlags {
+      ssfSaveLastScript = 0x01
+  };
+  void SaveScripts(unsigned int nSaveFlags);
+  
   HWND GetScintillaHandle();
   HMENU GetNppMainMenu();
   void SetConsoleFont(HWND hEd, const LOGFONT* plf);
@@ -1590,7 +1597,9 @@ namespace Runtime
 };
 
 extern TCHAR SCRIPTFILE_TEMP[100];
+extern TCHAR SCRIPTFILE_LAST[100];
 extern TCHAR SCRIPTFILE_SAVED[100];
+extern TCHAR CMDHISTORY_FILENAME[100];
 
 
 //--------------------------------------------------------------------
