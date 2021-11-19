@@ -3631,6 +3631,26 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
     return nCmdResult;
 }
 
+CScriptEngine::eCmdResult CScriptEngine::DoHelp(const tstr& params)
+{
+    reportCmdAndParams( DoHelpCommand::Name(), params, fMessageToConsole );
+
+    tstr S = DoHelpCommand::Name();
+    if ( !params.IsEmpty() )
+    {
+        S += _T(' ');
+        S += params;
+    }
+
+    if ( ConsoleDlg::IsConsoleHelpCommand(S, true) )
+        return CMDRESULT_SUCCEEDED;
+
+    S = _T("- unknown parameter: ");
+    S += params;
+    ScriptError( ET_REPORT, S.c_str() );
+    return CMDRESULT_INVALIDPARAM;
+}
+
 enum eDecNumberType {
   DNT_NOTNUMBER = 0,
   DNT_INTNUMBER,

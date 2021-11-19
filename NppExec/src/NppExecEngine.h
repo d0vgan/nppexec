@@ -100,6 +100,7 @@ class CScriptEngine : public IScriptEngine
             CMDTYPE_EXIT,
             CMDTYPE_NPESENDMSGBUFLEN,
             CMDTYPE_CALCIF,
+            CMDTYPE_HELP,
 
             CMDTYPE_TOTAL_COUNT
         };
@@ -164,6 +165,7 @@ class CScriptEngine : public IScriptEngine
         eCmdResult DoEnvUnset(const tstr& params);
         eCmdResult DoExit(const tstr& params);
         eCmdResult DoGoTo(const tstr& params);
+        eCmdResult DoHelp(const tstr& params);
         eCmdResult DoIf(const tstr& params);
         eCmdResult DoCalcIf(const tstr& params);
         eCmdResult DoInputBox(const tstr& params);
@@ -328,6 +330,14 @@ class CScriptEngine : public IScriptEngine
             static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_GOTO; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoGoTo(params); }
+        };
+
+        struct DoHelpCommand
+        {
+            static const TCHAR* const Name() { return _T("HELP"); }
+            static const TCHAR* const AltName() { return nullptr; }
+            static eCmdType           Type() { return CMDTYPE_HELP; }
+            static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoHelp(params); }
         };
 
         struct DoIfCommand
@@ -720,6 +730,7 @@ class CScriptEngine : public IScriptEngine
                     registerCommand<DoEnvUnsetCommand>();
                     registerCommand<DoExitCommand>();
                     registerCommand<DoGoToCommand>();
+                    registerCommand<DoHelpCommand>();
                     registerCommand<DoIfCommand>();
                     registerCommand<DoCalcIfCommand>();
                     registerCommand<DoInputBoxCommand>();

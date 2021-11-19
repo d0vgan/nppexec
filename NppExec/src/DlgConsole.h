@@ -57,7 +57,7 @@ namespace ConsoleDlg
     bool EnableTransparency(bool bEnable);
     bool SaveCmdHistory();
     void GoToError(int direction);
-    bool IsConsoleHelpCommand(const tstr& S);
+    bool IsConsoleHelpCommand(const tstr& S, bool bCalledFromScriptEngine = false);
     bool IsConsoleVerCommand(const tstr& S);
 
     extern int GoToError_nCurrentLine;

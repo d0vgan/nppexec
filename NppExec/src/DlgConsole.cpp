@@ -380,10 +380,9 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     CONSOLE_CMD_HELP,
     _T("COMMAND:  help") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
-    _T("  help            (*)") _T_RE_EOL \
-    _T("  help <command>  (*)") _T_RE_EOL \
-    _T("  help all        (*)") _T_RE_EOL \
-    _T("  * available in the Console dialog only") _T_RE_EOL \
+    _T("  help") _T_RE_EOL \
+    _T("  help <command>") _T_RE_EOL \
+    _T("  help all") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  Prints help ;-)") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
@@ -4766,7 +4765,7 @@ void ConsoleDlg::printConsoleReady()
   }
 }
 
-bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
+bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S, bool bCalledFromScriptEngine )
 {
   CNppExec& NppExec = Runtime::GetNppExec();
 
@@ -4776,7 +4775,7 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
     {
       const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
       NppExec.GetConsole().PrintMessage(CONSOLE_COMMANDS_INFO, nMsgFlags);
-      printConsoleReady();
+      if (!bCalledFromScriptEngine) printConsoleReady();
       return true;
     }
     else
@@ -4810,7 +4809,7 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
               NppExec.GetConsole().PrintMessage( _T("------------------------------------------------------------------------------"), nMsgFlags );
               NppExec.GetConsole().PrintMessage( ci.info, nMsgFlags );
             }
-            printConsoleReady();
+            if (!bCalledFromScriptEngine) printConsoleReady();
             return true;
           }
           else
@@ -4867,7 +4866,7 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S)
                 const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                 NppExec.GetConsole().PrintMessage( _T(""), nMsgFlags );
                 NppExec.GetConsole().PrintMessage( ci.info, nMsgFlags );
-                printConsoleReady();
+                if (!bCalledFromScriptEngine) printConsoleReady();
                 return true;
               }
             }
