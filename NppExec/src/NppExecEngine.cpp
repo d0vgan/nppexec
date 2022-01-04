@@ -4479,6 +4479,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                     // v+/v-     set the $(OUTPUT) variable on/off
                     // f+/f-     console output filter on/off
                     // r+/r-     console output replace filter on/off
+                    // x+/x-     compiler errors filter on/off
                     // k0..3     catch NppExec's shortcut keys on/off
                     // o0/o1/o2  console output encoding: ANSI/OEM/UTF8
                     // i0/i1/i2  console input encoding: ANSI/OEM/UTF8
@@ -4779,6 +4780,26 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
+                        case _T('x'):
+                        case _T('X'):
+                            if ( arg[1] == _T('+') || arg[1] == _T('-') )
+                            {
+                                bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConFltrCompilerErrors() )
+                                        savedConf.setConFltrCompilerErrors( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_COMPILER_ERRORS) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConFltrCompilerErrors() )
+                                        savedConf.removeConFltrCompilerErrors();
+                                }
+                                m_pNppExec->GetOptions().SetBool(OPTB_CONFLTR_COMPILER_ERRORS, bOn);
+                                isOK = true;
+                            }
+                            break;
+
                         case _T('k'):
                         case _T('K'):
                             {
@@ -4882,6 +4903,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S1 += _T(" r");
         S2 += _T(", replace_filter: ");
         appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_R_ENABLE), S1, S2 );
+        // compiler errors:
+        S1 += _T(" x");
+        S2 += _T(", compiler_errors: ");
+        appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_COMPILER_ERRORS), S1, S2 );
         // shortcut_keys
         S1 += _T(" k");
         S2 += _T_RE_EOL _T("; shortcut_keys: ");

@@ -64,6 +64,9 @@
  |  LogsDir                         |                        (empty)  | string |
  |  AutoSave_Seconds                |  0                              |  int   |
  |                                  |                                 |        |
+ |  [ConsoleOutputFilter]           |                                 |        |
+ |  CompilerErrors                  |  0                     (FALSE)  |  BOOL  |
+ |                                  |                                 |        |
   -----------------------------------------------------------------------------
 
  The purpose of each key is described below.
@@ -121,6 +124,9 @@
    UTF8_Detect_Length=16384
    AnsiEscapeSequences=0
    Cd_UnnamedFile=1
+
+   [ConsoleOutputFilter]
+   CompilerErrors=0
 
 
  ChildProcess_StartupTimeout_ms
@@ -370,6 +376,7 @@
    is printed in the Console after an NppExec's script is executed.
    If this option is disabled (set to 0), a message "==== READY ===="
    is not printed.
+   Can be enabled/disabled via "npe_console p+/p-".
    See also: CustomMsgReady.
 
 
@@ -707,4 +714,12 @@
    For example, the value of 300 means once per 300 seconds (i.e. once per
    5 minutes).
    The value of 0 disables the auto-saving.
+
+
+ CompilerErrors
+ --------------
+   Enables or disables the built-in highlight filter that catches and
+   highlights most of compilers' errors. This filter has lower priority
+   than the user-defined highlight masks.
+   Can be enabled/disabled via "npe_console x+/x-".
 

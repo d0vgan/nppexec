@@ -1557,7 +1557,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  npe_console") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_console") _T_RE_EOL \
-    _T("  npe_console a+/a- d+/d- e0/e1 h+/h- m+/m- p+/p- q+/q- v+/v- f+/f- r+/r- k0..3") _T_RE_EOL \
+    _T("  npe_console a+/a- d+/d- e0/e1 h+/h- m+/m- p+/p- q+/q- v+/v- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
     _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
     _T("  npe_console <options> --") _T_RE_EOL \
     _T("  npe_console local <options>") _T_RE_EOL \
@@ -1574,6 +1574,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("       v+/v-  set the $(OUTPUT) local variable on/off") _T_RE_EOL \
     _T("       f+/f-  console output filter on/off") _T_RE_EOL \
     _T("       r+/r-  console output replace filter on/off") _T_RE_EOL \
+    _T("       x+/x-  compiler errors highlight filter on/off") _T_RE_EOL \
     _T("       k0..3  catch NppExec\'s shortcut keys on/off") _T_RE_EOL \
     _T("  3. Y0/Y1/Y2  sets the value of the option/mode Y:") _T_RE_EOL \
     _T("       o0/o1/o2  console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
@@ -1632,6 +1633,12 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         Corresponding menu item: Console Output Filters...") _T_RE_EOL \
     _T("  r+/r-  Console output replace filter on/off.") _T_RE_EOL \
     _T("         Corresponding menu item: Console Output Filters...") _T_RE_EOL \
+    _T("  x+/x-  Compiler errors highlight filter on/off") _T_RE_EOL \
+    _T("         Enables or disables a built-in highlight filter that catches and") _T_RE_EOL \
+    _T("         highlights most of compilers' errors. This filter has lower priority") _T_RE_EOL \
+    _T("         than the user-defined highlight masks.") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is saved as \"CompilerErrors\".") _T_RE_EOL \
     _T("  k0..3  Catch NppExec\'s shortcut keys on/off") _T_RE_EOL \
     _T("         Controls if NppExec\'s Console catches shortcut keys related") _T_RE_EOL \
     _T("         to NppExec\'s menu items or scripts. This allows to execute") _T_RE_EOL \

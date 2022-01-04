@@ -429,8 +429,10 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         postr4 = skip_tabspaces(postr4);
         m_nChar = _ttoi(postr4);
     }
-    else // *** START: New regex Warning/Error parser
-    {	 // *** All of the new regex Warning/Error parser is within this else block ***
+    else if ( Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONFLTR_COMPILER_ERRORS) )
+    {
+        // *** START: New regex Warning/Error parser
+        // *** All of the new regex Warning/Error parser is within this else block ***
         tsmatch match;
         const tstring HeyStack = str;
         static std::map<int,int> ErrPositionIndicator;

@@ -921,6 +921,12 @@ class CScriptEngine : public IScriptEngine
                     mHasValues |= fConFltrRplcEnable;
                 }
 
+                void setConFltrCompilerErrors(bool bConFltrCompilerErrors)
+                {
+                    mConFltrCompilerErrors = bConFltrCompilerErrors;
+                    mHasValues |= fConFltrCompilerErrors;
+                }
+
                 void setWarnEffectEnabled(const bool* pWarnEffectEnabled)
                 {
                     for ( int i = 0; i < WARN_MAX_FILTER; ++i )
@@ -1041,6 +1047,7 @@ class CScriptEngine : public IScriptEngine
                 bool hasRplcFltrCaseMask() const { return ((mHasValues & fRplcFltrCaseMask) != 0); }
                 bool hasConFltrEnable() const { return ((mHasValues & fConFltrEnable) != 0); }
                 bool hasConFltrRplcEnable() const { return ((mHasValues & fConFltrRplcEnable) != 0); }
+                bool hasConFltrCompilerErrors() const { return ((mHasValues & fConFltrCompilerErrors) != 0); }
                 bool hasWarnEffectEnabled() const { return ((mHasValues & fWarnEffectEnabled) != 0); }
                 bool hasEnvVar(const tstr& varName) const { return (mEnvVars.find(varName) != mEnvVars.end()); }
                 bool hasConsoleEncoding() const { return ((mHasValues & fConsoleEncoding) != 0); }
@@ -1075,6 +1082,7 @@ class CScriptEngine : public IScriptEngine
                 void removeRplcFltrCaseMask() { mHasValues &= ~fRplcFltrCaseMask; }
                 void removeConFltrEnable() { mHasValues &= ~fConFltrEnable; }
                 void removeConFltrRplcEnable() { mHasValues &= ~fConFltrRplcEnable; }
+                void removeConFltrCompilerErrors() { mHasValues &= ~fConFltrCompilerErrors; }
                 void removeWarnEffectEnabled() { mHasValues &= ~fWarnEffectEnabled; }
                 void removeEnvVar(const tstr& varName) { auto itr = mEnvVars.find(varName); if (itr != mEnvVars.end()) mEnvVars.erase(itr); }
                 void removeConsoleEncoding() { mHasValues &= ~fConsoleEncoding; }
@@ -1153,6 +1161,10 @@ class CScriptEngine : public IScriptEngine
                     if ( hasConFltrRplcEnable() )
                     {
                         pNppExec->GetOptions().SetBool(OPTB_CONFLTR_R_ENABLE, mConFltrRplcEnable);
+                    }
+                    if ( hasConFltrCompilerErrors() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONFLTR_COMPILER_ERRORS, mConFltrCompilerErrors);
                     }
                     if ( hasWarnEffectEnabled() )
                     {
@@ -1358,7 +1370,8 @@ class CScriptEngine : public IScriptEngine
                     fConsoleIsOutputEnabled   = 0x00200000,
                     fSendMsgBufLen            = 0x00400000,
                     fConsoleDebugLog          = 0x00800000,
-                    fLoggerOutputMode         = 0x01000000
+                    fLoggerOutputMode         = 0x01000000,
+                    fConFltrCompilerErrors    = 0x02000000
                 };
 
                 // we might use std::optional (C++17) instead, but would it be so fun? :)
@@ -1375,6 +1388,7 @@ class CScriptEngine : public IScriptEngine
                 int mRplcFltrCaseMask;
                 bool mConFltrEnable;
                 bool mConFltrRplcEnable;
+                bool mConFltrCompilerErrors;
                 bool mWarnEffectEnabled[WARN_MAX_FILTER];
 
                 // DoNpeConsole:
