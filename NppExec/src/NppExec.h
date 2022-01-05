@@ -20,6 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.7.x
+ ------
+ + added: built-in highlight filter that catches most of compiler error
+   messages, thanks to David Maisonave.
+   This filter is enabled by setting the value of 'CompilerErrors' to 1
+   (see "NppExec_TechInfo.txt"). See also: npe_console x+/x-.
+ + added: the last executed script is now saved to "npes_last.txt".
+ * changed: now "help" command works in NppExec's scripts.
+ - fixed: now "set local" (without an argument) prints only local vars.
+ + NppExec Manual updated (the "NppExec_Guide" section was converted to HTML)
+
+
  v0.7.1 - August 2021
  --------------------
  * changed: now IF/IF~/ELSE IF use delayed $(var) substitution.
