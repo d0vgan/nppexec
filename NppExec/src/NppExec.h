@@ -26,6 +26,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    messages, thanks to David Maisonave.
    This filter is enabled by setting the value of 'CompilerErrors' to 1
    (see "NppExec_TechInfo.txt"). See also: npe_console x+/x-.
+ + added: now WarningAnalyzer caches the previously matched lines.
+   It allows the built-in highlight filter (see above) to react to a
+   double-click in the Console even when this filter is disabled at the
+   moment of double-clicking. Explanation: let's consider a situation when
+   the built-in highlight filter had been disabled globally but was locally
+   enabled via "npe_console local x+" right before running a compiler. Thus,
+   the messages produced by compiler are analyzed by the built-in highlight
+   filter and the filter is automatically disabled after the compiler exits.
+   Now, as WarningAnalyzer has cached the matched lines from the compiler's
+   output, it is possible to double-click these lines in NppExec's Console
+   to get the cached match result.
  + added: the last executed script is now saved to "npes_last.txt".
  * changed: now "help" command works in NppExec's scripts.
  - fixed: now "set local" (without an argument) prints only local vars.

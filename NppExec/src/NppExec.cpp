@@ -7006,6 +7006,8 @@ void CNppExecConsole::_clearText(ScriptEngineId scrptEngnId)
     if ( CNppExec::_bIsNppShutdown )
         return;
 
+    Runtime::GetNppExec().GetWarningAnalyzer().ClearCachedMatches();
+
     // Important: SendMsg() calls must _not_ be under m_csStateList
     m_reConsole.SetText( _T("") );
     _restoreDefaultTextStyle( scrptEngnId, true );

@@ -48,6 +48,11 @@ CWarningAnalyzer::CWarningAnalyzer() : m_nLine(0)
                                      , m_nLastFoundIndex(0)
 {
     m_FileName[0] = 0;
+
+    lstrcpy(m_BuiltInErrorFilter.Mask, _T("<built-in error filter>"));
+    m_BuiltInErrorFilter.Effect.rgb = COLOR_CON_TEXTERR; //Only color if found file name and line number
+    m_BuiltInErrorFilter.Effect.Bold = true;
+    m_BuiltInErrorFilter.Effect.Enable = true;
 }
 
 CWarningAnalyzer::~CWarningAnalyzer()
@@ -224,7 +229,11 @@ void CWarningAnalyzer::GetEffect( int FilterNumber, TEffect& Effect ) const
 
 const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*MaskLength*/ ) const
 {
-    if ( (FilterNumber < WARN_MAX_FILTER) && (Mask != NULL) )
+    if ( (FilterNumber == WARN_BUILTIN_ERROR_FILTER) && (Mask != NULL) )
+    {
+        lstrcpy( Mask, m_BuiltInErrorFilter.Mask );
+    }
+    else if ( (FilterNumber < WARN_MAX_FILTER) && (Mask != NULL) )
     {
         TCHAR* pstr1       = Mask;
         const TCHAR* pstr2 = m_Filter[FilterNumber].Mask;
@@ -301,8 +310,27 @@ const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*Mas
     return ( Mask );
 }
 
+void CWarningAnalyzer::ClearCachedMatches()
+{
+    m_CachedMatches.clear();
+}
+
 bool CWarningAnalyzer::match( const TCHAR* str )
 {
+    tstring sInputString = str;
+
+    TMatchMap::const_iterator itr = m_CachedMatches.find(sInputString);
+    if ( itr != m_CachedMatches.end() )
+    {
+        const TMatchData& md = itr->second;
+        lstrcpy(m_FileName, md.sFileName.c_str());
+        m_nLine = md.nLine;
+        m_nChar = md.nChar;
+        m_nLastFoundIndex = md.nLastFoundIndex;
+
+        return true;
+    }
+
     TCHAR  ostr1[WARN_MAX_FILENAME + 5];
     TCHAR  ostr2[WARN_MAX_FILENAME + 5];
     TCHAR  ostr3[WARN_MAX_FILENAME + 5];
@@ -447,13 +475,11 @@ bool CWarningAnalyzer::match( const TCHAR* str )
                 ErrPositionIndicator.clear();
             }
 			lstrcpyn( m_FileName, filename.c_str(), sizeof( m_FileName )/sizeof( m_FileName[0]) );
-            m_nLastFoundIndex = 0;
-            *m_Filter = TFilter();
+            m_nLastFoundIndex = WARN_BUILTIN_ERROR_FILTER;
             tstring Suffix = match.suffix();
             tstring strLineNo = std::regex_replace( Suffix, m_rgxFindFileLineNo, _T("$1") ); // Replace to get file number only
             if ( strLineNo.size() && isdigit( strLineNo[0] ) )
             {
-                m_Filter->Effect.rgb = COLOR_CON_TEXTERR; //Only color if found file name and line number
                 m_nLine = std::stoi( strLineNo.c_str() );
                 PreviousLineNo = m_nLine;
                 tstring strCharNo = std::regex_replace( HeyStack, m_rgxFindFileLinePos, _T("$1") ); // (if exist) replace to get nChar only
@@ -472,11 +498,9 @@ bool CWarningAnalyzer::match( const TCHAR* str )
                 m_nLine = 0;
                 m_nChar = 0;
             }
-            m_Filter->Effect.Bold = true;
-            m_Filter->Effect.Enable = true;
             if ( filename.size() > 4 && lstrcmpi( filename.c_str() + (filename.size() - 4), _T(".exe")) == 0 )
                 return false;
-            pszMask = m_Filter->Mask;
+            pszMask = m_BuiltInErrorFilter.Mask;
         }
         else
         {
@@ -488,7 +512,19 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         }
     } // *** END: New regex Warning/Error parser
 
-    return ( pszMask ? true : false );
+    if ( pszMask )
+    {
+        TMatchData md;
+        md.sFileName = m_FileName;
+        md.nLine = m_nLine;
+        md.nChar = m_nChar;
+        md.nLastFoundIndex = m_nLastFoundIndex;
+
+        m_CachedMatches[sInputString] = md;
+        return true;
+    }
+
+    return false;
 }
 
 bool CWarningAnalyzer::HasEnabledFilters() const
