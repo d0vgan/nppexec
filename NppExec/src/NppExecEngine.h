@@ -809,7 +809,8 @@ class CScriptEngine : public IScriptEngine
         static eNppExecCmdPrefix checkNppExecCmdPrefix(CNppExec* pNppExec, tstr& Cmd, bool bRemovePrefix = true);
         static eCmdType getCmdType(CNppExec* pNppExec, tstr& Cmd, unsigned int nFlags = ctfUseLogging);
         static int      getOnOffParam(const tstr& param);
-        static bool     isCommentOrEmpty(CNppExec* pNppExec, tstr& Cmd);
+        static bool     isCmdCommentOrEmpty(const CNppExec* pNppExec, tstr& Cmd);
+        static bool     isCmdDirective(const CNppExec* pNppExec, tstr& Cmd);
         static bool     isSkippingThisCommandDueToIfState(eCmdType cmdType, eIfState ifState);
         static bool     usesDelayedVarSubstitution(eCmdType cmdType);
         static eCmdType modifyCommandLine(CScriptEngine* pScriptEngine, tstr& Cmd, eIfState ifState);
@@ -1681,6 +1682,8 @@ extern const TCHAR MACRO_NPP_HWND[];
 extern const TCHAR MACRO_SCI_HWND[];
 extern const TCHAR MACRO_CON_HWND[];
 extern const TCHAR MACRO_FOCUSED_HWND[];
+
+extern const TCHAR DIRECTIVE_COLLATERAL[];
 
 //---------------------------------------------------------------------------
 #endif

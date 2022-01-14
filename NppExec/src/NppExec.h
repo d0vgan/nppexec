@@ -1479,10 +1479,12 @@ public:
   CSimpleLogger& GetLogger() { return m_Logger; }
   CWarningAnalyzer& GetWarningAnalyzer() { return m_WarningAnalyzer; }
   CStaticOptionsManager& GetOptions() { return m_Options; }
+  const CStaticOptionsManager& GetOptions() const { return m_Options; }
 
   CListT<tstr> GetCmdList() const;
   void SetCmdList(const CListT<tstr>& CmdList);
   bool IsCmdListEmpty() const;
+  bool IsScriptCollateral(const CListT<tstr>& CmdList) const;
 
   int  conLoadFrom(LPCTSTR cszFile); // returns -1 if can't load
   int  conSaveTo(LPCTSTR cszFile); // returns -1 if can't save

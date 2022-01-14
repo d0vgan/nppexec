@@ -98,6 +98,8 @@ const TCHAR MACRO_SCI_HWND[]            = _T("$(SCI_HWND)");
 const TCHAR MACRO_CON_HWND[]            = _T("$(CON_HWND)");
 const TCHAR MACRO_FOCUSED_HWND[]        = _T("$(FOCUSED_HWND)");
 
+const TCHAR DIRECTIVE_COLLATERAL[]      = _T("!COLLATERAL");
+
 // NppExec's Search Flags for sci_find and sci_replace:
 #define NPE_SF_MATCHCASE    0x00000001 // "text" finds only "text", not "Text" or "TEXT"
 #define NPE_SF_WHOLEWORD    0x00000010 // "word" finds only "word", not "sword" or "words" 
@@ -2123,9 +2125,11 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
     CNppExec* pNppExec = pScriptEngine->GetNppExec();
     CScriptEngine::eNppExecCmdPrefix cmdPrefix = checkNppExecCmdPrefix(pNppExec, Cmd);
 
-    if ( isCommentOrEmpty(pNppExec, Cmd) )
+    const bool bCommEmpty = isCmdCommentOrEmpty(pNppExec, Cmd);
+    const bool bDirective = bCommEmpty ? false : isCmdDirective(pNppExec, Cmd);
+    if ( bCommEmpty || bDirective )
     {
-        Runtime::GetLogger().Add(   _T("; it\'s a comment or empty string") );
+        Runtime::GetLogger().Add(   bCommEmpty ? _T("; it\'s a comment or empty string") : _T("; it\'s a directive") );
         Runtime::GetLogger().Add(   _T("; command argument(s):") );
         Runtime::GetLogger().AddEx( _T("[out] \"%s\""), Cmd.c_str() );
         Runtime::GetLogger().Add(   _T("; command type:") );
@@ -2363,7 +2367,7 @@ int CScriptEngine::getOnOffParam(const tstr& param)
     return PARAM_UNKNOWN; // unknown
 }
 
-bool CScriptEngine::isCommentOrEmpty(CNppExec* pNppExec, tstr& Cmd)
+bool CScriptEngine::isCmdCommentOrEmpty(const CNppExec* pNppExec, tstr& Cmd)
 {
     const tstr comment = pNppExec->GetOptions().GetStr(OPTS_COMMENTDELIMITER);
     if (comment.length() > 0)
@@ -2383,6 +2387,22 @@ bool CScriptEngine::isCommentOrEmpty(CNppExec* pNppExec, tstr& Cmd)
     NppExecHelpers::StrDelTrailingTabSpaces(Cmd);
 
     return Cmd.IsEmpty();
+}
+
+bool CScriptEngine::isCmdDirective(const CNppExec* , tstr& Cmd)
+{
+    NppExecHelpers::StrDelLeadingTabSpaces(Cmd);
+
+    if ( Cmd.StartsWith(_T("!")) )
+    {
+        NppExecHelpers::StrDelTrailingTabSpaces(Cmd);
+        NppExecHelpers::StrUpper(Cmd);
+
+        if ( Cmd == DIRECTIVE_COLLATERAL )
+            return true;
+    }
+
+    return false;
 }
 
 void CScriptEngine::errorCmdNotEnoughParams(const TCHAR* cszCmd, const TCHAR* cszErrorMessage)
@@ -5290,7 +5310,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
         return CMDRESULT_INVALIDPARAM;
 
     // inserting commands from a script or a file into m_pNppExec->m_CmdList
-        
+
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     CStrSplitT<TCHAR> args;
     args.SplitToArgs(params);

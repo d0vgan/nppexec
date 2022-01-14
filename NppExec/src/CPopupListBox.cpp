@@ -87,6 +87,10 @@ const TCHAR* VariablesList[] = {
   MACRO_WORKSPACE_ITEM_ROOT    //  $(WORKSPACE_ITEM_ROOT)
 };
 
+const TCHAR* DirectivesList[] = {
+  DIRECTIVE_COLLATERAL
+};
+
 CPopupListBox::CPopupListBox() : CAnyListBox()
 {
 }
@@ -142,7 +146,7 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
 
     WordUpper = szCurrentWord;
     NppExecHelpers::StrUpper(WordUpper);
-    
+
     if ( ((nLen >= 3) && 
           (WordUpper.StartsWith(_T("NPP")) || 
            WordUpper.StartsWith(_T("CON")) ||
@@ -207,7 +211,7 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
               const TCHAR ch = szCurrentWord[0];
               if ((ch >= _T('A')) && (ch <= _T('Z')))
               {
-                AddString(S.c_str());; // flags can be in upper case only
+                AddString(S.c_str()); // flags can be in upper case only
               }
             }
             else
@@ -224,7 +228,7 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
       }
       return ((GetCount() > 0) ? true : false);
     }
-    
+
     if ((nLen >= 2) && (WordUpper.StartsWith(_T("$("))))
     {
       bExactMatch = false;
@@ -250,7 +254,38 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
       }
       return ((GetCount() > 0) ? true : false);
     }
-    
+
+    if ((nLen >= 2) && WordUpper.StartsWith(_T("!")))
+    {
+      bExactMatch = false;
+      for (const TCHAR* const& d : DirectivesList)
+      {
+        S = d;
+        if (S.StartsWith(WordUpper))
+        {
+          if (S != WordUpper)
+          {
+            const TCHAR ch = szCurrentWord[1];
+            if ((ch >= _T('a')) && (ch <= _T('z')))
+            {
+              NppExecHelpers::StrLower(S); // preserve lower case
+            }
+            AddString(S.c_str());
+          }
+          else
+          {
+            bExactMatch = true;
+            break;
+          }
+        }
+      }
+      if (bExactMatch)
+      {
+        ResetContent();
+      }
+      return ((GetCount() > 0) ? true : false);
+    }
+
   }
   return false;
 }

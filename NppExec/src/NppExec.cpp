@@ -2062,6 +2062,32 @@ bool CNppExec::IsCmdListEmpty() const
     return m_ScriptCmdList.IsEmpty();
 }
 
+bool CNppExec::IsScriptCollateral(const CListT<tstr>& CmdList) const
+{
+    bool isCollateral = false;
+    tstr S;
+
+    const CListItemT<tstr>* p = CmdList.GetFirst();
+    for ( ; p != NULL; p = p->GetNext() )
+    {
+        if ( p->GetItem().length() > 0 )
+        {
+            S = p->GetItem();
+            if ( !CScriptEngine::isCmdCommentOrEmpty(this, S) )
+            {
+                if ( CScriptEngine::isCmdDirective(this, S) )
+                {
+                    if ( S == DIRECTIVE_COLLATERAL )
+                        isCollateral = true;
+                }
+                break;
+            }
+        }
+    }
+
+    return isCollateral;
+}
+
 HWND CNppExec::getCurrentScintilla(INT which)
 {
   return ((which == 0) ? m_nppData._scintillaMainHandle : 
@@ -4652,22 +4678,47 @@ void CNppExec::OnDoExecDlg()
 void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunFlags /* = 0 */ )
 {
     initConsoleDialog();
-    CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::OnDirectExecCommand(id, bCanSaveAll, nRunFlags);
-    GetCommandExecutor().ExecuteCommand(pCommand);
+    CListT<tstr> CmdList = GetCmdList();
+    if ( IsScriptCollateral(CmdList) )
+    {
+        GetCommandExecutor().ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
+    }
+    else
+    {
+        CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::OnDirectExecCommand(id, bCanSaveAll, nRunFlags);
+        GetCommandExecutor().ExecuteCommand(pCommand);
+    }
 }
 
 void CNppExec::DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveAll, LPCTSTR szScriptArguments /* = NULL */ , unsigned int nRunFlags /* = 0 */ )
 {
     initConsoleDialog();
-    CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoExecScriptCommand(id, szScriptName, szScriptArguments, bCanSaveAll, nRunFlags);
-    GetCommandExecutor().ExecuteCommand(pCommand);
+    CNppScript nppScript;
+    m_ScriptsList.GetScript(szScriptName, nppScript);
+    const CListT<tstr>& CmdList = nppScript.GetCmdList();
+    if ( IsScriptCollateral(CmdList) )
+    {
+        GetCommandExecutor().ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
+    }
+    else
+    {
+        CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoExecScriptCommand(id, szScriptName, szScriptArguments, bCanSaveAll, nRunFlags);
+        GetCommandExecutor().ExecuteCommand(pCommand);
+    }
 }
 
 void CNppExec::DoRunScript(const CListT<tstr>& CmdList, unsigned int nRunFlags /* = 0 */ )
 {
     initConsoleDialog();
-    CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, nRunFlags);
-    GetCommandExecutor().ExecuteCommand(pCommand);
+    if ( IsScriptCollateral(CmdList) )
+    {
+        GetCommandExecutor().ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
+    }
+    else
+    {
+        CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, nRunFlags);
+        GetCommandExecutor().ExecuteCommand(pCommand);
+    }
 }
 
 void CNppExec::RunTheStartScript()
@@ -6049,7 +6100,7 @@ bool CNppExec::checkCmdListAndPrepareConsole(const CListT<tstr>& CmdList, bool b
         if ( p->GetItem().length() > 0 )
         {
             S = p->GetItem();
-            if ( !CScriptEngine::isCommentOrEmpty(this, S) )
+            if ( !CScriptEngine::isCmdCommentOrEmpty(this, S) && !CScriptEngine::isCmdDirective(this, S) )
             {
                 bExecute = true;
             }

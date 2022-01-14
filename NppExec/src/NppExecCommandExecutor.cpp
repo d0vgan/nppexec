@@ -259,6 +259,11 @@ void CNppExecCommandExecutor::ExecuteCommand(Command* cmd)
     }
 
     m_ExecuteCmdEvent.Set();
+
+    // Note:
+    // a new command `cmd` has been added to m_ExecuteQueue but this `cmd` is
+    // not actually executed until the current pCommand->Execute() is finished
+    // within the BackgroundExecuteThreadFunc.
 }
 
 bool CNppExecCommandExecutor::ExecuteCollateralScript(const CListT<tstr>& scriptCmdList, const tstr& id, unsigned int nRunFlags)

@@ -165,7 +165,7 @@ CConsoleOutputFilterDlg::~CConsoleOutputFilterDlg()
 
 void updateHistoryContent(unsigned int opt_id, int items, CListT<tstr>& History)
 {
-    CStaticOptionsManager& Options = Runtime::GetNppExec().GetOptions();
+    const CStaticOptionsManager& Options = Runtime::GetNppExec().GetOptions();
     int len;
 
     for ( int i = 0; i < items; i++ )
@@ -697,7 +697,7 @@ void CConsoleOutputFilterDlg::OnInitDlgFltr(HWND hDlgFltr)
     m_ch_ExcludeDupEmpty.m_hWnd = ::GetDlgItem(hDlgFltr, IDC_CH_EXCLUDE_DUPEMPTY);
 
     // settings...
-    CStaticOptionsManager& Options = Runtime::GetNppExec().GetOptions();
+    const CStaticOptionsManager& Options = Runtime::GetNppExec().GetOptions();
     m_ch_FilterEnable.SetCheck(Options.GetBool(OPTB_CONFLTR_ENABLE));
     m_ch_ExcludeAllEmpty.SetCheck(Options.GetBool(OPTB_CONFLTR_EXCLALLEMPTY));
     m_ch_ExcludeDupEmpty.SetCheck(Options.GetBool(OPTB_CONFLTR_EXCLDUPEMPTY));
@@ -797,7 +797,7 @@ void CConsoleOutputFilterDlg::OnInitDlgRplc(HWND hDlgRplc)
     m_ch_RExcludeEmpty.m_hWnd = ::GetDlgItem(hDlgRplc, IDC_CH_EXCLUDE_EMPTYRSLT);
 
     // settings...
-    CStaticOptionsManager& Options = Runtime::GetNppExec().GetOptions();
+    const CStaticOptionsManager& Options = Runtime::GetNppExec().GetOptions();
     m_ch_REnable.SetCheck(Options.GetBool(OPTB_CONFLTR_R_ENABLE));
     m_ch_RExcludeEmpty.SetCheck(Options.GetBool(OPTB_CONFLTR_R_EXCLEMPTY));
 
