@@ -229,6 +229,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(CURRENT_WORD)  :  word(s) you selected in Notepad++") _T_RE_EOL \
   _T("$(CURRENT_LINE)  :  current line number") _T_RE_EOL \
   _T("$(CURRENT_COLUMN)  :  current column number") _T_RE_EOL \
+  _T("$(SELECTED_TEXT)  :  the text you selected in Notepad++") _T_RE_EOL \
   _T("$(FILE_NAME_AT_CURSOR)  :  file name selected in the editor") _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_PATH)  :  full path to the current item in the workspace pane") _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_DIR)  :  directory containing the current item in the workspace pane") _T_RE_EOL \
@@ -4919,6 +4920,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_WORKSPACE_ITEM_NAME );    //  $(WORKSPACE_ITEM_NAME)
   CmdVarsList.Add( MACRO_WORKSPACE_ITEM_DIR );     //  $(WORKSPACE_ITEM_DIR)
   CmdVarsList.Add( _T("$(SYS.PATH)") );            //  $(SYS.PATH)
+  CmdVarsList.Add( MACRO_SELECTED_TEXT );          //  $(SELECTED_TEXT)
   CmdVarsList.Add( MACRO_SCI_HWND );               //  $(SCI_HWND)
   CmdVarsList.Add( MACRO_RIGHT_VIEW_FILE );        //  $(RIGHT_VIEW_FILE)
   CmdVarsList.Add( _T("$(RARGV[1])") );            //  $(RARGV[1])

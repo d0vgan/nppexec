@@ -180,6 +180,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(CURRENT_LINE)       : current line number
  *        $(CURRENT_COLUMN)     : current column number
  *   7) Additional environment variables:
+ *        $(SELECTED_TEXT)      : the text you selected in Notepad++
  *        $(FILE_NAME_AT_CURSOR): file name selected in the editor
  *        $(WORKSPACE_ITEM_PATH): full path to the current item in the workspace pane
  *        $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
@@ -2248,15 +2249,7 @@ int CNppExec::textLoadFrom(LPCTSTR cszFile, bool bSelectionOnly)
 
 int CNppExec::textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly)
 {
-  enum eEnc {
-    encAsIs = 0,
-    encANSI,
-    encUTF8_BOM,
-    encUTF8_NoBOM,
-    encUCS2LE
-  };
-
-  int enc = encAsIs;
+  eTextEnc enc = encAsIs;
 
   if ( szFileAndEncoding && (szFileAndEncoding[0] == _T('\"')) )
       ++szFileAndEncoding; // skip first \"
@@ -2319,118 +2312,63 @@ int CNppExec::textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly)
   }
   */
     
-  HWND hSci = GetScintillaHandle();
-  int nSciCodePage = (int) ::SendMessage(hSci, SCI_GETCODEPAGE, 0, 0);
-  INT_PTR nSciTextLen;
-  if ( bSelectionOnly )
-  {
-    INT_PTR nSciSelStart = (INT_PTR) ::SendMessage(hSci, SCI_GETSELECTIONSTART, 0, 0);
-    INT_PTR nSciSelEnd = (INT_PTR) ::SendMessage(hSci, SCI_GETSELECTIONEND, 0, 0);
-    nSciTextLen = nSciSelEnd - nSciSelStart;
-  }
-  else
-  {
-    nSciTextLen = (INT_PTR) ::SendMessage(hSci, SCI_GETTEXTLENGTH, 0, 0);
-  }
+  int   nSciCodePage = 0;
+  int   nTextLen = 0;
+  char* pSciText = sciGetText(bSelectionOnly, &nTextLen, &nSciCodePage);
 
-  if ( nSciTextLen > INT_MAX - 2 )
+  if ( !pSciText )
   {
     // text length exceeds 2 GB, whereas the character
     // conversion functions below are limited by 'int'
     return -2; 
   }
 
-  char* pSciText = new char[nSciTextLen + 2];
-  if ( pSciText )
+  int   nOutTextLen = 0;
+  char* pOutText = convertSciText(pSciText, nTextLen, nSciCodePage, enc, &nOutTextLen);
+
+  if ( pOutText != pSciText )
   {
-    char* pOutText = NULL;
-    int   nOutSize = 0;
-  
-    pSciText[0] = 0;
-    {
-      UINT uMsg = bSelectionOnly ? SCI_GETSELTEXT : SCI_GETTEXT;
-      WPARAM wParam = bSelectionOnly ? 0 : (nSciTextLen + 1);
-      ::SendMessage( hSci, uMsg, wParam, (LPARAM) pSciText );
-    }
-    
-    if ( nSciTextLen == 0 )
-    {
-      // no selected text / no text
-      pOutText = pSciText; // empty string in this case
-    }
-    else if ( nSciCodePage == SC_CP_UTF8 )
-    {
-      switch ( enc )
-      {
-        case encANSI:  // ANSI
-          pOutText = SysUniConv::newUTF8ToMultiByte(pSciText, -1, CP_ACP, &nOutSize);
-          delete [] pSciText;
-          break;
-        case encUCS2LE:  // Unicode
-          pOutText = (char *) SysUniConv::newUTF8ToUnicode(pSciText, -1, &nOutSize);
-          nOutSize *= 2;
-          delete [] pSciText;
-          break; 
-        default:
-          pOutText = pSciText;
-          nOutSize = lstrlenA(pOutText);
-          break;
-      }
-    }
-    else
-    {
-      // multi-byte encoding
-      if ( nSciCodePage == 0 )  nSciCodePage = CP_ACP;
-      switch ( enc )
-      {
-        case encUTF8_BOM:   // UTF-8
-        case encUTF8_NoBOM:
-          pOutText = SysUniConv::newMultiByteToUTF8(pSciText, -1, nSciCodePage, &nOutSize);
-          delete [] pSciText;
-          break;
-        case encUCS2LE:  // Unicode
-          pOutText = (char *) SysUniConv::newMultiByteToUnicode(pSciText, -1, nSciCodePage, &nOutSize);
-          nOutSize *= 2;
-          delete [] pSciText;
-          break; 
-        default:
-          pOutText = pSciText;
-          nOutSize = lstrlenA(pOutText);
-          break;
-      }
-    }
+    delete [] pSciText;
+    pSciText = nullptr;
+  }
 
-    if ( pOutText )
-    {
-      int nWritten = -1; // -1 means "failed to write"
+  if ( pOutText )
+  {
+    int nBytesWritten = -1; // -1 means "failed to write"
 
-      CFileBufT<TCHAR>::FilePtr f = CFileBufT<TCHAR>::openfile(szFileAndEncoding, true);
-      if ( f != NULL )
+    CFileBufT<TCHAR>::FilePtr f = CFileBufT<TCHAR>::openfile(szFileAndEncoding, true);
+    if ( f != NULL )
+    {
+      nBytesWritten = 0; // 0 bytes written yet
+
+      if ( nTextLen > 0 )
       {
-        nWritten = 0; // 0 bytes written yet
-        if ( nSciTextLen > 0 )
+        if ( enc == encUCS2LE )
         {
-          if ( enc == encUCS2LE )
-          {
-            // UCS-2 LE "BOM"
-            if ( CFileBufT<TCHAR>::writefile(f, (void *) "\xFF\xFE", 2) )
-              nWritten += 2;
-          }
-          else if ( (enc == encUTF8_BOM) || (enc == encAsIs && nSciCodePage == SC_CP_UTF8) )
-          {
-            // UTF-8 "BOM"
-            if ( CFileBufT<TCHAR>::writefile(f, (void *) "\xEF\xBB\xBF", 3) )
-              nWritten += 3;
-          }
+          // UCS-2 LE "BOM"
+          if ( CFileBufT<TCHAR>::writefile(f, (const void *) "\xFF\xFE", 2) )
+            nBytesWritten += 2;
         }
-        if ( CFileBufT<TCHAR>::writefile(f, pOutText, nOutSize) )
-          nWritten += nOutSize;
-        CFileBufT<TCHAR>::closefile(f, true);
+        else if ( (enc == encUTF8_BOM) || (enc == encAsIs && nSciCodePage == SC_CP_UTF8) )
+        {
+          // UTF-8 "BOM"
+          if ( CFileBufT<TCHAR>::writefile(f, (const void *) "\xEF\xBB\xBF", 3) )
+            nBytesWritten += 3;
+        }
       }
-        
-      delete [] pOutText;
-      return nWritten;
+
+      int nOutBytes = nOutTextLen;
+      if ( enc == encUCS2LE )
+        nOutBytes *= 2; // writing wide chars
+
+      if ( CFileBufT<TCHAR>::writefile(f, pOutText, nOutBytes) )
+        nBytesWritten += nOutBytes;
+
+      CFileBufT<TCHAR>::closefile(f, true);
     }
+        
+    delete [] pOutText;
+    return nBytesWritten;
   }
 
   return -1;
@@ -2445,6 +2383,98 @@ void CNppExec::textSetText(LPCTSTR cszText, bool bSelectionOnly)
   ::SendMessage( hSci, uMsg, 0, (LPARAM) (pBufData ? pBufData : "") );
 
   SciTextDeleteResultPtr(pBufData, cszText);
+}
+
+char* CNppExec::sciGetText(bool bSelectionOnly, int* pnTextLen, int* pnSciCodePage)
+{
+  HWND hSci = GetScintillaHandle();
+  *pnSciCodePage = static_cast<int>(::SendMessage(hSci, SCI_GETCODEPAGE, 0, 0));
+
+  const INT_PTR nSciTextLen = static_cast<INT_PTR>(::SendMessage(hSci, bSelectionOnly ? SCI_GETSELTEXT : SCI_GETTEXTLENGTH, 0, 0));
+  if ( nSciTextLen > INT_MAX - 2 )
+  {
+    // text length exceeds 2 GB, whereas the character
+    // conversion functions are limited by 'int'
+    *pnTextLen = -2;
+    return nullptr;
+  }
+
+  char* pSciText = new char[nSciTextLen + 2];
+  pSciText[0] = 0;
+  ::SendMessage(hSci, bSelectionOnly ? SCI_GETSELTEXT : SCI_GETTEXT, bSelectionOnly ? 0 : (nSciTextLen + 1), (LPARAM) pSciText);
+  // NOTE:
+  // Currently SCI_GETTEXT returns the text length _without_ the trailing \0.
+  // Currently SCI_GETSELTEXT returns the text length _with_ the trailing \0.
+  // Can we rely on this behavior in the future? I don't know.
+  // Let's better calculate the length explicitly.
+  int nTextLen = lstrlenA(pSciText);
+  pSciText[nTextLen] = 0;
+  *pnTextLen = nTextLen;
+
+  return pSciText;
+}
+
+char* CNppExec::convertSciText(char* pSciText, int nTextLen, int nSciCodePage, eTextEnc outEnc, int* pnOutLen)
+{
+  char* pOutText = nullptr;
+  *pnOutLen = 0;
+  
+  if ( nTextLen == 0 )
+  {
+    // no selected text / no text
+    if ( outEnc == encUCS2LE ) // Unicode
+    {
+      pOutText = new char[2];
+      pOutText[0] = 0;
+      pOutText[1] = 0;
+    }
+    else // MultiByte or ANSI
+    {
+      pOutText = pSciText; // empty string in this case
+      pOutText[0] = 0;
+    }
+  }
+  else if ( nSciCodePage == SC_CP_UTF8 )
+  {
+    switch ( outEnc )
+    {
+      case encANSI:  // ANSI
+        pOutText = SysUniConv::newUTF8ToMultiByte(pSciText, nTextLen, CP_ACP, pnOutLen);
+        break;
+      case encUCS2LE:  // Unicode
+        pOutText = reinterpret_cast<char *>(SysUniConv::newUTF8ToUnicode(pSciText, nTextLen, pnOutLen));
+        break; 
+      default:
+        pOutText = pSciText;
+        pOutText[nTextLen] = 0;
+        *pnOutLen = nTextLen;
+        break;
+    }
+  }
+  else
+  {
+    // multi-byte encoding
+    if ( nSciCodePage == 0 )
+      nSciCodePage = CP_ACP;
+
+    switch ( outEnc )
+    {
+      case encUTF8_BOM:   // UTF-8
+      case encUTF8_NoBOM:
+        pOutText = SysUniConv::newMultiByteToUTF8(pSciText, nTextLen, nSciCodePage, pnOutLen);
+        break;
+      case encUCS2LE:  // Unicode
+        pOutText = reinterpret_cast<char *>(SysUniConv::newMultiByteToUnicode(pSciText, nTextLen, nSciCodePage, pnOutLen));
+        break; 
+      default:
+        pOutText = pSciText;
+        pOutText[nTextLen] = 0;
+        *pnOutLen = nTextLen;
+        break;
+    }
+  }
+
+  return pOutText;
 }
 
 int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView )

@@ -61,6 +61,7 @@ const TCHAR MACRO_FILE_EXTONLY[]        = _T("$(EXT_PART)");
 const TCHAR MACRO_NPP_DIRECTORY[]       = _T("$(NPP_DIRECTORY)");
 const TCHAR MACRO_NPP_FULL_FILE_PATH[]  = _T("$(NPP_FULL_FILE_PATH)");
 const TCHAR MACRO_CURRENT_WORD[]        = _T("$(CURRENT_WORD)");
+const TCHAR MACRO_SELECTED_TEXT[]       = _T("$(SELECTED_TEXT)");
 const TCHAR MACRO_FILE_NAME_AT_CURSOR[] = _T("$(FILE_NAME_AT_CURSOR)");
 const TCHAR MACRO_WORKSPACE_ITEM_DIR[]  = _T("$(WORKSPACE_ITEM_DIR)");
 const TCHAR MACRO_WORKSPACE_ITEM_NAME[] = _T("$(WORKSPACE_ITEM_NAME)");
@@ -1425,6 +1426,7 @@ static FParserWrapper g_fp;
  *
  * Additional environment variables:
  * ---------------------------------
+ * $(SELECTED_TEXT)      : the text you selected in Notepad++
  * $(FILE_NAME_AT_CURSOR): file name selected in the editor
  * $(WORKSPACE_ITEM_PATH): full path to the current item in the workspace pane
  * $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
@@ -7715,6 +7717,46 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
     }
 
     if ( substituteMacroVar(
+           Cmd, S, pos,
+           MACRO_SELECTED_TEXT,
+           [](CNppExec* pNppExec)
+           {
+             int nTextLen = 0;
+             int nSciCodePage = 0;
+             char* pSciText = pNppExec->sciGetText(true, &nTextLen, &nSciCodePage);
+             if (pSciText)
+             {
+             #ifdef UNICODE
+               CNppExec::eTextEnc enc = CNppExec::encUCS2LE;
+             #else
+               CNppExec::eTextEnc enc = CNppExec::encANSI;
+             #endif
+               int   nOutTextLen = 0;
+               char* pOutText = pNppExec->convertSciText(pSciText, nTextLen, nSciCodePage, enc, &nOutTextLen);
+               if (pOutText != pSciText)
+               {
+                 delete [] pSciText;
+                 pSciText = nullptr;
+               }
+               if (pOutText)
+               {
+                 if (nOutTextLen == 0)
+                 {
+                   delete [] pOutText;
+                   pOutText = nullptr;
+                 }
+                 else
+                 {
+                   tstr S;
+                   S.Attach(reinterpret_cast<TCHAR*>(pOutText), nOutTextLen, nOutTextLen + 1);
+                   return S;
+                 }
+               }
+             }
+             return tstr();
+           }
+         ) || 
+         substituteMacroVar(
            Cmd, S, pos,
            MACRO_LEFT_VIEW_FILE,
            [](CNppExec* pNppExec)

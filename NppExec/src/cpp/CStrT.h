@@ -1,8 +1,8 @@
 /***********************************************
  *  
- *  CStrT ver. 1.3.1
+ *  CStrT ver. 1.3.2
  *  --------------------------------  
- *  (C) DV, Nov 2006 - Jun 2021
+ *  (C) DV, Nov 2006 - Jan 2022
  *  --------------------------------
  *
  *  Template:
@@ -147,6 +147,7 @@ public:
   T*    Assign(const T* pStr, int nLength = -1); // -1 means all characters
   T*    Assign(const CStrT& Str);
   T*    Assign(CStrT&& Str);
+  T*    Attach(T* pStr, int nLen, int nSize);
   T*    c_str() const  { return ( m_pData ? m_pData : (T*) "\x00\x00" ); }
   int   CalculateLength();
   void  Clear();
@@ -160,6 +161,7 @@ public:
           // -1 means all characters from nPos
   bool  DeleteFirstChar()  { return Delete(0, 1); }
   bool  DeleteLastChar()  { return Delete(m_nLength - 1, 1); }
+  T*    Detach(int& nLen, int& nSize);
   bool  EndsWith(const T ch) const;
   bool  EndsWith(const T* pStr) const;
   bool  EndsWith(const CStrT& Str) const;
@@ -414,6 +416,35 @@ template <class T> T* CStrT<T>::Assign(CStrT&& Str)
     return m_pData; // can be NULL
 }
 
+template <class T> T* CStrT<T>::Attach(T* pStr, int nLen, int nSize)
+{
+    if ( pStr != m_pData )
+    { 
+        FreeMemory();
+    }
+
+    if ( pStr )
+    {
+        if ( nLen < 0 )
+        {
+            nLen = GetStrUnsafeLength<T>(pStr);
+            if ( nSize < nLen )
+                nSize = nLen + 1;
+        }
+        else if ( nLen >= nSize )
+        {
+            nLen = (nSize > 0) ? (nSize - 1) : 0;
+            if ( nSize < 0 )
+                nSize = 0;
+        }
+        m_pData = pStr;
+        m_nLength = nLen;
+        m_nMemSize = nSize;
+    }
+
+    return pStr;
+}
+
 template <class T> int CStrT<T>::CalculateLength()
 {
     m_nLength = GetStrSafeLength<T>(m_pData);
@@ -476,6 +507,19 @@ template <class T> bool CStrT<T>::Delete(int nPos, int nCharacters )
     m_nLength -= nCharacters;
     // m_pData[m_nLength] = 0 - is set by StrUnsafeCopyN()
     return true;
+}
+
+template <class T> T* CStrT<T>::Detach(int& nLen, int& nSize)
+{
+    T* pStr = m_pData;
+    nLen = m_nLength;
+    nSize = m_nMemSize;
+
+    m_pData = NULL;
+    m_nLength = 0;
+    m_nMemSize = 0;
+
+    return pStr;
 }
 
 template <class T> bool CStrT<T>::EndsWith(const T ch) const

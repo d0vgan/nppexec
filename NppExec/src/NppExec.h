@@ -1473,6 +1473,15 @@ public:
   bool            _consoleCommandIsRunning;
 
 public:
+  enum eTextEnc {
+    encAsIs = 0,
+    encANSI,
+    encUTF8_BOM,
+    encUTF8_NoBOM,
+    encUCS2LE
+  };
+
+public:
   CNppExec();
   ~CNppExec();
 
@@ -1491,6 +1500,8 @@ public:
   int  textLoadFrom(LPCTSTR cszFile, bool bSelectionOnly); // returns -1 if can't load
   int  textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly); // returns -1 if can't save
   void textSetText(LPCTSTR cszText, bool bSelectionOnly);
+  char* sciGetText(bool bSelectionOnly, int* pnTextLen, int* pnSciCodePage);
+  char* convertSciText(char* pSciText, int nTextLen, int nSciCodePage, eTextEnc outEnc, int* pnOutLen);
   int  nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
   int  nppGetMenuItemIdByName(const tstr& menuItemPathName, tstr& parsedPath, tstr& parsedSep);
   int  nppGetOpenFileNames();
