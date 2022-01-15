@@ -38,6 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    output, it is possible to double-click these lines in NppExec's Console
    to get the cached match result.
  + added: the last executed script is now saved to "npes_last.txt".
+ + added: new command "proc_input"
+ + added: new variable $(SELECTED_TEXT)
  * changed: now "help" command works in NppExec's scripts.
  - fixed: now "set local" (without an argument) prints only local vars.
  + NppExec Manual updated (the "NppExec_Guide" section was converted to HTML)

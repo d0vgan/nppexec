@@ -1376,6 +1376,8 @@ static FParserWrapper g_fp;
  *   - finds a string in the current editing (Scintilla's) window
  * sci_replace <flags> <find_what> <replace_with>
  *   - replaces a string in the current editing (Scintilla's) window
+ * proc_input <string>
+ *   - send a string to a child process
  * proc_signal <signal>
  *   - signal to a child process
  * sleep <ms>
@@ -6776,6 +6778,20 @@ CScriptEngine::eCmdResult CScriptEngine::DoSciReplace(const tstr& params)
     return doSciFindReplace(params, CMDTYPE_SCIREPLACE);
 }
 
+CScriptEngine::eCmdResult CScriptEngine::DoProcInput(const tstr& params)
+{
+    if ( !m_pNppExec->GetCommandExecutor().IsChildProcessRunning() )
+    {
+        ScriptError( ET_REPORT, _T("- child console process is not running") );
+        return CMDRESULT_FAILED;
+    }
+
+    CNppExecCommandExecutor& CommandExecutor = m_pNppExec->GetCommandExecutor();
+    CommandExecutor.WriteChildProcessInput( params.c_str() );
+
+    return CMDRESULT_SUCCEEDED;
+}
+
 CScriptEngine::eCmdResult CScriptEngine::DoProcSignal(const tstr& params)
 {
     if ( !reportCmdAndParams( DoProcSignalCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
@@ -7747,9 +7763,7 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
                  }
                  else
                  {
-                   tstr S;
-                   S.Attach(reinterpret_cast<TCHAR*>(pOutText), nOutTextLen, nOutTextLen + 1);
-                   return S;
+                   return tstr::Wrap(reinterpret_cast<TCHAR*>(pOutText), nOutTextLen, nOutTextLen + 1);
                  }
                }
              }

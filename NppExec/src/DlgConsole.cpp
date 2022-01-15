@@ -197,6 +197,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("sci_sendmsg <msg> <wparam> <lparam>  -  msg to Scintilla") _T_RE_EOL \
   _T("sci_find <flags> <find_what>  -  find a string") _T_RE_EOL \
   _T("sci_replace <flags> <find_what> <replace_with>  -  replace a string") _T_RE_EOL \
+  _T("proc_input <string>  -  send a string to a child process") _T_RE_EOL \
   _T("proc_signal <signal>  -  signal to a child process") _T_RE_EOL \
   _T("sleep <ms>  -  sleep for ms milliseconds") _T_RE_EOL \
   _T("sleep <ms> <text>  -  print the text and sleep for ms milliseconds") _T_RE_EOL \
@@ -2333,6 +2334,22 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  goto, if, if~") _T_RE_EOL
   },
 
+  // PROC_INPUT
+  {
+    CScriptEngine::DoProcInputCommand::Name(),
+    _T("COMMAND:  proc_input") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  proc_input <string>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Sends a given string to the running process.") _T_RE_EOL \
+    _T("  The string can be single-line or multi-line.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  proc_input $(SELECTED_TEXT)  // sends selected text to the process") _T_RE_EOL \
+    _T("  proc_input $(CLIPBOARD_TEXT) // sends clipboard text to the process") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  proc_signal, @exit_cmd (\"help @exit_cmd\"), npp_console") _T_RE_EOL
+  },
+
   // PROC_SIGNAL
   {
     CScriptEngine::DoProcSignalCommand::Name(),
@@ -2365,7 +2382,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  Anyway, it's recommended to use an exit command (such as \"exit\" for cmd and") _T_RE_EOL \
     _T("  \"exit()\" for python) whenever possible to let the process exit normally.") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  @exit_cmd (\"help @exit_cmd\"), npp_console") _T_RE_EOL
+    _T("  proc_input, @exit_cmd (\"help @exit_cmd\"), npp_console") _T_RE_EOL
   },
 
   // SLEEP

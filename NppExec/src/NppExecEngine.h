@@ -101,6 +101,7 @@ class CScriptEngine : public IScriptEngine
             CMDTYPE_NPESENDMSGBUFLEN,
             CMDTYPE_CALCIF,
             CMDTYPE_HELP,
+            CMDTYPE_PROCINPUT,
 
             CMDTYPE_TOTAL_COUNT
         };
@@ -190,6 +191,7 @@ class CScriptEngine : public IScriptEngine
         eCmdResult DoNppSendMsgEx(const tstr& params);
         eCmdResult DoNppSetFocus(const tstr& params);
         eCmdResult DoNppSwitch(const tstr& params);
+        eCmdResult DoProcInput(const tstr& params);
         eCmdResult DoProcSignal(const tstr& params);
         eCmdResult DoSleep(const tstr& params);
         eCmdResult DoSciFind(const tstr& params);
@@ -532,6 +534,14 @@ class CScriptEngine : public IScriptEngine
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppSwitch(params); }
         };
 
+        struct DoProcInputCommand
+        {
+            static const TCHAR* const Name() { return _T("PROC_INPUT"); }
+            static const TCHAR* const AltName() { return nullptr; }
+            static eCmdType           Type() { return CMDTYPE_PROCINPUT; }
+            static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoProcInput(params); }
+        };
+
         struct DoProcSignalCommand
         {
             static const TCHAR* const Name() { return _T("PROC_SIGNAL"); }
@@ -755,6 +765,7 @@ class CScriptEngine : public IScriptEngine
                     registerCommand<DoNppSendMsgExCommand>();
                     registerCommand<DoNppSetFocusCommand>();
                     registerCommand<DoNppSwitchCommand>();
+                    registerCommand<DoProcInputCommand>();
                     registerCommand<DoProcSignalCommand>();
                     registerCommand<DoSleepCommand>();
                     registerCommand<DoSciFindCommand>();

@@ -136,6 +136,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        sci_sendmsg <msg> <wparam> <lparam> - msg to Scintilla
  *        sci_find <flags> <find_what> - find a string
  *        sci_replace <flags> <find_what> <replace_with> - replace a string
+ *        proc_input <string> - send a string to a child process
  *        proc_signal <signal> - signal to a child process
  *        sleep <ms> - sleep for ms milliseconds
  *        sleep <ms> <text> - print the text and sleep for ms milliseconds

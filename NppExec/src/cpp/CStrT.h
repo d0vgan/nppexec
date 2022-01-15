@@ -130,7 +130,9 @@ private:
   int   m_nMemSize;
   
   bool  replaceStr(int pos, int count, const T* str_new, int str_len);
-    
+
+  CStrT(T* pStr, int nLen, int nSize); // for CStrT::Wrap, CStrT::Attach
+
 public:
   typedef T value_type;
 
@@ -147,7 +149,7 @@ public:
   T*    Assign(const T* pStr, int nLength = -1); // -1 means all characters
   T*    Assign(const CStrT& Str);
   T*    Assign(CStrT&& Str);
-  T*    Attach(T* pStr, int nLen, int nSize);
+  T*    Attach(T* pStr, int nLen, int nSize); // attaches to pStr without copying
   T*    c_str() const  { return ( m_pData ? m_pData : (T*) "\x00\x00" ); }
   int   CalculateLength();
   void  Clear();
@@ -161,7 +163,7 @@ public:
           // -1 means all characters from nPos
   bool  DeleteFirstChar()  { return Delete(0, 1); }
   bool  DeleteLastChar()  { return Delete(m_nLength - 1, 1); }
-  T*    Detach(int& nLen, int& nSize);
+  T*    Detach(int* pnLen = NULL, int* pnSize = NULL);
   bool  EndsWith(const T ch) const;
   bool  EndsWith(const T* pStr) const;
   bool  EndsWith(const CStrT& Str) const;
@@ -206,6 +208,7 @@ public:
   bool  StartsWith(const T* pStr) const;
   bool  StartsWith(const CStrT& Str) const;
   void  Swap(CStrT& Str); // swap str's data
+  static CStrT<T> Wrap(T* pStr, int nLen, int nSize) { return CStrT<T>(pStr, nLen, nSize); }
   T     operator[](int nPos) const  { return m_pData[nPos]; }
   T&    operator[](int nPos)  { return m_pData[nPos]; }
   T*    operator=(const T* pStr)  { return Assign(pStr); }
@@ -327,6 +330,31 @@ template <class T> CStrT<T>::CStrT(CStrT&& Str) :
     Swap(Str);
 }
 
+// for CStrT::Wrap, CStrT::Attach
+template <class T> CStrT<T>::CStrT(T* pStr, int nLen, int nSize) :
+  m_pData(NULL), m_nLength(0), m_nMemSize(0)
+{
+    if ( pStr )
+    {
+        if ( nLen < 0 )
+        {
+            nLen = GetStrUnsafeLength<T>(pStr);
+            if ( nSize < nLen )
+                nSize = nLen + 1;
+        }
+        else if ( nLen >= nSize )
+        {
+            nLen = (nSize > 0) ? (nSize - 1) : 0;
+            if ( nSize < 0 )
+                nSize = 0;
+        }
+        m_pData = pStr;
+        m_nLength = nLen;
+        m_nMemSize = nSize;
+        m_pData[m_nLength] = 0;
+    }
+}
+
 template <class T> CStrT<T>::~CStrT()
 {
     FreeMemory();
@@ -419,30 +447,11 @@ template <class T> T* CStrT<T>::Assign(CStrT&& Str)
 template <class T> T* CStrT<T>::Attach(T* pStr, int nLen, int nSize)
 {
     if ( pStr != m_pData )
-    { 
-        FreeMemory();
-    }
-
-    if ( pStr )
     {
-        if ( nLen < 0 )
-        {
-            nLen = GetStrUnsafeLength<T>(pStr);
-            if ( nSize < nLen )
-                nSize = nLen + 1;
-        }
-        else if ( nLen >= nSize )
-        {
-            nLen = (nSize > 0) ? (nSize - 1) : 0;
-            if ( nSize < 0 )
-                nSize = 0;
-        }
-        m_pData = pStr;
-        m_nLength = nLen;
-        m_nMemSize = nSize;
+        CStrT<T> temp(pStr, nLen, nSize);
+        Swap(temp);
     }
-
-    return pStr;
+    return m_pData; // can be NULL
 }
 
 template <class T> int CStrT<T>::CalculateLength()
@@ -509,11 +518,11 @@ template <class T> bool CStrT<T>::Delete(int nPos, int nCharacters )
     return true;
 }
 
-template <class T> T* CStrT<T>::Detach(int& nLen, int& nSize)
+template <class T> T* CStrT<T>::Detach(int* pnLen, int* pnSize)
 {
     T* pStr = m_pData;
-    nLen = m_nLength;
-    nSize = m_nMemSize;
+    if ( pnLen )  *pnLen = m_nLength;
+    if ( pnSize ) *pnSize = m_nMemSize;
 
     m_pData = NULL;
     m_nLength = 0;
