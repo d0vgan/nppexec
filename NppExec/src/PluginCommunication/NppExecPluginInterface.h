@@ -125,9 +125,11 @@ class CNppExecPluginInterfaceImpl
         TCHAR* npemGetScriptNames();
         TCHAR* npemGetScriptByName(const TCHAR* szScriptName);
 
+        void conPrintLine(tstr& Line);
+
+    public:
         static void addCommand(CListT<tstr>& CmdList, tstr& Cmd);
         static void getCmdListFromScriptBody(CListT<tstr>& CmdList, const TCHAR* szScriptBody);
-        void conPrintLine(tstr& Line);
 
     protected:
         CNppExec* m_pNppExec;

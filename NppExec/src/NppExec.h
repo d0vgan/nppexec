@@ -38,8 +38,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    output, it is possible to double-click these lines in NppExec's Console
    to get the cached match result.
  + added: the last executed script is now saved to "npes_last.txt".
- + added: new command "proc_input"
- + added: new variable $(SELECTED_TEXT)
+ + added: new menu item "Execute Selected Text".
+ + added: new command "proc_input".
+ + added: new variable $(SELECTED_TEXT).
  * changed: now "help" command works in NppExec's scripts.
  - fixed: now "set local" (without an argument) prints only local vars.
  + NppExec Manual updated (the "NppExec_Guide" section was converted to HTML)
@@ -688,6 +689,7 @@ const COLORREF COLOR_CON_BKGND    = 0xFFFFFFFF; // means system default
 enum enumNFuncItems {
   N_DO_EXEC_DLG = 0,
   N_DIRECT_EXEC,
+  N_EXEC_SELTEXT,
   N_SHOWCONSOLE,
   N_TOGGLECONSOLE,
   N_GOTO_NEXT_ERROR,
@@ -1503,7 +1505,8 @@ public:
   int  textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly); // returns -1 if can't save
   void textSetText(LPCTSTR cszText, bool bSelectionOnly);
   char* sciGetText(bool bSelectionOnly, int* pnTextLen, int* pnSciCodePage);
-  char* convertSciText(char* pSciText, int nTextLen, int nSciCodePage, eTextEnc outEnc, int* pnOutLen);
+  tstr  sciGetSelText();
+  static char* convertSciText(char* pSciText, int nTextLen, int nSciCodePage, eTextEnc outEnc, int* pnOutLen);
   int  nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
   int  nppGetMenuItemIdByName(const tstr& menuItemPathName, tstr& parsedPath, tstr& parsedSep);
   int  nppGetOpenFileNames();
@@ -1538,6 +1541,7 @@ public:
   void OnCmdHistory();
   void OnDoExecDlg();
   void OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunFlags = 0);
+  void OnExecSelText();
   void OnConsoleEncoding();
   void OnSaveOnExecute();
   void OnCdCurDir();

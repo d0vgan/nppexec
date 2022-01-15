@@ -281,8 +281,9 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     m_cbToolbarBtn.AddString( _T("Console") );
     m_cbToolbarBtn.AddString( _T("Execute") );
     m_cbToolbarBtn.AddString( _T("ExecPrev") );
+    m_cbToolbarBtn.AddString( _T("ExecSel") );
     i = NppExec.GetOptions().GetInt(OPTI_TOOLBARBTN);
-    if ( i < 0 || i > 3 )  i = 0;
+    if ( i < 0 || i > 4 )  i = 0;
     m_cbToolbarBtn.SetCurSel(i);
     
     // fill console visible combo-box...

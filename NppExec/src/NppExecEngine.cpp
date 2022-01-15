@@ -7737,37 +7737,7 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            MACRO_SELECTED_TEXT,
            [](CNppExec* pNppExec)
            {
-             int nTextLen = 0;
-             int nSciCodePage = 0;
-             char* pSciText = pNppExec->sciGetText(true, &nTextLen, &nSciCodePage);
-             if (pSciText)
-             {
-             #ifdef UNICODE
-               CNppExec::eTextEnc enc = CNppExec::encUCS2LE;
-             #else
-               CNppExec::eTextEnc enc = CNppExec::encANSI;
-             #endif
-               int   nOutTextLen = 0;
-               char* pOutText = pNppExec->convertSciText(pSciText, nTextLen, nSciCodePage, enc, &nOutTextLen);
-               if (pOutText != pSciText)
-               {
-                 delete [] pSciText;
-                 pSciText = nullptr;
-               }
-               if (pOutText)
-               {
-                 if (nOutTextLen == 0)
-                 {
-                   delete [] pOutText;
-                   pOutText = nullptr;
-                 }
-                 else
-                 {
-                   return tstr::Wrap(reinterpret_cast<TCHAR*>(pOutText), nOutTextLen, nOutTextLen + 1);
-                 }
-               }
-             }
-             return tstr();
+             return pNppExec->sciGetSelText();
            }
          ) || 
          substituteMacroVar(

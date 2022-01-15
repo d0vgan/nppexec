@@ -1171,6 +1171,7 @@ void empty_func()           { /* empty function */ }
 void cmdhistory_func()      { Runtime::GetNppExec().OnCmdHistory(); }
 void do_exec_dlg_func()     { Runtime::GetNppExec().OnDoExecDlg(); }
 void direct_exec_func()     { Runtime::GetNppExec().OnDirectExec(tstr(), true, CScriptEngine::rfConsoleLocalVarsRead); }
+void exec_seltext_func()    { Runtime::GetNppExec().OnExecSelText(); }
 void show_console_func()    { Runtime::GetNppExec().OnShowConsoleDlg(); }
 void toggle_console_func()  { Runtime::GetNppExec().OnToggleConsoleDlg(); }
 void go_to_next_error()     { Runtime::GetNppExec().OnGoToNextError(); }
@@ -1436,6 +1437,7 @@ void globalInitialize()
   // init menu items:
   InitFuncItem(N_DO_EXEC_DLG,     DO_EXEC_MENU_ITEM,                   do_exec_dlg_func,    &g_funcShortcut[N_DO_EXEC_DLG]);
   InitFuncItem(N_DIRECT_EXEC,     DIRECT_EXEC_MENU_ITEM,               direct_exec_func,    &g_funcShortcut[N_DIRECT_EXEC]);
+  InitFuncItem(N_EXEC_SELTEXT,    _T("Execute Selected Text"),         exec_seltext_func,   &g_funcShortcut[N_EXEC_SELTEXT]);
   InitFuncItem(N_SHOWCONSOLE,     SHOW_CONSOLE_MENU_ITEM,              show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
   InitFuncItem(N_TOGGLECONSOLE,   TOGGLE_CONSOLE_MENU_ITEM,            toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
   InitFuncItem(N_GOTO_NEXT_ERROR, _T("Go to next error"),              go_to_next_error,    NULL);
@@ -1909,6 +1911,8 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
                     cmdID = g_funcItem[N_DO_EXEC_DLG]._cmdID;
                 else if ( nToolbarBtn == 3 )
                     cmdID = g_funcItem[N_DIRECT_EXEC]._cmdID;
+                else if ( nToolbarBtn == 4 )
+                    cmdID = g_funcItem[N_EXEC_SELTEXT]._cmdID;
 
                 DWORD dwVer = (DWORD) NppExec.SendNppMsg(NPPM_GETNPPVERSION);
                 if ( HIWORD(dwVer) >= 8 )
@@ -2413,6 +2417,41 @@ char* CNppExec::sciGetText(bool bSelectionOnly, int* pnTextLen, int* pnSciCodePa
   *pnTextLen = nTextLen;
 
   return pSciText;
+}
+
+tstr CNppExec::sciGetSelText()
+{
+  int nTextLen = 0;
+  int nSciCodePage = 0;
+  char* pSciText = sciGetText(true, &nTextLen, &nSciCodePage);
+  if (pSciText)
+  {
+  #ifdef UNICODE
+    CNppExec::eTextEnc enc = CNppExec::encUCS2LE;
+  #else
+    CNppExec::eTextEnc enc = CNppExec::encANSI;
+  #endif
+    int   nOutTextLen = 0;
+    char* pOutText = convertSciText(pSciText, nTextLen, nSciCodePage, enc, &nOutTextLen);
+    if (pOutText != pSciText)
+    {
+      delete [] pSciText;
+      pSciText = nullptr;
+    }
+    if (pOutText)
+    {
+      if (nOutTextLen == 0)
+      {
+        delete [] pOutText;
+        pOutText = nullptr;
+      }
+      else
+      {
+        return tstr::Wrap(reinterpret_cast<TCHAR*>(pOutText), nOutTextLen, nOutTextLen + 1);
+      }
+    }
+  }
+  return tstr();
 }
 
 char* CNppExec::convertSciText(char* pSciText, int nTextLen, int nSciCodePage, eTextEnc outEnc, int* pnOutLen)
@@ -4718,6 +4757,23 @@ void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunF
     {
         CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::OnDirectExecCommand(id, bCanSaveAll, nRunFlags);
         GetCommandExecutor().ExecuteCommand(pCommand);
+    }
+}
+
+void CNppExec::OnExecSelText()
+{
+    tstr sSelText = sciGetSelText();
+    CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
+    if ( CommandExecutor.IsChildProcessRunning() )
+    {
+        CommandExecutor.WriteChildProcessInput( sSelText.c_str() );
+        CommandExecutor.WriteChildProcessInput( GetOptions().GetStr(OPTS_KEY_ENTER) );
+    }
+    else
+    {
+        tCmdList CmdList;
+        CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, sSelText.c_str());
+        DoRunScript(CmdList);
     }
 }
 

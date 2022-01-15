@@ -604,6 +604,7 @@
    ToolbarBtn = 1  -  the toolbar button shows the Console window;
    ToolbarBtn = 2  -  the toolbar button calls the "Execute..." dialog.
    ToolbarBtn = 3  -  the toolbar button directly executes last script.
+   ToolbarBtn = 4  -  the toolbar button executes the selected text.
 
 
  WatchScriptFile
