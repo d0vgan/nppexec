@@ -38,9 +38,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    output, it is possible to double-click these lines in NppExec's Console
    to get the cached match result.
  + added: the last executed script is now saved to "npes_last.txt".
- + added: new menu item "Execute Selected Text".
+ + added: new menu items "Execute Selected Text", "Execute Clipboard Text".
  + added: new command "proc_input".
- + added: new variable $(SELECTED_TEXT).
+ + added: new variables $(SELECTED_TEXT), $(IS_PROCESS).
  * changed: now "help" command works in NppExec's scripts.
  - fixed: now "set local" (without an argument) prints only local vars.
  + NppExec Manual updated (the "NppExec_Guide" section was converted to HTML)
@@ -690,6 +690,7 @@ enum enumNFuncItems {
   N_DO_EXEC_DLG = 0,
   N_DIRECT_EXEC,
   N_EXEC_SELTEXT,
+  N_EXEC_CLIPTEXT,
   N_SHOWCONSOLE,
   N_TOGGLECONSOLE,
   N_GOTO_NEXT_ERROR,
@@ -1442,6 +1443,8 @@ private:
 
   HWND    getCurrentScintilla(INT which);
 
+  void    onExecText(const tstr& sText);
+
 public:
   typedef int (WINAPI *MSGBOXTIMEOUTFUNC)(HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
 
@@ -1542,6 +1545,7 @@ public:
   void OnDoExecDlg();
   void OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunFlags = 0);
   void OnExecSelText();
+  void OnExecClipText();
   void OnConsoleEncoding();
   void OnSaveOnExecute();
   void OnCdCurDir();

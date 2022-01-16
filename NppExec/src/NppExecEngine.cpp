@@ -84,6 +84,7 @@ const TCHAR MACRO_INPUT[]               = _T("$(INPUT)");
 const TCHAR MACRO_INPUTFMT[]            = _T("$(INPUT[%d])");
 const TCHAR MACRO_EXITCODE[]            = _T("$(EXITCODE)");
 const TCHAR MACRO_PID[]                 = _T("$(PID)");
+const TCHAR MACRO_IS_PROCESS[]          = _T("$(IS_PROCESS)");
 const TCHAR MACRO_OUTPUT[]              = _T("$(OUTPUT)");
 const TCHAR MACRO_OUTPUT1[]             = _T("$(OUTPUT1)");
 const TCHAR MACRO_OUTPUTL[]             = _T("$(OUTPUTL)");
@@ -1455,6 +1456,7 @@ static FParserWrapper g_fp;
  * $(OUTPUTL)            : last line in $(OUTPUT)
  * $(EXITCODE)           : exit code of the last executed child process
  * $(PID)                : process id of the current (or the last) child process
+ * $(IS_PROCESS)         : is child process running
  * $(LAST_CMD_RESULT)    : result of the last NppExec's command
  *                           (1 - succeeded, 0 - failed, -1 - invalid arg)
  * $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
@@ -7877,6 +7879,15 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
              tstr sWorkspaceItem;
              pNppExec->nppGetWorkspaceRootItemPath(sWorkspaceItem);
              return sWorkspaceItem;
+           }
+         ) ||
+         substituteMacroVar(
+           Cmd, S, pos,
+           MACRO_IS_PROCESS,
+           [](CNppExec* pNppExec)
+           {
+             TCHAR ch = pNppExec->GetCommandExecutor().IsChildProcessRunning() ? _T('1') : _T('0');
+             return tstr(ch);
            }
          )
        )

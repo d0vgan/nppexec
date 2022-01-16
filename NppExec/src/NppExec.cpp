@@ -208,6 +208,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(OUTPUTL)            : last line in $(OUTPUT)
  *        $(EXITCODE)           : exit code of the last executed child process
  *        $(PID)                : process id of the current (or the last) child process
+ *        $(IS_PROCESS)         : is child process running
  *        $(LAST_CMD_RESULT)    : result of the last NppExec's command
  *                                  (1 - succeeded, 0 - failed, -1 - invalid arg)
  *        $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
@@ -1172,6 +1173,7 @@ void cmdhistory_func()      { Runtime::GetNppExec().OnCmdHistory(); }
 void do_exec_dlg_func()     { Runtime::GetNppExec().OnDoExecDlg(); }
 void direct_exec_func()     { Runtime::GetNppExec().OnDirectExec(tstr(), true, CScriptEngine::rfConsoleLocalVarsRead); }
 void exec_seltext_func()    { Runtime::GetNppExec().OnExecSelText(); }
+void exec_cliptext_func()   { Runtime::GetNppExec().OnExecClipText(); }
 void show_console_func()    { Runtime::GetNppExec().OnShowConsoleDlg(); }
 void toggle_console_func()  { Runtime::GetNppExec().OnToggleConsoleDlg(); }
 void go_to_next_error()     { Runtime::GetNppExec().OnGoToNextError(); }
@@ -1438,6 +1440,7 @@ void globalInitialize()
   InitFuncItem(N_DO_EXEC_DLG,     DO_EXEC_MENU_ITEM,                   do_exec_dlg_func,    &g_funcShortcut[N_DO_EXEC_DLG]);
   InitFuncItem(N_DIRECT_EXEC,     DIRECT_EXEC_MENU_ITEM,               direct_exec_func,    &g_funcShortcut[N_DIRECT_EXEC]);
   InitFuncItem(N_EXEC_SELTEXT,    _T("Execute Selected Text"),         exec_seltext_func,   &g_funcShortcut[N_EXEC_SELTEXT]);
+  InitFuncItem(N_EXEC_CLIPTEXT,   _T("Execute Clipboard Text"),        exec_cliptext_func,  &g_funcShortcut[N_EXEC_CLIPTEXT]);
   InitFuncItem(N_SHOWCONSOLE,     SHOW_CONSOLE_MENU_ITEM,              show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
   InitFuncItem(N_TOGGLECONSOLE,   TOGGLE_CONSOLE_MENU_ITEM,            toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
   InitFuncItem(N_GOTO_NEXT_ERROR, _T("Go to next error"),              go_to_next_error,    NULL);
@@ -1913,6 +1916,8 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
                     cmdID = g_funcItem[N_DIRECT_EXEC]._cmdID;
                 else if ( nToolbarBtn == 4 )
                     cmdID = g_funcItem[N_EXEC_SELTEXT]._cmdID;
+                else if ( nToolbarBtn == 5 )
+                    cmdID = g_funcItem[N_EXEC_CLIPTEXT]._cmdID;
 
                 DWORD dwVer = (DWORD) NppExec.SendNppMsg(NPPM_GETNPPVERSION);
                 if ( HIWORD(dwVer) >= 8 )
@@ -4760,21 +4765,30 @@ void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunF
     }
 }
 
-void CNppExec::OnExecSelText()
+void CNppExec::onExecText(const tstr& sText)
 {
-    tstr sSelText = sciGetSelText();
     CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
     if ( CommandExecutor.IsChildProcessRunning() )
     {
-        CommandExecutor.WriteChildProcessInput( sSelText.c_str() );
+        CommandExecutor.WriteChildProcessInput( sText.c_str() );
         CommandExecutor.WriteChildProcessInput( GetOptions().GetStr(OPTS_KEY_ENTER) );
     }
     else
     {
         tCmdList CmdList;
-        CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, sSelText.c_str());
+        CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, sText.c_str());
         DoRunScript(CmdList);
     }
+}
+
+void CNppExec::OnExecSelText()
+{
+    onExecText( sciGetSelText() );
+}
+
+void CNppExec::OnExecClipText()
+{
+    onExecText( NppExecHelpers::GetClipboardText() );
 }
 
 void CNppExec::DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveAll, LPCTSTR szScriptArguments /* = NULL */ , unsigned int nRunFlags /* = 0 */ )

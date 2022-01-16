@@ -62,6 +62,7 @@ const TCHAR* VariablesList[] = {
   MACRO_FILE_FULLPATH,         //  $(FULL_CURRENT_PATH)
   MACRO_INPUT,                 //  $(INPUT)
   _T("$(INPUT[1])"),           //  $(INPUT[1])
+  MACRO_IS_PROCESS,            //  $(IS_PROCESS)
   MACRO_LAST_CMD_RESULT,       //  $(LAST_CMD_RESULT)
   MACRO_LEFT_VIEW_FILE,        //  $(LEFT_VIEW_FILE)
   MACRO_MSG_LPARAM,            //  $(MSG_LPARAM)

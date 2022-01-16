@@ -277,13 +277,21 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
 
     // fill toolbar btn combo-box...
 
-    m_cbToolbarBtn.AddString( _T("none") );
-    m_cbToolbarBtn.AddString( _T("Console") );
-    m_cbToolbarBtn.AddString( _T("Execute") );
-    m_cbToolbarBtn.AddString( _T("ExecPrev") );
-    m_cbToolbarBtn.AddString( _T("ExecSel") );
+    const TCHAR* szToolbarBtns[] = {
+        _T("none"),
+        _T("Console"),
+        _T("Execute"),
+        _T("ExecPrev"),
+        _T("ExecSel"),
+        _T("ExecClip")
+    };
+    for ( const auto& btnName : szToolbarBtns )
+    {
+        m_cbToolbarBtn.AddString( btnName );
+    }
+    const int nMaxBtn = m_cbToolbarBtn.GetCount() - 1;
     i = NppExec.GetOptions().GetInt(OPTI_TOOLBARBTN);
-    if ( i < 0 || i > 4 )  i = 0;
+    if ( i < 0 || i > nMaxBtn )  i = 0;
     m_cbToolbarBtn.SetCurSel(i);
     
     // fill console visible combo-box...
