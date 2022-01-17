@@ -1396,7 +1396,11 @@ void scroll2latest_func() { Runtime::GetNppExec().OnScrollToLatest(); }
 #endif
 
 void int_msgs_func()      { Runtime::GetNppExec().OnNoInternalMsgs(); }
+
+#ifdef _DISABLE_CMD_ALIASES
 void nocmdaliases_func()  { Runtime::GetNppExec().OnNoCmdAliases(); }
+#endif
+
 void console_font_func()  { Runtime::GetNppExec().OnSelectConsoleFont(); }
 void execdlg_font_func()  { Runtime::GetNppExec().OnSelectExecDlgFont(); }
 void help_manual_func()   { Runtime::GetNppExec().OnHelpManual(); }
@@ -1443,10 +1447,10 @@ void globalInitialize()
   // init menu items:
   InitFuncItem(N_DO_EXEC_DLG,     DO_EXEC_MENU_ITEM,                   do_exec_dlg_func,    &g_funcShortcut[N_DO_EXEC_DLG]);
   InitFuncItem(N_DIRECT_EXEC,     DIRECT_EXEC_MENU_ITEM,               direct_exec_func,    &g_funcShortcut[N_DIRECT_EXEC]);
-  InitFuncItem(N_SHOWCONSOLE,     SHOW_CONSOLE_MENU_ITEM,              show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
-  InitFuncItem(N_TOGGLECONSOLE,   TOGGLE_CONSOLE_MENU_ITEM,            toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
   InitFuncItem(N_EXEC_SELTEXT,    _T("Execute Selected Text"),         exec_seltext_func,   &g_funcShortcut[N_EXEC_SELTEXT]);
   InitFuncItem(N_EXEC_CLIPTEXT,   _T("Execute Clipboard Text"),        exec_cliptext_func,  &g_funcShortcut[N_EXEC_CLIPTEXT]);
+  InitFuncItem(N_SHOWCONSOLE,     SHOW_CONSOLE_MENU_ITEM,              show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
+  InitFuncItem(N_TOGGLECONSOLE,   TOGGLE_CONSOLE_MENU_ITEM,            toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
   InitFuncItem(N_GOTO_NEXT_ERROR, _T("Go to next error"),              go_to_next_error,    NULL);
   InitFuncItem(N_GOTO_PREV_ERROR, _T("Go to previous error"),          go_to_prev_error,    NULL);
   InitFuncItem(N_SEPARATOR_1,     _T(""),                              /*empty_func*/NULL,  NULL);
@@ -1460,7 +1464,11 @@ void globalInitialize()
   InitFuncItem(N_NOINTMSGS,       _T("No internal messages"),          int_msgs_func,       NULL);
   InitFuncItem(N_SAVEONEXECUTE,   _T("Save all files on execute"),     saveonexecute_func,  NULL);
   InitFuncItem(N_CDCURDIR,        _T("Follow $(CURRENT_DIRECTORY)"),   cdcurdir_func,       NULL);
+
+#ifdef _DISABLE_CMD_ALIASES
   InitFuncItem(N_NOCMDALIASES,    _T("Disable command aliases"),       nocmdaliases_func,   &g_funcShortcut[N_NOCMDALIASES]);
+#endif
+
   InitFuncItem(N_SEPARATOR_2,     _T(""),                              /*empty_func*/NULL,  NULL);
   InitFuncItem(N_OUTPUT_FILTER,   _T("Console Output Filters..."),     output_f_func,       &g_funcShortcut[N_OUTPUT_FILTER]);
   InitFuncItem(N_ADV_OPTIONS,     _T("Advanced Options..."),           adv_opt_func,        NULL);
@@ -1796,10 +1804,10 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
                 CheckMenuItem(hMenu, g_funcItem[N_CMDHISTORY]._cmdID,
                   MF_BYCOMMAND | (NppExec.GetOptions().GetBool(OPTB_CONSOLE_CMDHISTORY) ? MF_CHECKED : MF_UNCHECKED));
 
-#ifdef _SCROLL_TO_LATEST        
+            #ifdef _SCROLL_TO_LATEST        
                 CheckMenuItem(hMenu, g_funcItem[N_SCROLL2LATEST]._cmdID,
                   MF_BYCOMMAND | (NppExec.GetOptions().GetBool(OPTB_CONSOLE_SCROLL2LATEST) ? MF_CHECKED : MF_UNCHECKED));
-#endif
+            #endif
 
                 CheckMenuItem(hMenu, g_funcItem[N_NOINTMSGS]._cmdID,
                   MF_BYCOMMAND | (NppExec.GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) ? MF_CHECKED : MF_UNCHECKED));
@@ -1815,8 +1823,10 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
                 CheckMenuItem(hMenu, g_funcItem[N_CDCURDIR]._cmdID,
                   MF_BYCOMMAND | (NppExec.GetOptions().GetBool(OPTB_CONSOLE_CDCURDIR) ? MF_CHECKED : MF_UNCHECKED));
 
+            #ifdef _DISABLE_CMD_ALIASES
                 EnableMenuItem(hMenu, g_funcItem[N_NOCMDALIASES]._cmdID,
                   MF_BYCOMMAND | MF_GRAYED );
+            #endif
 
                 /*
                 EnableMenuItem(hMenu, g_funcItem[N_CONSOLE_FONT]._cmdID,
@@ -4771,12 +4781,10 @@ void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunF
 
 void CNppExec::onExecText(const tstr& sText, int nExecTextMode)
 {
-    const TCHAR* pszText = sText.c_str();
     CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
-    bool isCollateral = false;
-    tstr sProcessedText;
-    tCmdList CmdList;
 
+    tstr sProcessedText;
+    const TCHAR* pszText = sText.c_str();
     if ( nExecTextMode & CNppExec::etfMacroVars )
     {
         auto scriptEngine = CommandExecutor.GetRunningScriptEngine();
@@ -4786,6 +4794,8 @@ void CNppExec::onExecText(const tstr& sText, int nExecTextMode)
         pszText = sProcessedText.c_str();
     }
 
+    tCmdList CmdList;
+    bool isCollateral = false;
     if ( nExecTextMode & CNppExec::etfCheckCollateral )
     {
         CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
@@ -4794,34 +4804,45 @@ void CNppExec::onExecText(const tstr& sText, int nExecTextMode)
 
     if ( isCollateral )
     {
-        initConsoleDialog();
-        CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
+        if ( checkCmdListAndPrepareConsole(CmdList, false) )
+        {
+            CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
+        }
     }
     else if ( CommandExecutor.IsChildProcessRunning() )
     {
+        showConsoleDialog(CNppExec::showIfHidden, 0);
         CommandExecutor.WriteChildProcessInput( pszText );
         CommandExecutor.WriteChildProcessInput( GetOptions().GetStr(OPTS_KEY_ENTER) );
     }
     else
     {
-        initConsoleDialog();
         if ( CmdList.IsEmpty() )
         {
             CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
         }
-        CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, 0);
-        GetCommandExecutor().ExecuteCommand(pCommand);
+        if ( checkCmdListAndPrepareConsole(CmdList, false) )
+        {
+            CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, 0);
+            GetCommandExecutor().ExecuteCommand(pCommand);
+        }
     }
 }
 
 void CNppExec::OnExecSelText()
 {
+    if ( !CNppExec::_bIsNppReady )
+        return;
+
     int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE);
     onExecText( sciGetSelText(), nExecTextMode );
 }
 
 void CNppExec::OnExecClipText()
 {
+    if ( !CNppExec::_bIsNppReady )
+        return;
+
     int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE);
     onExecText( NppExecHelpers::GetClipboardText(), nExecTextMode );
 }
@@ -4906,6 +4927,7 @@ void CNppExec::OnNoInternalMsgs()
   }
 }
 
+#ifdef _DISABLE_CMD_ALIASES
 void CNppExec::OnNoCmdAliases()
 {
     HMENU hMenu = GetNppMainMenu();
@@ -4917,6 +4939,7 @@ void CNppExec::OnNoCmdAliases()
             MF_BYCOMMAND | (bNoCmdAliases ? MF_CHECKED : MF_UNCHECKED));
     }
 }
+#endif
 
 #ifdef _SCROLL_TO_LATEST
 void CNppExec::OnScrollToLatest()

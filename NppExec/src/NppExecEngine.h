@@ -1371,11 +1371,13 @@ class CScriptEngine : public IScriptEngine
                                 ::CheckMenuItem(hMenu, g_funcItem[N_NOINTMSGS]._cmdID,
                                     MF_BYCOMMAND | (mConsoleNoIntMsgs ? MF_CHECKED : MF_UNCHECKED));
                             }
+                          #ifdef _DISABLE_CMD_ALIASES
                             if ( hasConsoleNoCmdAliases() )
                             {
                                 ::CheckMenuItem(hMenu, g_funcItem[N_NOCMDALIASES]._cmdID,
                                     MF_BYCOMMAND | (mConsoleNoCmdAliases ? MF_CHECKED : MF_UNCHECKED));
                             }
+                          #endif
                         }
                     }
                 }

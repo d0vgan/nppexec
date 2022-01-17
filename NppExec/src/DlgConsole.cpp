@@ -377,6 +377,12 @@ typedef struct sCmdItemInfo {
   _T("    NPE_SF_PRINTALL    = 0x20000000") _T_RE_EOL \
   _T("      - print all the occurrences from the current pos to the end")
 
+#ifdef _DISABLE_CMD_ALIASES
+  #define _T_DISABLE_CMD_ALIASES_MENU_ITEM _T("Corresponding menu item (inverse): Disable command aliases.")
+#else
+  #define _T_DISABLE_CMD_ALIASES_MENU_ITEM _T("There is no corresponding menu item.")
+#endif
+
 const tCmdItemInfo CONSOLE_CMD_INFO[] = {
   // HELP
   {
@@ -1626,7 +1632,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         This option is saved as \"PrintMsgReady\".") _T_RE_EOL \
     _T("         Default value: on.") _T_RE_EOL \
     _T("  q+/q-  Command aliases on/off.") _T_RE_EOL \
-    _T("         Corresponding menu item (inverse): Disable command aliases.") _T_RE_EOL \
+    _T("         ") _T_DISABLE_CMD_ALIASES_MENU_ITEM _T_RE_EOL \
     _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
     _T("         Default value: on") _T_RE_EOL \
     _T("         (command aliases created with NPE_CMDALIAS are active).") _T_RE_EOL \

@@ -43,6 +43,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    Execute Clipboard Text and Execute Selected Text.
  + added: new command "proc_input".
  + added: new variables $(SELECTED_TEXT), $(IS_PROCESS).
+ * changed: the menu item "Disable command aliases" has been removed. Use
+   the "npe_console q+/q-" instead.
  * changed: now "help" command works in NppExec's scripts.
  - fixed: now "set local" (without an argument) prints only local vars.
  + NppExec Manual updated (the "NppExec_Guide" section was converted to HTML)
@@ -691,10 +693,10 @@ const COLORREF COLOR_CON_BKGND    = 0xFFFFFFFF; // means system default
 enum enumNFuncItems {
   N_DO_EXEC_DLG = 0,
   N_DIRECT_EXEC,
-  N_SHOWCONSOLE,
-  N_TOGGLECONSOLE,
   N_EXEC_SELTEXT,
   N_EXEC_CLIPTEXT,
+  N_SHOWCONSOLE,
+  N_TOGGLECONSOLE,
   N_GOTO_NEXT_ERROR,
   N_GOTO_PREV_ERROR,
   N_SEPARATOR_1,
@@ -708,7 +710,11 @@ enum enumNFuncItems {
   N_NOINTMSGS,
   N_SAVEONEXECUTE,
   N_CDCURDIR,
+
+#ifdef _DISABLE_CMD_ALIASES
   N_NOCMDALIASES,
+#endif
+
   N_SEPARATOR_2,
   N_OUTPUT_FILTER,
   N_ADV_OPTIONS,
@@ -1560,7 +1566,11 @@ public:
   void OnSaveOnExecute();
   void OnCdCurDir();
   void OnNoInternalMsgs();
+
+#ifdef _DISABLE_CMD_ALIASES
   void OnNoCmdAliases();
+#endif
+
   void OnOutputFilter();
   void OnAdvancedOptions();
   void OnSelectConsoleFont();

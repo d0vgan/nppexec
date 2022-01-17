@@ -4386,6 +4386,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                     }
                 }
 
+              #ifdef _DISABLE_CMD_ALIASES
                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                 if ( hMenu )
                 {
@@ -4393,7 +4394,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                     ::EnableMenuItem( hMenu, g_funcItem[N_NOCMDALIASES]._cmdID,
                         MF_BYCOMMAND | (bEnable ? MF_ENABLED : MF_GRAYED) );
                 }
-                
+              #endif
+
                 return nCmdResult;
             }
             else
@@ -4735,12 +4737,14 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                     if ( savedConf.hasConsoleNoCmdAliases() )
                                         savedConf.removeConsoleNoCmdAliases();
                                 }
+                              #ifdef _DISABLE_CMD_ALIASES
                                 HMENU hMenu = m_pNppExec->GetNppMainMenu();
                                 if ( hMenu )
                                 {
                                     ::CheckMenuItem(hMenu, g_funcItem[N_NOCMDALIASES]._cmdID,
                                         MF_BYCOMMAND | (bOn ? MF_CHECKED : MF_UNCHECKED));
                                 }
+                              #endif
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOCMDALIASES, bOn);
                                 isOK = true;
                             }

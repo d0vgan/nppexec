@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define _GVC - now part of the sources
 //#define _GVCRESTORE - now part of the sources
 //#define _SCROLL_TO_LATEST
+//#define _DISABLE_CMD_ALIASES
 
 #include <windows.h>
 #include <TCHAR.h>
