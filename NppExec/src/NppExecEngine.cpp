@@ -4507,6 +4507,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                     // r+/r-     console output replace filter on/off
                     // x+/x-     compiler errors filter on/off
                     // k0..3     catch NppExec's shortcut keys on/off
+                    // c<N>      text processing for Execute Clipboard Text
+                    // s<N>      text processing for Execute Selected Text
                     // o0/o1/o2  console output encoding: ANSI/OEM/UTF8
                     // i0/i1/i2  console input encoding: ANSI/OEM/UTF8
                     // --        silent (don't print Console mode info)
@@ -4849,6 +4851,50 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
+                        case _T('c'):
+                        case _T('C'):
+                            {
+                                int t = (int) (arg[1] - _T('0'));
+                                if ( t >= CNppExec::etfNone )
+                                {
+                                    if ( isLocal )
+                                    {
+                                        if ( !savedConf.hasExecClipTextMode() )
+                                            savedConf.setExecClipTextMode( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE) );
+                                    }
+                                    else
+                                    {
+                                        if ( savedConf.hasExecClipTextMode() )
+                                            savedConf.removeExecClipTextMode();
+                                    }
+                                    m_pNppExec->GetOptions().SetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE, t);
+                                    isOK = true;
+                                }
+                            }
+                            break;
+
+                        case _T('s'):
+                        case _T('S'):
+                            {
+                                int t = (int) (arg[1] - _T('0'));
+                                if ( t >= CNppExec::etfNone )
+                                {
+                                    if ( isLocal )
+                                    {
+                                        if ( !savedConf.hasExecSelTextMode() )
+                                            savedConf.setExecSelTextMode( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE) );
+                                    }
+                                    else
+                                    {
+                                        if ( savedConf.hasExecSelTextMode() )
+                                            savedConf.removeExecSelTextMode();
+                                    }
+                                    m_pNppExec->GetOptions().SetInt(OPTI_CONSOLE_EXECSELTEXTMODE, t);
+                                    isOK = true;
+                                }
+                            }
+                            break;
+
                         case _T('-'):
                             if ( arg[1] == _T('-') )
                             {
@@ -4946,6 +4992,20 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
             };
             appendInt( m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS), S1, S2, skMappings );
         }
+        // exec text mode
+        const tIntMapping etfMappings[] = {
+            { CNppExec::etfNone,            _T("0") },
+            { CNppExec::etfMacroVars,       _T("mv") },
+            { CNppExec::etfCheckCollateral, _T("cs") },
+            { CNppExec::etfCheckCollateral + CNppExec::etfMacroVars, _T("mv+cs") },
+            { 0x00, NULL } // trailing element with .str=NULL
+        };
+        S1 += _T(" c");
+        S2 += _T(", exec_clip: ");
+        appendInt( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE), S1, S2, etfMappings );
+        S1 += _T(" s");
+        S2 += _T(", exec_sel: ");
+        appendInt( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE), S1, S2, etfMappings );
         // out_enc
         unsigned int enc_opt = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
         S1 += _T(" o");
@@ -6574,8 +6634,8 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
                     }
                 }
                 Sci_TextRange tr;
-                tr.chrg.cpMin = nPos;        // I believe Sci_CharacterRange will use INT_PTR
-                tr.chrg.cpMax = nPos + nLen; // or UINT_PTR to deal with 64-bit ranges
+                tr.chrg.cpMin = static_cast<decltype(tr.chrg.cpMin)>(nPos);        // I believe Sci_CharacterRange will use INT_PTR
+                tr.chrg.cpMax = static_cast<decltype(tr.chrg.cpMax)>(nPos + nLen); // or UINT_PTR to deal with 64-bit ranges
                 S.Reserve(50 + static_cast<int>(nLen)); // enough for both char* and TCHAR* buffer
                 tr.lpstrText = (char *) S.c_str(); // temporary using S as a char* buffer
                 ::SendMessage(hSci, SCI_GETTEXTRANGE, 0, (LPARAM) &tr);

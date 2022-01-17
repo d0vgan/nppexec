@@ -1561,6 +1561,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_console") _T_RE_EOL \
     _T("  npe_console a+/a- d+/d- e0/e1 h+/h- m+/m- p+/p- q+/q- v+/v- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
+    _T("  npe_console c<N> s<N>") _T_RE_EOL \
     _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
     _T("  npe_console <options> --") _T_RE_EOL \
     _T("  npe_console local <options>") _T_RE_EOL \
@@ -1579,6 +1580,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("       r+/r-  console output replace filter on/off") _T_RE_EOL \
     _T("       x+/x-  compiler errors highlight filter on/off") _T_RE_EOL \
     _T("       k0..3  catch NppExec\'s shortcut keys on/off") _T_RE_EOL \
+    _T("       c<N>   text processing for Execute Clipboard Text") _T_RE_EOL \
+    _T("       s<N>   text processing for Execute Selected Text") _T_RE_EOL \
     _T("  3. Y0/Y1/Y2  sets the value of the option/mode Y:") _T_RE_EOL \
     _T("       o0/o1/o2  console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
     _T("       i0/i1/i2  console input encoding: ANSI/OEM/UTF8") _T_RE_EOL \
@@ -1654,6 +1657,26 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         There is no corresponding menu item.") _T_RE_EOL \
     _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
     _T("         Default value: 3.") _T_RE_EOL \
+    _T("  c<N>   text processing for Execute Clipboard Text.") _T_RE_EOL \
+    _T("         The value of <N> can be either 0 or a sum of these flags:") _T_RE_EOL \
+    _T("         0: use the clipboard text as is;") _T_RE_EOL \
+    _T("            if there is a running child process then send the clipboard") _T_RE_EOL \
+    _T("            text to that process as an input;") _T_RE_EOL \
+    _T("         1: substitute macro-vars in the clipboard text;") _T_RE_EOL \
+    _T("         2: if the first line of the clipboard text is \"!collateral\"") _T_RE_EOL \
+    _T("            then start a collateral script.") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         Default value: 0.") _T_RE_EOL \
+    _T("  s<N>   text processing for Execute Selected Text.") _T_RE_EOL \
+    _T("         The value of <N> can be either 0 or a sum of these flags:") _T_RE_EOL \
+    _T("         0: use the selected text as is;") _T_RE_EOL \
+    _T("            if there is a running child process then send the selected") _T_RE_EOL \
+    _T("            text to that process as an input;") _T_RE_EOL \
+    _T("         1: substitute macro-vars in the selected text;") _T_RE_EOL \
+    _T("         2: if the first line of the selected text is \"!collateral\"") _T_RE_EOL \
+    _T("            then start a collateral script.") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         Default value: 0.") _T_RE_EOL \
     _T("  o0/o1/o2  Console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
     _T("            Corresponding menu item: Console Output...") _T_RE_EOL \
     _T("            Sets Console output encoding.") _T_RE_EOL \

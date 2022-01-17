@@ -399,6 +399,10 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
       INI_SECTION_CONSOLE, _T("Font"), 0, NULL },
     { OPTI_CONSOLE_ANSIESCSEQ, OPTT_INT | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("AnsiEscapeSequences") },
+    { OPTI_CONSOLE_EXECCLIPTEXTMODE, OPTT_INT | OPTF_READWRITE,
+      INI_SECTION_CONSOLE, _T("ExecClipTextMode") },
+    { OPTI_CONSOLE_EXECSELTEXTMODE, OPTT_INT | OPTF_READWRITE,
+      INI_SECTION_CONSOLE, _T("ExecSelTextMode") },
 
     //[ConsoleOutputFilter]
     { OPTB_CONFLTR_ENABLE, OPTT_BOOL | OPTF_READWRITE,
@@ -1439,10 +1443,10 @@ void globalInitialize()
   // init menu items:
   InitFuncItem(N_DO_EXEC_DLG,     DO_EXEC_MENU_ITEM,                   do_exec_dlg_func,    &g_funcShortcut[N_DO_EXEC_DLG]);
   InitFuncItem(N_DIRECT_EXEC,     DIRECT_EXEC_MENU_ITEM,               direct_exec_func,    &g_funcShortcut[N_DIRECT_EXEC]);
-  InitFuncItem(N_EXEC_SELTEXT,    _T("Execute Selected Text"),         exec_seltext_func,   &g_funcShortcut[N_EXEC_SELTEXT]);
-  InitFuncItem(N_EXEC_CLIPTEXT,   _T("Execute Clipboard Text"),        exec_cliptext_func,  &g_funcShortcut[N_EXEC_CLIPTEXT]);
   InitFuncItem(N_SHOWCONSOLE,     SHOW_CONSOLE_MENU_ITEM,              show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
   InitFuncItem(N_TOGGLECONSOLE,   TOGGLE_CONSOLE_MENU_ITEM,            toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
+  InitFuncItem(N_EXEC_SELTEXT,    _T("Execute Selected Text"),         exec_seltext_func,   &g_funcShortcut[N_EXEC_SELTEXT]);
+  InitFuncItem(N_EXEC_CLIPTEXT,   _T("Execute Clipboard Text"),        exec_cliptext_func,  &g_funcShortcut[N_EXEC_CLIPTEXT]);
   InitFuncItem(N_GOTO_NEXT_ERROR, _T("Go to next error"),              go_to_next_error,    NULL);
   InitFuncItem(N_GOTO_PREV_ERROR, _T("Go to previous error"),          go_to_prev_error,    NULL);
   InitFuncItem(N_SEPARATOR_1,     _T(""),                              /*empty_func*/NULL,  NULL);
@@ -4765,30 +4769,61 @@ void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunF
     }
 }
 
-void CNppExec::onExecText(const tstr& sText)
+void CNppExec::onExecText(const tstr& sText, int nExecTextMode)
 {
+    const TCHAR* pszText = sText.c_str();
     CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
-    if ( CommandExecutor.IsChildProcessRunning() )
+    bool isCollateral = false;
+    tstr sProcessedText;
+    tCmdList CmdList;
+
+    if ( nExecTextMode & CNppExec::etfMacroVars )
     {
-        CommandExecutor.WriteChildProcessInput( sText.c_str() );
+        auto scriptEngine = CommandExecutor.GetRunningScriptEngine();
+        CScriptEngine* pScriptEngine = scriptEngine ? scriptEngine.get() : nullptr;
+        sProcessedText = sText;
+        GetMacroVars().CheckAllMacroVars(pScriptEngine, sProcessedText, true);
+        pszText = sProcessedText.c_str();
+    }
+
+    if ( nExecTextMode & CNppExec::etfCheckCollateral )
+    {
+        CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
+        isCollateral = IsScriptCollateral(CmdList);
+    }
+
+    if ( isCollateral )
+    {
+        initConsoleDialog();
+        CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
+    }
+    else if ( CommandExecutor.IsChildProcessRunning() )
+    {
+        CommandExecutor.WriteChildProcessInput( pszText );
         CommandExecutor.WriteChildProcessInput( GetOptions().GetStr(OPTS_KEY_ENTER) );
     }
     else
     {
-        tCmdList CmdList;
-        CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, sText.c_str());
-        DoRunScript(CmdList);
+        initConsoleDialog();
+        if ( CmdList.IsEmpty() )
+        {
+            CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
+        }
+        CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, 0);
+        GetCommandExecutor().ExecuteCommand(pCommand);
     }
 }
 
 void CNppExec::OnExecSelText()
 {
-    onExecText( sciGetSelText() );
+    int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE);
+    onExecText( sciGetSelText(), nExecTextMode );
 }
 
 void CNppExec::OnExecClipText()
 {
-    onExecText( NppExecHelpers::GetClipboardText() );
+    int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE);
+    onExecText( NppExecHelpers::GetClipboardText(), nExecTextMode );
 }
 
 void CNppExec::DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveAll, LPCTSTR szScriptArguments /* = NULL */ , unsigned int nRunFlags /* = 0 */ )
@@ -5599,6 +5634,17 @@ void CNppExec::ReadOptions()
   if ( (nAnsiEscSeq < 0) || (nAnsiEscSeq >= CChildProcess::escTotalCount) )
   {
     GetOptions().SetInt(OPTI_CONSOLE_ANSIESCSEQ, CChildProcess::escKeepRaw);
+  }
+
+  int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE);
+  if ( nExecTextMode < CNppExec::etfNone )
+  {
+    GetOptions().SetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE, CNppExec::etfNone);
+  }
+  nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE);
+  if ( nExecTextMode < CNppExec::etfNone )
+  {
+      GetOptions().SetInt(OPTI_CONSOLE_EXECSELTEXTMODE, CNppExec::etfNone);
   }
 
   {

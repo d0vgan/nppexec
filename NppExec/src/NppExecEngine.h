@@ -973,6 +973,18 @@ class CScriptEngine : public IScriptEngine
                     mHasValues |= fConsoleAnsiEscSeq;
                 }
 
+                void setExecClipTextMode(int nExecClipTextMode)
+                {
+                    mExecClipTextMode = nExecClipTextMode;
+                    mHasValues |= fExecClipTextMode;
+                }
+
+                void setExecSelTextMode(int nExecSelTextMode)
+                {
+                    mExecSelTextMode = nExecSelTextMode;
+                    mHasValues |= fExecSelTextMode;
+                }
+
                 void setConsoleAppendMode(bool bConsoleAppendMode)
                 {
                     mConsoleAppendMode = bConsoleAppendMode;
@@ -1065,6 +1077,8 @@ class CScriptEngine : public IScriptEngine
                 bool hasConsoleEncoding() const { return ((mHasValues & fConsoleEncoding) != 0); }
                 bool hasConsoleCatchShortcutKeys() const { return ((mHasValues & fConsoleCatchShortcutKeys) != 0); }
                 bool hasConsoleAnsiEscSeq() const { return ((mHasValues & fConsoleAnsiEscSeq) != 0); }
+                bool hasExecClipTextMode() const { return ((mHasValues & fExecClipTextMode) != 0); }
+                bool hasExecSelTextMode() const { return ((mHasValues & fExecSelTextMode) != 0); }
                 bool hasConsoleAppendMode() const { return ((mHasValues & fConsoleAppendMode) != 0); }
                 bool hasConsoleCdCurDir() const { return ((mHasValues & fConsoleCdCurDir) != 0); }
                 bool hasConsoleCmdHistory() const { return ((mHasValues & fConsoleCmdHistory) != 0); }
@@ -1100,6 +1114,8 @@ class CScriptEngine : public IScriptEngine
                 void removeConsoleEncoding() { mHasValues &= ~fConsoleEncoding; }
                 void removeConsoleCatchShortcutKeys() { mHasValues &= ~fConsoleCatchShortcutKeys; }
                 void removeConsoleAnsiEscSeq() { mHasValues &= ~fConsoleAnsiEscSeq; }
+                void removeExecClipTextMode() { mHasValues &= ~fExecClipTextMode; }
+                void removeExecSelTextMode() { mHasValues &= ~fExecSelTextMode; }
                 void removeConsoleAppendMode() { mHasValues &= ~fConsoleAppendMode; }
                 void removeConsoleCdCurDir() { mHasValues &= ~fConsoleCdCurDir; }
                 void removeConsoleCmdHistory() { mHasValues &= ~fConsoleCmdHistory; }
@@ -1201,6 +1217,14 @@ class CScriptEngine : public IScriptEngine
                     if ( hasConsoleAnsiEscSeq() )
                     {
                         pNppExec->GetOptions().SetInt(OPTI_CONSOLE_ANSIESCSEQ, mConsoleAnsiEscSeq);
+                    }
+                    if ( hasExecClipTextMode() )
+                    {
+                        pNppExec->GetOptions().SetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE, mExecClipTextMode);
+                    }
+                    if ( hasExecSelTextMode() )
+                    {
+                        pNppExec->GetOptions().SetInt(OPTI_CONSOLE_EXECSELTEXTMODE, mExecSelTextMode);
                     }
                     if ( hasConsoleAppendMode() )
                     {
@@ -1383,7 +1407,9 @@ class CScriptEngine : public IScriptEngine
                     fSendMsgBufLen            = 0x00400000,
                     fConsoleDebugLog          = 0x00800000,
                     fLoggerOutputMode         = 0x01000000,
-                    fConFltrCompilerErrors    = 0x02000000
+                    fConFltrCompilerErrors    = 0x02000000,
+                    fExecClipTextMode         = 0x04000000,
+                    fExecSelTextMode          = 0x08000000
                 };
 
                 // we might use std::optional (C++17) instead, but would it be so fun? :)
@@ -1407,6 +1433,8 @@ class CScriptEngine : public IScriptEngine
                 unsigned int mConsoleEncoding;
                 unsigned int mConsoleCatchShortcutKeys;
                 int  mConsoleAnsiEscSeq;
+                int  mExecClipTextMode;
+                int  mExecSelTextMode;
                 bool mConsoleAppendMode;
                 bool mConsoleCdCurDir;
                 bool mConsoleCmdHistory;

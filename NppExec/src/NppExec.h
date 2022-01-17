@@ -39,6 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    to get the cached match result.
  + added: the last executed script is now saved to "npes_last.txt".
  + added: new menu items "Execute Selected Text", "Execute Clipboard Text".
+ + NPE_CONSOLE c<N> and s<N> to change the text processing for the
+   Execute Clipboard Text and Execute Selected Text.
  + added: new command "proc_input".
  + added: new variables $(SELECTED_TEXT), $(IS_PROCESS).
  * changed: now "help" command works in NppExec's scripts.
@@ -689,10 +691,10 @@ const COLORREF COLOR_CON_BKGND    = 0xFFFFFFFF; // means system default
 enum enumNFuncItems {
   N_DO_EXEC_DLG = 0,
   N_DIRECT_EXEC,
-  N_EXEC_SELTEXT,
-  N_EXEC_CLIPTEXT,
   N_SHOWCONSOLE,
   N_TOGGLECONSOLE,
+  N_EXEC_SELTEXT,
+  N_EXEC_CLIPTEXT,
   N_GOTO_NEXT_ERROR,
   N_GOTO_PREV_ERROR,
   N_SEPARATOR_1,
@@ -774,6 +776,8 @@ enum EPluginOptions {
     OPTU_CONSOLE_CATCHSHORTCUTKEYS,
     OPTB_CONSOLE_SETOUTPUTVAR,
     OPTI_CONSOLE_ANSIESCSEQ,
+    OPTI_CONSOLE_EXECCLIPTEXTMODE,
+    OPTI_CONSOLE_EXECSELTEXTMODE,
     OPTB_CONFLTR_ENABLE,
     OPTB_CONFLTR_COMPILER_ERRORS,
     OPTB_CONFLTR_EXCLALLEMPTY,
@@ -1443,7 +1447,7 @@ private:
 
   HWND    getCurrentScintilla(INT which);
 
-  void    onExecText(const tstr& sText);
+  void    onExecText(const tstr& sText, int nExecTextMode);
 
 public:
   typedef int (WINAPI *MSGBOXTIMEOUTFUNC)(HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
@@ -1486,6 +1490,12 @@ public:
     encUTF8_BOM,
     encUTF8_NoBOM,
     encUCS2LE
+  };
+
+  enum eExecTextFlags {
+    etfNone            = 0,
+    etfMacroVars       = 0x01,
+    etfCheckCollateral = 0x02
   };
 
 public:
