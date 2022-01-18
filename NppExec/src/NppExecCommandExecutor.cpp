@@ -948,7 +948,7 @@ CNppExecCommandExecutor::ScriptableCommand::~ScriptableCommand()
 DWORD CNppExecCommandExecutor::ScriptableCommand::RunConsoleScript(Command* pCommand, const CListT<tstr>& CmdList, unsigned int nRunFlags)
 {
     CNppExec* pNppExec = pCommand->GetExecutor()->GetNppExec();
-    
+
     pNppExec->m_hFocusedWindowBeforeScriptStarted = NppExecHelpers::GetFocusedWnd();
 
     std::shared_ptr<CScriptEngine> pScriptEngine(new CScriptEngine(pNppExec, CmdList, pCommand->GetId()));

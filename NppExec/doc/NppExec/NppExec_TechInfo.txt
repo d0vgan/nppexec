@@ -28,6 +28,7 @@
  |  CmdHistory_MaxItems             |  256                            |  int   |
  |  Exec_MaxCount                   |  100                            |  int   |
  |  GoTo_MaxCount                   |  10000                          |  int   |
+ |  ExecText_MaxCount               |  500                            |  int   |
  |  RichEdit_MaxTextLength          |  4194304               (4 MB)   |  int   |
  |  SendMsg_MaxBufLength            |  4194304               (4 MB)   |  int   |
  |  Calc_Precision                  |  0.000001                       | float  |
@@ -107,6 +108,7 @@
    CmdHistory_MaxItems=256
    Exec_MaxCount=100
    GoTo_MaxCount=10000
+   ExecText_MaxCount=500
    RichEdit_MaxTextLength=4194304
    SendMsg_MaxBufLength=4194304
    Calc_Precision=0.000001
@@ -314,6 +316,23 @@
 
    Note:
    You always can close the Console window to stop the running script.
+
+
+ ExecText_MaxCount
+ -----------------
+   Specifies maximum number of NPP_EXECTEXT calls within one script.
+   This value is needed to prevent the infinite loop of the commands
+   such as:
+
+     npp_exectext 0 $(SELECTED_TEXT)
+
+   when the selected text itself contains the same command
+
+     npp_exectext 0 $(SELECTED_TEXT)
+
+   The same applies to the following command placed to the clipboard:
+
+     npp_exectext 0 $(CLIPBOARD_TEXT)
 
 
  RichEdit_MaxTextLength

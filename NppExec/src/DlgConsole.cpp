@@ -171,6 +171,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("npp_exec <script>  -  execute commands from specified NppExec\'s script") _T_RE_EOL \
   _T("npp_exec <file>  -  execute commands from specified NppExec\'s file") _T_RE_EOL \
   _T("npp_exec <script/file> <args>  -  passes additional arguments <args>") _T_RE_EOL \
+  _T("npp_exectext <mode> <text>  -  execute the given text") _T_RE_EOL \
   _T("npp_close  -  close current file in Notepad++") _T_RE_EOL \
   _T("npp_close <file>  -  close specified file opened in Notepad++") _T_RE_EOL \
   _T("npp_console <on/off/keep>  -  show/hide the Console window") _T_RE_EOL \
@@ -744,7 +745,35 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  The purpose of NPP_EXEC is to execute NppExec's own script.") _T_RE_EOL \
     _T("  To start a batch file or an executable file in NppExec, type just:") _T_RE_EOL \
     _T("     application.exe // in case of an executable file named \"application.exe\"") _T_RE_EOL \
-    _T("     batchfile.bat   // in case of a batch file named \"batchfile.bat\"") _T_RE_EOL
+    _T("     batchfile.bat   // in case of a batch file named \"batchfile.bat\"") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_exectext") _T_RE_EOL
+  },
+
+  // NPP_EXECTEXT
+  {
+    CScriptEngine::DoNppExecTextCommand::Name(),
+    _T("COMMAND:  npp_exectext") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  npp_exectext <mode> <text>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Executes the given text as NppExec's script or sends this text to") _T_RE_EOL \
+    _T("  the running child process as an input.") _T_RE_EOL \
+    _T("  The value of <mode> can be either 0 or a sum of these flags:") _T_RE_EOL \
+    _T("  0: use the given text as is;") _T_RE_EOL \
+    _T("     if there is a running child process then send the text") _T_RE_EOL \
+    _T("     to that process as an input;") _T_RE_EOL \
+    _T("  2: if the first line of the text is \"!collateral\" then") _T_RE_EOL \
+    _T("     start a collateral script.") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  npp_exectext 0 $(SELECTED_TEXT)") _T_RE_EOL \
+    _T("  npp_exectext 0 $(CLIPBOARD_TEXT)") _T_RE_EOL \
+    _T("  set local A = 123") _T_RE_EOL \
+    _T("  npp_exectext 0 echo A is $(A)") _T_RE_EOL \
+    _T("  nppexec:set local cmds ~ strunescape !collateral\\nmessagebox Hello!!!") _T_RE_EOL \
+    _T("  nppexec:npp_exectext 2 $(cmds)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  npp_exec") _T_RE_EOL
   },
 
   // NPP_MENUCOMMAND

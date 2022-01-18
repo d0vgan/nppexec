@@ -109,6 +109,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        clip_settext <text> : set the clipboard text
  *        npp_exec <script> - execute commands from specified NppExec's script
  *        npp_exec <file> - execute commands from specified NppExec's file (*)
+ *        npp_exectext <mode> <text> - execute the given text
  *        npp_close - close current file in Notepad++
  *        npp_close <file> - close specified file opened in Notepad++      (*)
  *        npp_console <on/off/keep> - show/hide the Console window
@@ -310,6 +311,7 @@ const int   DEFAULT_PATH_AUTODBLQUOTES        = 0;
 const int   DEFAULT_CMDHISTORY_MAXITEMS       = 256;
 const int   DEFAULT_EXEC_MAXCOUNT             = 100;
 const int   DEFAULT_GOTO_MAXCOUNT             = 10000;
+const int   DEFAULT_EXECTEXT_MAXCOUNT         = 500;
 const int   DEFAULT_RICHEDIT_MAXTEXTLEN       = 4*1024*1024; // 4 MB
 const int   DEFAULT_SENDMSG_MAXBUFLEN         = 4*1024*1024; // 4 M symbols
 const int   DEFAULT_UTF8_DETECT_LENGTH        = 16384;
@@ -1102,6 +1104,9 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTI_GOTO_MAXCOUNT, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("GoTo_MaxCount"),
       DEFAULT_GOTO_MAXCOUNT, NULL },
+    { OPTI_EXECTEXT_MAXCOUNT, OPTT_INT | OPTF_READONLY,
+      INI_SECTION_CONSOLE, _T("ExecText_MaxCount"), 
+      DEFAULT_EXECTEXT_MAXCOUNT, NULL },
     { OPTB_CONSOLE_NOEMPTYVARS, OPTT_BOOL | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("NoEmptyVars"), 1, NULL },
     { OPTS_ALIAS_CMD_NPPEXEC, OPTT_STR | OPTF_READONLY,
@@ -4779,7 +4784,7 @@ void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunF
     }
 }
 
-void CNppExec::onExecText(const tstr& sText, int nExecTextMode)
+void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
 {
     CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
 
@@ -4835,7 +4840,7 @@ void CNppExec::OnExecSelText()
         return;
 
     int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE);
-    onExecText( sciGetSelText(), nExecTextMode );
+    DoExecText( sciGetSelText(), nExecTextMode );
 }
 
 void CNppExec::OnExecClipText()
@@ -4844,7 +4849,7 @@ void CNppExec::OnExecClipText()
         return;
 
     int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE);
-    onExecText( NppExecHelpers::GetClipboardText(), nExecTextMode );
+    DoExecText( NppExecHelpers::GetClipboardText(), nExecTextMode );
 }
 
 void CNppExec::DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveAll, LPCTSTR szScriptArguments /* = NULL */ , unsigned int nRunFlags /* = 0 */ )
@@ -4901,6 +4906,7 @@ void CNppExec::RunTheExitScript()
             m_ExitScriptIsDone.Create(NULL, TRUE, FALSE, NULL);
 
         // instead of calling DoExecScript(), execute it right here, synchronously
+        // the "!collateral" directive (if it is present) is ignored
         initConsoleDialog();
         CNppExecCommandExecutor::DoExecScriptCommand Cmd(tstr(), pszExitScriptName, NULL, false, CScriptEngine::rfExitScript);
 
@@ -5447,6 +5453,10 @@ void CNppExec::ReadOptions()
   if (GetOptions().GetInt(OPTI_GOTO_MAXCOUNT) < 2)
   {
     GetOptions().SetInt(OPTI_GOTO_MAXCOUNT, DEFAULT_GOTO_MAXCOUNT);
+  }
+  if (GetOptions().GetInt(OPTI_EXECTEXT_MAXCOUNT) < 2)
+  {
+    GetOptions().SetInt(OPTI_EXECTEXT_MAXCOUNT, DEFAULT_EXECTEXT_MAXCOUNT);
   }
   if (GetOptions().GetInt(OPTI_RICHEDIT_MAXTEXTLEN) < 0x10000)
   {

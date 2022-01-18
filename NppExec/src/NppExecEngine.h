@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <memory>
 #include <map>
 #include <list>
+#include <atomic>
 
 #ifdef _DEBUG
   #include <cassert>
@@ -102,6 +103,7 @@ class CScriptEngine : public IScriptEngine
             CMDTYPE_CALCIF,
             CMDTYPE_HELP,
             CMDTYPE_PROCINPUT,
+            CMDTYPE_NPPEXECTEXT,
 
             CMDTYPE_TOTAL_COUNT
         };
@@ -181,6 +183,7 @@ class CScriptEngine : public IScriptEngine
         eCmdResult DoNppClose(const tstr& params);
         eCmdResult DoNppConsole(const tstr& params);
         eCmdResult DoNppExec(const tstr& params);
+        eCmdResult DoNppExecText(const tstr& params);
         eCmdResult DoNppMenuCommand(const tstr& params);
         eCmdResult DoNppOpen(const tstr& params);
         eCmdResult DoNppRun(const tstr& params);
@@ -452,6 +455,14 @@ class CScriptEngine : public IScriptEngine
             static const TCHAR* const AltName() { return nullptr; }
             static eCmdType           Type() { return CMDTYPE_NPPEXEC; }
             static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppExec(params); }
+        };
+
+        struct DoNppExecTextCommand
+        {
+            static const TCHAR* const Name() { return _T("NPP_EXECTEXT"); }
+            static const TCHAR* const AltName() { return nullptr; }
+            static eCmdType           Type() { return CMDTYPE_NPPEXECTEXT; }
+            static eCmdResult         Exec(CScriptEngine* pEngine, const tstr& params) { return pEngine->DoNppExecText(params); }
         };
 
         struct DoNppMenuCommandCommand
@@ -755,6 +766,7 @@ class CScriptEngine : public IScriptEngine
                     registerCommand<DoNppCloseCommand>();
                     registerCommand<DoNppConsoleCommand>();
                     registerCommand<DoNppExecCommand>();
+                    registerCommand<DoNppExecTextCommand>();
                     registerCommand<DoNppMenuCommandCommand>();
                     registerCommand<DoNppOpenCommand>();
                     registerCommand<DoNppRunCommand>();
@@ -869,6 +881,9 @@ class CScriptEngine : public IScriptEngine
 
         void ChildProcessMustBreakAll();
         bool WaitUntilDone(DWORD dwTimeoutMs) const;
+
+        static std::atomic_int nTotalRunningEnginesCount;
+        static std::atomic_int nExecTextEnginesCount;
 
     public:
         typedef std::map< tstr, CListItemT<tstr>* > tLabels;
@@ -1571,11 +1586,13 @@ class CScriptEngine : public IScriptEngine
         };
 
         typedef struct tExecState {
-            // these 4 variables are needed to prevent infinite loops
+            // these 6 variables are needed to prevent infinite loops
             int nExecCounter;
             int nExecMaxCount;
             int nGoToCounter;
             int nGoToMaxCount;
+            int nExecTextCounter;
+            int nExecTextMaxCount;
             // script name, cmd range, labels and so on
             CListT<ScriptContext> ScriptContextList;
             // pointer to current script line in m_CmdList

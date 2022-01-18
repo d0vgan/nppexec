@@ -42,6 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + NPE_CONSOLE c<N> and s<N> to change the text processing for the
    Execute Clipboard Text and Execute Selected Text.
  + added: new command "proc_input".
+ + added: new command "npp_exectext".
  + added: new variables $(SELECTED_TEXT), $(IS_PROCESS).
  * changed: the menu item "Disable command aliases" has been removed. Use
    the "npe_console q+/q-" instead.
@@ -746,6 +747,7 @@ enum EPluginOptions {
     OPTI_CMDHISTORY_MAXITEMS,
     OPTI_EXEC_MAXCOUNT,
     OPTI_GOTO_MAXCOUNT,
+    OPTI_EXECTEXT_MAXCOUNT,
     OPTS_ALIAS_CMD_NPPEXEC,
     OPTS_KEY_ENTER,
     OPTD_CONSOLE_NULCHAR,
@@ -1453,8 +1455,6 @@ private:
 
   HWND    getCurrentScintilla(INT which);
 
-  void    onExecText(const tstr& sText, int nExecTextMode);
-
 public:
   typedef int (WINAPI *MSGBOXTIMEOUTFUNC)(HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
 
@@ -1579,6 +1579,7 @@ public:
 
   void DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveAll, LPCTSTR szScriptArguments = NULL, unsigned int nRunFlags = 0);
   void DoRunScript(const CListT<tstr>& CmdList, unsigned int nRunFlags = 0);
+  void DoExecText(const tstr& sText, int nExecTextMode);
 
   void RunTheStartScript();
   void RunTheExitScript();

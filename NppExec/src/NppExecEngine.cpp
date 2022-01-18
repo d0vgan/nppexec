@@ -100,6 +100,7 @@ const TCHAR MACRO_SCI_HWND[]            = _T("$(SCI_HWND)");
 const TCHAR MACRO_CON_HWND[]            = _T("$(CON_HWND)");
 const TCHAR MACRO_FOCUSED_HWND[]        = _T("$(FOCUSED_HWND)");
 
+const TCHAR DIRECTIVE_PREFIX_CHAR       = _T('!');
 const TCHAR DIRECTIVE_COLLATERAL[]      = _T("!COLLATERAL");
 
 // NppExec's Search Flags for sci_find and sci_replace:
@@ -1319,6 +1320,8 @@ static FParserWrapper g_fp;
  * npp_exec <file>
  *   - executes commands from specified NppExec's file
  *   - works with a partial file path/name
+ * npp_exectext <mode> <text>
+ *   - execute the given text
  * npp_close
  *   - closes current file in Notepad++
  * npp_close <file>
@@ -1473,6 +1476,8 @@ static FParserWrapper g_fp;
  */
 
 CScriptEngine::CScriptCommandRegistry CScriptEngine::m_CommandRegistry;
+std::atomic_int CScriptEngine::nTotalRunningEnginesCount = 0;
+std::atomic_int CScriptEngine::nExecTextEnginesCount = 0;
 
 CScriptEngine::CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, const tstr& id)
 {
@@ -1489,11 +1494,18 @@ CScriptEngine::CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, co
     m_isClosingConsole = false;
 
     Runtime::GetLogger().AddEx_WithoutOutput( _T("; CScriptEngine - create (instance = %s)"), GetInstanceStr() );
+
+    ++nTotalRunningEnginesCount;
 }
 
 CScriptEngine::~CScriptEngine()
 {
     Runtime::GetLogger().AddEx_WithoutOutput( _T("; CScriptEngine - destroy (instance = %s)"), GetInstanceStr() );
+
+    if ( --nTotalRunningEnginesCount == 0 )
+    {
+        nExecTextEnginesCount = 0;
+    }
 }
 
 const TCHAR* CScriptEngine::GetInstanceStr() const
@@ -1532,6 +1544,8 @@ void CScriptEngine::Run(unsigned int nRunFlags)
     m_execState.nExecMaxCount = m_pNppExec->GetOptions().GetInt(OPTI_EXEC_MAXCOUNT);
     m_execState.nGoToCounter = 0;
     m_execState.nGoToMaxCount = m_pNppExec->GetOptions().GetInt(OPTI_GOTO_MAXCOUNT);
+    m_execState.nExecTextCounter = 0;
+    m_execState.nExecTextMaxCount = m_pNppExec->GetOptions().GetInt(OPTI_EXECTEXT_MAXCOUNT);
     m_execState.pScriptLineCurrent = NULL;
     m_execState.SetScriptLineNext(INVALID_TSTR_LIST_ITEM);
     m_execState.pChildProcess.reset();
@@ -2399,7 +2413,7 @@ bool CScriptEngine::isCmdDirective(const CNppExec* , tstr& Cmd)
 {
     NppExecHelpers::StrDelLeadingTabSpaces(Cmd);
 
-    if ( Cmd.StartsWith(_T("!")) )
+    if ( Cmd.StartsWith(DIRECTIVE_PREFIX_CHAR) )
     {
         NppExecHelpers::StrDelTrailingTabSpaces(Cmd);
         NppExecHelpers::StrUpper(Cmd);
@@ -3608,7 +3622,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     bool bContinue = true;
 
-    m_execState.nGoToCounter++;
+    ++m_execState.nGoToCounter;
     if (m_execState.nGoToCounter > m_execState.nGoToMaxCount)
     {
         TCHAR szMsg[240];
@@ -5399,8 +5413,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
     if (!m_execState.GetScriptContextItemPtr(scriptName))
     {        
         bool bContinue = true;
-          
-        m_execState.nExecCounter++;
+
+        ++m_execState.nExecCounter;
         if (m_execState.nExecCounter > m_execState.nExecMaxCount)
         {
             TCHAR szMsg[240];
@@ -5561,6 +5575,132 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
     }
 
     return nCmdResult;
+}
+
+CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
+{
+    if ( !reportCmdAndParams( DoNppExecTextCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+        return CMDRESULT_INVALIDPARAM;
+
+    const TCHAR ch = params.GetFirstChar();
+    if ( ch < _T('0') || ch > _T('9') )
+    {
+        ScriptError( ET_ABORT, _T("- the first paramater must be a number!") );
+        return CMDRESULT_INVALIDPARAM;
+    }
+
+    // executing the given text as NppExec's script
+    // or sending the text to the running child process as an input
+
+    int nExecTextMode = c_base::_tstr2int(params.c_str());
+
+    int n = params.FindOneOf(_T(" \t"));
+    if ( n == -1 )
+        n = params.length();
+
+    tstr sProcessedText;
+    const TCHAR* pszText = params.c_str() + n;
+    if ( nExecTextMode & CNppExec::etfMacroVars )
+    {
+        sProcessedText = pszText;
+        m_pNppExec->GetMacroVars().CheckAllMacroVars(this, sProcessedText, true);
+        pszText = sProcessedText.c_str();
+    }
+
+    tCmdList CmdList;
+    bool isCollateral = false;
+    if ( nExecTextMode & CNppExec::etfCheckCollateral )
+    {
+        CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
+        isCollateral = m_pNppExec->IsScriptCollateral(CmdList);
+    }
+
+    CNppExecCommandExecutor& CommandExecutor = m_pNppExec->GetCommandExecutor();
+    bool isChildProcess = IsChildProcessRunning();
+
+    if ( isCollateral || !isChildProcess )
+    {
+        m_execState.nExecTextCounter = ++nExecTextEnginesCount;
+        if ( m_execState.nExecTextCounter > m_execState.nExecTextMaxCount )
+        {
+            TCHAR szMsg[240];
+
+            nExecTextEnginesCount = 0;
+            ::wsprintf(szMsg, 
+                _T("%s was performed more than %d times.\n") \
+                _T("Abort execution of this script?\n") \
+                _T("(Press Yes to abort or No to continue execution)"),
+                DoNppExecTextCommand::Name(),
+                m_execState.nExecTextMaxCount
+            );
+            if (::MessageBox(m_pNppExec->m_nppData._nppHandle, szMsg, 
+                _T("NppExec Warning: Possible infinite loop"),
+                MB_YESNO | MB_ICONWARNING) != IDNO)
+            {
+                ScriptError( ET_ABORT, _T("; Script execution aborted to prevent possible infinite loop (from DoNppExecText())") );
+                return CMDRESULT_FAILED;
+            }
+        }
+    }
+
+    if ( isCollateral )
+    {
+        Runtime::GetLogger().Add( _T("; running a collateral script") );
+        CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
+    }
+    else if ( isChildProcess )
+    {
+        Runtime::GetLogger().Add( _T("; sending the text to the running child process") );
+        CommandExecutor.WriteChildProcessInput( pszText );
+        CommandExecutor.WriteChildProcessInput( m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+    }
+    else
+    {
+        if ( CmdList.IsEmpty() )
+        {
+            CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
+        }
+
+        Runtime::GetLogger().Add( _T("; adding script commands") );
+
+        if ( !CmdList.IsEmpty() )
+        {
+            ScriptContext scriptContext;
+
+            scriptContext.ScriptName = _T("");
+            scriptContext.CmdRange.pBegin = m_execState.pScriptLineCurrent;
+            scriptContext.CmdRange.pEnd = m_execState.pScriptLineCurrent->GetNext();
+            scriptContext.Args = m_execState.GetCurrentScriptContext().Args;
+            scriptContext.IsNppExeced = true;
+
+            int n = 0;
+            CListItemT<tstr>* pline = m_execState.pScriptLineCurrent;
+            for ( CListItemT<tstr>* p = CmdList.GetFirst(); p != NULL; p = p->GetNext() )
+            {
+                const tstr& line = p->GetItem();
+                if (line.length() > 0)
+                {
+                    ++n;
+
+                    Runtime::GetLogger().AddEx( _T("; + line %d:  %s"), n, line.c_str() );
+
+                    pline = m_CmdList.Insert(pline, true, line);
+                }
+            }
+
+            if (n != 0)
+            {
+                scriptContext.CmdRange.pBegin = scriptContext.CmdRange.pBegin->GetNext();
+                m_execState.ScriptContextList.Add(scriptContext);
+
+                Runtime::GetLogger().AddEx( _T("; script context added: { Name = \"%s\"; CmdRange = [0x%X, 0x%X) }"), 
+                    scriptContext.ScriptName.c_str(), scriptContext.CmdRange.pBegin, scriptContext.CmdRange.pEnd ); 
+
+            }
+        }
+    }
+
+    return CMDRESULT_SUCCEEDED;
 }
 
 CScriptEngine::eCmdResult CScriptEngine::DoNppMenuCommand(const tstr& params)
