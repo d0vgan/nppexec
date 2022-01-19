@@ -46,6 +46,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: new variables $(SELECTED_TEXT), $(IS_PROCESS).
  * changed: the menu item "Disable command aliases" has been removed. Use
    the "npe_console q+/q-" instead.
+ * changed: now killing a running child process also kills any processes
+   that were started from the running child process.
  * changed: now "help" command works in NppExec's scripts.
  - fixed: now "set local" (without an argument) prints only local vars.
  + NppExec Manual updated (the "NppExec_Guide" section was converted to HTML)

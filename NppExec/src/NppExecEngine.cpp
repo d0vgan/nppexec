@@ -1490,6 +1490,7 @@ CScriptEngine::CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, co
     m_nCmdType = CMDTYPE_UNKNOWN;
     m_nRunFlags = 0;
     m_dwThreadId = 0;
+    m_nPrintingMsgReady = -1;
     m_bTriedExitCmd = false;
     m_isClosingConsole = false;
 
@@ -1519,6 +1520,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
 {
     m_nRunFlags = nRunFlags;
     m_dwThreadId = ::GetCurrentThreadId();
+    m_nPrintingMsgReady = -1;
     m_bTriedExitCmd = false;
     m_isClosingConsole = false;
 
@@ -1556,6 +1558,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
         currentScript.CmdRange.pBegin = m_CmdList.GetFirst();
         currentScript.CmdRange.pEnd = 0;
         currentScript.IsNppExeced = false;
+        currentScript.IsPrintingMsgReady = -1;
         if ( m_nRunFlags & rfShareLocalVars )
         {
             if ( m_pParentScriptEngine )
@@ -1772,6 +1775,19 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                         Runtime::GetLogger().AddEx( _T("; script context removed: { Name = \"%s\"; CmdRange = [0x%X, 0x%X) }"), 
                             currScript.ScriptName.c_str(), currScript.CmdRange.pBegin, currScript.CmdRange.pEnd ); 
 
+                        if ( nRunFlags & rfStartScript )
+                        {
+                            auto pLastContext = m_execState.ScriptContextList.GetLast();
+                            if ( pLastContext->GetItem().IsNppExeced )
+                            {
+                                auto pPrevContext = pLastContext->GetPrev();
+                                if ( pPrevContext && pPrevContext == m_execState.ScriptContextList.GetFirst() )
+                                {
+                                    pPrevContext->GetItem().IsPrintingMsgReady = pLastContext->GetItem().IsPrintingMsgReady;
+                                }
+                            }
+                        }
+
                         m_execState.ScriptContextList.DeleteLast();
                     }
                     else
@@ -1782,6 +1798,8 @@ void CScriptEngine::Run(unsigned int nRunFlags)
             }
         }
     } // while
+
+    m_nPrintingMsgReady = m_execState.GetCurrentScriptContext().IsPrintingMsgReady;
 
     if ( isNppExec )
     {
@@ -1802,9 +1820,11 @@ void CScriptEngine::Run(unsigned int nRunFlags)
     {
         if ( m_pParentScriptEngine )
         {
-            ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+            ScriptContext& currentScriptContext = m_execState.GetCurrentScriptContext();
             CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-            m_pParentScriptEngine->GetExecState().GetCurrentScriptContext().LocalMacroVars.swap(currentScript.LocalMacroVars);
+            ScriptContext& parentScriptContext = m_pParentScriptEngine->GetExecState().GetCurrentScriptContext();
+            parentScriptContext.LocalMacroVars.swap(currentScriptContext.LocalMacroVars);
+            parentScriptContext.IsPrintingMsgReady = currentScriptContext.IsPrintingMsgReady;
         }
     }
     else if ( m_nRunFlags & rfConsoleLocalVarsWrite )
@@ -1943,6 +1963,11 @@ void CScriptEngine::ChildProcessMustBreakAll()
 bool CScriptEngine::WaitUntilDone(DWORD dwTimeoutMs) const
 {
     return (m_eventRunIsDone.IsNull() || (m_eventRunIsDone.Wait(dwTimeoutMs) == WAIT_OBJECT_0));
+}
+
+bool CScriptEngine::IsPrintingMsgReady() const 
+{
+    return (m_nPrintingMsgReady == -1) ? m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) : (m_nPrintingMsgReady != 0);
 }
 
 CScriptEngine::eNppExecCmdPrefix CScriptEngine::checkNppExecCmdPrefix(CNppExec* pNppExec, tstr& Cmd, bool bRemovePrefix)
@@ -4668,6 +4693,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                         savedConf.removeConsolePrintMsgReady();
                                 }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_PRINTMSGREADY, bOn);
+                                m_execState.GetCurrentScriptContext().IsPrintingMsgReady = bOn ? 1 : 0;
                                 isOK = true;
                             }
                             break;
@@ -5452,6 +5478,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
                 scriptContext.CmdRange.pEnd = m_execState.pScriptLineCurrent->GetNext();
                 scriptContext.Args = args;
                 scriptContext.IsNppExeced = true;
+                scriptContext.IsPrintingMsgReady = -1;
 
                 int n = 0;
                 CListItemT<tstr>* pline = m_execState.pScriptLineCurrent;
@@ -5523,6 +5550,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
                         scriptContext.CmdRange.pEnd = m_execState.pScriptLineCurrent->GetNext();
                         scriptContext.Args = args;
                         scriptContext.IsNppExeced = true;
+                        scriptContext.IsPrintingMsgReady = -1;
 
                         int n = 0;
                         CListItemT<tstr>* pline = m_execState.pScriptLineCurrent;
@@ -5672,6 +5700,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
             scriptContext.CmdRange.pEnd = m_execState.pScriptLineCurrent->GetNext();
             scriptContext.Args = m_execState.GetCurrentScriptContext().Args;
             scriptContext.IsNppExeced = true;
+            scriptContext.IsPrintingMsgReady = -1;
 
             int n = 0;
             CListItemT<tstr>* pline = m_execState.pScriptLineCurrent;

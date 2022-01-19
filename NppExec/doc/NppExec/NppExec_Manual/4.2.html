@@ -43,6 +43,10 @@ for more details.</p>
 <blockquote>
   <pre>// don't show NppExec's Console if it's hidden
 NPP_CONSOLE ?
+// don't output anything within this NppExec's script
+NPP_CONSOLE local -
+// as we don't output anything, don't print &quot;==== READY ====&quot;
+NPE_CONSOLE local -- p-
 // set our environment variables
 ENV_SET NPPHOME = $(NPP_DIRECTORY)
 ENV_SET TCCHOME = C:\tools\tcc
@@ -53,11 +57,11 @@ ENV_SET PATH = $(SYS.NPPHOME);$(SYS.TCCHOME);$(SYS.PATH)
 // clear Console screen
 CLS</pre>
 </blockquote>
-<p>The first command (&quot;NPP_CONSOLE ?&quot;)
-    forbids the Console to be shown if it's hidden - this is usefull at Notepad++'es
-start-up. </p>
+<p>The first command (&quot;NPP_CONSOLE ?&quot;) forbids the Console to be shown if it's hidden - this is usefull at Notepad++'es start-up.</p>
+<p>The next command (&quot;NPP_CONSOLE local -&quot;) disables any output to the Console within the current NppExec's script, thus making the script to be completely silent.</p>
+<p>The next command (&quot;NPE_CONSOLE local -- p-&quot;) disables the &quot;==== READY ====&quot; message within the current NppExec's script, so this message is not printed when the script has finished.</p>
 <p>The two following commands set new environment variables: NPPHOME and TCCHOME. These environment variables can be used by any program you start from NppExec. </p>
-<p>The following command (&quot;ENV_UNSET PATH&quot;) restores the initial value of PATH if it was previously modified by NppExec. Of course, it can not be modified by NppExec before its start-up script is executed, but you may execute the start-up script again (using NPP_EXEC or from the &quot;Execute NppExec Script...&quot; dialog),
+<p>The following command (&quot;ENV_UNSET PATH&quot;) restores the initial value of PATH if it has previously been modified by NppExec. Of course, it can not be modified by NppExec before its start-up script is executed, but you may execute the start-up script again (using NPP_EXEC or from the &quot;Execute NppExec Script...&quot; dialog),
     so it may be important to restore the initial value of PATH before modifying
     it. Otherwise, the value of PATH may grow again and again - each time you
     call the start-up script explicitly or execute another script which modifies

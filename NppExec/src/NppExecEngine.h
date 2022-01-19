@@ -876,6 +876,8 @@ class CScriptEngine : public IScriptEngine
         virtual bool GetTriedExitCmd() const { return m_bTriedExitCmd; }
         virtual void SetTriedExitCmd(bool bTriedExitCmd) { m_bTriedExitCmd = bTriedExitCmd; }
 
+        bool IsPrintingMsgReady() const;
+
         virtual void ScriptError(eErrorType type, const TCHAR* cszErrorMessage);
         void UndoAbort(const TCHAR* cszMessage);
 
@@ -1487,6 +1489,7 @@ class CScriptEngine : public IScriptEngine
                 SavedConfiguration SavedConf;
                 CStrSplitT<TCHAR>  Args;
                 bool               IsNppExeced;
+                int                IsPrintingMsgReady;
 
             protected:
                 CBufT<eIfState> IfState;
@@ -1660,6 +1663,7 @@ class CScriptEngine : public IScriptEngine
         tstr           m_sLoggedCmd; // last cmd as it's present in the log
         unsigned int   m_nRunFlags;
         DWORD          m_dwThreadId;
+        int            m_nPrintingMsgReady;
         bool           m_bTriedExitCmd;
         bool           m_isClosingConsole;
         CEvent         m_eventRunIsDone;

@@ -58,7 +58,7 @@ static DWORD WINAPI dwRunCollateralScriptThread(LPVOID lpScrptEngnRnr)
     }
     else if ( !pScriptEngine->IsExternal() )
     {
-        if ( pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) )
+        if ( pScriptEngine->IsPrintingMsgReady() )
         {
             tstr sMsgReady = pNppExec->GetOptions().GetStr(OPTS_CONSOLE_CUSTOMMSGREADY);
             if ( CNppExecMacroVars::ContainsMacroVar(sMsgReady) )
@@ -964,7 +964,7 @@ DWORD CNppExecCommandExecutor::ScriptableCommand::RunConsoleScript(Command* pCom
                  (pNppExec->GetConsole().IsOutputEnabledN() > 1)*/ 
                  pNppExec->GetConsole().IsOutputEnabledN() != 0 )
             {
-                if ( pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) &&
+                if ( pScriptEngine->IsPrintingMsgReady() &&
                      !pNppExec->GetCommandExecutor().GetRunningScriptEngine() )
                 {
                     tstr sMsgReady = pNppExec->GetOptions().GetStr(OPTS_CONSOLE_CUSTOMMSGREADY);

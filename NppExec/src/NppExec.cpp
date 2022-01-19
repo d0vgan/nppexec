@@ -3317,6 +3317,22 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     ::SetHandleInformation(m_hStdInWritePipe, HANDLE_FLAG_INHERIT, 0);
     ::SetHandleInformation(m_hStdOutReadPipe, HANDLE_FLAG_INHERIT, 0);
 
+    // Job object
+    HANDLE hJob = ::CreateJobObject(NULL, NULL);
+    if ( hJob != NULL )
+    {
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli;
+
+        ::ZeroMemory(&jeli, sizeof(jeli));
+        jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        // Causes all processes associated with the job to terminate when the last handle to the job is closed.
+        if ( !::SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)) )
+        {
+            ::CloseHandle(hJob);
+            hJob = NULL;
+        }
+    }
+
     /*
     DWORD dwMode = PIPE_READMODE_BYTE | PIPE_NOWAIT;
     SetNamedPipeHandleState(m_hStdOutWritePipe, &dwMode, NULL, NULL);
@@ -3346,19 +3362,39 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     tstr sCmdLine = cszCommandLine;
     applyCommandLinePolicy(sCmdLine, mode);
 
+    DWORD dwCreationFlags = CREATE_NEW_PROCESS_GROUP;
+    if ( hJob != NULL )
+    {
+        BOOL bIsProcessInJob = FALSE;
+        if ( ::IsProcessInJob(GetCurrentProcess(), NULL, &bIsProcessInJob) )
+        {
+            if ( bIsProcessInJob )
+                dwCreationFlags |= CREATE_BREAKAWAY_FROM_JOB;
+        }
+    }
+
     if ( ::CreateProcess(
             NULL,
             sCmdLine.c_str(),
             NULL,                        // security
             NULL,                        // security
             TRUE,                        // inherits handles
-            CREATE_NEW_PROCESS_GROUP,    // creation flags
+            dwCreationFlags,             // creation flags
             NULL,                        // environment
             NULL,                        // current directory
             &si,                         // startup info
             &m_ProcessInfo               // process info
        ) )
     {
+        if ( hJob != NULL )
+        {
+            if ( !::AssignProcessToJobObject(hJob, m_ProcessInfo.hProcess) )
+            {
+                ::CloseHandle(hJob);
+                hJob = NULL;
+            }
+        }
+
         ::CloseHandle(m_ProcessInfo.hThread); m_ProcessInfo.hThread = NULL;
         //::CloseHandle(hStdOutWritePipe); hStdOutWritePipe = NULL;
         //::CloseHandle(hStdInReadPipe); hStdInReadPipe = NULL;
@@ -3525,6 +3561,11 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
         // Process cleanup
         ::CloseHandle(m_ProcessInfo.hProcess); m_ProcessInfo.hProcess = NULL;
         closePipes();
+        if ( hJob != NULL )
+        {
+            ::CloseHandle(hJob);
+            hJob = NULL;
+        }
 
         if ( m_pScriptEngine->ContinueExecution() && !isBreaking() )
         {
@@ -3550,6 +3591,11 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
         DWORD dwErrorCode = ::GetLastError();
 
         closePipes();
+        if ( hJob != NULL )
+        {
+            ::CloseHandle(hJob);
+            hJob = NULL;
+        }
 
         if ( m_pScriptEngine )
         {
@@ -4811,6 +4857,7 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
     {
         if ( checkCmdListAndPrepareConsole(CmdList, false) )
         {
+            SetCmdList(CmdList);
             CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
         }
     }
@@ -4828,6 +4875,7 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
         }
         if ( checkCmdListAndPrepareConsole(CmdList, false) )
         {
+            SetCmdList(CmdList);
             CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, 0);
             GetCommandExecutor().ExecuteCommand(pCommand);
         }
