@@ -698,11 +698,12 @@ enum enumNFuncItems {
   N_DIRECT_EXEC,
   N_EXEC_SELTEXT,
   N_EXEC_CLIPTEXT,
+  N_SEPARATOR_1,
   N_SHOWCONSOLE,
   N_TOGGLECONSOLE,
   N_GOTO_NEXT_ERROR,
   N_GOTO_PREV_ERROR,
-  N_SEPARATOR_1,
+  N_SEPARATOR_2,
   N_CMDHISTORY,
   N_CONSOLE_ENC,
 
@@ -718,12 +719,12 @@ enum enumNFuncItems {
   N_NOCMDALIASES,
 #endif
 
-  N_SEPARATOR_2,
+  N_SEPARATOR_3,
   N_OUTPUT_FILTER,
   N_ADV_OPTIONS,
   N_CONSOLE_FONT,
   N_EXECDLG_FONT,
-  N_SEPARATOR_3,
+  N_SEPARATOR_4,
   N_HELP_MANUAL,
   N_HELP_DOCS,
   N_HELP_ABOUT,
@@ -1501,9 +1502,11 @@ public:
   };
 
   enum eExecTextFlags {
-    etfNone            = 0,
-    etfMacroVars       = 0x01,
-    etfCheckCollateral = 0x02
+    etfNone                    = 0,
+    etfMacroVars               = 0x01,
+    etfCollateralNoChildProc   = 0x02,
+    etfCollateralWithChildProc = 0x04,
+    etfLastScript              = 0x08
   };
 
 public:

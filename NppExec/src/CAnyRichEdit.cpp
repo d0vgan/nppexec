@@ -212,6 +212,11 @@ INT CAnyRichEdit::GetTextLengthEx() const
   return (INT) SendMsg(EM_GETTEXTLENGTHEX, (WPARAM) &gtle, 0);
 }
 
+BOOL CAnyRichEdit::IsEmpty() const
+{
+  return (GetTextLengthEx() == 0);
+}
+
 INT CAnyRichEdit::LineFromChar(INT nCharacterIndex) const
 {
   return ((INT) SendMsg(EM_LINEFROMCHAR, (WPARAM) nCharacterIndex, 0));

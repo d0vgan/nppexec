@@ -322,6 +322,8 @@ const TCHAR DEFAULT_LOGSDIR[]                 = _T("");
 const TCHAR DEFAULT_SCRIPTSDIR[]              = _T("");
 const TCHAR DEFAULT_CHILDP_COMSPECSWITCHES[]  = _T("/C");
 const int   DEFAULT_AUTOSAVE_SECONDS          = 0; // disabled (example: 5*60 = 5 minutes)
+const int   DEFAULT_EXECCLIPTEXTMODE          = CNppExec::etfLastScript;
+const int   DEFAULT_EXECSELTEXTMODE           = CNppExec::etfLastScript;
 
 const wchar_t DEFAULT_NULCHAR_UNICODE     = 0x25E6; // 0x25E6 - the "White Bullet" symbol
 const char    DEFAULT_NULCHAR_ANSI        = 0x17; // 0x17 - the "End of Text Block" symbol
@@ -400,11 +402,13 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTD_CONSOLE_FONT, OPTT_DATA | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("Font"), 0, NULL },
     { OPTI_CONSOLE_ANSIESCSEQ, OPTT_INT | OPTF_READWRITE,
-      INI_SECTION_CONSOLE, _T("AnsiEscapeSequences") },
+      INI_SECTION_CONSOLE, _T("AnsiEscapeSequences"), 0, NULL },
     { OPTI_CONSOLE_EXECCLIPTEXTMODE, OPTT_INT | OPTF_READWRITE,
-      INI_SECTION_CONSOLE, _T("ExecClipTextMode") },
+      INI_SECTION_CONSOLE, _T("ExecClipTextMode"),
+      DEFAULT_EXECCLIPTEXTMODE, NULL },
     { OPTI_CONSOLE_EXECSELTEXTMODE, OPTT_INT | OPTF_READWRITE,
-      INI_SECTION_CONSOLE, _T("ExecSelTextMode") },
+      INI_SECTION_CONSOLE, _T("ExecSelTextMode"),
+      DEFAULT_EXECSELTEXTMODE, NULL },
 
     //[ConsoleOutputFilter]
     { OPTB_CONFLTR_ENABLE, OPTT_BOOL | OPTF_READWRITE,
@@ -1454,11 +1458,12 @@ void globalInitialize()
   InitFuncItem(N_DIRECT_EXEC,     DIRECT_EXEC_MENU_ITEM,               direct_exec_func,    &g_funcShortcut[N_DIRECT_EXEC]);
   InitFuncItem(N_EXEC_SELTEXT,    _T("Execute Selected Text"),         exec_seltext_func,   &g_funcShortcut[N_EXEC_SELTEXT]);
   InitFuncItem(N_EXEC_CLIPTEXT,   _T("Execute Clipboard Text"),        exec_cliptext_func,  &g_funcShortcut[N_EXEC_CLIPTEXT]);
+  InitFuncItem(N_SEPARATOR_1,     _T(""),                              /*empty_func*/NULL,  NULL);
   InitFuncItem(N_SHOWCONSOLE,     SHOW_CONSOLE_MENU_ITEM,              show_console_func,   &g_funcShortcut[N_SHOWCONSOLE]);
   InitFuncItem(N_TOGGLECONSOLE,   TOGGLE_CONSOLE_MENU_ITEM,            toggle_console_func, &g_funcShortcut[N_TOGGLECONSOLE]);
   InitFuncItem(N_GOTO_NEXT_ERROR, _T("Go to next error"),              go_to_next_error,    NULL);
   InitFuncItem(N_GOTO_PREV_ERROR, _T("Go to previous error"),          go_to_prev_error,    NULL);
-  InitFuncItem(N_SEPARATOR_1,     _T(""),                              /*empty_func*/NULL,  NULL);
+  InitFuncItem(N_SEPARATOR_2,     _T(""),                              /*empty_func*/NULL,  NULL);
   InitFuncItem(N_CMDHISTORY,      _T("Console Commands History"),      cmdhistory_func,     NULL);
   InitFuncItem(N_CONSOLE_ENC,     _T("Console Output..."),             console_enc_func,    NULL);
 
@@ -1474,12 +1479,12 @@ void globalInitialize()
   InitFuncItem(N_NOCMDALIASES,    _T("Disable command aliases"),       nocmdaliases_func,   &g_funcShortcut[N_NOCMDALIASES]);
 #endif
 
-  InitFuncItem(N_SEPARATOR_2,     _T(""),                              /*empty_func*/NULL,  NULL);
+  InitFuncItem(N_SEPARATOR_3,     _T(""),                              /*empty_func*/NULL,  NULL);
   InitFuncItem(N_OUTPUT_FILTER,   _T("Console Output Filters..."),     output_f_func,       &g_funcShortcut[N_OUTPUT_FILTER]);
   InitFuncItem(N_ADV_OPTIONS,     _T("Advanced Options..."),           adv_opt_func,        NULL);
   InitFuncItem(N_CONSOLE_FONT,    _T("Change Console Font..."),        console_font_func,   NULL);
   InitFuncItem(N_EXECDLG_FONT,    _T("Change Execute Script Font..."), execdlg_font_func,   NULL);
-  InitFuncItem(N_SEPARATOR_3,     _T(""),                              /*empty_func*/NULL,  NULL);
+  InitFuncItem(N_SEPARATOR_4,     _T(""),                              /*empty_func*/NULL,  NULL);
   InitFuncItem(N_HELP_MANUAL,     _T("Help/Manual"),                   help_manual_func,    NULL);
   InitFuncItem(N_HELP_DOCS,       _T("Help/Docs..."),                  help_docs_func,      NULL);
   InitFuncItem(N_HELP_ABOUT,      _T("Help/About..."),                 help_about_func,     NULL);
@@ -1748,6 +1753,9 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 
                 ModifyMenu(hMenu, g_funcItem[N_SEPARATOR_3]._cmdID, 
                   MF_BYCOMMAND | MF_SEPARATOR, g_funcItem[N_SEPARATOR_3]._cmdID, NULL);
+
+                ModifyMenu(hMenu, g_funcItem[N_SEPARATOR_4]._cmdID, 
+                  MF_BYCOMMAND | MF_SEPARATOR, g_funcItem[N_SEPARATOR_4]._cmdID, NULL);
 
                 if ( g_nUserMenuItems > 0 )
                 {
@@ -4845,9 +4853,12 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
         pszText = sProcessedText.c_str();
     }
 
+    bool isChildProcess = CommandExecutor.IsChildProcessRunning();
+
     tCmdList CmdList;
     bool isCollateral = false;
-    if ( nExecTextMode & CNppExec::etfCheckCollateral )
+    if ( ((nExecTextMode & CNppExec::etfCollateralWithChildProc) != 0 && isChildProcess) ||
+         ((nExecTextMode & CNppExec::etfCollateralNoChildProc) != 0 && !isChildProcess) )
     {
         CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
         isCollateral = IsScriptCollateral(CmdList);
@@ -4857,11 +4868,14 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
     {
         if ( checkCmdListAndPrepareConsole(CmdList, false) )
         {
-            SetCmdList(CmdList);
+            if ( nExecTextMode & CNppExec::etfLastScript )
+            {
+                SetCmdList(CmdList);
+            }
             CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
         }
     }
-    else if ( CommandExecutor.IsChildProcessRunning() )
+    else if ( isChildProcess )
     {
         showConsoleDialog(CNppExec::showIfHidden, 0);
         CommandExecutor.WriteChildProcessInput( pszText );
@@ -4875,7 +4889,10 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
         }
         if ( checkCmdListAndPrepareConsole(CmdList, false) )
         {
-            SetCmdList(CmdList);
+            if ( nExecTextMode & CNppExec::etfLastScript )
+            {
+                SetCmdList(CmdList);
+            }
             CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, 0);
             GetCommandExecutor().ExecuteCommand(pCommand);
         }
@@ -7288,8 +7305,11 @@ void CNppExecConsole::_clearText(ScriptEngineId scrptEngnId)
     Runtime::GetNppExec().GetWarningAnalyzer().ClearCachedMatches();
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
-    m_reConsole.SetText( _T("") );
-    _restoreDefaultTextStyle( scrptEngnId, true );
+    if ( !m_reConsole.IsEmpty() )
+    {
+        m_reConsole.SetText( _T("") );
+        _restoreDefaultTextStyle( scrptEngnId, true );
+    }
 }
 
 void CNppExecConsole::RestoreDefaultTextStyle(bool bLockPos)

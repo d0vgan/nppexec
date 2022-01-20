@@ -49,6 +49,8 @@
  |  NppExec_Cmd_Prefix              |  nppexec:                       | string |
  |  UTF8_Detect_Length              |  16384                          |  int   |
  |  AnsiEscapeSequences             |  0                              |  int   |
+ |  ExecClipTextMode                |  8                              |  int   |
+ |  ExecSelTextMode                 |  8                              |  int   |
  |  Cd_UnnamedFile                  |  1                              |  int   |
  |                                  |                                 |        |
  |  [Options]                       |                                 |        |
@@ -125,6 +127,8 @@
    NppExec_Cmd_Prefix=nppexec:
    UTF8_Detect_Length=16384
    AnsiEscapeSequences=0
+   ExecClipTextMode=8
+   ExecSelTextMode=8
    Cd_UnnamedFile=1
 
    [ConsoleOutputFilter]
@@ -600,6 +604,17 @@
    AnsiEscapeSequences = 1  -  removes ANSI escape characters (the output text
                                will not contain extra characters from the escape
                                sequences).
+
+ ExecClipTextMode
+ ----------------
+   Specifies the text processing mode for Execute Clipboard Text.
+   See the "c" parameter of NPE_CONSOLE ("help npe_console") for details.
+
+
+ ExecSelTextMode
+ ---------------
+   Specifies the text processing mode for Execute Selected Text.
+   See the "s" parameter of NPE_CONSOLE ("help npe_console") for details.
 
 
  Cd_UnnamedFile

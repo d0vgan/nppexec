@@ -57,6 +57,7 @@ public:
   INT   GetSelPos(INT* pnStartPos = NULL, INT* pnEndPos = NULL) const;
   INT   GetTextAt(INT nPos, INT nLen, TCHAR* lpText) const;
   INT   GetTextLengthEx() const;
+  BOOL  IsEmpty() const;
   INT   LineFromChar(INT nCharacterIndex) const;
   INT   LineIndex(INT nLineNumber) const;
   INT   LineLength(INT nCharacterIndex) const;

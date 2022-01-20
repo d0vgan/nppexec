@@ -2699,7 +2699,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoCd(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoCls(const tstr& /*params*/)
 {
-    m_pNppExec->GetConsole().ClearText();
+    m_pNppExec->GetConsole().ClearText(true);
 
     return CMDRESULT_SUCCEEDED;
 }
@@ -4327,6 +4327,38 @@ static void appendEnc(unsigned int enc_opt, bool bInput, tstr& S1, tstr& S2)
     S2 += encName;
 }
 
+static void appendExecText(int nMode, tstr& S1, tstr& S2)
+{
+    TCHAR num[16];
+
+    wsprintf( num, _T("%u"), nMode );
+    S1 += num;
+
+    tstr sMode;
+    if ( nMode == CNppExec::etfNone )
+    {
+        sMode += _T('0');
+    }
+    else
+    {
+        auto addMode = [&sMode](const TCHAR* s)
+        {
+            if ( !sMode.IsEmpty() )  sMode += _T('+');
+            sMode += s;
+        };
+
+        if ( nMode & CNppExec::etfMacroVars )
+            addMode( _T("mv") );
+        if ( nMode & CNppExec::etfCollateralNoChildProc )
+            addMode( _T("cs") );
+        if ( nMode & CNppExec::etfCollateralWithChildProc )
+            addMode( _T("cp") );
+        if ( nMode & CNppExec::etfLastScript )
+            addMode( _T("ls") );
+    }
+    S2 += sMode;
+};
+
 CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
 {
     reportCmdAndParams( DoNpeCmdAliasCommand::Name(), params, fMessageToConsole );
@@ -4529,12 +4561,34 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         {
             bool isEncChanged = false;
             bool isFilterChanged = false;
+
+            auto checkArgLength = [](const tstr& arg)
+            {
+                bool bIsLengthOK = false;
+                int argLen = arg.length();
+                if ( argLen > 0 )
+                {
+                    switch ( arg[0] )
+                    {
+                        case _T('c'):
+                        case _T('C'):
+                        case _T('s'):
+                        case _T('S'):
+                            bIsLengthOK = (argLen == 2 || argLen == 3 );
+                            break;
+                        default:
+                            bIsLengthOK = (argLen == 2);
+                            break;
+                    }
+                }
+                return bIsLengthOK;
+            };
             
             for ( int i = 0; i < n; i++ )
             {
                 bool isOK = false;
                 tstr arg = args.GetArg(i);
-                if ( arg.length() == 2 )
+                if ( checkArgLength(arg) )
                 {
                     // a+/a-     append mode on/off
                     // d+/d-     follow current directory on/off
@@ -4898,7 +4952,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                         case _T('c'):
                         case _T('C'):
                             {
-                                int t = (int) (arg[1] - _T('0'));
+                                int t = c_base::_tstr2int(arg.c_str() + 1);
                                 if ( t >= CNppExec::etfNone )
                                 {
                                     if ( isLocal )
@@ -4920,7 +4974,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                         case _T('s'):
                         case _T('S'):
                             {
-                                int t = (int) (arg[1] - _T('0'));
+                                int t = c_base::_tstr2int(arg.c_str() + 1);
                                 if ( t >= CNppExec::etfNone )
                                 {
                                     if ( isLocal )
@@ -5037,19 +5091,12 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
             appendInt( m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS), S1, S2, skMappings );
         }
         // exec text mode
-        const tIntMapping etfMappings[] = {
-            { CNppExec::etfNone,            _T("0") },
-            { CNppExec::etfMacroVars,       _T("mv") },
-            { CNppExec::etfCheckCollateral, _T("cs") },
-            { CNppExec::etfCheckCollateral + CNppExec::etfMacroVars, _T("mv+cs") },
-            { 0x00, NULL } // trailing element with .str=NULL
-        };
         S1 += _T(" c");
         S2 += _T(", exec_clip: ");
-        appendInt( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE), S1, S2, etfMappings );
+        appendExecText( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE), S1, S2 );
         S1 += _T(" s");
         S2 += _T(", exec_sel: ");
-        appendInt( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE), S1, S2, etfMappings );
+        appendExecText( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE), S1, S2 );
         // out_enc
         unsigned int enc_opt = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
         S1 += _T(" o");
@@ -5635,16 +5682,18 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
         pszText = sProcessedText.c_str();
     }
 
+    bool isChildProcess = IsChildProcessRunning();
+
     tCmdList CmdList;
     bool isCollateral = false;
-    if ( nExecTextMode & CNppExec::etfCheckCollateral )
+    if ( ((nExecTextMode & CNppExec::etfCollateralWithChildProc) != 0 && isChildProcess) ||
+         ((nExecTextMode & CNppExec::etfCollateralNoChildProc) != 0 && !isChildProcess) )
     {
         CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
         isCollateral = m_pNppExec->IsScriptCollateral(CmdList);
     }
 
     CNppExecCommandExecutor& CommandExecutor = m_pNppExec->GetCommandExecutor();
-    bool isChildProcess = IsChildProcessRunning();
 
     if ( isCollateral || !isChildProcess )
     {
