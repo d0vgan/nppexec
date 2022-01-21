@@ -141,7 +141,8 @@ class CScriptEngine : public IScriptEngine
 
         enum eGetCmdTypeFlags {
             ctfUseLogging   = 0x01,
-            ctfIgnorePrefix = 0x02
+            ctfIgnorePrefix = 0x02,
+            ctfReportError  = 0x04
         };
 
     public:
@@ -830,7 +831,7 @@ class CScriptEngine : public IScriptEngine
         const tstr& GetLastCmdParams() const  { return m_sCmdParams; }
 
         static eNppExecCmdPrefix checkNppExecCmdPrefix(CNppExec* pNppExec, tstr& Cmd, bool bRemovePrefix = true);
-        static eCmdType getCmdType(CNppExec* pNppExec, tstr& Cmd, unsigned int nFlags = ctfUseLogging);
+        static eCmdType getCmdType(CNppExec* pNppExec, tstr& Cmd, unsigned int nFlags = ctfUseLogging|ctfReportError);
         static int      getOnOffParam(const tstr& param);
         static bool     isCmdCommentOrEmpty(const CNppExec* pNppExec, tstr& Cmd);
         static bool     isCmdDirective(const CNppExec* pNppExec, tstr& Cmd);

@@ -4314,6 +4314,9 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 
                             switch ( nCmdType )
                             {
+                                case CScriptEngine::CMDTYPE_COMMENT_OR_EMPTY:
+                                    lpmsgf->wParam = 0;
+                                    return 0;
                                 case CScriptEngine::CMDTYPE_UNKNOWN:
                                     {
                                         uSearchFlags = CDirFileLister::ESF_DIRS | CDirFileLister::ESF_FILES | CDirFileLister::ESF_PLACEFILESFIRST | CDirFileLister::ESF_SORTED;

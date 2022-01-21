@@ -2001,7 +2001,8 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd,
 {
     const bool useLogging = ((nFlags & ctfUseLogging) != 0);
     const bool ignorePrefix = ((nFlags & ctfIgnorePrefix) != 0);
-    
+    const bool reportError = ((nFlags & ctfReportError) != 0);
+
     if ( useLogging )
     {
         Runtime::GetLogger().Add(   _T("GetCmdType()") );
@@ -2065,7 +2066,10 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd,
 
     if ( Cmd.GetAt(0) == _T(':') && Cmd.GetAt(1) == _T(':') )
     {
-        pNppExec->GetConsole().PrintError( _T("- can not use \"::\" at the beginning of line!") );
+        if ( reportError )
+        {
+            pNppExec->GetConsole().PrintError( _T("- can not use \"::\" at the beginning of line!") );
+        }
 
         if ( useLogging )
         {
@@ -3617,7 +3621,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
         while ( p && (p != currentScript.CmdRange.pEnd) )
         {
             Cmd = p->GetItem();
-            if ( getCmdType(m_pNppExec, Cmd) == CMDTYPE_LABEL )
+            if ( getCmdType(m_pNppExec, Cmd, ctfUseLogging) == CMDTYPE_LABEL )
             {
                 getLabelName(Cmd);
                 if ( Labels.find(Cmd) == Labels.end() )
