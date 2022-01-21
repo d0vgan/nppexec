@@ -1459,7 +1459,7 @@ static FParserWrapper g_fp;
  * $(OUTPUTL)            : last line in $(OUTPUT)
  * $(EXITCODE)           : exit code of the last executed child process
  * $(PID)                : process id of the current (or the last) child process
- * $(IS_PROCESS)         : is child process running
+ * $(IS_PROCESS)         : is child process running (1 - yes, 0 - no)
  * $(LAST_CMD_RESULT)    : result of the last NppExec's command
  *                           (1 - succeeded, 0 - failed, -1 - invalid arg)
  * $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
@@ -5660,7 +5660,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
     const TCHAR ch = params.GetFirstChar();
     if ( ch < _T('0') || ch > _T('9') )
     {
-        ScriptError( ET_ABORT, _T("- the first paramater must be a number!") );
+        ScriptError( ET_REPORT, _T("- the first paramater must be a number!") );
         return CMDRESULT_INVALIDPARAM;
     }
 
@@ -7064,6 +7064,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoSciReplace(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::DoProcInput(const tstr& params)
 {
+    reportCmdAndParams( DoProcInputCommand::Name(), params, fMessageToConsole );
+
     if ( !m_pNppExec->GetCommandExecutor().IsChildProcessRunning() )
     {
         ScriptError( ET_REPORT, _T("- child console process is not running") );

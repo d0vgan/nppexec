@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.7.1 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - August 2021
+ * NppExec plugin ver. 0.7.9.9 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - January 2022
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -92,6 +92,7 @@
  *        clip_settext <text> : set the clipboard text
  *        npp_exec <script> - execute commands from specified NppExec's script
  *        npp_exec <file> - execute commands from specified NppExec's file (*)
+ *        npp_exectext <mode> <text> - execute the given text
  *        npp_close - close current file in Notepad++
  *        npp_close <file> - close specified file opened in Notepad++      (*)
  *        npp_console <on/off/keep> - show/hide the Console window
@@ -119,6 +120,7 @@
  *        sci_sendmsg <msg> <wparam> <lparam> - msg to Scintilla
  *        sci_find <flags> <find_what> - find a string
  *        sci_replace <flags> <find_what> <replace_with> - replace a string
+ *        proc_input <string> - send a string to a child process
  *        proc_signal <signal> - signal to a child process
  *        sleep <ms> - sleep for ms milliseconds
  *        sleep <ms> <text> - print the text and sleep for ms milliseconds
@@ -163,6 +165,7 @@
  *        $(CURRENT_LINE)       : current line number
  *        $(CURRENT_COLUMN)     : current column number
  *   7) Additional environment variables:
+ *        $(SELECTED_TEXT)      : the text you selected in Notepad++
  *        $(FILE_NAME_AT_CURSOR): file name selected in the editor
  *        $(WORKSPACE_ITEM_PATH): full path to the current item in the workspace pane
  *        $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
@@ -189,6 +192,7 @@
  *        $(OUTPUTL)            : last line in $(OUTPUT)
  *        $(EXITCODE)           : exit code of the last executed child process
  *        $(PID)                : process id of the current (or the last) child process
+ *        $(IS_PROCESS)         : is child process running (1 - yes, 0 - no)
  *        $(LAST_CMD_RESULT)    : result of the last NppExec's command
  *                                  (1 - succeeded, 0 - failed, -1 - invalid arg)
  *        $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
@@ -208,6 +212,39 @@
  *************
  *  HISTORY  *
  *************
+
+ v0.7.9.9 - January 2022
+ -----------------------
+ + added: built-in highlight filter that catches most of compiler error
+   messages, thanks to David Maisonave.
+   This filter is enabled by setting the value of 'CompilerErrors' to 1
+   (see "NppExec_TechInfo.txt"). See also: npe_console x+/x-.
+ + added: now WarningAnalyzer caches the previously matched lines.
+   It allows the built-in highlight filter (see above) to react to a
+   double-click in the Console even when this filter is disabled at the
+   moment of double-clicking. Explanation: let's consider a situation when
+   the built-in highlight filter had been disabled globally but was locally
+   enabled via "npe_console local x+" right before running a compiler. Thus,
+   the messages produced by compiler are analyzed by the built-in highlight
+   filter and the filter is automatically disabled after the compiler exits.
+   Now, as WarningAnalyzer has cached the matched lines from the compiler's
+   output, it is possible to double-click these lines in NppExec's Console
+   to get the cached match result.
+ + added: the last executed script is now saved to "npes_last.txt".
+ + added: new menu items "Execute Selected Text", "Execute Clipboard Text".
+ + NPE_CONSOLE c<N> and s<N> to change the text processing for the
+   Execute Clipboard Text and Execute Selected Text.
+ + added: new command "proc_input".
+ + added: new command "npp_exectext".
+ + added: new variables $(SELECTED_TEXT), $(IS_PROCESS).
+ * changed: the menu item "Disable command aliases" has been removed. Use
+   the "npe_console q+/q-" instead.
+ * changed: now killing a running child process also kills any processes
+   that were started from the running child process.
+ * changed: now "help" command works in NppExec's scripts.
+ - fixed: now "set local" (without an argument) prints only local vars.
+ + NppExec Manual updated
+
 
  v0.7.1 - August 2021
  --------------------

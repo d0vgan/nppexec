@@ -258,7 +258,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(OUTPUTL)  :  last line in $(OUTPUT)") _T_RE_EOL \
   _T("$(EXITCODE)  :  exit code of the last executed child process") _T_RE_EOL \
   _T("$(PID)  :  process id of the current (or the last) child process") _T_RE_EOL \
-  _T("$(IS_PROCESS)  :  is child process running") _T_RE_EOL \
+  _T("$(IS_PROCESS)  :  is child process running (1 - yes, 0 - no)") _T_RE_EOL \
   _T("$(LAST_CMD_RESULT)  :  result of the last NppExec's command") _T_RE_EOL \
   _T("                         (1 - succeeded, 0 - failed, -1 - invalid arg)") _T_RE_EOL \
   _T("$(MSG_RESULT)  :  result of \'npp_sendmsg[ex]\' or \'sci_sendmsg\'") _T_RE_EOL \
@@ -772,8 +772,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  npp_exectext 0 $(CLIPBOARD_TEXT)") _T_RE_EOL \
     _T("  set local A = 123") _T_RE_EOL \
     _T("  npp_exectext 0 echo A is $(A)") _T_RE_EOL \
-    _T("  nppexec:set local cmds ~ strunescape !collateral\\nmessagebox Hello!!!") _T_RE_EOL \
-    _T("  nppexec:npp_exectext 6 $(cmds)") _T_RE_EOL \
+    _T("  set local cmds ~ strunescape !collateral\\nmessagebox Hello!!!") _T_RE_EOL \
+    _T("  npp_exectext 6 $(cmds)") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  npp_exec") _T_RE_EOL
   },
@@ -2415,6 +2415,9 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  proc_input $(SELECTED_TEXT)  // sends selected text to the process") _T_RE_EOL \
     _T("  proc_input $(CLIPBOARD_TEXT) // sends clipboard text to the process") _T_RE_EOL \
+    _T("  set local s ~ strunescape echo 123\\necho 456") _T_RE_EOL \
+    _T("  proc_input $(s)") _T_RE_EOL \
+    _T("  proc_input exit") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  proc_signal, @exit_cmd (\"help @exit_cmd\"), npp_console") _T_RE_EOL
   },

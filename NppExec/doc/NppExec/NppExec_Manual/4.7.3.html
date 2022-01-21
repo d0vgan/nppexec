@@ -21,9 +21,9 @@ call &quot;%ProgramFiles(x86)%\Microsoft Visual Studio\2017\Community\VC\Auxilia
 cl.exe %*
 </pre>
 </blockquote>
-<p>Now, use something similar to</p>
+<p>Now, use NppExec's script similar to</p>
 <blockquote>
-<pre>
+<pre>NPE_CONSOLE local -- x+ // enable the built-in error highlight filter locally
 cl.cmd &quot;$(FULL_CURRENT_PATH)&quot;
 </pre>
 </blockquote>
@@ -45,9 +45,9 @@ Set LIB=%MSSDK%\lib;%VCDIR%\lib;%LIB%
 cl.exe %*
 </pre>
 </blockquote>
-<p>Now, use something similar to</p>
+<p>Now, use NppExec's script similar to</p>
 <blockquote>
-<pre>
+<pre>NPE_CONSOLE local -- x+ // enable the built-in error highlight filter locally
 cl.cmd &quot;$(FULL_CURRENT_PATH)&quot;
 </pre>
 </blockquote>
@@ -67,6 +67,9 @@ SET local MSSDK = C:\Program Files\Microsoft Platform SDK for Windows Server 200
 ENV_SET local PATH = $(VCDIR)\bin;$(MSSDK)\bin;$(VSCOMMON);$(SYS.PATH)
 ENV_SET local INCLUDE = $(MSSDK)\include;$(VCDIR)\include;$(SYS.INCLUDE)
 ENV_SET local LIB = $(MSSDK)\lib;$(VCDIR)\lib;$(SYS.LIB)
+
+// enabling the built-in error highlight filter locally
+NPE_CONSOLE local -- x+
 
 // executing the child process with specified environment variables 
 rc /r /Fo&quot;$(CURRENT_DIRECTORY)\Resources.res&quot; &quot;$(CURRENT_DIRECTORY)\Resources.rc&quot;
@@ -101,6 +104,9 @@ SET local clangc = D:\llvm_workspace\llvm\build\bin\Debug\clang.exe
 // ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 SET local obj = $(CURRENT_DIRECTORY)\$(NAME_PART)
+
+// enabling the built-in error highlight filter locally
+NPE_CONSOLE local -- x+
 
 // run clang
 &quot;$(clangc)&quot; &quot;$(FULL_CURRENT_PATH)&quot; -o &quot;$(obj).exe&quot;

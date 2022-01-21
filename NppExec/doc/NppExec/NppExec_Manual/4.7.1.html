@@ -24,7 +24,9 @@ C-programs directly from Notepad++. All you need is the following: </p>
     <p>4.1) if tcc is placed in C:\tools\tcc</p>
     <blockquote>
       <pre>// save current file 
-NPP_SAVE 
+NPP_SAVE
+// enable the built-in error highlight filter locally
+NPE_CONSOLE local -- x+
 // compile &amp; run with tcc 
 C:\tools\tcc\tcc.exe -run &quot;$(FULL_CURRENT_PATH)&quot;</pre>
     </blockquote>
@@ -33,7 +35,9 @@ C:\tools\tcc\tcc.exe -run &quot;$(FULL_CURRENT_PATH)&quot;</pre>
       <p>4.2) if tcc is placed in $(NPP_DIRECTORY)\tcc</p>
       <blockquote>
         <pre>// save current file 
-NPP_SAVE 
+NPP_SAVE
+// enable the built-in error highlight filter locally
+NPE_CONSOLE local -- x+
 // compile &amp; run with tcc 
 &quot;$(NPP_DIRECTORY)\tcc\tcc.exe&quot; -run &quot;$(FULL_CURRENT_PATH)&quot;</pre>
       </blockquote>
@@ -56,6 +60,7 @@ NPP_SAVE
 set local PathToFpcExe = C:\FPC\2.6.0\bin\i386-win32 // path to fpc.exe
 env_set local PATH = $(SYS.PATH);$(PathToFpcExe) // add the path to fpc.exe to %PATH%
 cd $(CURRENT_DIRECTORY) // go to directory of the current file
+NPE_CONSOLE local -- x+ // enable the built-in error highlight filter locally
 fpc &quot;$(FILE_NAME)&quot; // use fpc.exe to compile</pre>
 </blockquote>
 

@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.7.x
- ------
+ v0.7.9.9 - January 2022
+ -----------------------
  + added: built-in highlight filter that catches most of compiler error
    messages, thanks to David Maisonave.
    This filter is enabled by setting the value of 'CompilerErrors' to 1
@@ -50,7 +50,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    that were started from the running child process.
  * changed: now "help" command works in NppExec's scripts.
  - fixed: now "set local" (without an argument) prints only local vars.
- + NppExec Manual updated (the "NppExec_Guide" section was converted to HTML)
+ + NppExec Manual updated
 
 
  v0.7.1 - August 2021
@@ -671,8 +671,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x07F1
-#define NPPEXEC_VER_STR   _T("0.7.1")
+#define NPPEXEC_VER_DWORD 0x07F9
+#define NPPEXEC_VER_STR   _T("0.7.9.9")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

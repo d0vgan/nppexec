@@ -115,6 +115,8 @@ time you want to compile or run <u>any</u> source file:</p>
 NPP_SAVE
 // construct the script name to be called  
 SET Compiler = run@$(EXT_PART)
+// enable the built-in error highlight filter locally
+NPE_CONSOLE local -- x+
 // call the script
 NPP_EXEC &quot;$(Compiler)&quot;</pre>
 </blockquote>
@@ -163,12 +165,13 @@ instead of internal scripts. For example:</p>
   <pre>// compile_or_run
 NPP_SAVE
 SET Compiler = C:\tools\NppExec Scripts\run@$(EXT_PART).txt
+NPE_CONSOLE local -- x+
 NPP_EXEC &quot;$(Compiler)&quot;</pre>
 </blockquote>
   
-<p>Now you must create a directory &quot;C:\tools\NppExec Scripts&quot; which contains
-the following files: &quot;run@.c.txt&quot;, &quot;run@.cpp.txt&quot;, &quot;run@.awk.txt&quot; and so on.</p>
-<p>The text of these files must be exactly the same as in the scripts &quot;run@.c&quot;,
+<p>Now you need to create a directory &quot;C:\tools\NppExec Scripts&quot; which will contain
+the following files: &quot;run@.c.txt&quot;, &quot;run@.cpp.txt&quot;, &quot;run@.awk.txt&quot;and so on.</p>
+<p>The text of these files will be exactly the same as in the scripts &quot;run@.c&quot;,
 &quot;run@.cpp&quot; and &quot;run@.awk&quot; above.</p>
 <p>E.g. the file &quot;C:\tools\NppExec Scripts\run@.awk.txt&quot; must contain</p>
 
@@ -184,6 +187,7 @@ the following files: &quot;run@.c.txt&quot;, &quot;run@.cpp.txt&quot;, &quot;run
   <pre>// compile_or_run
 NPP_SAVE
 SET Compiler = $(NPP_DIRECTORY)\NppExec Scripts\run@$(EXT_PART).txt
+NPE_CONSOLE local -- x+
 NPP_EXEC &quot;$(Compiler)&quot;</pre>
 </blockquote>
 
@@ -193,6 +197,7 @@ NPP_EXEC &quot;$(Compiler)&quot;</pre>
   <pre>// compile_or_run
 NPP_SAVE
 SET Compiler = $(PLUGINS_CONFIG_DIR)\NppExec Scripts\run@$(EXT_PART).txt
+NPE_CONSOLE local -- x+
 NPP_EXEC &quot;$(Compiler)&quot;</pre>
 </blockquote>
 
@@ -203,6 +208,13 @@ Console in Notepad++, and type:</p>
 
 <blockquote>
   <pre>help npp_exec</pre>
+</blockquote>
+  
+<p>and press Enter.</p>
+<p>To read more information about the NPE_CONSOLE command, type:</p>
+
+<blockquote>
+  <pre>help npe_console</pre>
 </blockquote>
   
 <p>and press Enter.</p>
@@ -257,8 +269,8 @@ file types we want.</p>
 <p>For example:</p>
 
 <blockquote>
-  <pre>// setting internal messages off
-npe_console local m- --
+  <pre>// setting internal messages off, error highlight filter on
+NPE_CONSOLE local m- x+ --
 // saving current file
 NPP_SAVE
 // file extension in lower case

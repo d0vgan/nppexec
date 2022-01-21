@@ -17,8 +17,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /****************************************************************************
- * NppExec plugin ver. 0.7.1 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - August 2021
+ * NppExec plugin ver. 0.7.9.9 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - January 2022
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -209,7 +209,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(OUTPUTL)            : last line in $(OUTPUT)
  *        $(EXITCODE)           : exit code of the last executed child process
  *        $(PID)                : process id of the current (or the last) child process
- *        $(IS_PROCESS)         : is child process running
+ *        $(IS_PROCESS)         : is child process running (1 - yes, 0 - no)
  *        $(LAST_CMD_RESULT)    : result of the last NppExec's command
  *                                  (1 - succeeded, 0 - failed, -1 - invalid arg)
  *        $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'

@@ -16,18 +16,19 @@
     <li>Navigate to Plugins -&gt; NppExec -&gt; Execute. (Default Shortcut key is F6) </li>
     <li>In the new popup window, type this</li>
     <blockquote>
-      <pre>cmd /c cd &quot;$(CURRENT_DIRECTORY)&quot; &amp;&amp; &quot;%JAVA_HOME%\bin\javac&quot; &quot;$(FULL_CURRENT_PATH)&quot;  </pre>
+      <pre>NPE_CONSOLE local -- x+ // enable the built-in error highlight filter locally
+cmd /c cd &quot;$(CURRENT_DIRECTORY)&quot; &amp;&amp; &quot;%JAVA_HOME%\bin\javac&quot; &quot;$(FULL_CURRENT_PATH)&quot;  </pre>
     </blockquote>
     <li>Click on &quot;Save&quot; and give it a name say &quot;Java Compile&quot;. </li>
     <li>Bingo. You are there. Now any Java file you are editing in Notepad++
           can be compiled by pressing F6 and choosing this script &quot;Java Compile&quot;.
           It will compile the Java class for you. This is irrespective of which
-          directory
-                  you are in. </li>
+          directory you are in. </li>
   </ol>
     <p>The NppExec plugin can be used to execute any executable as you would from a command prompt. For running the compiled Java class, the script is:</p>
     <blockquote>
-      <pre>cmd /k cd &quot;$(CURRENT_DIRECTORY)&quot; &amp;&amp; &quot;%JAVA_HOME%\bin\java&quot; &quot;$(NAME_PART)&quot; &amp;&amp; exit </pre>
+      <pre>NPE_CONSOLE local -- x+ // enable the built-in error highlight filter locally
+cmd /k cd &quot;$(CURRENT_DIRECTORY)&quot; &amp;&amp; &quot;%JAVA_HOME%\bin\java&quot; &quot;$(NAME_PART)&quot; &amp;&amp; exit </pre>
     </blockquote>
     <p>P.S. Remember to set the JAVA_HOME environment variable. To check if it is set, open a command prompt and type java.</p>
 </blockquote>
@@ -35,7 +36,8 @@
 <blockquote>
   <p>Actually, the same thing can be done without explicit usage of 'cmd.exe'. You can use several commands (one command per line) in NppExec's script, and these commands will be executed one by one. For example: </p>
   <blockquote>
-    <pre>cd &quot;$(CURRENT_DIRECTORY)&quot; 
+    <pre>NPE_CONSOLE local -- x+ // enable the built-in error highlight filter locally
+cd &quot;$(CURRENT_DIRECTORY)&quot; 
 &quot;$(SYS.JAVA_HOME)\bin\javac&quot; &quot;$(FULL_CURRENT_PATH)&quot; </pre>
   </blockquote>
   <p>Also you can use ENV_SET to set environment variables such as PATH or JAVA_HOME for any process (program) you start from Notepad++ <a href="4.2.html">[4.2]</a>. </p>
