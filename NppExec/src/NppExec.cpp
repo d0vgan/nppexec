@@ -2298,20 +2298,21 @@ int CNppExec::textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly)
     if ( (szFileAndEncoding[i+1] != _T('\\')) && (szFileAndEncoding[i+1] != _T('/')) )
     {
       TCHAR* p = c_base::_tstr_unsafe_skip_tabspaces(szFileAndEncoding + i + 1);
-      if ( *p )
+      const TCHAR ch = NppExecHelpers::LatinCharUpper(*p);
+      if ( ch != 0 )
       {
-        if ( *p == _T('a') || *p == _T('A') )
+        if ( ch == _T('A') )
         {
           enc = encANSI;
         }
-        else if ( *p == _T('u') || *p == _T('U') )
+        else if ( ch == _T('U') )
         {
           if ( *(p + 1) == _T('-') )
             enc = encUTF8_NoBOM;
           else
             enc = encUTF8_BOM;
         }
-        else if ( *p == _T('w') || *p == _T('W') )
+        else if ( ch == _T('W') )
         {
           enc = encUCS2LE;
         }

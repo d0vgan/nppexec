@@ -4568,24 +4568,18 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
 
             auto checkArgLength = [](const tstr& arg)
             {
-                bool bIsLengthOK = false;
-                int argLen = arg.length();
-                if ( argLen > 0 )
+                const int argLen = arg.length();
+                if ( argLen == 2 )
+                    return true;
+
+                if ( argLen == 3 )
                 {
-                    switch ( arg[0] )
-                    {
-                        case _T('c'):
-                        case _T('C'):
-                        case _T('s'):
-                        case _T('S'):
-                            bIsLengthOK = (argLen == 2 || argLen == 3 );
-                            break;
-                        default:
-                            bIsLengthOK = (argLen == 2);
-                            break;
-                    }
+                    const TCHAR ch = NppExecHelpers::LatinCharUpper(arg[0]);
+                    if ( ch == _T('C') || ch == _T('S') )
+                        return true;
                 }
-                return bIsLengthOK;
+
+                return false;
             };
             
             for ( int i = 0; i < n; i++ )
@@ -4612,9 +4606,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                     // i0/i1/i2  console input encoding: ANSI/OEM/UTF8
                     // --        silent (don't print Console mode info)
 
-                    switch ( arg[0] )
+                    switch ( NppExecHelpers::LatinCharUpper(arg[0]) )
                     {
-                        case _T('a'):
                         case _T('A'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4634,7 +4627,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('d'):
                         case _T('D'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4660,7 +4652,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('e'):
                         case _T('E'):
                             {
                                 int nAnsiEscSeq = (int) (arg[1] - _T('0'));
@@ -4683,7 +4674,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('h'):
                         case _T('H'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4709,7 +4699,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('m'):
                         case _T('M'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4735,7 +4724,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('p'):
                         case _T('P'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4756,7 +4744,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('o'):
                         case _T('O'):
                             {
                                 int enc = (int) (arg[1] - _T('0'));
@@ -4788,7 +4775,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('i'):
                         case _T('I'):
                             {
                                 int enc = (int) (arg[1] - _T('0'));
@@ -4820,7 +4806,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('q'):
                         case _T('Q'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4848,7 +4833,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('v'):
                         case _T('V'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4868,7 +4852,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('f'):
                         case _T('F'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4889,7 +4872,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('r'):
                         case _T('R'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4910,7 +4892,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('x'):
                         case _T('X'):
                             if ( arg[1] == _T('+') || arg[1] == _T('-') )
                             {
@@ -4930,7 +4911,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('k'):
                         case _T('K'):
                             {
                                 unsigned int k = (unsigned int) (arg[1] - _T('0'));
@@ -4953,7 +4933,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('c'):
                         case _T('C'):
                             {
                                 int t = c_base::_tstr2int(arg.c_str() + 1);
@@ -4975,7 +4954,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
-                        case _T('s'):
                         case _T('S'):
                             {
                                 int t = c_base::_tstr2int(arg.c_str() + 1);

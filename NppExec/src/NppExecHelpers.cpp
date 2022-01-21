@@ -555,6 +555,26 @@ namespace NppExecHelpers
         ::CharUpper( S );
     }
 
+    TCHAR LatinCharUpper(TCHAR ch)
+    {
+        if ( ch >= _T('a') && ch <= _T('z') )
+        {
+            ch -= _T('a');
+            ch += _T('A');
+        }
+        return ch;
+    }
+
+    TCHAR LatinCharLower(TCHAR ch)
+    {
+        if ( ch >= _T('A') && ch <= _T('Z') )
+        {
+            ch -= _T('A');
+            ch += _T('a');
+        }
+        return ch;
+    }
+
     void StrQuote(tstr& S)
     {
         if ( IsStrNotQuoted(S) )

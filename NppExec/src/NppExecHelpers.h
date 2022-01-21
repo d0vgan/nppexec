@@ -417,6 +417,9 @@ namespace NppExecHelpers
     void StrUpper(tstr& S); // converts to upper case
     void StrUpper(TCHAR* S); // converts to upper case
 
+    TCHAR LatinCharUpper(TCHAR ch); // converts [a-z] to [A-Z]
+    TCHAR LatinCharLower(TCHAR ch); // converts [A-Z] to [a-z]
+
     void StrQuote(tstr& S); // adds the starting and trailing ""
     void StrUnquote(tstr& S); // removes the starting and trailing ""
     void StrUnquoteEx(tstr& S); // removes the starting and trailing "" or '' or ``
