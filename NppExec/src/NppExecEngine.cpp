@@ -2454,6 +2454,87 @@ bool CScriptEngine::isCmdDirective(const CNppExec* , tstr& Cmd)
     return false;
 }
 
+void CScriptEngine::addCommandToList(CListT<tstr>& CmdList, tstr& Cmd, unsigned int nFlags)
+{
+    if ( Cmd.length() > 0 || (nFlags & acfAddEmptyLines) != 0 )
+    {
+        CmdList.Add( Cmd );
+    }
+}
+
+void CScriptEngine::getCmdListFromText(CListT<tstr>& CmdList, const TCHAR* pszText, unsigned int nFlags)
+{
+    TCHAR ch;
+    tstr Line;
+
+    CmdList.Clear();
+
+    while ( (ch = *pszText) != 0 )
+    {
+        bool bAddLine = false;
+
+        if ( ch == _T('\n') )
+        {
+            if ( nFlags & acfKeepLineEndings )
+            {
+                Line += _T('\n');
+            }
+            bAddLine = true;
+        }
+        else if ( ch == _T('\r') )
+        {
+            if ( nFlags & acfKeepLineEndings )
+            {
+                Line += _T('\r');
+            }
+            if ( *(pszText + 1) == _T('\n') )
+            {
+                if ( nFlags & acfKeepLineEndings )
+                {
+                    Line += _T('\n');
+                }
+                ++pszText;
+            }
+            bAddLine = true;
+        }
+        else
+        {
+            Line += ch;
+        }
+
+        if ( bAddLine )
+        {
+            addCommandToList( CmdList, Line, nFlags );
+            Line.Clear();
+        }
+
+        ++pszText;
+    }
+
+    addCommandToList( CmdList, Line, nFlags );
+}
+
+void CScriptEngine::removeLineEndings(CListT<tstr>& CmdList)
+{
+    for ( auto pItem = CmdList.GetFirst(); pItem != NULL; pItem = pItem->GetNext() )
+    {
+        tstr& Cmd = pItem->GetItem();
+        removeLineEnding(Cmd);
+    }
+}
+
+void CScriptEngine::removeLineEnding(tstr& Cmd)
+{
+    if ( Cmd.EndsWith(_T('\n')) )
+    {
+        Cmd.DeleteLastChar();
+    }
+    if ( Cmd.EndsWith(_T('\r')) )
+    {
+        Cmd.DeleteLastChar();
+    }
+}
+
 void CScriptEngine::errorCmdNotEnoughParams(const TCHAR* cszCmd, const TCHAR* cszErrorMessage)
 {
     if ( cszErrorMessage )
@@ -4351,12 +4432,16 @@ static void appendExecText(int nMode, tstr& S1, tstr& S2)
             sMode += s;
         };
 
-        if ( nMode & CNppExec::etfMacroVars )
-            addMode( _T("mv") );
+        if ( nMode & CNppExec::etfMacroVarsNoChildProc )
+            addMode( _T("vs") );
+        if ( nMode & CNppExec::etfMacroVarsWithChildProc )
+            addMode( _T("vp") );
         if ( nMode & CNppExec::etfCollateralNoChildProc )
             addMode( _T("cs") );
         if ( nMode & CNppExec::etfCollateralWithChildProc )
             addMode( _T("cp") );
+        if ( nMode & CNppExec::etfNppExecPrefix )
+            addMode( _T("ne") );
         if ( nMode & CNppExec::etfLastScript )
             addMode( _T("ls") );
     }
@@ -5059,9 +5144,18 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S1 += _T(" x");
         S2 += _T(", compiler_errors: ");
         appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_COMPILER_ERRORS), S1, S2 );
+        // out_enc
+        unsigned int enc_opt = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
+        S1 += _T(" o");
+        S2 += _T_RE_EOL _T("; out_enc: ");
+        appendEnc( enc_opt, false, S1, S2 );
+        // in_enc
+        S1 += _T(" i");
+        S2 += _T(", in_enc: ");
+        appendEnc( enc_opt, true, S1, S2 );
         // shortcut_keys
         S1 += _T(" k");
-        S2 += _T_RE_EOL _T("; shortcut_keys: ");
+        S2 += _T(", shortcut_keys: ");
         {
             const tIntMapping skMappings[] = {
                 { ConsoleDlg::CSK_OFF, _T("off") },
@@ -5074,20 +5168,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         }
         // exec text mode
         S1 += _T(" c");
-        S2 += _T(", exec_clip: ");
+        S2 += _T_RE_EOL _T("; exec_clip: ");
         appendExecText( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE), S1, S2 );
         S1 += _T(" s");
         S2 += _T(", exec_sel: ");
         appendExecText( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE), S1, S2 );
-        // out_enc
-        unsigned int enc_opt = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
-        S1 += _T(" o");
-        S2 += _T_RE_EOL _T("; out_enc: ");
-        appendEnc( enc_opt, false, S1, S2 );
-        // in_enc
-        S1 += _T(" i");
-        S2 += _T(", in_enc: ");
-        appendEnc( enc_opt, true, S1, S2 );
         // finally...
         const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
         m_pNppExec->GetConsole().PrintMessage( S1.c_str(), nMsgFlags );
@@ -5655,23 +5740,26 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
     if ( n == -1 )
         n = params.length();
 
+    const bool isChildProcess = IsChildProcessRunning();
+
     tstr sProcessedText;
     const TCHAR* pszText = params.c_str() + n;
-    if ( nExecTextMode & CNppExec::etfMacroVars )
+    if ( ((nExecTextMode & CNppExec::etfMacroVarsWithChildProc) != 0 && isChildProcess) ||
+         ((nExecTextMode & CNppExec::etfMacroVarsNoChildProc) != 0 && !isChildProcess) )
     {
         sProcessedText = pszText;
         m_pNppExec->GetMacroVars().CheckAllMacroVars(this, sProcessedText, true);
         pszText = sProcessedText.c_str();
     }
 
-    bool isChildProcess = IsChildProcessRunning();
-
     tCmdList CmdList;
+    const unsigned int nCmdFlags = isChildProcess ? (acfKeepLineEndings | acfAddEmptyLines) : 0;
+    getCmdListFromText(CmdList, pszText, nCmdFlags);
+
     bool isCollateral = false;
     if ( ((nExecTextMode & CNppExec::etfCollateralWithChildProc) != 0 && isChildProcess) ||
          ((nExecTextMode & CNppExec::etfCollateralNoChildProc) != 0 && !isChildProcess) )
     {
-        CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
         isCollateral = m_pNppExec->IsScriptCollateral(CmdList);
     }
 
@@ -5702,24 +5790,45 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
         }
     }
 
+    bool bCreateScriptContextFromCmdList = false;
+
     if ( isCollateral )
     {
         Runtime::GetLogger().Add( _T("; running a collateral script") );
+
+        if ( nCmdFlags & CScriptEngine::acfKeepLineEndings )
+        {
+            CScriptEngine::removeLineEndings(CmdList);
+        }
         CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
     }
     else if ( isChildProcess )
     {
-        Runtime::GetLogger().Add( _T("; sending the text to the running child process") );
-        CommandExecutor.WriteChildProcessInput( pszText );
-        CommandExecutor.WriteChildProcessInput( m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+        if ( nExecTextMode & CNppExec::etfNppExecPrefix )
+        {
+            tCmdList CollateralCmdList = m_pNppExec->GetCollateralCmdListForChildProcess(CmdList);
+            if ( !CollateralCmdList.IsEmpty() )
+            {
+                CollateralCmdList.Swap(CmdList);
+                bCreateScriptContextFromCmdList = true;
+            }
+        }
+
+        if ( !bCreateScriptContextFromCmdList )
+        {
+            Runtime::GetLogger().Add( _T("; sending the text to the running child process") );
+
+            CommandExecutor.WriteChildProcessInput( pszText );
+            CommandExecutor.WriteChildProcessInput( m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+        }
     }
     else
     {
-        if ( CmdList.IsEmpty() )
-        {
-            CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
-        }
+        bCreateScriptContextFromCmdList = true;
+    }
 
+    if ( bCreateScriptContextFromCmdList )
+    {
         Runtime::GetLogger().Add( _T("; adding script commands") );
 
         if ( !CmdList.IsEmpty() )
@@ -7056,6 +7165,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoProcInput(const tstr& params)
 
     CNppExecCommandExecutor& CommandExecutor = m_pNppExec->GetCommandExecutor();
     CommandExecutor.WriteChildProcessInput( params.c_str() );
+    const TCHAR ch = params.GetLastChar();
+    if ( ch != _T('\n') && ch != _T('\r') )
+    {
+        CommandExecutor.WriteChildProcessInput( m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+    }
 
     return CMDRESULT_SUCCEEDED;
 }

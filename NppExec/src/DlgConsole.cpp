@@ -760,20 +760,23 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  Executes the given text as NppExec's script or sends this text to") _T_RE_EOL \
     _T("  the running child process as an input.") _T_RE_EOL \
     _T("  The value of <mode> can be either 0 or a sum of these flags:") _T_RE_EOL \
-    _T("  0: use the given text as is;") _T_RE_EOL \
-    _T("     if there is a running child process then send the text to") _T_RE_EOL \
-    _T("     that process as an input;") _T_RE_EOL \
-    _T("  2: if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
-    _T("     no running child process then start a collateral script;") _T_RE_EOL \
-    _T("  4: if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
-    _T("     a running child process then start a collateral script.") _T_RE_EOL \
+    _T("  0:  use the given text as is;") _T_RE_EOL \
+    _T("      if there is a running child process then send the text to") _T_RE_EOL \
+    _T("      that process as an input;") _T_RE_EOL \
+    _T("  4:  if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
+    _T("      no running child process then start a collateral script;") _T_RE_EOL \
+    _T("  8:  if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
+    _T("      a running child process then start a collateral script;") _T_RE_EOL \
+    _T("  16: lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
+    _T("      NppExec (as NppExec's scripts commands) and will not be sent to") _T_RE_EOL \
+    _T("      a running child process.") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
-    _T("  npp_exectext 0 $(SELECTED_TEXT)") _T_RE_EOL \
     _T("  npp_exectext 0 $(CLIPBOARD_TEXT)") _T_RE_EOL \
+    _T("  npp_exectext 28 $(SELECTED_TEXT) // process \"!collateral\" and \"nppexec:\"") _T_RE_EOL \
     _T("  set local A = 123") _T_RE_EOL \
     _T("  npp_exectext 0 echo A is $(A)") _T_RE_EOL \
     _T("  set local cmds ~ strunescape !collateral\\nmessagebox Hello!!!") _T_RE_EOL \
-    _T("  npp_exectext 6 $(cmds)") _T_RE_EOL \
+    _T("  npp_exectext 12 $(cmds) // process \"!collateral\"") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  npp_exec") _T_RE_EOL
   },
@@ -1696,32 +1699,44 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         Default value: 3.") _T_RE_EOL \
     _T("  c<N>   Text processing for Execute Clipboard Text.") _T_RE_EOL \
     _T("         The value of <N> can be either 0 or a sum of these flags:") _T_RE_EOL \
-    _T("         0: use the clipboard text as is;") _T_RE_EOL \
-    _T("            if there is a running child process then send the clipboard") _T_RE_EOL \
-    _T("            text to that process as an input;") _T_RE_EOL \
-    _T("         1: substitute macro-vars in the clipboard text before the execution;") _T_RE_EOL \
-    _T("         2: if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
-    _T("            there is no running child process then start a collateral script;") _T_RE_EOL \
-    _T("         4: if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
-    _T("            there is a running child process then start a collateral script;") _T_RE_EOL \
-    _T("         8: update the last executed script: Execute Clipboard Text updates the") _T_RE_EOL \
-    _T("            commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \
+    _T("         0:  use the clipboard text as is;") _T_RE_EOL \
+    _T("             if there is a running child process then send the clipboard") _T_RE_EOL \
+    _T("             text to that process as an input;") _T_RE_EOL \
+    _T("         1:  substitute macro-vars in the clipboard text before the execution") _T_RE_EOL \
+    _T("             if there is no running child process;") _T_RE_EOL \
+    _T("         2:  substitute macro-vars in the clipboard text before the execution") _T_RE_EOL \
+    _T("             if there is a running child process;") _T_RE_EOL \
+    _T("         4:  if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
+    _T("             there is no running child process then start a collateral script;") _T_RE_EOL \
+    _T("         8:  if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
+    _T("             there is a running child process then start a collateral script;") _T_RE_EOL \
+    _T("         16: lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
+    _T("             NppExec (as NppExec's scripts commands) and will not be sent to") _T_RE_EOL \
+    _T("             a running child process;") _T_RE_EOL \
+    _T("         32: update the last executed script: Execute Clipboard Text updates the") _T_RE_EOL \
+    _T("             commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
-    _T("         Default value: 8.") _T_RE_EOL \
+    _T("         Default value: 60 (4+8+16+32).") _T_RE_EOL \
     _T("  s<N>   Text processing for Execute Selected Text.") _T_RE_EOL \
     _T("         The value of <N> can be either 0 or a sum of these flags:") _T_RE_EOL \
-    _T("         0: use the selected text as is;") _T_RE_EOL \
-    _T("            if there is a running child process then send the selected") _T_RE_EOL \
-    _T("            text to that process as an input;") _T_RE_EOL \
-    _T("         1: substitute macro-vars in the selected text before the execution;") _T_RE_EOL \
-    _T("         2: if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
-    _T("            there is no running child process then start a collateral script;") _T_RE_EOL \
-    _T("         4: if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
-    _T("            there is a running child process then start a collateral script;") _T_RE_EOL \
-    _T("         8: update the last executed script: Execute Selected Text updates the") _T_RE_EOL \
-    _T("            commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \
+    _T("         0:  use the selected text as is;") _T_RE_EOL \
+    _T("             if there is a running child process then send the selected") _T_RE_EOL \
+    _T("             text to that process as an input;") _T_RE_EOL \
+    _T("         1:  substitute macro-vars in the selected text before the execution") _T_RE_EOL \
+    _T("             if there is no running child process;") _T_RE_EOL \
+    _T("         2:  substitute macro-vars in the selected text before the execution") _T_RE_EOL \
+    _T("             if there is a running child process;") _T_RE_EOL \
+    _T("         4:  if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
+    _T("             there is no running child process then start a collateral script;") _T_RE_EOL \
+    _T("         8:  if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
+    _T("             there is a running child process then start a collateral script;") _T_RE_EOL \
+    _T("         16: lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
+    _T("             NppExec (as NppExec's scripts commands) and will not be sent to") _T_RE_EOL \
+    _T("             a running child process;") _T_RE_EOL \
+    _T("         32: update the last executed script: Execute Selected Text updates the") _T_RE_EOL \
+    _T("             commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
-    _T("         Default value: 8.") _T_RE_EOL \
+    _T("         Default value: 60 (4+8+16+32).") _T_RE_EOL \
     _T("  o0/o1/o2  Console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
     _T("            Corresponding menu item: Console Output...") _T_RE_EOL \
     _T("            Sets Console output encoding.") _T_RE_EOL \
@@ -4022,7 +4037,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                 //lstrcat(szConsoleStr, "\n");  nLen += 1;
 
                 //cmd += _T("\r\n");
-                Runtime::GetNppExec().GetCommandExecutor().ExecuteChildProcessCommand(cmd);
+                Runtime::GetNppExec().GetCommandExecutor().ExecuteChildProcessCommand(cmd, true);
             }
         }
         else if (Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRunning())

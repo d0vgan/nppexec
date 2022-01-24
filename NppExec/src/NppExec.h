@@ -24,14 +24,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  -----------------------
  + added: built-in highlight filter that catches most of compiler error
    messages, thanks to David Maisonave.
-   This filter is enabled by setting the value of 'CompilerErrors' to 1
-   (see "NppExec_TechInfo.txt"). See also: npe_console x+/x-.
+   This filter is disabled by default to avoid an impact on performance.
+   It is recommanded to enable this filter locally, right before running
+   a compiler or an interpreter: "npe_console local -- x+".
+   See also: "NppExec_TechInfo.txt", the 'CompilerErrors' setting.
  + added: now WarningAnalyzer caches the previously matched lines.
    It allows the built-in highlight filter (see above) to react to a
    double-click in the Console even when this filter is disabled at the
    moment of double-clicking. Explanation: let's consider a situation when
    the built-in highlight filter had been disabled globally but was locally
-   enabled via "npe_console local x+" right before running a compiler. Thus,
+   enabled via "npe_console local -- x+" right before running a compiler. So
    the messages produced by compiler are analyzed by the built-in highlight
    filter and the filter is automatically disabled after the compiler exits.
    Now, as WarningAnalyzer has cached the matched lines from the compiler's
@@ -1503,10 +1505,12 @@ public:
 
   enum eExecTextFlags {
     etfNone                    = 0,
-    etfMacroVars               = 0x01,
-    etfCollateralNoChildProc   = 0x02,
-    etfCollateralWithChildProc = 0x04,
-    etfLastScript              = 0x08
+    etfMacroVarsNoChildProc    = 0x01,
+    etfMacroVarsWithChildProc  = 0x02,
+    etfCollateralNoChildProc   = 0x04,
+    etfCollateralWithChildProc = 0x08,
+    etfNppExecPrefix           = 0x10,
+    etfLastScript              = 0x20
   };
 
 public:
@@ -1585,6 +1589,7 @@ public:
   void DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveAll, LPCTSTR szScriptArguments = NULL, unsigned int nRunFlags = 0);
   void DoRunScript(const CListT<tstr>& CmdList, unsigned int nRunFlags = 0);
   void DoExecText(const tstr& sText, int nExecTextMode);
+  tCmdList GetCollateralCmdListForChildProcess(const tCmdList& CmdList);
 
   void RunTheStartScript();
   void RunTheExitScript();

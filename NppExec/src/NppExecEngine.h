@@ -840,6 +840,15 @@ class CScriptEngine : public IScriptEngine
         static eCmdType modifyCommandLine(CScriptEngine* pScriptEngine, tstr& Cmd, eIfState ifState);
         static bool     isLocalParam(tstr& param);
 
+        enum eAddCmdFlags {
+            acfKeepLineEndings = 0x01,
+            acfAddEmptyLines   = 0x02
+        };
+        static void addCommandToList(CListT<tstr>& CmdList, tstr& Cmd, unsigned int nFlags);
+        static void getCmdListFromText(CListT<tstr>& CmdList, const TCHAR* pszText, unsigned int nFlags);
+        static void removeLineEndings(CListT<tstr>& CmdList);
+        static void removeLineEnding(tstr& Cmd);
+
         CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, const tstr& id);
         virtual ~CScriptEngine();
 

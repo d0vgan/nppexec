@@ -435,7 +435,8 @@ public:
     bool GetTriedExitCmd() const;
     void SetTriedExitCmd(bool bTriedExitCmd);
 
-    void ExecuteChildProcessCommand(tstr& cmd);
+    int  IsChildProcessCommandNppExecPrefixed(tstr& cmd, bool bRemovePrefix, bool bSubstituteMacroVars);
+    void ExecuteChildProcessCommand(tstr& cmd, bool bSubstituteMacroVars);
     bool WriteChildProcessInput(const TCHAR* szLine, bool bFFlush = false);
 
     void ChildProcessMustBreak(unsigned int nBreakMethod); // about to break the current child process

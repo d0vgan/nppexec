@@ -49,8 +49,8 @@
  |  NppExec_Cmd_Prefix              |  nppexec:                       | string |
  |  UTF8_Detect_Length              |  16384                          |  int   |
  |  AnsiEscapeSequences             |  0                              |  int   |
- |  ExecClipTextMode                |  8                              |  int   |
- |  ExecSelTextMode                 |  8                              |  int   |
+ |  ExecClipTextMode                |  60                             |  int   |
+ |  ExecSelTextMode                 |  60                             |  int   |
  |  Cd_UnnamedFile                  |  1                              |  int   |
  |                                  |                                 |        |
  |  [Options]                       |                                 |        |
@@ -127,8 +127,8 @@
    NppExec_Cmd_Prefix=nppexec:
    UTF8_Detect_Length=16384
    AnsiEscapeSequences=0
-   ExecClipTextMode=8
-   ExecSelTextMode=8
+   ExecClipTextMode=60
+   ExecSelTextMode=60
    Cd_UnnamedFile=1
 
    [ConsoleOutputFilter]

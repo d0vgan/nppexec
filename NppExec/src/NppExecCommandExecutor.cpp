@@ -572,35 +572,48 @@ void CNppExecCommandExecutor::SetTriedExitCmd(bool bTriedExitCmd)
         m_RunningScriptEngine->SetTriedExitCmd(bTriedExitCmd);
 }
 
-void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd)
+int CNppExecCommandExecutor::IsChildProcessCommandNppExecPrefixed(tstr& cmd, bool bRemovePrefix, bool bSubstituteMacroVars)
 {
-    Runtime::GetLogger().AddEx_WithoutOutput( _T_RE_EOL _T("; @Child Process\'es Input: %s"), cmd.c_str() );
-    Runtime::GetLogger().Add( _T("") );
-
-    bool bScriptThreadRunning = false;
-    // We don't call StrDelLeadingTabSpaces here as the leading space(s)
+    // We don't call StrDelLeadingTabSpaces for 'cmd' as the leading space(s)
     // can be a meaningful part of a command given to the child process 
     // (example: Python, where indentation is important).
-    CScriptEngine::eNppExecCmdPrefix cmdPrefix = CScriptEngine::checkNppExecCmdPrefix(m_pNppExec, cmd);
+    tstr s = cmd;
+    NppExecHelpers::StrDelLeadingTabSpaces(s);
+    CScriptEngine::eNppExecCmdPrefix cmdPrefix = CScriptEngine::checkNppExecCmdPrefix(m_pNppExec, s, bRemovePrefix);
     if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
     {
-        tstr s = cmd;
+        cmd = s;
         const CScriptEngine::eCmdType cmdType = CScriptEngine::getCmdType(m_pNppExec, s, CScriptEngine::ctfIgnorePrefix);
 
-        if ( !CScriptEngine::usesDelayedVarSubstitution(cmdType) )
+        if ( bSubstituteMacroVars && !CScriptEngine::usesDelayedVarSubstitution(cmdType) )
         {
             m_pNppExec->GetMacroVars().CheckCmdAliases(cmd, true);
             m_pNppExec->GetMacroVars().CheckAllMacroVars(nullptr, cmd, true);
         }
     }
-    else
+    else if ( bSubstituteMacroVars )
     {
         m_pNppExec->GetMacroVars().CheckCmdAliases(cmd, true);
         m_pNppExec->GetMacroVars().CheckAllMacroVars(nullptr, cmd, true);
 
-        cmdPrefix = CScriptEngine::checkNppExecCmdPrefix(m_pNppExec, cmd);
+        s = cmd;
+        NppExecHelpers::StrDelLeadingTabSpaces(s);
+        cmdPrefix = CScriptEngine::checkNppExecCmdPrefix(m_pNppExec, s, bRemovePrefix);
+        if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
+            cmd = s;
     }
 
+    return cmdPrefix;
+}
+
+void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd, bool bSubstituteMacroVars)
+{
+    Runtime::GetLogger().AddEx_WithoutOutput( _T_RE_EOL _T("; @Child Process\'es Input: %s"), cmd.c_str() );
+    Runtime::GetLogger().Add( _T("") );
+
+    bool bScriptThreadRunning = false;
+    
+    int cmdPrefix = IsChildProcessCommandNppExecPrefixed(cmd, true, bSubstituteMacroVars);
     if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
     {
         tstr S1 = cmd;

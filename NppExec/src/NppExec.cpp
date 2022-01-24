@@ -322,8 +322,8 @@ const TCHAR DEFAULT_LOGSDIR[]                 = _T("");
 const TCHAR DEFAULT_SCRIPTSDIR[]              = _T("");
 const TCHAR DEFAULT_CHILDP_COMSPECSWITCHES[]  = _T("/C");
 const int   DEFAULT_AUTOSAVE_SECONDS          = 0; // disabled (example: 5*60 = 5 minutes)
-const int   DEFAULT_EXECCLIPTEXTMODE          = CNppExec::etfLastScript;
-const int   DEFAULT_EXECSELTEXTMODE           = CNppExec::etfLastScript;
+const int   DEFAULT_EXECCLIPTEXTMODE          = (CNppExec::etfCollateralNoChildProc | CNppExec::etfCollateralWithChildProc | CNppExec::etfNppExecPrefix | CNppExec::etfLastScript);
+const int   DEFAULT_EXECSELTEXTMODE           = (CNppExec::etfCollateralNoChildProc | CNppExec::etfCollateralWithChildProc | CNppExec::etfNppExecPrefix | CNppExec::etfLastScript);
 
 const wchar_t DEFAULT_NULCHAR_UNICODE     = 0x25E6; // 0x25E6 - the "White Bullet" symbol
 const char    DEFAULT_NULCHAR_ANSI        = 0x17; // 0x17 - the "End of Text Block" symbol
@@ -2111,6 +2111,7 @@ bool CNppExec::IsScriptCollateral(const CListT<tstr>& CmdList) const
         if ( p->GetItem().length() > 0 )
         {
             S = p->GetItem();
+            CScriptEngine::removeLineEnding(S);
             if ( !CScriptEngine::isCmdCommentOrEmpty(this, S) )
             {
                 if ( CScriptEngine::isCmdDirective(this, S) )
@@ -4460,7 +4461,7 @@ bool CNppExec::SendChildProcessExitCommand()
             {
                 GetConsole().PrintStr( exit_cmd.c_str() );
             }
-            GetCommandExecutor().ExecuteChildProcessCommand( exit_cmd );
+            GetCommandExecutor().ExecuteChildProcessCommand( exit_cmd, true );
         }
     }
 
@@ -4497,7 +4498,7 @@ bool CNppExec::ShowChildProcessExitDialog()
                 {
                     GetConsole().PrintStr( exit_cmd.c_str() );
                 }
-                GetCommandExecutor().ExecuteChildProcessCommand( exit_cmd );
+                GetCommandExecutor().ExecuteChildProcessCommand( exit_cmd, true );
             }
             break;
         case CInputBoxDlg::RET_KILL:
@@ -4842,10 +4843,12 @@ void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunF
 void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
 {
     CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
+    const bool isChildProcess = CommandExecutor.IsChildProcessRunning();
 
     tstr sProcessedText;
     const TCHAR* pszText = sText.c_str();
-    if ( nExecTextMode & CNppExec::etfMacroVars )
+    if ( ((nExecTextMode & CNppExec::etfMacroVarsWithChildProc) != 0 && isChildProcess) ||
+         ((nExecTextMode & CNppExec::etfMacroVarsNoChildProc) != 0 && !isChildProcess) )
     {
         auto scriptEngine = CommandExecutor.GetRunningScriptEngine();
         CScriptEngine* pScriptEngine = scriptEngine ? scriptEngine.get() : nullptr;
@@ -4854,14 +4857,14 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
         pszText = sProcessedText.c_str();
     }
 
-    bool isChildProcess = CommandExecutor.IsChildProcessRunning();
-
     tCmdList CmdList;
+    const unsigned int nCmdFlags = isChildProcess ? (CScriptEngine::acfKeepLineEndings | CScriptEngine::acfAddEmptyLines) : 0;
+    CScriptEngine::getCmdListFromText(CmdList, pszText, nCmdFlags);
+
     bool isCollateral = false;
     if ( ((nExecTextMode & CNppExec::etfCollateralWithChildProc) != 0 && isChildProcess) ||
          ((nExecTextMode & CNppExec::etfCollateralNoChildProc) != 0 && !isChildProcess) )
     {
-        CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
         isCollateral = IsScriptCollateral(CmdList);
     }
 
@@ -4869,6 +4872,10 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
     {
         if ( checkCmdListAndPrepareConsole(CmdList, false) )
         {
+            if ( nCmdFlags & CScriptEngine::acfKeepLineEndings )
+            {
+                CScriptEngine::removeLineEndings(CmdList);
+            }
             if ( nExecTextMode & CNppExec::etfLastScript )
             {
                 SetCmdList(CmdList);
@@ -4879,15 +4886,27 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
     else if ( isChildProcess )
     {
         showConsoleDialog(CNppExec::showIfHidden, 0);
-        CommandExecutor.WriteChildProcessInput( pszText );
-        CommandExecutor.WriteChildProcessInput( GetOptions().GetStr(OPTS_KEY_ENTER) );
+        if ( nExecTextMode & CNppExec::etfNppExecPrefix )
+        {
+            tCmdList CollateralCmdList = GetCollateralCmdListForChildProcess(CmdList);
+            if ( CollateralCmdList.IsEmpty() )
+            {
+                CommandExecutor.WriteChildProcessInput( pszText );
+                CommandExecutor.WriteChildProcessInput( GetOptions().GetStr(OPTS_KEY_ENTER) );
+            }
+            else
+            {
+                CommandExecutor.ExecuteCollateralScript(CollateralCmdList, tstr(), IScriptEngine::rfCollateralScript | IScriptEngine::rfShareLocalVars);
+            }
+        }
+        else
+        {
+            CommandExecutor.WriteChildProcessInput( pszText );
+            CommandExecutor.WriteChildProcessInput( GetOptions().GetStr(OPTS_KEY_ENTER) );
+        }
     }
     else
     {
-        if ( CmdList.IsEmpty() )
-        {
-            CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CmdList, pszText);
-        }
         if ( checkCmdListAndPrepareConsole(CmdList, false) )
         {
             if ( nExecTextMode & CNppExec::etfLastScript )
@@ -4895,9 +4914,58 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
                 SetCmdList(CmdList);
             }
             CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, 0);
-            GetCommandExecutor().ExecuteCommand(pCommand);
+            CommandExecutor.ExecuteCommand(pCommand);
         }
     }
+}
+
+tCmdList CNppExec::GetCollateralCmdListForChildProcess(const tCmdList& CmdList)
+{
+    CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
+    tCmdList CollateralCmdList;
+    tstr Cmd;
+    tstr CollateralCmd;
+    tstr ChildProcCmds;
+
+    for ( auto pItem = CmdList.GetFirst(); pItem != NULL; pItem = pItem->GetNext() )
+    {
+        Cmd = pItem->GetItem();
+        int cmdPrefix = CommandExecutor.IsChildProcessCommandNppExecPrefixed(Cmd, true, false);
+        if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
+        {
+            CScriptEngine::removeLineEnding(Cmd);
+            if ( !ChildProcCmds.IsEmpty() )
+            {
+                CollateralCmd = CScriptEngine::DoProcInputCommand::Name();
+                CollateralCmd += _T(" ");
+                CollateralCmd += ChildProcCmds;
+                CollateralCmdList.Add(CollateralCmd);
+                ChildProcCmds.Clear();
+            }
+            if ( cmdPrefix == CScriptEngine::CmdPrefixCollateralForced )
+            {
+                CollateralCmd = GetOptions().GetStr(OPTS_NPPEXEC_CMD_PREFIX);
+                CollateralCmd += CollateralCmd.GetLastChar();
+                CollateralCmd += Cmd;
+                CollateralCmdList.Add(CollateralCmd);
+            }
+            else
+            {
+                CollateralCmdList.Add(Cmd);
+            }
+        }
+        else
+            ChildProcCmds += Cmd;
+    }
+    if ( !CollateralCmdList.IsEmpty() && !ChildProcCmds.IsEmpty() )
+    {
+        CollateralCmd = CScriptEngine::DoProcInputCommand::Name();
+        CollateralCmd += _T(" ");
+        CollateralCmd += ChildProcCmds;
+        CollateralCmdList.Add(CollateralCmd);
+        ChildProcCmds.Clear();
+    }
+    return CollateralCmdList;
 }
 
 void CNppExec::OnExecSelText()
