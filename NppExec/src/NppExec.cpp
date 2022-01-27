@@ -2100,33 +2100,6 @@ bool CNppExec::IsCmdListEmpty() const
     return m_ScriptCmdList.IsEmpty();
 }
 
-bool CNppExec::IsScriptCollateral(const CListT<tstr>& CmdList) const
-{
-    bool isCollateral = false;
-    tstr S;
-
-    const CListItemT<tstr>* p = CmdList.GetFirst();
-    for ( ; p != NULL; p = p->GetNext() )
-    {
-        if ( p->GetItem().length() > 0 )
-        {
-            S = p->GetItem();
-            CScriptEngine::removeLineEnding(S);
-            if ( !CScriptEngine::isCmdCommentOrEmpty(this, S) )
-            {
-                if ( CScriptEngine::isCmdDirective(this, S) )
-                {
-                    if ( S == DIRECTIVE_COLLATERAL )
-                        isCollateral = true;
-                }
-                break;
-            }
-        }
-    }
-
-    return isCollateral;
-}
-
 HWND CNppExec::getCurrentScintilla(INT which)
 {
   return ((which == 0) ? m_nppData._scintillaMainHandle : 
@@ -4414,145 +4387,6 @@ void CNppExec::printScriptString(const TCHAR* str, int)
     Runtime::GetNppExec().GetConsole().PrintMessage( str, nMsgFlags );
 }
 
-bool CNppExec::SendChildProcessExitCommand()
-{
-    bool bSend = false;
-
-    if ( !GetCommandExecutor().GetTriedExitCmd() )
-    {
-        CCriticalSectionLockGuard lock(GetMacroVars().GetCsUserMacroVars());
-        const int nMacroVarsLists = 2;
-        const CNppExecMacroVars::tMacroVars* pMacroVarsLists[nMacroVarsLists] = {
-            &GetMacroVars().GetUserLocalMacroVars(nullptr), // try local first
-            &GetMacroVars().GetUserMacroVars()
-        };
-
-        const int nExitMacroVars = 2;
-        const TCHAR* cszExitMacroVars[nExitMacroVars] = {
-            MACRO_EXIT_CMD,        // try non-silent first
-            MACRO_EXIT_CMD_SILENT
-        };
-
-        tstr exit_cmd;
-        tstr macro_name;
-
-        for ( int nList = 0; (nList < nMacroVarsLists) && (!bSend); nList++ )
-        {
-            const CNppExecMacroVars::tMacroVars* pVarsList = pMacroVarsLists[nList];
-            for ( int nVar = 0; (nVar < nExitMacroVars) && (!bSend); nVar++ )
-            {
-                macro_name = cszExitMacroVars[nVar];
-                CNppExecMacroVars::tMacroVars::const_iterator itr = pVarsList->find(macro_name);
-                if ( itr != pVarsList->end() )
-                {
-                    exit_cmd = itr->second;
-                    bSend = true;
-                }
-            }
-        }
-
-        if ( bSend )
-        {
-            GetCommandExecutor().SetTriedExitCmd(true);
-
-            Runtime::GetLogger().AddEx( _T("; child process automatic command: %s = %s"), macro_name.c_str(), exit_cmd.c_str() );
-
-            if ( macro_name == MACRO_EXIT_CMD )
-            {
-                GetConsole().PrintStr( exit_cmd.c_str() );
-            }
-            GetCommandExecutor().ExecuteChildProcessCommand( exit_cmd, true );
-        }
-    }
-
-    return bSend;
-}
-
-bool CNppExec::ShowChildProcessExitDialog()
-{
-    const CListItemT<tstr>* p = InputBoxDlg.m_InputHistory[CInputBoxDlg::IBT_EXITPROCESS].GetFirst();
-
-    // init the InputBox dialog values
-    InputBoxDlg.m_InputMessage = _T("Console process is still running. Send - send the exit command; Cancel [Esc] - continue. Kill is not recommended.");
-    if ( p && (p->GetItem().length() > 0) )
-    {
-        InputBoxDlg.m_InputMessage += _T(" : ");
-        InputBoxDlg.m_InputMessage += p->GetItem();
-    }
-    InputBoxDlg.m_InputVarName = _T("exit command: ");
-    InputBoxDlg.setInputBoxType(CInputBoxDlg::IBT_EXITPROCESS);
-        
-    // show the InputBox dialog
-    INT_PTR ret = PluginDialogBox(IDD_INPUTBOX, InputBoxDlgProc);
-    switch ( ret )
-    {
-        case CInputBoxDlg::RET_OK:
-            // OK - send the exit command
-            {
-                tstr exit_cmd = InputBoxDlg.m_OutputValue;
-
-                Runtime::GetLogger().AddEx( _T("; child process manual command: %s"), exit_cmd.c_str() );
-
-                std::shared_ptr<CScriptEngine> pScriptEngine = GetCommandExecutor().GetRunningScriptEngine();
-                if ( pScriptEngine && !pScriptEngine->IsCollateral() )
-                {
-                    GetConsole().PrintStr( exit_cmd.c_str() );
-                }
-                GetCommandExecutor().ExecuteChildProcessCommand( exit_cmd, true );
-            }
-            break;
-        case CInputBoxDlg::RET_KILL:
-            // Kill
-            GetCommandExecutor().ChildProcessMustBreak(CProcessKiller::killCtrlBreak);
-            break;
-    }
-
-    return (ret >= CInputBoxDlg::RET_OK);
-}
-
-bool CNppExec::TryExitRunningChildProcess(unsigned int nFlags)
-{
-    // send the exit command first...
-    if ( SendChildProcessExitCommand() )
-    {
-        unsigned int uMaxTimeout = GetOptions().GetUint(OPTU_CHILDP_EXITTIMEOUT_MS);
-        if ( GetCommandExecutor().WaitUntilAllScriptEnginesDone(uMaxTimeout) )
-            return true;
-    }
-
-    // the exit command did not succeed or it was not sent...
-    if ( (nFlags & sfDoNotShowExitDialog) == 0 )
-    {
-        if ( ShowChildProcessExitDialog() )
-        {
-            unsigned int uMaxTimeout = GetOptions().GetUint(OPTU_CHILDP_EXITTIMEOUT_MS);
-            if ( GetCommandExecutor().WaitUntilAllScriptEnginesDone(uMaxTimeout) )
-                return true;
-        }
-    }
-
-    return false;
-}
-
-bool CNppExec::CanStartScriptOrCommand(unsigned int nFlags)
-{
-    if ( GetCommandExecutor().IsChildProcessRunning() )
-    {
-        return TryExitRunningChildProcess();
-    }
-    
-    if ( GetCommandExecutor().IsScriptRunningOrQueued() )
-    {
-        if ( (nFlags & sfDoNotShowWarningOnScript) == 0 )
-        {
-            ShowWarning( _T("Another script is still running") );
-        }
-        return false;
-    }
-    
-    return true;
-}
-
 void CNppExec::Uninit()
 {
     StopAutoSaveTimer();
@@ -4829,7 +4663,7 @@ void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunF
 {
     initConsoleDialog();
     CListT<tstr> CmdList = GetCmdList();
-    if ( IsScriptCollateral(CmdList) )
+    if ( CScriptEngine::isScriptCollateral(this, CmdList) )
     {
         GetCommandExecutor().ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
     }
@@ -4847,8 +4681,8 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
 
     tstr sProcessedText;
     const TCHAR* pszText = sText.c_str();
-    if ( ((nExecTextMode & CNppExec::etfMacroVarsWithChildProc) != 0 && isChildProcess) ||
-         ((nExecTextMode & CNppExec::etfMacroVarsNoChildProc) != 0 && !isChildProcess) )
+    if ( ((nExecTextMode & etfMacroVarsWithChildProc) != 0 && isChildProcess) ||
+         ((nExecTextMode & etfMacroVarsNoChildProc) != 0 && !isChildProcess) )
     {
         auto scriptEngine = CommandExecutor.GetRunningScriptEngine();
         CScriptEngine* pScriptEngine = scriptEngine ? scriptEngine.get() : nullptr;
@@ -4862,10 +4696,10 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
     CScriptEngine::getCmdListFromText(CmdList, pszText, nCmdFlags);
 
     bool isCollateral = false;
-    if ( ((nExecTextMode & CNppExec::etfCollateralWithChildProc) != 0 && isChildProcess) ||
-         ((nExecTextMode & CNppExec::etfCollateralNoChildProc) != 0 && !isChildProcess) )
+    if ( ((nExecTextMode & etfCollateralWithChildProc) != 0 && isChildProcess) ||
+         ((nExecTextMode & etfCollateralNoChildProc) != 0 && !isChildProcess) )
     {
-        isCollateral = IsScriptCollateral(CmdList);
+        isCollateral = CScriptEngine::isScriptCollateral(this, CmdList);
     }
 
     if ( isCollateral )
@@ -4876,7 +4710,7 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
             {
                 CScriptEngine::removeLineEndings(CmdList);
             }
-            if ( nExecTextMode & CNppExec::etfLastScript )
+            if ( nExecTextMode & etfLastScript )
             {
                 SetCmdList(CmdList);
             }
@@ -4885,10 +4719,10 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
     }
     else if ( isChildProcess )
     {
-        showConsoleDialog(CNppExec::showIfHidden, 0);
-        if ( nExecTextMode & CNppExec::etfNppExecPrefix )
+        showConsoleDialog(showIfHidden, 0);
+        if ( nExecTextMode & etfNppExecPrefix )
         {
-            tCmdList CollateralCmdList = GetCollateralCmdListForChildProcess(CmdList);
+            tCmdList CollateralCmdList = CScriptEngine::getCollateralCmdListForChildProcess(this, CmdList);
             if ( CollateralCmdList.IsEmpty() )
             {
                 CommandExecutor.WriteChildProcessInput( pszText );
@@ -4909,7 +4743,7 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
     {
         if ( checkCmdListAndPrepareConsole(CmdList, false) )
         {
-            if ( nExecTextMode & CNppExec::etfLastScript )
+            if ( nExecTextMode & etfLastScript )
             {
                 SetCmdList(CmdList);
             }
@@ -4917,55 +4751,6 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
             CommandExecutor.ExecuteCommand(pCommand);
         }
     }
-}
-
-tCmdList CNppExec::GetCollateralCmdListForChildProcess(const tCmdList& CmdList)
-{
-    CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
-    tCmdList CollateralCmdList;
-    tstr Cmd;
-    tstr CollateralCmd;
-    tstr ChildProcCmds;
-
-    for ( auto pItem = CmdList.GetFirst(); pItem != NULL; pItem = pItem->GetNext() )
-    {
-        Cmd = pItem->GetItem();
-        int cmdPrefix = CommandExecutor.IsChildProcessCommandNppExecPrefixed(Cmd, true, false);
-        if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
-        {
-            CScriptEngine::removeLineEnding(Cmd);
-            if ( !ChildProcCmds.IsEmpty() )
-            {
-                CollateralCmd = CScriptEngine::DoProcInputCommand::Name();
-                CollateralCmd += _T(" ");
-                CollateralCmd += ChildProcCmds;
-                CollateralCmdList.Add(CollateralCmd);
-                ChildProcCmds.Clear();
-            }
-            if ( cmdPrefix == CScriptEngine::CmdPrefixCollateralForced )
-            {
-                CollateralCmd = GetOptions().GetStr(OPTS_NPPEXEC_CMD_PREFIX);
-                CollateralCmd += CollateralCmd.GetLastChar();
-                CollateralCmd += Cmd;
-                CollateralCmdList.Add(CollateralCmd);
-            }
-            else
-            {
-                CollateralCmdList.Add(Cmd);
-            }
-        }
-        else
-            ChildProcCmds += Cmd;
-    }
-    if ( !CollateralCmdList.IsEmpty() && !ChildProcCmds.IsEmpty() )
-    {
-        CollateralCmd = CScriptEngine::DoProcInputCommand::Name();
-        CollateralCmd += _T(" ");
-        CollateralCmd += ChildProcCmds;
-        CollateralCmdList.Add(CollateralCmd);
-        ChildProcCmds.Clear();
-    }
-    return CollateralCmdList;
 }
 
 void CNppExec::OnExecSelText()
@@ -4992,7 +4777,7 @@ void CNppExec::DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveA
     CNppScript nppScript;
     m_ScriptsList.GetScript(szScriptName, nppScript);
     const CListT<tstr>& CmdList = nppScript.GetCmdList();
-    if ( IsScriptCollateral(CmdList) )
+    if ( CScriptEngine::isScriptCollateral(this, CmdList) )
     {
         GetCommandExecutor().ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
     }
@@ -5006,7 +4791,7 @@ void CNppExec::DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveA
 void CNppExec::DoRunScript(const CListT<tstr>& CmdList, unsigned int nRunFlags /* = 0 */ )
 {
     initConsoleDialog();
-    if ( IsScriptCollateral(CmdList) )
+    if ( CScriptEngine::isScriptCollateral(this, CmdList) )
     {
         GetCommandExecutor().ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
     }
@@ -6511,6 +6296,11 @@ INT_PTR CNppExec::PluginDialogBox(UINT idDlg, DLGPROC lpDlgProc)
       MAKEINTRESOURCE(idDlg), m_nppData._nppHandle, lpDlgProc );
   ::SetFocus(hWndFocus);
   return nRet;
+}
+
+CInputBoxDlg& CNppExec::GetInputBoxDlg()
+{
+  return InputBoxDlg;
 }
 
 LRESULT CNppExec::SendNppMsg(UINT uMsg, WPARAM wParam, LPARAM lParam) // to Notepad++

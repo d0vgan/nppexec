@@ -768,7 +768,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  8:  if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
     _T("      a running child process then start a collateral script;") _T_RE_EOL \
     _T("  16: lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
-    _T("      NppExec (as NppExec's scripts commands) and will not be sent to") _T_RE_EOL \
+    _T("      NppExec (as NppExec's script commands) and will not be sent to") _T_RE_EOL \
     _T("      a running child process.") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  npp_exectext 0 $(CLIPBOARD_TEXT)") _T_RE_EOL \
@@ -1711,7 +1711,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         8:  if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
     _T("             there is a running child process then start a collateral script;") _T_RE_EOL \
     _T("         16: lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
-    _T("             NppExec (as NppExec's scripts commands) and will not be sent to") _T_RE_EOL \
+    _T("             NppExec (as NppExec's script commands) and will not be sent to") _T_RE_EOL \
     _T("             a running child process;") _T_RE_EOL \
     _T("         32: update the last executed script: Execute Clipboard Text updates the") _T_RE_EOL \
     _T("             commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \
@@ -1731,7 +1731,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         8:  if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
     _T("             there is a running child process then start a collateral script;") _T_RE_EOL \
     _T("         16: lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
-    _T("             NppExec (as NppExec's scripts commands) and will not be sent to") _T_RE_EOL \
+    _T("             NppExec (as NppExec's script commands) and will not be sent to") _T_RE_EOL \
     _T("             a running child process;") _T_RE_EOL \
     _T("         32: update the last executed script: Execute Selected Text updates the") _T_RE_EOL \
     _T("             commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \

@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "resource.h"
 #include "DlgDoExec.h"
 #include "DlgConsole.h"
+#include "DlgInputBox.h"
 #include "c_base/int2str.h"
 #include <algorithm>
 
@@ -667,6 +668,149 @@ void CNppExecCommandExecutor::ChildProcessMustBreakAll(unsigned int /*nBreakMeth
         pScriptEngine->ChildProcessMustBreakAll();
 }
 
+bool CNppExecCommandExecutor::CanStartScriptOrCommand(unsigned int nFlags)
+{
+    if ( IsChildProcessRunning() )
+    {
+        return TryExitRunningChildProcess();
+    }
+
+    if ( IsScriptRunningOrQueued() )
+    {
+        if ( (nFlags & sfDoNotShowWarningOnScript) == 0 )
+        {
+            m_pNppExec->ShowWarning( _T("Another script is still running") );
+        }
+        return false;
+    }
+
+    return true;
+}
+
+bool CNppExecCommandExecutor::TryExitRunningChildProcess(unsigned int nFlags)
+{
+    // send the exit command first...
+    if ( SendChildProcessExitCommand() )
+    {
+        unsigned int uMaxTimeout = m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_EXITTIMEOUT_MS);
+        if ( WaitUntilAllScriptEnginesDone(uMaxTimeout) )
+            return true;
+    }
+
+    // the exit command did not succeed or it was not sent...
+    if ( (nFlags & sfDoNotShowExitDialog) == 0 )
+    {
+        if ( ShowChildProcessExitDialog() )
+        {
+            unsigned int uMaxTimeout = m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_EXITTIMEOUT_MS);
+            if ( WaitUntilAllScriptEnginesDone(uMaxTimeout) )
+                return true;
+        }
+    }
+
+    return false;
+}
+
+bool CNppExecCommandExecutor::SendChildProcessExitCommand()
+{
+    bool bSend = false;
+
+    if ( !GetTriedExitCmd() )
+    {
+        CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
+        CCriticalSectionLockGuard lock(MacroVars.GetCsUserMacroVars());
+        const int nMacroVarsLists = 2;
+        const CNppExecMacroVars::tMacroVars* pMacroVarsLists[nMacroVarsLists] = {
+            &MacroVars.GetUserLocalMacroVars(nullptr), // try local first
+            &MacroVars.GetUserMacroVars()
+        };
+
+        const int nExitMacroVars = 2;
+        const TCHAR* cszExitMacroVars[nExitMacroVars] = {
+            MACRO_EXIT_CMD,        // try non-silent first
+            MACRO_EXIT_CMD_SILENT
+        };
+
+        tstr exit_cmd;
+        tstr macro_name;
+
+        for ( int nList = 0; (nList < nMacroVarsLists) && (!bSend); nList++ )
+        {
+            const CNppExecMacroVars::tMacroVars* pVarsList = pMacroVarsLists[nList];
+            for ( int nVar = 0; (nVar < nExitMacroVars) && (!bSend); nVar++ )
+            {
+                macro_name = cszExitMacroVars[nVar];
+                CNppExecMacroVars::tMacroVars::const_iterator itr = pVarsList->find(macro_name);
+                if ( itr != pVarsList->end() )
+                {
+                    exit_cmd = itr->second;
+                    bSend = true;
+                }
+            }
+        }
+
+        if ( bSend )
+        {
+            SetTriedExitCmd(true);
+
+            Runtime::GetLogger().AddEx( _T("; child process automatic command: %s = %s"), macro_name.c_str(), exit_cmd.c_str() );
+
+            if ( macro_name == MACRO_EXIT_CMD )
+            {
+                m_pNppExec->GetConsole().PrintStr( exit_cmd.c_str() );
+            }
+            ExecuteChildProcessCommand( exit_cmd, true );
+        }
+    }
+
+    return bSend;
+}
+
+bool CNppExecCommandExecutor::ShowChildProcessExitDialog()
+{
+    CInputBoxDlg& InputBoxDlg = m_pNppExec->GetInputBoxDlg();
+
+    const CListItemT<tstr>* p = InputBoxDlg.m_InputHistory[CInputBoxDlg::IBT_EXITPROCESS].GetFirst();
+
+    // init the InputBox dialog values
+    InputBoxDlg.m_InputMessage = _T("Console process is still running. Send - send the exit command; Cancel [Esc] - continue. Kill is not recommended.");
+    if ( p && (p->GetItem().length() > 0) )
+    {
+        InputBoxDlg.m_InputMessage += _T(" : ");
+        InputBoxDlg.m_InputMessage += p->GetItem();
+    }
+    InputBoxDlg.m_InputVarName = _T("exit command: ");
+    InputBoxDlg.setInputBoxType(CInputBoxDlg::IBT_EXITPROCESS);
+
+    // show the InputBox dialog
+    INT_PTR ret = m_pNppExec->PluginDialogBox(IDD_INPUTBOX, InputBoxDlgProc);
+    switch ( ret )
+    {
+        case CInputBoxDlg::RET_OK:
+            // OK - send the exit command
+            {
+                tstr exit_cmd = InputBoxDlg.m_OutputValue;
+
+                Runtime::GetLogger().AddEx( _T("; child process manual command: %s"), exit_cmd.c_str() );
+
+                std::shared_ptr<CScriptEngine> pScriptEngine = GetRunningScriptEngine();
+                if ( pScriptEngine && !pScriptEngine->IsCollateral() )
+                {
+                    m_pNppExec->GetConsole().PrintStr( exit_cmd.c_str() );
+                }
+                ExecuteChildProcessCommand( exit_cmd, true );
+            }
+            break;
+
+        case CInputBoxDlg::RET_KILL:
+            // Kill
+            ChildProcessMustBreak(CProcessKiller::killCtrlBreak);
+            break;
+    }
+
+    return (ret >= CInputBoxDlg::RET_OK);
+}
+
 bool CNppExecCommandExecutor::WaitUntilAllScriptEnginesDone(DWORD dwTimeoutMs)
 {
     std::shared_ptr<CScriptEngine> pScriptEngine;
@@ -1156,7 +1300,7 @@ void CNppExecCommandExecutor::ScriptableCommand::DoNppExit()
 
         bool bDoClose = true;
 
-        if ( !pNppExec->TryExitRunningChildProcess() ) // still running?
+        if ( !GetExecutor()->TryExitRunningChildProcess() ) // still running?
         {
             bool bConsoleOutputEnabled = pNppExec->GetConsole().IsOutputEnabled();
 
@@ -1223,9 +1367,7 @@ void CNppExecCommandExecutor::ScriptableCommand::DoNppExit()
 
 void CNppExecCommandExecutor::ScriptableCommand::TryExitChildProcess(bool bCloseConsoleOnExit, bool bNppIsClosing)
 {
-    CNppExec* pNppExec = GetExecutor()->GetNppExec();
-
-    if ( pNppExec->TryExitRunningChildProcess() )
+    if ( GetExecutor()->TryExitRunningChildProcess() )
     {
         if ( bCloseConsoleOnExit )
             DoCloseConsole(bNppIsClosing);
@@ -1270,8 +1412,7 @@ bool CNppExecCommandExecutor::ScriptableCommand::CanStartScriptOrCommand()
     if ( CNppExec::_bIsNppShutdown )
         return false;
 
-    CNppExec* pNppExec = GetExecutor()->GetNppExec();
-    return pNppExec->CanStartScriptOrCommand();
+    return GetExecutor()->CanStartScriptOrCommand();
 }
 
 //-------------------------------------------------------------------------
@@ -1334,9 +1475,8 @@ bool CNppExecCommandExecutor::DoCloseConsoleCommand::CanStartScriptOrCommand()
 {
     if ( CNppExec::_bIsNppShutdown )
         return true;
-    
-    CNppExec* pNppExec = GetExecutor()->GetNppExec();
-    return pNppExec->CanStartScriptOrCommand(CNppExec::sfDoNotShowWarningOnScript);
+
+    return GetExecutor()->CanStartScriptOrCommand(CNppExecCommandExecutor::sfDoNotShowWarningOnScript);
 }
 
 //-------------------------------------------------------------------------

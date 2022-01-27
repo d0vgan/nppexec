@@ -1127,6 +1127,7 @@ enum EPluginOptions {
 
 class CScriptEngine;
 class CNppExec;
+class CInputBoxDlg;
 
 class CNppConsoleRichEdit : public CAnyRichEdit
 {
@@ -1525,7 +1526,6 @@ public:
   CListT<tstr> GetCmdList() const;
   void SetCmdList(const CListT<tstr>& CmdList);
   bool IsCmdListEmpty() const;
-  bool IsScriptCollateral(const CListT<tstr>& CmdList) const;
 
   int  conLoadFrom(LPCTSTR cszFile); // returns -1 if can't load
   int  conSaveTo(LPCTSTR cszFile); // returns -1 if can't save
@@ -1551,18 +1551,9 @@ public:
   static void CreateCloudDirIfNeeded(const tstr& cloudDir);
 
 private:
-  bool SendChildProcessExitCommand();
-  bool ShowChildProcessExitDialog();
   void SaveConfiguration();
   
 public: 
-  enum eCanStartFlags {
-    sfDoNotShowExitDialog      = 0x01,
-    sfDoNotShowWarningOnScript = 0x02
-  };
-  bool CanStartScriptOrCommand(unsigned int nFlags = 0);
-  bool TryExitRunningChildProcess(unsigned int nFlags = 0);
-
   void InitPluginName(HMODULE hDllModule); // called _before_ Init()
   void Init();
   void Uninit();
@@ -1589,7 +1580,6 @@ public:
   void DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveAll, LPCTSTR szScriptArguments = NULL, unsigned int nRunFlags = 0);
   void DoRunScript(const CListT<tstr>& CmdList, unsigned int nRunFlags = 0);
   void DoExecText(const tstr& sText, int nExecTextMode);
-  tCmdList GetCollateralCmdListForChildProcess(const tCmdList& CmdList);
 
   void RunTheStartScript();
   void RunTheExitScript();
@@ -1621,6 +1611,7 @@ public:
   void ShowError(LPCTSTR szMessage);
   void ShowWarning(LPCTSTR szMessage);
   INT_PTR PluginDialogBox(UINT idDlg, DLGPROC lpDlgProc);
+  CInputBoxDlg& GetInputBoxDlg();
 
   tstr ExpandToFullConfigPath(const TCHAR* cszFileName, bool bTryCloud = false);
 

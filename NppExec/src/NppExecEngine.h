@@ -835,6 +835,7 @@ class CScriptEngine : public IScriptEngine
         static int      getOnOffParam(const tstr& param);
         static bool     isCmdCommentOrEmpty(const CNppExec* pNppExec, tstr& Cmd);
         static bool     isCmdDirective(const CNppExec* pNppExec, tstr& Cmd);
+        static bool     isScriptCollateral(const CNppExec* pNppExec, const CListT<tstr>& CmdList);
         static bool     isSkippingThisCommandDueToIfState(eCmdType cmdType, eIfState ifState);
         static bool     usesDelayedVarSubstitution(eCmdType cmdType);
         static eCmdType modifyCommandLine(CScriptEngine* pScriptEngine, tstr& Cmd, eIfState ifState);
@@ -848,6 +849,7 @@ class CScriptEngine : public IScriptEngine
         static void getCmdListFromText(CListT<tstr>& CmdList, const TCHAR* pszText, unsigned int nFlags);
         static void removeLineEndings(CListT<tstr>& CmdList);
         static void removeLineEnding(tstr& Cmd);
+        static tCmdList getCollateralCmdListForChildProcess(CNppExec* pNppExec, const tCmdList& CmdList);
 
         CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, const tstr& id);
         virtual ~CScriptEngine();

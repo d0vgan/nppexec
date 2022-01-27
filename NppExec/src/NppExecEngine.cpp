@@ -146,8 +146,6 @@ extern FuncItem              g_funcItem[nbFunc + MAX_USERMENU_ITEMS + 1];
 
 extern COLORREF              g_colorTextNorm;
 
-extern CInputBoxDlg InputBoxDlg;
-
 BOOL     g_bIsNppUnicode = FALSE;
 WNDPROC  nppOriginalWndProc;
 
@@ -2454,6 +2452,33 @@ bool CScriptEngine::isCmdDirective(const CNppExec* , tstr& Cmd)
     return false;
 }
 
+bool CScriptEngine::isScriptCollateral(const CNppExec* pNppExec, const CListT<tstr>& CmdList)
+{
+    bool isCollateral = false;
+    tstr S;
+
+    const CListItemT<tstr>* p = CmdList.GetFirst();
+    for ( ; p != NULL; p = p->GetNext() )
+    {
+        if ( p->GetItem().length() > 0 )
+        {
+            S = p->GetItem();
+            removeLineEnding(S);
+            if ( !isCmdCommentOrEmpty(pNppExec, S) )
+            {
+                if ( isCmdDirective(pNppExec, S) )
+                {
+                    if ( S == DIRECTIVE_COLLATERAL )
+                        isCollateral = true;
+                }
+                break;
+            }
+        }
+    }
+
+    return isCollateral;
+}
+
 void CScriptEngine::addCommandToList(CListT<tstr>& CmdList, tstr& Cmd, unsigned int nFlags)
 {
     if ( Cmd.length() > 0 || (nFlags & acfAddEmptyLines) != 0 )
@@ -2533,6 +2558,55 @@ void CScriptEngine::removeLineEnding(tstr& Cmd)
     {
         Cmd.DeleteLastChar();
     }
+}
+
+tCmdList CScriptEngine::getCollateralCmdListForChildProcess(CNppExec* pNppExec, const tCmdList& CmdList)
+{
+    CNppExecCommandExecutor& CommandExecutor = pNppExec->GetCommandExecutor();
+    tCmdList CollateralCmdList;
+    tstr Cmd;
+    tstr CollateralCmd;
+    tstr ChildProcCmds;
+
+    for ( auto pItem = CmdList.GetFirst(); pItem != NULL; pItem = pItem->GetNext() )
+    {
+        Cmd = pItem->GetItem();
+        int cmdPrefix = CommandExecutor.IsChildProcessCommandNppExecPrefixed(Cmd, true, false);
+        if ( cmdPrefix != CmdPrefixNone )
+        {
+            removeLineEnding(Cmd);
+            if ( !ChildProcCmds.IsEmpty() )
+            {
+                CollateralCmd = DoProcInputCommand::Name();
+                CollateralCmd += _T(" ");
+                CollateralCmd += ChildProcCmds;
+                CollateralCmdList.Add(CollateralCmd);
+                ChildProcCmds.Clear();
+            }
+            if ( cmdPrefix == CmdPrefixCollateralForced )
+            {
+                CollateralCmd = pNppExec->GetOptions().GetStr(OPTS_NPPEXEC_CMD_PREFIX);
+                CollateralCmd += CollateralCmd.GetLastChar();
+                CollateralCmd += Cmd;
+                CollateralCmdList.Add(CollateralCmd);
+            }
+            else
+            {
+                CollateralCmdList.Add(Cmd);
+            }
+        }
+        else
+            ChildProcCmds += Cmd;
+    }
+    if ( !CollateralCmdList.IsEmpty() && !ChildProcCmds.IsEmpty() )
+    {
+        CollateralCmd = DoProcInputCommand::Name();
+        CollateralCmd += _T(" ");
+        CollateralCmd += ChildProcCmds;
+        CollateralCmdList.Add(CollateralCmd);
+        ChildProcCmds.Clear();
+    }
+    return CollateralCmdList;
 }
 
 void CScriptEngine::errorCmdNotEnoughParams(const TCHAR* cszCmd, const TCHAR* cszErrorMessage)
@@ -5760,7 +5834,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
     if ( ((nExecTextMode & CNppExec::etfCollateralWithChildProc) != 0 && isChildProcess) ||
          ((nExecTextMode & CNppExec::etfCollateralNoChildProc) != 0 && !isChildProcess) )
     {
-        isCollateral = m_pNppExec->IsScriptCollateral(CmdList);
+        isCollateral = isScriptCollateral(m_pNppExec, CmdList);
     }
 
     CNppExecCommandExecutor& CommandExecutor = m_pNppExec->GetCommandExecutor();
@@ -5796,17 +5870,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
     {
         Runtime::GetLogger().Add( _T("; running a collateral script") );
 
-        if ( nCmdFlags & CScriptEngine::acfKeepLineEndings )
+        if ( nCmdFlags & acfKeepLineEndings )
         {
-            CScriptEngine::removeLineEndings(CmdList);
+            removeLineEndings(CmdList);
         }
-        CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
+        CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), rfCollateralScript);
     }
     else if ( isChildProcess )
     {
         if ( nExecTextMode & CNppExec::etfNppExecPrefix )
         {
-            tCmdList CollateralCmdList = m_pNppExec->GetCollateralCmdListForChildProcess(CmdList);
+            tCmdList CollateralCmdList = getCollateralCmdListForChildProcess(m_pNppExec, CmdList);
             if ( !CollateralCmdList.IsEmpty() )
             {
                 CollateralCmdList.Swap(CmdList);
@@ -9445,6 +9519,7 @@ void runInputBox(CScriptEngine* pScriptEngine, const tstr& msg)
     Runtime::GetLogger().AddEx( _T("[in]  %s"), msg.c_str() );
     
     // init the InputBox dialog values
+    CInputBoxDlg& InputBoxDlg = pNppExec->GetInputBoxDlg();
     InputBoxDlg.m_InputMessage = msg;
     InputBoxDlg.m_InputVarName = MACRO_INPUT;
     InputBoxDlg.m_InputVarName += _T(" =");

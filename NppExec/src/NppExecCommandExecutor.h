@@ -442,7 +442,18 @@ public:
     void ChildProcessMustBreak(unsigned int nBreakMethod); // about to break the current child process
     void ChildProcessMustBreakAll(unsigned int nBreakMethod); // about to break all child processes
 
+    enum eCanStartFlags {
+        sfDoNotShowExitDialog      = 0x01,
+        sfDoNotShowWarningOnScript = 0x02
+    };
+    bool CanStartScriptOrCommand(unsigned int nFlags = 0);
+    bool TryExitRunningChildProcess(unsigned int nFlags = 0);
+
     bool WaitUntilAllScriptEnginesDone(DWORD dwTimeoutMs);
+
+private:
+    bool SendChildProcessExitCommand();
+    bool ShowChildProcessExitDialog();
 
 private:
     static DWORD WINAPI BackgroundExecuteThreadFunc(LPVOID lpParam);
