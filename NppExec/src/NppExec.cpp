@@ -4654,6 +4654,8 @@ void CNppExec::OnCmdHistory()
 
 void CNppExec::OnDoExecDlg()
 {
+    Runtime::GetLogger().Add( _T("; OnDoExecDlg") );
+
     initConsoleDialog();
     CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::OnDoExecDlgCommand(tstr());
     GetCommandExecutor().ExecuteCommand(pCommand);
@@ -4661,6 +4663,8 @@ void CNppExec::OnDoExecDlg()
 
 void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunFlags /* = 0 */ )
 {
+    Runtime::GetLogger().Add( _T("; OnDirectExec") );
+
     initConsoleDialog();
     CListT<tstr> CmdList = GetCmdList();
     if ( CScriptEngine::isScriptCollateral(this, CmdList) )
@@ -4758,6 +4762,8 @@ void CNppExec::OnExecSelText()
     if ( !CNppExec::_bIsNppReady )
         return;
 
+    Runtime::GetLogger().Add( _T("; OnExecSelText") );
+
     int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE);
     DoExecText( sciGetSelText(), nExecTextMode );
 }
@@ -4766,6 +4772,8 @@ void CNppExec::OnExecClipText()
 {
     if ( !CNppExec::_bIsNppReady )
         return;
+
+    Runtime::GetLogger().Add( _T("; OnExecClipText") );
 
     int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE);
     DoExecText( NppExecHelpers::GetClipboardText(), nExecTextMode );
@@ -5097,6 +5105,8 @@ void CNppExec::OnToggleConsoleDlg()
 
 void CNppExec::OnGoToNextError()
 {
+    Runtime::GetLogger().Add( _T("; OnGoToNextError") );
+
     if ( GetConsole().GetDialogWnd() )
         showConsoleDialog(showIfHidden, 0);
 
@@ -5105,6 +5115,8 @@ void CNppExec::OnGoToNextError()
 
 void CNppExec::OnGoToPrevError()
 {
+    Runtime::GetLogger().Add( _T("; OnGoToPrevError") );
+
     if ( GetConsole().GetDialogWnd() )
         showConsoleDialog(showIfHidden, 0);
 

@@ -5801,7 +5801,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
     const TCHAR ch = params.GetFirstChar();
     if ( ch < _T('0') || ch > _T('9') )
     {
-        ScriptError( ET_REPORT, _T("- the first paramater must be a number!") );
+        ScriptError( ET_REPORT, _T("- the first parameter must be a number!") );
         return CMDRESULT_INVALIDPARAM;
     }
 
@@ -5817,7 +5817,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
     const bool isChildProcess = IsChildProcessRunning();
 
     tstr sProcessedText;
-    const TCHAR* pszText = params.c_str() + n;
+    const TCHAR* pszText = c_base::_tstr_unsafe_skip_tabspaces(params.c_str() + n);
     if ( ((nExecTextMode & CNppExec::etfMacroVarsWithChildProc) != 0 && isChildProcess) ||
          ((nExecTextMode & CNppExec::etfMacroVarsNoChildProc) != 0 && !isChildProcess) )
     {

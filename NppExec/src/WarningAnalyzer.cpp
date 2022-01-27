@@ -18,13 +18,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "WarningAnalyzer.h"
 #include "NppExecEngine.h"
+#include "c_base/str_func.h"
 #include "tchar.h"
 #include "richedit.h"
 
 static bool match_mask_2( const TCHAR*, const TCHAR*, TCHAR*, TCHAR*, TCHAR*, TCHAR* );
 static void preprocessMask( TCHAR* outMask, const TCHAR* inMask, unsigned int& outMaskType );
-static TCHAR* skip_tabspaces(TCHAR* s);
-static const TCHAR* skip_tabspaces(const TCHAR* s);
 static bool is_num_str(const TCHAR* s);
 
 
@@ -431,7 +430,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             postr2 = m_FileName;
             postr1 = ostr1;
             // skip leading spaces
-            postr1 = skip_tabspaces(postr1);
+            postr1 = c_base::_tstr_unsafe_skip_tabspaces(postr1);
             // copy
             while ( (*postr2++ = *postr1++) != 0 );
             // skip trailing spaces
@@ -450,11 +449,11 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         }
         
         // skip leading spaces
-        postr3 = skip_tabspaces(postr3);
+        postr3 = c_base::_tstr_unsafe_skip_tabspaces(postr3);
         m_nLine = _ttoi(postr3);
 
         // skip leading spaces
-        postr4 = skip_tabspaces(postr4);
+        postr4 = c_base::_tstr_unsafe_skip_tabspaces(postr4);
         m_nChar = _ttoi(postr4);
     }
     else if ( Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONFLTR_COMPILER_ERRORS) )
@@ -715,23 +714,11 @@ bool match_mask_2( const TCHAR* mask
     return false;
 }
 
-TCHAR* skip_tabspaces(TCHAR* s)
-{
-    while ( NppExecHelpers::IsTabSpaceChar(*s) )  ++s;
-    return s;
-}
-
-const TCHAR* skip_tabspaces(const TCHAR* s)
-{
-    while ( NppExecHelpers::IsTabSpaceChar(*s) )  ++s;
-    return s;
-}
-
 bool is_num_str(const TCHAR* s)
 {
     if ( *s )
     {
-        s = skip_tabspaces(s);
+        s = c_base::_tstr_unsafe_skip_tabspaces(s);
         if ( *s )
         {
             if ( (*s == _T('-')) || (*s == _T('+')) )
