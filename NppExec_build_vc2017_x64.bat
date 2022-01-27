@@ -17,8 +17,8 @@ goto Building
 
 :Building
 cd .\NppExec
-msbuild NppExec_VC2017.sln /t:Clean /p:Configuration=Release;Platform=x64
-msbuild NppExec_VC2017.sln /t:Build /p:Configuration=Release;Platform=x64
+msbuild NppExec_VC2017.sln /t:Clean /p:Configuration=Release;Platform=x64 /m:2
+msbuild NppExec_VC2017.sln /t:Build /p:Configuration=Release;Platform=x64 /m:2
 goto End
 
 :ErrorNoVcVarsAll
