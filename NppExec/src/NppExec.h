@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: built-in highlight filter that catches most of compiler error
    messages, thanks to David Maisonave.
    This filter is disabled by default to avoid an impact on performance.
-   It is recommanded to enable this filter locally, right before running
+   It is recommended to enable this filter locally, right before running
    a compiler or an interpreter: "npe_console local -- x+".
    See also: "NppExec_TechInfo.txt", the 'CompilerErrors' setting.
  + added: now WarningAnalyzer caches the previously matched lines.
