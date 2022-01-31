@@ -3704,7 +3704,8 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 #endif          
 
         SetFocus( GetDlgItem(hDlg, IDC_RE_CONSOLE) );
-        return 0;
+        if (lpmsgf->msg != WM_SYSKEYDOWN)
+            return 0;
     }
     // <<< bAlt
 
@@ -3777,7 +3778,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
     // <<< WM_KEYDOWN (Find Controls)
 
     // >>> WM_KEYDOWN && hot-key
-    if ( lpmsgf->msg == WM_KEYDOWN )
+    if ( lpmsgf->msg == WM_KEYDOWN || lpmsgf->msg == WM_SYSKEYDOWN )
     {
         const unsigned int k = Runtime::GetNppExec().GetOptions().GetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS) & ConsoleDlg::CSK_ALL;
         if ( k != 0 )
@@ -5380,7 +5381,7 @@ LRESULT CALLBACK ConsoleDlg::findEditWndProc(
     LPARAM lParam)
   {
     //static bool bTrackingMouse = false;
-    
+
     /**/
     if (uMessage == WM_SETFOCUS)
     {

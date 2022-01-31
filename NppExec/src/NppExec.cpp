@@ -3345,7 +3345,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     tstr sCmdLine = cszCommandLine;
     applyCommandLinePolicy(sCmdLine, mode);
 
-    DWORD dwCreationFlags = CREATE_NEW_PROCESS_GROUP;
+    DWORD dwCreationFlags = 0;
     if ( hJob != NULL )
     {
         BOOL bIsProcessInJob = FALSE;
