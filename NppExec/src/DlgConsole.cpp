@@ -1600,7 +1600,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  npe_console") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_console") _T_RE_EOL \
-    _T("  npe_console a+/a- d+/d- e0/e1 h+/h- m+/m- p+/p- q+/q- v+/v- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
+    _T("  npe_console a+/a- d+/d- e0/e1 h+/h- m+/m- p+/p- q+/q- v+/v- j+/j- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
     _T("  npe_console c<N> s<N>") _T_RE_EOL \
     _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
     _T("  npe_console <options> --") _T_RE_EOL \
@@ -1616,6 +1616,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("       p+/p-  print \"==== READY ====\" on/off") _T_RE_EOL \
     _T("       q+/q-  command aliases on/off") _T_RE_EOL \
     _T("       v+/v-  set the $(OUTPUT) local variable on/off") _T_RE_EOL \
+    _T("       j+/j-  kill process tree on/off") _T_RE_EOL \
     _T("       f+/f-  console output filter on/off") _T_RE_EOL \
     _T("       r+/r-  console output replace filter on/off") _T_RE_EOL \
     _T("       x+/x-  compiler errors highlight filter on/off") _T_RE_EOL \
@@ -1675,6 +1676,13 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         There is no corresponding menu item.") _T_RE_EOL \
     _T("         This option is not saved when you close Notepad++.") _T_RE_EOL \
     _T("         Default value: off.") _T_RE_EOL \
+    _T("  j+/j-  Kill process tree on/off.") _T_RE_EOL \
+    _T("         When this option is On, killing a running child process (the one") _T_RE_EOL \
+    _T("         that runs in NppExec's Console) also kills any processes that were") _T_RE_EOL \
+    _T("         started from this running child process.") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is saved as \"KillProcTree\".") _T_RE_EOL \
+    _T("         Default value: off.") _T_RE_EOL \
     _T("  f+/f-  Console output filter on/off.") _T_RE_EOL \
     _T("         Corresponding menu item: Console Output Filters...") _T_RE_EOL \
     _T("  r+/r-  Console output replace filter on/off.") _T_RE_EOL \
@@ -1685,6 +1693,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         than the user-defined highlight masks.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
     _T("         This option is saved as \"CompilerErrors\".") _T_RE_EOL \
+    _T("         Default value: off.") _T_RE_EOL \
     _T("  k0..3  Catch NppExec\'s shortcut keys on/off") _T_RE_EOL \
     _T("         Controls if NppExec\'s Console catches shortcut keys related") _T_RE_EOL \
     _T("         to NppExec\'s menu items or scripts. This allows to execute") _T_RE_EOL \
@@ -1716,6 +1725,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         32: update the last executed script: Execute Clipboard Text updates the") _T_RE_EOL \
     _T("             commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is saved as \"ExecClipTextMode\".") _T_RE_EOL \
     _T("         Default value: 60 (4+8+16+32).") _T_RE_EOL \
     _T("  s<N>   Text processing for Execute Selected Text.") _T_RE_EOL \
     _T("         The value of <N> can be either 0 or a sum of these flags:") _T_RE_EOL \
@@ -1736,6 +1746,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         32: update the last executed script: Execute Selected Text updates the") _T_RE_EOL \
     _T("             commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is saved as \"ExecSelTextMode\".") _T_RE_EOL \
     _T("         Default value: 60 (4+8+16+32).") _T_RE_EOL \
     _T("  o0/o1/o2  Console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
     _T("            Corresponding menu item: Console Output...") _T_RE_EOL \

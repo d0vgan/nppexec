@@ -51,6 +51,7 @@
  |  AnsiEscapeSequences             |  0                              |  int   |
  |  ExecClipTextMode                |  60                             |  int   |
  |  ExecSelTextMode                 |  60                             |  int   |
+ |  KillProcTree                    |  1                     (TRUE)   |  BOOL  |
  |  Cd_UnnamedFile                  |  1                              |  int   |
  |                                  |                                 |        |
  |  [Options]                       |                                 |        |
@@ -129,6 +130,7 @@
    AnsiEscapeSequences=0
    ExecClipTextMode=60
    ExecSelTextMode=60
+   KillProcTree=1
    Cd_UnnamedFile=1
 
    [ConsoleOutputFilter]
@@ -615,6 +617,14 @@
  ---------------
    Specifies the text processing mode for Execute Selected Text.
    See the "s" parameter of NPE_CONSOLE ("help npe_console") for details.
+
+
+ KillProcTree
+ ------------
+   Kill process tree on/off.
+   When this option is on (set to 1), killing a running child process (the one
+   that runs in NppExec's Console) also kills any processes that were started
+   from this running child process.
 
 
  Cd_UnnamedFile

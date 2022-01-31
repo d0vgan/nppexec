@@ -401,6 +401,8 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
       INI_SECTION_CONSOLE, _T("CustomMsgReady"), -1, _T("================ READY ================\\r") },
     { OPTD_CONSOLE_FONT, OPTT_DATA | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("Font"), 0, NULL },
+    { OPTB_CONSOLE_KILLPROCTREE, OPTT_INT | OPTF_READWRITE,
+      INI_SECTION_CONSOLE, _T("KillProcTree"), -1, NULL },
     { OPTI_CONSOLE_ANSIESCSEQ, OPTT_INT | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("AnsiEscapeSequences"), 0, NULL },
     { OPTI_CONSOLE_EXECCLIPTEXTMODE, OPTT_INT | OPTF_READWRITE,
@@ -3301,18 +3303,22 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     ::SetHandleInformation(m_hStdOutReadPipe, HANDLE_FLAG_INHERIT, 0);
 
     // Job object
-    HANDLE hJob = ::CreateJobObject(NULL, NULL);
-    if ( hJob != NULL )
+    HANDLE hJob = NULL;
+    if ( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_KILLPROCTREE) )
     {
-        JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli;
-
-        ::ZeroMemory(&jeli, sizeof(jeli));
-        jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
-        // Causes all processes associated with the job to terminate when the last handle to the job is closed.
-        if ( !::SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)) )
+        hJob = ::CreateJobObject(NULL, NULL);
+        if ( hJob != NULL )
         {
-            ::CloseHandle(hJob);
-            hJob = NULL;
+            JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli;
+
+            ::ZeroMemory(&jeli, sizeof(jeli));
+            jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+            // Causes all processes associated with the job to terminate when the last handle to the job is closed.
+            if ( !::SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)) )
+            {
+                ::CloseHandle(hJob);
+                hJob = NULL;
+            }
         }
     }
 
@@ -5582,6 +5588,10 @@ void CNppExec::ReadOptions()
   if (GetOptions().GetInt(OPTB_CONSOLE_NOINTMSGS) < 0)
   {
     GetOptions().SetBool(OPTB_CONSOLE_NOINTMSGS, false);
+  }
+  if (GetOptions().GetInt(OPTB_CONSOLE_KILLPROCTREE) < 0)
+  {
+    GetOptions().SetBool(OPTB_CONSOLE_KILLPROCTREE, false);
   }
   if (GetOptions().GetInt(OPTB_CONSOLE_PRINTMSGREADY) < 0)
   {

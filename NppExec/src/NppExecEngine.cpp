@@ -4755,6 +4755,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                     // p+/p-     print "==== READY ====" on/off
                     // q+/q-     command aliases on/off
                     // v+/v-     set the $(OUTPUT) variable on/off
+                    // j+/j-     kill process tree on/off
                     // f+/f-     console output filter on/off
                     // r+/r-     console output replace filter on/off
                     // x+/x-     compiler errors filter on/off
@@ -5134,6 +5135,25 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                             }
                             break;
 
+                        case _T('J'):
+                            if ( arg[1] == _T('+') || arg[1] == _T('-') )
+                            {
+                                bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConsoleKillProcTree() )
+                                        savedConf.setConsoleKillProcTree( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_KILLPROCTREE) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConsoleKillProcTree() )
+                                        savedConf.removeConsoleKillProcTree();
+                                }
+                                m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_KILLPROCTREE, bOn);
+                                isOK = true;
+                            }
+                            break;
+
                         case _T('-'):
                             if ( arg[1] == _T('-') )
                             {
@@ -5207,6 +5227,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S1 += _T(" v");
         S2 += _T(", output_var: ");
         appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_SETOUTPUTVAR), S1, S2 );
+        S1 += _T(" j");
+        S2 += _T(", kill_tree: ");
+        appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_KILLPROCTREE), S1, S2 );
         // filters
         S1 += _T(" f");
         S2 += _T_RE_EOL _T("; filter: ");

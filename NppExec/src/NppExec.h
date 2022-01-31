@@ -43,13 +43,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: new menu items "Execute Selected Text", "Execute Clipboard Text".
  + NPE_CONSOLE c<N> and s<N> to change the text processing for the
    Execute Clipboard Text and Execute Selected Text.
+ + NPE_CONSOLE j+/j- to kill process tree on/off
  + added: new command "proc_input".
  + added: new command "npp_exectext".
  + added: new variables $(SELECTED_TEXT), $(IS_PROCESS).
  * changed: the menu item "Disable command aliases" has been removed. Use
    the "npe_console q+/q-" instead.
- * changed: now killing a running child process also kills any processes
-   that were started from the running child process.
  * changed: now "help" command works in NppExec's scripts.
  - fixed: now "set local" (without an argument) prints only local vars.
  + NppExec Manual updated
@@ -788,6 +787,7 @@ enum EPluginOptions {
     OPTB_CONSOLE_APPENDMODE,
     OPTU_CONSOLE_CATCHSHORTCUTKEYS,
     OPTB_CONSOLE_SETOUTPUTVAR,
+    OPTB_CONSOLE_KILLPROCTREE,
     OPTI_CONSOLE_ANSIESCSEQ,
     OPTI_CONSOLE_EXECCLIPTEXTMODE,
     OPTI_CONSOLE_EXECSELTEXTMODE,

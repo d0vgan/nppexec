@@ -1056,6 +1056,12 @@ class CScriptEngine : public IScriptEngine
                     mHasValues |= fConsoleSetOutputVar;
                 }
 
+                void setConsoleKillProcTree(bool bConsoleKillProcTree)
+                {
+                    mConsoleKillProcTree = bConsoleKillProcTree;
+                    mHasValues |= fConsoleKillProcTree;
+                }
+
                 void setConsoleDebugLog(bool bConsoleDebugLog)
                 {
                     mConsoleDebugLog = bConsoleDebugLog;
@@ -1115,6 +1121,7 @@ class CScriptEngine : public IScriptEngine
                 bool hasConsolePrintMsgReady() const { return ((mHasValues & fConsolePrintMsgReady) != 0); }
                 bool hasConsoleNoCmdAliases() const { return ((mHasValues & fConsoleNoCmdAliases) != 0); }
                 bool hasConsoleSetOutputVar() const { return ((mHasValues & fConsoleSetOutputVar) != 0); }
+                bool hasConsoleKillProcTree() const { return ((mHasValues & fConsoleKillProcTree) != 0); }
                 bool hasConsoleDebugLog() const { return ((mHasValues & fConsoleDebugLog) != 0); }
                 bool hasLoggerOutputMode() const { return ((mHasValues & fLoggerOutputMode) != 0); }
                 bool hasConsoleNoEmptyVars() const { return ((mHasValues & fConsoleNoEmptyVars) != 0); }
@@ -1152,6 +1159,7 @@ class CScriptEngine : public IScriptEngine
                 void removeConsolePrintMsgReady() { mHasValues &= ~fConsolePrintMsgReady; }
                 void removeConsoleNoCmdAliases() { mHasValues &= ~fConsoleNoCmdAliases; }
                 void removeConsoleSetOutputVar() { mHasValues &= ~fConsoleSetOutputVar; }
+                void removeConsoleKillProcTree() { mHasValues &= ~fConsoleKillProcTree; }
                 void removeConsoleDebugLog() { mHasValues &= ~fConsoleDebugLog; }
                 void removeLoggerOutputMode() { mHasValues &= ~fLoggerOutputMode; }
                 void removeConsoleNoEmptyVars() { mHasValues &= ~fConsoleNoEmptyVars; }
@@ -1282,6 +1290,10 @@ class CScriptEngine : public IScriptEngine
                     if ( hasConsoleSetOutputVar() )
                     {
                         pNppExec->GetOptions().SetBool(OPTB_CONSOLE_SETOUTPUTVAR, mConsoleSetOutputVar);
+                    }
+                    if ( hasConsoleKillProcTree() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_KILLPROCTREE, mConsoleKillProcTree);
                     }
                 }
 
@@ -1440,7 +1452,8 @@ class CScriptEngine : public IScriptEngine
                     fLoggerOutputMode         = 0x01000000,
                     fConFltrCompilerErrors    = 0x02000000,
                     fExecClipTextMode         = 0x04000000,
-                    fExecSelTextMode          = 0x08000000
+                    fExecSelTextMode          = 0x08000000,
+                    fConsoleKillProcTree      = 0x10000000
                 };
 
                 // we might use std::optional (C++17) instead, but would it be so fun? :)
@@ -1473,6 +1486,7 @@ class CScriptEngine : public IScriptEngine
                 bool mConsolePrintMsgReady;
                 bool mConsoleNoCmdAliases;
                 bool mConsoleSetOutputVar;
+                bool mConsoleKillProcTree;
 
                 // DoNpeDebugLog
                 bool mConsoleDebugLog;
