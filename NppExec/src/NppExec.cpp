@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /****************************************************************************
  * NppExec plugin ver. 0.7.9.9 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - January 2022
+ * by DV <dvv81 @ ukr.net>, December 2006 - February 2022
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -1555,6 +1555,12 @@ extern "C" BOOL APIENTRY DllMain(
   {
     case DLL_PROCESS_ATTACH:
     {
+#ifndef __MINGW32__
+  #ifdef _DEBUG
+      _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+      //_CrtSetBreakAlloc(2697);
+  #endif
+#endif
       g_bInitialized = false;
       CNppExec::_bIsNppReady = false;
 

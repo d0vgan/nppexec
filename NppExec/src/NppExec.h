@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.7.9.9 - January 2022
- -----------------------
+ v0.7.9.9 - February 2022
+ ------------------------
  + added: built-in highlight filter that catches most of compiler error
    messages, thanks to David Maisonave.
    This filter is disabled by default to avoid an impact on performance.

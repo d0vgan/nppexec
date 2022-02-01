@@ -25,6 +25,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define _SCROLL_TO_LATEST
 //#define _DISABLE_CMD_ALIASES
 
+#ifndef __MINGW32__
+  #ifdef _DEBUG
+    #define _CRTDBG_MAP_ALLOC
+    #include <stdlib.h>
+    #include <crtdbg.h>
+  #endif
+#endif
+
 #include <windows.h>
 #include <TCHAR.h>
 

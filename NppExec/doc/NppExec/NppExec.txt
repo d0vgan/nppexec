@@ -1,7 +1,7 @@
 
  ****************************************************************************
  * NppExec plugin ver. 0.7.9.9 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - January 2022
+ * by DV <dvv81 @ ukr.net>, December 2006 - February 2022
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
  *
@@ -213,8 +213,8 @@
  *  HISTORY  *
  *************
 
- v0.7.9.9 - January 2022
- -----------------------
+ v0.7.9.9 - February 2022
+ ------------------------
  + added: built-in highlight filter that catches most of compiler error
    messages, thanks to David Maisonave.
    This filter is disabled by default to avoid an impact on performance.
