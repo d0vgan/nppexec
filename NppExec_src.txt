@@ -50,4 +50,4 @@ NppExecPluginMsgTester\src\*.cpp
 NppExecPluginMsgTester\src\*.h
 NppExecPluginMsgTester\src\core\*.cpp
 NppExecPluginMsgTester\src\core\*.h
-NppExecPluginMsgTester\src\core\npp_stuff\*.h
+NppExecPluginMsgTester\src\core\npp_files\*.h

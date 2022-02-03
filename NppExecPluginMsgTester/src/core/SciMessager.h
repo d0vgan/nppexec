@@ -18,27 +18,27 @@ class CSciMessager
         
         void          beginUndoAction();
         void          endUndoAction();
-        unsigned char getCharAt(int pos) const;
+        unsigned char getCharAt(Sci_Position pos) const;
         unsigned int  getCodePage() const; // 0 (non-Unicode), SC_CP_UTF8, DBCS etc.
-        int           getCurrentPos() const;
+        Sci_Position  getCurrentPos() const;
         LRESULT       getDocPointer() const; // identifies the document
         HWND          getSciWnd() const  { return m_hSciWnd; }
         int           getSelectionMode() const; // SC_SEL_STREAM, SC_SEL_RECTANGLE, SC_SEL_LINES
-        int           getSelectionEnd() const;
-        int           getSelectionStart() const;
-        int           getSelText(char* pText) const;
-        int           getText(int len, char* pText) const;
-        int           getTextLength() const;
-        int           getTextRange(int pos1, int pos2, char* pText) const;
-        void          goToPos(int pos);
+        Sci_Position  getSelectionEnd() const;
+        Sci_Position  getSelectionStart() const;
+        Sci_Position  getSelText(char* pText) const;
+        Sci_Position  getText(Sci_Position len, char* pText) const;
+        Sci_Position  getTextLength() const;
+        Sci_Position  getTextRange(Sci_Position pos1, Sci_Position pos2, char* pText) const;
+        void          goToPos(Sci_Position pos);
         bool          isModified() const;
         bool          isSelectionRectangle() const;
         void          setCodePage(unsigned int codePage);
         void          setSciWnd(HWND hSciWnd)  { m_hSciWnd = hSciWnd; }
-        void          setSel(int anchorPos, int currentPos);
+        void          setSel(Sci_Position anchorPos, Sci_Position currentPos);
         void          setSelectionMode(int mode); // SC_SEL_STREAM, SC_SEL_RECTANGLE, SC_SEL_LINES
-        void          setSelectionEnd(int pos);
-        void          setSelectionStart(int pos);
+        void          setSelectionEnd(Sci_Position pos);
+        void          setSelectionStart(Sci_Position pos);
         void          setSelText(const char* pText);
         void          setText(const char* pText);
 };

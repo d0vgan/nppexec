@@ -29,7 +29,7 @@ void CSciMessager::endUndoAction()
     SendSciMsg(SCI_ENDUNDOACTION);
 }
 
-unsigned char CSciMessager::getCharAt(int pos) const
+unsigned char CSciMessager::getCharAt(Sci_Position pos) const
 {
     return (unsigned char) SendSciMsg(SCI_GETCHARAT, (WPARAM) pos);
 }
@@ -39,9 +39,9 @@ unsigned int CSciMessager::getCodePage() const
     return (unsigned int) SendSciMsg(SCI_GETCODEPAGE);
 }
 
-int CSciMessager::getCurrentPos() const
+Sci_Position CSciMessager::getCurrentPos() const
 {
-    return (int) SendSciMsg(SCI_GETCURRENTPOS);
+    return (Sci_Position) SendSciMsg(SCI_GETCURRENTPOS);
 }
 
 LRESULT CSciMessager::getDocPointer() const
@@ -54,41 +54,41 @@ int CSciMessager::getSelectionMode() const
     return (int) SendSciMsg(SCI_GETSELECTIONMODE);
 }
 
-int CSciMessager::getSelectionEnd() const
+Sci_Position CSciMessager::getSelectionEnd() const
 {
-    return (int) SendSciMsg(SCI_GETSELECTIONEND);
+    return (Sci_Position) SendSciMsg(SCI_GETSELECTIONEND);
 }
 
-int CSciMessager::getSelectionStart() const
+Sci_Position CSciMessager::getSelectionStart() const
 {
-    return (int) SendSciMsg(SCI_GETSELECTIONSTART);
+    return (Sci_Position) SendSciMsg(SCI_GETSELECTIONSTART);
 }
 
-int CSciMessager::getSelText(char* pText) const
+Sci_Position CSciMessager::getSelText(char* pText) const
 {
-    return (int) SendSciMsg( SCI_GETSELTEXT, 0, (LPARAM) pText );
+    return (Sci_Position) SendSciMsg( SCI_GETSELTEXT, 0, (LPARAM) pText );
 }
 
-int CSciMessager::getText(int len, char* pText) const
+Sci_Position CSciMessager::getText(Sci_Position len, char* pText) const
 {
-    return (int) SendSciMsg( SCI_GETTEXT, (WPARAM) len, (LPARAM) pText );
+    return (Sci_Position) SendSciMsg( SCI_GETTEXT, (WPARAM) len, (LPARAM) pText );
 }
 
-int CSciMessager::getTextLength() const
+Sci_Position CSciMessager::getTextLength() const
 {
-    return (int) SendSciMsg(SCI_GETTEXTLENGTH);
+    return (Sci_Position) SendSciMsg(SCI_GETTEXTLENGTH);
 }
 
-int CSciMessager::getTextRange(int pos1, int pos2, char* pText) const
+Sci_Position CSciMessager::getTextRange(Sci_Position pos1, Sci_Position pos2, char* pText) const
 {
     Sci_TextRange tr;
     tr.chrg.cpMin = pos1;
     tr.chrg.cpMax = pos2;
     tr.lpstrText = pText;
-    return (int) SendSciMsg( SCI_GETTEXTRANGE, 0, (LPARAM) &tr );
+    return (Sci_Position) SendSciMsg( SCI_GETTEXTRANGE, 0, (LPARAM) &tr );
 }
 
-void CSciMessager::goToPos(int pos)
+void CSciMessager::goToPos(Sci_Position pos)
 {
     SendSciMsg( SCI_GOTOPOS, (WPARAM) pos );
 }
@@ -108,7 +108,7 @@ void CSciMessager::setCodePage(unsigned int codePage)
     SendSciMsg( SCI_SETCODEPAGE, (WPARAM) codePage );
 }
 
-void CSciMessager::setSel(int anchorPos, int currentPos)
+void CSciMessager::setSel(Sci_Position anchorPos, Sci_Position currentPos)
 {
     SendSciMsg( SCI_SETSEL, (WPARAM) anchorPos, (LPARAM) currentPos );
 }
@@ -118,12 +118,12 @@ void CSciMessager::setSelectionMode(int mode)
     SendSciMsg( SCI_SETSELECTIONMODE, (WPARAM) mode );
 }
 
-void CSciMessager::setSelectionEnd(int pos)
+void CSciMessager::setSelectionEnd(Sci_Position pos)
 {
     SendSciMsg( SCI_SETSELECTIONEND, (WPARAM) pos );
 }
 
-void CSciMessager::setSelectionStart(int pos)
+void CSciMessager::setSelectionStart(Sci_Position pos)
 {
     SendSciMsg( SCI_SETSELECTIONSTART, (WPARAM) pos );
 }

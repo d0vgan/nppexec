@@ -31,14 +31,14 @@ enum LangType {L_TEXT, L_PHP , L_C, L_CPP, L_CS, L_OBJC, L_JAVA, L_RC,\
 			   L_IHEX, L_TEHEX, L_SWIFT,\
 			   L_ASN1, L_AVS, L_BLITZBASIC, L_PUREBASIC, L_FREEBASIC, \
 			   L_CSOUND, L_ERLANG, L_ESCRIPT, L_FORTH, L_LATEX, \
-			   L_MMIXAL, L_NIMROD, L_NNCRONTAB, L_OSCRIPT, L_REBOL, \
-			   L_REGISTRY, L_RUST, L_SPICE, L_TXT2TAGS, L_VISUALPROLOG,\
+			   L_MMIXAL, L_NIM, L_NNCRONTAB, L_OSCRIPT, L_REBOL, \
+			   L_REGISTRY, L_RUST, L_SPICE, L_TXT2TAGS, L_VISUALPROLOG, L_TYPESCRIPT,\
 			   // Don't use L_JS, use L_JAVASCRIPT instead
 			   // The end of enumated language type, so it should be always at the end
 			   L_EXTERNAL};
 
-enum winVer{ WV_UNKNOWN, WV_WIN32S, WV_95, WV_98, WV_ME, WV_NT, WV_W2K, WV_XP, WV_S2003, WV_XPX64, WV_VISTA, WV_WIN7, WV_WIN8, WV_WIN81, WV_WIN10};
-enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
+enum winVer{ WV_UNKNOWN, WV_WIN32S, WV_95, WV_98, WV_ME, WV_NT, WV_W2K, WV_XP, WV_S2003, WV_XPX64, WV_VISTA, WV_WIN7, WV_WIN8, WV_WIN81, WV_WIN10 };
+enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64, PF_ARM64 };
 
 
 
@@ -145,8 +145,10 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	#define NPPM_SETMENUITEMCHECK	(NPPMSG + 40)
 	//void WM_PIMENU_CHECK(UINT	funcItem[X]._cmdID, TRUE/FALSE)
 
-	#define NPPM_ADDTOOLBARICON (NPPMSG + 41)
-	//void WM_ADDTOOLBARICON(UINT funcItem[X]._cmdID, toolbarIcons icon)
+	#define NPPM_ADDTOOLBARICON_DEPRECATED (NPPMSG + 41)
+	//void NPPM_ADDTOOLBARICON(UINT funcItem[X]._cmdID, toolbarIcons iconHandles) -- DEPRECATED : use NPPM_ADDTOOLBARICON_FORDARKMODE instead
+	//2 formats of icon are needed: .ico & .bmp 
+	//Both handles below should be set so the icon will be displayed correctly if toolbar icon sets are changed by users
 		struct toolbarIcons {
 			HBITMAP	hToolbarBmp;
 			HICON	hToolbarIcon;
@@ -241,7 +243,6 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	// Reloads Buffer
 	// wParam: Buffer to reload
 	// lParam: 0 if no alert, else alert
-
 
 	#define NPPM_GETBUFFERLANGTYPE (NPPMSG + 64)
 	// INT NPPM_GETBUFFERLANGTYPE(UINT_PTR bufferID, 0)
@@ -345,7 +346,8 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	#define NPPM_ALLOCATEMARKER  (NPPMSG + 82)
     // BOOL NPPM_ALLOCATEMARKER(int numberRequested, int* startNumber)
     // sets startNumber to the initial command ID if successful
-    // Allocates a marker number to a plugin
+    // Allocates a marker number to a plugin: if a plugin need to add a marker on Notepad++'s Scintilla marker margin,
+	// it has to use this message to get marker number, in order to prevent from the conflict with the other plugins.
     // Returns: TRUE if successful, FALSE otherwise. startNumber will also be set to 0 if unsuccessful
 
 	#define NPPM_GETLANGUAGENAME  (NPPMSG + 83)
@@ -364,14 +366,14 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
     // You allocate a buffer of the length of (the number of characters + 1) then call NPPM_GETLANGUAGEDESC function the 2nd time
 	// by passing allocated buffer as argument langDesc
 
-	#define NPPM_SHOWDOCSWITCHER    (NPPMSG + 85)
-	// VOID NPPM_SHOWDOCSWITCHER(0, BOOL toShowOrNot)
-	// Send this message to show or hide doc switcher.
-	// if toShowOrNot is TRUE then show doc switcher, otherwise hide it.
+	#define NPPM_SHOWDOCLIST    (NPPMSG + 85)
+	// VOID NPPM_SHOWDOCLIST(0, BOOL toShowOrNot)
+	// Send this message to show or hide Document List.
+	// if toShowOrNot is TRUE then show Document List, otherwise hide it.
 
-	#define NPPM_ISDOCSWITCHERSHOWN    (NPPMSG + 86)
-	// BOOL NPPM_ISDOCSWITCHERSHOWN(0, 0)
-	// Check to see if doc switcher is shown.
+	#define NPPM_ISDOCLISTSHOWN    (NPPMSG + 86)
+	// BOOL NPPM_ISDOCLISTSHOWN(0, 0)
+	// Check to see if Document List is shown.
 
 	#define NPPM_GETAPPDATAPLUGINSALLOWED    (NPPMSG + 87)
 	// BOOL NPPM_GETAPPDATAPLUGINSALLOWED(0, 0)
@@ -381,9 +383,13 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	// INT NPPM_GETCURRENTVIEW(0, 0)
 	// Return: current edit view of Notepad++. Only 2 possible values: 0 = Main, 1 = Secondary
 
-	#define NPPM_DOCSWITCHERDISABLECOLUMN    (NPPMSG + 89)
-	// VOID NPPM_DOCSWITCHERDISABLECOLUMN(0, BOOL disableOrNot)
-	// Disable or enable extension column of doc switcher
+	#define NPPM_DOCLISTDISABLEEXTCOLUMN    (NPPMSG + 89)
+	// VOID NPPM_DOCLISTDISABLEEXTCOLUMN(0, BOOL disableOrNot)
+	// Disable or enable extension column of Document List
+
+	#define NPPM_DOCLISTDISABLEPATHCOLUMN    (NPPMSG + 102)
+	// VOID NPPM_DOCLISTDISABLEPATHCOLUMN(0, BOOL disableOrNot)
+	// Disable or enable path column of Document List
 
 	#define NPPM_GETEDITORDEFAULTFOREGROUNDCOLOR    (NPPMSG + 90)
 	// INT NPPM_GETEDITORDEFAULTFOREGROUNDCOLOR(0, 0)
@@ -437,6 +443,16 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	// INT NPPM_GETLINENUMBERWIDTHMODE(0, 0)
 	// Get line number margin width in dynamic width mode (LINENUMWIDTH_DYNAMIC) or constant width mode (LINENUMWIDTH_CONSTANT)
 
+	#define NPPM_ADDTOOLBARICON_FORDARKMODE (NPPMSG + 101)
+	// VOID NPPM_ADDTOOLBARICON_FORDARKMODE(UINT funcItem[X]._cmdID, toolbarIconsWithDarkMode iconHandles)
+	// Use NPPM_ADDTOOLBARICON_FORDARKMODE instead obsolete NPPM_ADDTOOLBARICON which doesn't support the dark mode
+	// 2 formats / 3 icons are needed:  1 * BMP + 2 * ICO 
+	// All 3 handles below should be set so the icon will be displayed correctly if toolbar icon sets are changed by users, also in dark mode
+	struct toolbarIconsWithDarkMode {
+		HBITMAP	hToolbarBmp;
+		HICON	hToolbarIcon;
+		HICON	hToolbarIconDarkMode;
+	};
 
 #define VAR_NOT_RECOGNIZED 0
 #define FULL_CURRENT_PATH 1
@@ -485,7 +501,7 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64 };
 	//scnNotification->nmhdr.idFrom = 0;
 
 	#define NPPN_TBMODIFICATION (NPPN_FIRST + 2) // To notify plugins that toolbar icons can be registered
-	//scnNotification->nmhdr.code = NPPN_TB_MODIFICATION;
+	//scnNotification->nmhdr.code = NPPN_TBMODIFICATION;
 	//scnNotification->nmhdr.hwndFrom = hwndNpp;
 	//scnNotification->nmhdr.idFrom = 0;
 
