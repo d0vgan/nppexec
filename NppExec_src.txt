@@ -1,5 +1,6 @@
 NppExec_build_*.bat
 NppExec_zip_*.bat
+NppExec_*.py
 NppExec_src.txt
 .gitignore
 README.md
