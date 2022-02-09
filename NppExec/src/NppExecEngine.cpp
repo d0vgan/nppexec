@@ -1968,7 +1968,7 @@ bool CScriptEngine::IsPrintingMsgReady() const
     return (m_nPrintingMsgReady == -1) ? m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_PRINTMSGREADY) : (m_nPrintingMsgReady != 0);
 }
 
-CScriptEngine::eNppExecCmdPrefix CScriptEngine::checkNppExecCmdPrefix(CNppExec* pNppExec, tstr& Cmd, bool bRemovePrefix)
+CScriptEngine::eNppExecCmdPrefix CScriptEngine::checkNppExecCmdPrefix(const CNppExec* pNppExec, tstr& Cmd, bool bRemovePrefix)
 {
     eNppExecCmdPrefix ret = CmdPrefixNone;
     int nPrefixLen = 0;
@@ -2452,6 +2452,42 @@ bool CScriptEngine::isCmdDirective(const CNppExec* , tstr& Cmd)
     return false;
 }
 
+int CScriptEngine::isCmdNppExecPrefixed(CNppExec* pNppExec, tstr& cmd, bool bRemovePrefix, bool bSubstituteMacroVars)
+{
+    // We don't call StrDelLeadingTabSpaces for 'cmd' as the leading space(s)
+    // can be a meaningful part of a command given to the child process 
+    // (example: Python, where indentation is important).
+    tstr s = cmd;
+    NppExecHelpers::StrDelLeadingTabSpaces(s);
+    eNppExecCmdPrefix cmdPrefix = checkNppExecCmdPrefix(pNppExec, s, bRemovePrefix);
+    if ( cmdPrefix != CmdPrefixNone )
+    {
+        cmd = s;
+        const eCmdType cmdType = getCmdType(pNppExec, s, ctfIgnorePrefix);
+
+        if ( bSubstituteMacroVars && !usesDelayedVarSubstitution(cmdType) )
+        {
+            CNppExecMacroVars& MacroVars = pNppExec->GetMacroVars();
+            MacroVars.CheckCmdAliases(cmd, true);
+            MacroVars.CheckAllMacroVars(nullptr, cmd, true);
+        }
+    }
+    else if ( bSubstituteMacroVars )
+    {
+        CNppExecMacroVars& MacroVars = pNppExec->GetMacroVars();
+        MacroVars.CheckCmdAliases(cmd, true);
+        MacroVars.CheckAllMacroVars(nullptr, cmd, true);
+
+        s = cmd;
+        NppExecHelpers::StrDelLeadingTabSpaces(s);
+        cmdPrefix = checkNppExecCmdPrefix(pNppExec, s, bRemovePrefix);
+        if ( cmdPrefix != CmdPrefixNone )
+            cmd = s;
+    }
+
+    return cmdPrefix;
+}
+
 bool CScriptEngine::isScriptCollateral(const CNppExec* pNppExec, const CListT<tstr>& CmdList)
 {
     bool isCollateral = false;
@@ -2562,7 +2598,6 @@ void CScriptEngine::removeLineEnding(tstr& Cmd)
 
 tCmdList CScriptEngine::getCollateralCmdListForChildProcess(CNppExec* pNppExec, const tCmdList& CmdList)
 {
-    CNppExecCommandExecutor& CommandExecutor = pNppExec->GetCommandExecutor();
     tCmdList CollateralCmdList;
     tstr Cmd;
     tstr CollateralCmd;
@@ -2571,7 +2606,7 @@ tCmdList CScriptEngine::getCollateralCmdListForChildProcess(CNppExec* pNppExec, 
     for ( auto pItem = CmdList.GetFirst(); pItem != NULL; pItem = pItem->GetNext() )
     {
         Cmd = pItem->GetItem();
-        int cmdPrefix = CommandExecutor.IsChildProcessCommandNppExecPrefixed(Cmd, true, false);
+        int cmdPrefix = isCmdNppExecPrefixed(pNppExec, Cmd, true, false);
         if ( cmdPrefix != CmdPrefixNone )
         {
             removeLineEnding(Cmd);

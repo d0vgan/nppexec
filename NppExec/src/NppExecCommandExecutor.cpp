@@ -573,48 +573,39 @@ void CNppExecCommandExecutor::SetTriedExitCmd(bool bTriedExitCmd)
         m_RunningScriptEngine->SetTriedExitCmd(bTriedExitCmd);
 }
 
-int CNppExecCommandExecutor::IsChildProcessCommandNppExecPrefixed(tstr& cmd, bool bRemovePrefix, bool bSubstituteMacroVars)
-{
-    // We don't call StrDelLeadingTabSpaces for 'cmd' as the leading space(s)
-    // can be a meaningful part of a command given to the child process 
-    // (example: Python, where indentation is important).
-    tstr s = cmd;
-    NppExecHelpers::StrDelLeadingTabSpaces(s);
-    CScriptEngine::eNppExecCmdPrefix cmdPrefix = CScriptEngine::checkNppExecCmdPrefix(m_pNppExec, s, bRemovePrefix);
-    if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
-    {
-        cmd = s;
-        const CScriptEngine::eCmdType cmdType = CScriptEngine::getCmdType(m_pNppExec, s, CScriptEngine::ctfIgnorePrefix);
-
-        if ( bSubstituteMacroVars && !CScriptEngine::usesDelayedVarSubstitution(cmdType) )
-        {
-            m_pNppExec->GetMacroVars().CheckCmdAliases(cmd, true);
-            m_pNppExec->GetMacroVars().CheckAllMacroVars(nullptr, cmd, true);
-        }
-    }
-    else if ( bSubstituteMacroVars )
-    {
-        m_pNppExec->GetMacroVars().CheckCmdAliases(cmd, true);
-        m_pNppExec->GetMacroVars().CheckAllMacroVars(nullptr, cmd, true);
-
-        s = cmd;
-        NppExecHelpers::StrDelLeadingTabSpaces(s);
-        cmdPrefix = CScriptEngine::checkNppExecCmdPrefix(m_pNppExec, s, bRemovePrefix);
-        if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
-            cmd = s;
-    }
-
-    return cmdPrefix;
-}
-
 void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd, bool bSubstituteMacroVars)
 {
     Runtime::GetLogger().AddEx_WithoutOutput( _T_RE_EOL _T("; @Child Process\'es Input: %s"), cmd.c_str() );
     Runtime::GetLogger().Add( _T("") );
 
     bool bScriptThreadRunning = false;
-    
-    int cmdPrefix = IsChildProcessCommandNppExecPrefixed(cmd, true, bSubstituteMacroVars);
+
+    int cmdPrefix = CScriptEngine::isCmdNppExecPrefixed(m_pNppExec, cmd, true, bSubstituteMacroVars);
+
+    if ( cmd.FindOneOf(_T("\r\n")) != -1 ) // multi-line command
+    {
+        if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
+        {
+            // restoring the prefix on the first line
+            tstr Prefix = m_pNppExec->GetOptions().GetStr(OPTS_NPPEXEC_CMD_PREFIX);
+            if ( cmdPrefix == CScriptEngine::CmdPrefixCollateralForced )
+            {
+                Prefix += Prefix.GetLastChar();
+            }
+            cmd.Insert(0, Prefix);
+        }
+
+        tCmdList CmdList;
+        CScriptEngine::getCmdListFromText(CmdList, cmd.c_str(), CScriptEngine::acfKeepLineEndings | CScriptEngine::acfAddEmptyLines);
+        tCmdList CollateralCmdList = CScriptEngine::getCollateralCmdListForChildProcess(m_pNppExec, CmdList);
+        if ( !CollateralCmdList.IsEmpty() )
+        {
+            const unsigned int nRunFlags = CScriptEngine::rfCollateralScript | CScriptEngine::rfShareLocalVars | CScriptEngine::rfShareConsoleState;
+            ExecuteCollateralScript(CollateralCmdList, tstr(), nRunFlags);
+            return;
+        }
+    }
+
     if ( cmdPrefix != CScriptEngine::CmdPrefixNone )
     {
         tstr S1 = cmd;

@@ -830,11 +830,12 @@ class CScriptEngine : public IScriptEngine
         const tstr& GetLastLoggedCmd() const  { return m_sLoggedCmd; }
         const tstr& GetLastCmdParams() const  { return m_sCmdParams; }
 
-        static eNppExecCmdPrefix checkNppExecCmdPrefix(CNppExec* pNppExec, tstr& Cmd, bool bRemovePrefix = true);
+        static eNppExecCmdPrefix checkNppExecCmdPrefix(const CNppExec* pNppExec, tstr& Cmd, bool bRemovePrefix = true);
         static eCmdType getCmdType(CNppExec* pNppExec, tstr& Cmd, unsigned int nFlags = ctfUseLogging|ctfReportError);
         static int      getOnOffParam(const tstr& param);
         static bool     isCmdCommentOrEmpty(const CNppExec* pNppExec, tstr& Cmd);
         static bool     isCmdDirective(const CNppExec* pNppExec, tstr& Cmd);
+        static int      isCmdNppExecPrefixed(CNppExec* pNppExec, tstr& cmd, bool bRemovePrefix, bool bSubstituteMacroVars);
         static bool     isScriptCollateral(const CNppExec* pNppExec, const CListT<tstr>& CmdList);
         static bool     isSkippingThisCommandDueToIfState(eCmdType cmdType, eIfState ifState);
         static bool     usesDelayedVarSubstitution(eCmdType cmdType);
