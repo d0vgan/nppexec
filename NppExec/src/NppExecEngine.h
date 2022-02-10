@@ -847,7 +847,7 @@ class CScriptEngine : public IScriptEngine
             acfAddEmptyLines   = 0x02
         };
         static void addCommandToList(CListT<tstr>& CmdList, tstr& Cmd, unsigned int nFlags);
-        static void getCmdListFromText(CListT<tstr>& CmdList, const TCHAR* pszText, unsigned int nFlags);
+        static tCmdList getCmdListFromText(const TCHAR* pszText, unsigned int nFlags);
         static void removeLineEndings(CListT<tstr>& CmdList);
         static void removeLineEnding(tstr& Cmd);
         static tCmdList getCollateralCmdListForChildProcess(CNppExec* pNppExec, const tCmdList& CmdList);

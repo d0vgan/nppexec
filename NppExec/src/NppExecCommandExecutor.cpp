@@ -595,8 +595,7 @@ void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd, bool bSubsti
             cmd.Insert(0, Prefix);
         }
 
-        tCmdList CmdList;
-        CScriptEngine::getCmdListFromText(CmdList, cmd.c_str(), CScriptEngine::acfKeepLineEndings | CScriptEngine::acfAddEmptyLines);
+        tCmdList CmdList = CScriptEngine::getCmdListFromText(cmd.c_str(), CScriptEngine::acfKeepLineEndings | CScriptEngine::acfAddEmptyLines);
         tCmdList CollateralCmdList = CScriptEngine::getCollateralCmdListForChildProcess(m_pNppExec, CmdList);
         if ( !CollateralCmdList.IsEmpty() )
         {

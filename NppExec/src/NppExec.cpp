@@ -4707,9 +4707,8 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
         pszText = sProcessedText.c_str();
     }
 
-    tCmdList CmdList;
     const unsigned int nCmdFlags = isChildProcess ? (CScriptEngine::acfKeepLineEndings | CScriptEngine::acfAddEmptyLines) : 0;
-    CScriptEngine::getCmdListFromText(CmdList, pszText, nCmdFlags);
+    tCmdList CmdList = CScriptEngine::getCmdListFromText(pszText, nCmdFlags);
 
     bool isCollateral = false;
     if ( ((nExecTextMode & etfCollateralWithChildProc) != 0 && isChildProcess) ||

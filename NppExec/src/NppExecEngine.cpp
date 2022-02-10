@@ -2523,12 +2523,11 @@ void CScriptEngine::addCommandToList(CListT<tstr>& CmdList, tstr& Cmd, unsigned 
     }
 }
 
-void CScriptEngine::getCmdListFromText(CListT<tstr>& CmdList, const TCHAR* pszText, unsigned int nFlags)
+tCmdList CScriptEngine::getCmdListFromText(const TCHAR* pszText, unsigned int nFlags)
 {
     TCHAR ch;
     tstr Line;
-
-    CmdList.Clear();
+    tCmdList CmdList;
 
     while ( (ch = *pszText) != 0 )
     {
@@ -2573,6 +2572,8 @@ void CScriptEngine::getCmdListFromText(CListT<tstr>& CmdList, const TCHAR* pszTe
     }
 
     addCommandToList( CmdList, Line, nFlags );
+
+    return CmdList;
 }
 
 void CScriptEngine::removeLineEndings(CListT<tstr>& CmdList)
@@ -5884,9 +5885,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
         pszText = sProcessedText.c_str();
     }
 
-    tCmdList CmdList;
     const unsigned int nCmdFlags = isChildProcess ? (acfKeepLineEndings | acfAddEmptyLines) : 0;
-    getCmdListFromText(CmdList, pszText, nCmdFlags);
+    tCmdList CmdList = getCmdListFromText(pszText, nCmdFlags);
 
     bool isCollateral = false;
     if ( ((nExecTextMode & CNppExec::etfCollateralWithChildProc) != 0 && isChildProcess) ||
