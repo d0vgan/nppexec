@@ -145,7 +145,8 @@ public:
         rfCollateralScript      = 0x0010, // is running as a collateral script
         rfStartScript           = 0x0020, // is running on start (NPPN_READY)
         rfExitScript            = 0x0040, // is running on exit (NPPN_SHUTDOWN)
-        rfExternal              = 0x0100  // initiated by external plugin
+        rfExternal              = 0x0100, // initiated by external plugin
+        rfShareConsoleLocalVars = 0x0200  // can be combined with rfShareLocalVars
     };
 
 public:

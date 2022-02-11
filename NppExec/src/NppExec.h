@@ -1512,7 +1512,8 @@ public:
     etfCollateralNoChildProc   = 0x04,
     etfCollateralWithChildProc = 0x08,
     etfNppExecPrefix           = 0x10,
-    etfLastScript              = 0x20
+    etfLastScript              = 0x20,
+    etfShareLocalVars          = 0x40
   };
 
 public:

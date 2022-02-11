@@ -763,13 +763,15 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  0:  use the given text as is;") _T_RE_EOL \
     _T("      if there is a running child process then send the text to") _T_RE_EOL \
     _T("      that process as an input;") _T_RE_EOL \
-    _T("  4:  if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
+    _T("  4:  (cs) if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
     _T("      no running child process then start a collateral script;") _T_RE_EOL \
-    _T("  8:  if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
+    _T("  8:  (cp) if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
     _T("      a running child process then start a collateral script;") _T_RE_EOL \
-    _T("  16: lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
-    _T("      NppExec (as NppExec's script commands) and will not be sent to") _T_RE_EOL \
-    _T("      a running child process.") _T_RE_EOL \
+    _T("  16: (ne) lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
+    _T("      NppExec (as NppExec's script commands) and will not be sent to a") _T_RE_EOL \
+    _T("      running child process;") _T_RE_EOL \
+    _T("  64: (sv) share local variables: npp_exectext uses and updates the existing") _T_RE_EOL \
+    _T("      local variables instead of its own local variables.") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  npp_exectext 0 $(CLIPBOARD_TEXT)") _T_RE_EOL \
     _T("  npp_exectext 28 $(SELECTED_TEXT) // process \"!collateral\" and \"nppexec:\"") _T_RE_EOL \
@@ -1711,19 +1713,21 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         0:  use the clipboard text as is;") _T_RE_EOL \
     _T("             if there is a running child process then send the clipboard") _T_RE_EOL \
     _T("             text to that process as an input;") _T_RE_EOL \
-    _T("         1:  substitute macro-vars in the clipboard text before the execution") _T_RE_EOL \
+    _T("         1:  (vs) substitute macro-vars in the clipboard text before the execution") _T_RE_EOL \
     _T("             if there is no running child process;") _T_RE_EOL \
-    _T("         2:  substitute macro-vars in the clipboard text before the execution") _T_RE_EOL \
+    _T("         2:  (vp) substitute macro-vars in the clipboard text before the execution") _T_RE_EOL \
     _T("             if there is a running child process;") _T_RE_EOL \
-    _T("         4:  if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
+    _T("         4:  (cs) if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
     _T("             there is no running child process then start a collateral script;") _T_RE_EOL \
-    _T("         8:  if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
+    _T("         8:  (cp) if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
     _T("             there is a running child process then start a collateral script;") _T_RE_EOL \
-    _T("         16: lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
+    _T("         16: (ne) lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
     _T("             NppExec (as NppExec's script commands) and will not be sent to") _T_RE_EOL \
     _T("             a running child process;") _T_RE_EOL \
-    _T("         32: update the last executed script: Execute Clipboard Text updates the") _T_RE_EOL \
-    _T("             commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \
+    _T("         32: (ls) update the last executed script: Execute Clipboard Text updates") _T_RE_EOL \
+    _T("             the commands that will be executed by Execute Previous NppExec Script;") _T_RE_EOL \
+    _T("         64: (sv) share local variables: Execute Clipboard Text uses and updates") _T_RE_EOL \
+    _T("             the existing local variables instead of its own local variables.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
     _T("         This option is saved as \"ExecClipTextMode\".") _T_RE_EOL \
     _T("         Default value: 60 (4+8+16+32).") _T_RE_EOL \
@@ -1732,19 +1736,21 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         0:  use the selected text as is;") _T_RE_EOL \
     _T("             if there is a running child process then send the selected") _T_RE_EOL \
     _T("             text to that process as an input;") _T_RE_EOL \
-    _T("         1:  substitute macro-vars in the selected text before the execution") _T_RE_EOL \
+    _T("         1:  (vs) substitute macro-vars in the selected text before the execution") _T_RE_EOL \
     _T("             if there is no running child process;") _T_RE_EOL \
-    _T("         2:  substitute macro-vars in the selected text before the execution") _T_RE_EOL \
+    _T("         2:  (vp) substitute macro-vars in the selected text before the execution") _T_RE_EOL \
     _T("             if there is a running child process;") _T_RE_EOL \
-    _T("         4:  if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
+    _T("         4:  (cs) if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
     _T("             there is no running child process then start a collateral script;") _T_RE_EOL \
-    _T("         8:  if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
+    _T("         8:  (cp) if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
     _T("             there is a running child process then start a collateral script;") _T_RE_EOL \
-    _T("         16: lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
+    _T("         16: (ne) lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
     _T("             NppExec (as NppExec's script commands) and will not be sent to") _T_RE_EOL \
     _T("             a running child process;") _T_RE_EOL \
-    _T("         32: update the last executed script: Execute Selected Text updates the") _T_RE_EOL \
-    _T("             commands that will be executed by Execute Previous NppExec Script.") _T_RE_EOL \
+    _T("         32: (ls) update the last executed script: Execute Selected Text updates the") _T_RE_EOL \
+    _T("             commands that will be executed by Execute Previous NppExec Script;") _T_RE_EOL \
+    _T("         64: (sv) share local variables: Execute Selected Text uses and updates") _T_RE_EOL \
+    _T("             the existing local variables instead of its own local variables.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
     _T("         This option is saved as \"ExecSelTextMode\".") _T_RE_EOL \
     _T("         Default value: 60 (4+8+16+32).") _T_RE_EOL \

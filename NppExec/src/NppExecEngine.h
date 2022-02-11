@@ -1516,7 +1516,22 @@ class CScriptEngine : public IScriptEngine
                 SavedConfiguration SavedConf;
                 CStrSplitT<TCHAR>  Args;
                 bool               IsNppExeced;
+                bool               IsSharingLocalVars;
                 int                IsPrintingMsgReady;
+
+                ScriptContext()
+                {
+                    CmdRange.pBegin = 0;
+                    CmdRange.pEnd = 0;
+                    IsNppExeced = false;
+                    IsSharingLocalVars = false;
+                    IsPrintingMsgReady = -1;
+                }
+
+                ~ScriptContext()
+                {
+                    SavedConf.Restore( &Runtime::GetNppExec() );
+                }
 
             protected:
                 CBufT<eIfState> IfState;
@@ -1566,18 +1581,6 @@ class CScriptEngine : public IScriptEngine
                 }
 
             public:
-                ScriptContext()
-                {
-                    CmdRange.pBegin = 0;
-                    CmdRange.pEnd = 0;
-                    IsNppExeced = false;
-                }
-
-                ~ScriptContext()
-                {
-                    SavedConf.Restore( &Runtime::GetNppExec() );
-                }
-
                 const int GetIfDepth() const
                 {
                     return IfState.size();

@@ -1568,6 +1568,12 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                 // goes wrong in that case we risk to end with empty local vars
                 // in the parent script. So copying is safer.
             }
+            else if ( m_nRunFlags & rfShareConsoleLocalVars )
+            {
+                // inheriting Console's local variables
+                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                currentScript.LocalMacroVars = m_pNppExec->GetMacroVars().GetUserConsoleMacroVars();
+            }
         }
         else if ( m_nRunFlags & rfConsoleLocalVarsRead )
         {
@@ -1786,6 +1792,13 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                             }
                         }
 
+                        if ( currentScript.IsSharingLocalVars )
+                        {
+                            auto pPrevContext = m_execState.ScriptContextList.GetLast()->GetPrev();
+                            if ( pPrevContext )
+                                pPrevContext->GetItem().LocalMacroVars = currentScript.LocalMacroVars;
+                        }
+
                         m_execState.ScriptContextList.DeleteLast();
                     }
                     else
@@ -1823,6 +1836,13 @@ void CScriptEngine::Run(unsigned int nRunFlags)
             ScriptContext& parentScriptContext = m_pParentScriptEngine->GetExecState().GetCurrentScriptContext();
             parentScriptContext.LocalMacroVars.swap(currentScriptContext.LocalMacroVars);
             parentScriptContext.IsPrintingMsgReady = currentScriptContext.IsPrintingMsgReady;
+        }
+        else if ( m_nRunFlags & rfShareConsoleLocalVars )
+        {
+            ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
+            CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+            //m_pNppExec->GetMacroVars().GetUserConsoleMacroVars().swap(currentScript.LocalMacroVars);
+            m_pNppExec->GetMacroVars().GetUserConsoleMacroVars() = currentScript.LocalMacroVars; // copying
         }
     }
     else if ( m_nRunFlags & rfConsoleLocalVarsWrite )
@@ -4554,6 +4574,8 @@ static void appendExecText(int nMode, tstr& S1, tstr& S2)
             addMode( _T("ne") );
         if ( nMode & CNppExec::etfLastScript )
             addMode( _T("ls") );
+        if ( nMode & CNppExec::etfShareLocalVars )
+            addMode( _T("sv") );
     }
     S2 += sMode;
 };
@@ -4767,7 +4789,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                 if ( argLen == 2 )
                     return true;
 
-                if ( argLen == 3 )
+                if ( argLen == 3 || argLen == 4 )
                 {
                     const TCHAR ch = NppExecHelpers::LatinCharUpper(arg[0]);
                     if ( ch == _T('C') || ch == _T('S') )
@@ -5725,7 +5747,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
                 scriptContext.CmdRange.pEnd = m_execState.pScriptLineCurrent->GetNext();
                 scriptContext.Args = args;
                 scriptContext.IsNppExeced = true;
-                scriptContext.IsPrintingMsgReady = -1;
 
                 int n = 0;
                 CListItemT<tstr>* pline = m_execState.pScriptLineCurrent;
@@ -5797,7 +5818,6 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
                         scriptContext.CmdRange.pEnd = m_execState.pScriptLineCurrent->GetNext();
                         scriptContext.Args = args;
                         scriptContext.IsNppExeced = true;
-                        scriptContext.IsPrintingMsgReady = -1;
 
                         int n = 0;
                         CListItemT<tstr>* pline = m_execState.pScriptLineCurrent;
@@ -5922,6 +5942,12 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
         }
     }
 
+    unsigned int nRunFlags = 0;
+    if ( nExecTextMode & CNppExec::etfShareLocalVars )
+    {
+        nRunFlags |= (rfShareLocalVars | rfShareConsoleLocalVars);
+    }
+
     bool bCreateScriptContextFromCmdList = false;
 
     if ( isCollateral )
@@ -5932,7 +5958,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
         {
             removeLineEndings(CmdList);
         }
-        CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), rfCollateralScript);
+        CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), nRunFlags | rfCollateralScript);
     }
     else if ( isChildProcess )
     {
@@ -5972,7 +5998,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
             scriptContext.CmdRange.pEnd = m_execState.pScriptLineCurrent->GetNext();
             scriptContext.Args = m_execState.GetCurrentScriptContext().Args;
             scriptContext.IsNppExeced = true;
-            scriptContext.IsPrintingMsgReady = -1;
+            if ( nRunFlags & rfShareLocalVars )
+            {
+                scriptContext.IsSharingLocalVars = true;
+                scriptContext.LocalMacroVars = m_execState.GetCurrentScriptContext().LocalMacroVars;
+            }
 
             int n = 0;
             CListItemT<tstr>* pline = m_execState.pScriptLineCurrent;

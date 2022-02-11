@@ -4695,6 +4695,12 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
     CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
     const bool isChildProcess = CommandExecutor.IsChildProcessRunning();
 
+    unsigned int nRunFlags = 0;
+    if ( nExecTextMode & etfShareLocalVars )
+    {
+        nRunFlags |= (IScriptEngine::rfShareLocalVars | IScriptEngine::rfShareConsoleLocalVars);
+    }
+
     tstr sProcessedText;
     const TCHAR* pszText = sText.c_str();
     if ( ((nExecTextMode & etfMacroVarsWithChildProc) != 0 && isChildProcess) ||
@@ -4729,7 +4735,7 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
             {
                 SetCmdList(CmdList);
             }
-            CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), IScriptEngine::rfCollateralScript);
+            CommandExecutor.ExecuteCollateralScript(CmdList, tstr(), nRunFlags | IScriptEngine::rfCollateralScript);
         }
     }
     else if ( isChildProcess )
@@ -4745,7 +4751,7 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
             }
             else
             {
-                CommandExecutor.ExecuteCollateralScript(CollateralCmdList, tstr(), IScriptEngine::rfCollateralScript | IScriptEngine::rfShareLocalVars);
+                CommandExecutor.ExecuteCollateralScript(CollateralCmdList, tstr(), nRunFlags | IScriptEngine::rfCollateralScript | IScriptEngine::rfShareLocalVars);
             }
         }
         else
@@ -4762,7 +4768,7 @@ void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
             {
                 SetCmdList(CmdList);
             }
-            CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, 0);
+            CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, nRunFlags);
             CommandExecutor.ExecuteCommand(pCommand);
         }
     }
