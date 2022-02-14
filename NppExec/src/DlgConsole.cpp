@@ -3362,10 +3362,28 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
   {
     static bool  bCommandEntered = false;
     static bool  bDoubleClkEntered = false;
+    static bool  bFuncItemEntered = false;
+
+    MSGFILTER* lpmsgf = (MSGFILTER*) lParam;
+
+    switch (lpmsgf->msg)
+    {
+        case WM_KEYDOWN:
+        case WM_KEYUP:
+        case WM_CHAR:
+        case WM_SYSKEYDOWN:
+        case WM_SYSKEYUP:
+        case WM_SYSCHAR:
+        case WM_LBUTTONDOWN:
+        case WM_LBUTTONUP:
+        case WM_LBUTTONDBLCLK:
+            break; // these messages are processed below
+
+        default:
+            return 0; // we are not interested in the rest of the messages
+    }
 
     CAnyRichEdit Edit;
-    MSGFILTER*   lpmsgf = (MSGFILTER*) lParam;
-
     Edit.m_hWnd = GetDlgItem(hDlg, IDC_RE_CONSOLE);
 
     // All the following code (for EN_MSGFILTER)
@@ -3721,7 +3739,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 #endif          
 
         SetFocus( GetDlgItem(hDlg, IDC_RE_CONSOLE) );
-        if (lpmsgf->msg != WM_SYSKEYDOWN)
+        if (lpmsgf->msg != WM_SYSKEYDOWN && lpmsgf->msg != WM_SYSKEYUP && lpmsgf->msg != WM_SYSCHAR)
             return 0;
     }
     // <<< bAlt
@@ -3838,17 +3856,36 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     #endif
 
                     Runtime::GetLogger().AddEx( _T("; Hot-key: executing function [%d], \"%s\""), i, g_funcItem[i]._itemName );
-                    
+
+                    lpmsgf->msg = 0;
                     lpmsgf->wParam = 0;
                     if ( g_funcItem[i]._pFunc )
                         g_funcItem[i]._pFunc();
+                    bFuncItemEntered = true;
                     return 0;
                 }
             }
         }
     }
     // <<< WM_KEYDOWN && hot-key
-    
+
+    if ( bFuncItemEntered )
+    {
+        if ( lpmsgf->msg == WM_CHAR || lpmsgf->msg == WM_SYSCHAR )
+        {
+            lpmsgf->msg = 0; // disables the "bell" sound when e.g. Alt+Enter is pressed
+            lpmsgf->wParam = 0;
+            return 0;
+        }
+        else if ( lpmsgf->msg == WM_KEYUP || lpmsgf->msg == WM_SYSKEYUP )
+        {
+            bFuncItemEntered = false;
+            lpmsgf->msg = 0;
+            lpmsgf->wParam = 0;
+            return 0;
+        }
+    }
+
     // >>> (VK_UP || VK_DOWN) && (WM_KEYDOWN || WM_KEYUP)
     if (Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_CMDHISTORY) && 
         ((lpmsgf->wParam == VK_UP) || (lpmsgf->wParam == VK_DOWN)) &&

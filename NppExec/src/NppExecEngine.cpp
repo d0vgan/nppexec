@@ -1796,7 +1796,10 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                         {
                             auto pPrevContext = m_execState.ScriptContextList.GetLast()->GetPrev();
                             if ( pPrevContext )
-                                pPrevContext->GetItem().LocalMacroVars = currentScript.LocalMacroVars;
+                            {
+                                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                                pPrevContext->GetItem().LocalMacroVars.swap(currentScript.LocalMacroVars);
+                            }
                         }
 
                         m_execState.ScriptContextList.DeleteLast();
@@ -6001,6 +6004,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
             if ( nRunFlags & rfShareLocalVars )
             {
                 scriptContext.IsSharingLocalVars = true;
+                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
                 scriptContext.LocalMacroVars = m_execState.GetCurrentScriptContext().LocalMacroVars;
             }
 

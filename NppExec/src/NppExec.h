@@ -52,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * changed: now "help" command works in NppExec's scripts.
  * npp_files updated to Notepad++ 8.2.2.
  - fixed: now "set local" (without an argument) prints only local vars.
+ - fixed: "npe_console k3" did not work with Alt+key.
  + NppExec Manual updated
 
 
