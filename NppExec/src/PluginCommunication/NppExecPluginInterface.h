@@ -129,7 +129,7 @@ class CNppExecPluginInterfaceImpl
 
     public:
         static void addCommand(CListT<tstr>& CmdList, tstr& Cmd);
-        static void getCmdListFromScriptBody(CListT<tstr>& CmdList, const TCHAR* szScriptBody);
+        static CListT<tstr> getCmdListFromScriptBody(const TCHAR* szScriptBody);
 
     protected:
         CNppExec* m_pNppExec;

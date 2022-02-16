@@ -414,8 +414,7 @@ DWORD WINAPI CNppExecPluginInterfaceImpl::BackgroundExecAsyncCmdThreadFunc(LPVOI
             if ( pExecAsyncCmdItem != NULL )
             {
                 AsyncCmd& Cmd = pExecAsyncCmdItem->GetItem();
-                CListT<tstr> CmdList;
-                getCmdListFromScriptBody(CmdList, Cmd.GetScriptBody().c_str());
+                CListT<tstr> CmdList = getCmdListFromScriptBody(Cmd.GetScriptBody().c_str());
                 CNppExec* pNppExec = pImpl->GetNppExec();
                 pNppExec->initConsoleDialog();
                 if ( pNppExec->checkCmdListAndPrepareConsole(CmdList, false) )
@@ -586,11 +585,11 @@ void CNppExecPluginInterfaceImpl::addCommand(CListT<tstr>& CmdList, tstr& Cmd)
     }
 }
 
-void CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CListT<tstr>& CmdList, const TCHAR* szScriptBody)
+CListT<tstr> CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(const TCHAR* szScriptBody)
 {
     tstr Line;
-    
-    CmdList.Clear();
+    CListT<tstr> CmdList;
+
     while ( *szScriptBody )
     {
         if ( *szScriptBody == _T('\n') )
@@ -605,12 +604,13 @@ void CNppExecPluginInterfaceImpl::getCmdListFromScriptBody(CListT<tstr>& CmdList
         ++szScriptBody;
     }
     addCommand( CmdList, Line );
+
+    return CmdList;
 }
 
 void CNppExecPluginInterfaceImpl::npemExecuteScript(const tstr& id, const TCHAR* szScriptBody)
 {
-    CListT<tstr> CmdList;
-    getCmdListFromScriptBody(CmdList, szScriptBody);
+    CListT<tstr> CmdList = getCmdListFromScriptBody(szScriptBody);
     m_pNppExec->SetCmdList(CmdList);
     m_pNppExec->OnDirectExec(id, true, IScriptEngine::rfExternal);
 }
