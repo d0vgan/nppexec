@@ -1297,6 +1297,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set ans ~ 1 + 2*(3 + 4) - 0x5  // calculates the expression") _T_RE_EOL \
     _T("  set ans ~ 0x001 | 0x010 | 0x100  // calculates the expression") _T_RE_EOL \
     _T("  set ans ~ hex(0x001 | 0x010 | 0x100)  // calculates as hexadecimal") _T_RE_EOL \
+    _T("  // strlen:") _T_RE_EOL \
     _T("  set n ~ strlen   ABC D   // sets n=5 (skipping leading & trailing spaces)") _T_RE_EOL \
     _T("  set n ~ strlen \"  ABC \"  // sets n=8 (including spaces & double quotes)") _T_RE_EOL \
     _T("  // in case of non-Latin characters, strlenutf8 may differ from strlen:") _T_RE_EOL \
