@@ -13,7 +13,8 @@
 #define NPE_SF_BACKWARD     0x00010000 // search backward (from the bottom to the top)
 #define NPE_SF_NEXT         0x00020000 // search from current_position + 1
 #define NPE_SF_INSELECTION  0x00100000 // search only in the selected text
-#define NPE_SF_INWHOLETEXT  0x00200000 // search in the whole text, not only from the current position
+#define NPE_SF_INENTIRETEXT 0x00200000 // search in the entire text, not only from the current position
+#define NPE_SF_INWHOLETEXT  0x00200000 // search in the entire text, not only from the current position
 #define NPE_SF_SETPOS       0x01000000 // move the caret to the position of the occurrence found
 #define NPE_SF_SETSEL       0x02000000 // move the caret + select the occurrence found
 #define NPE_SF_REPLACEALL   0x10000000 // replace all the occurrences from the current pos to the end

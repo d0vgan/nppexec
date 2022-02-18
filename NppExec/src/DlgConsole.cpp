@@ -162,10 +162,10 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("sel_save <file> : <encoding>  -  see \"sel_saveto\"") _T_RE_EOL \
   _T("sel_settext <text>  -  replace current selection with the text specified") _T_RE_EOL \
   _T("sel_settext+ <text>  -  replace current selection with the text specified") _T_RE_EOL \
-  _T("text_loadfrom <file>  -  replace the whole text with a file\'s content") _T_RE_EOL \
+  _T("text_loadfrom <file>  -  replace the entire text with a file\'s content") _T_RE_EOL \
   _T("text_load <file>  -  see \"text_loadfrom\"") _T_RE_EOL \
-  _T("text_saveto <file>  -  save the whole text to a file") _T_RE_EOL \
-  _T("text_saveto <file> : <encoding>  -  save the whole text to a file") _T_RE_EOL \
+  _T("text_saveto <file>  -  save the entire text to a file") _T_RE_EOL \
+  _T("text_saveto <file> : <encoding>  -  save the entire text to a file") _T_RE_EOL \
   _T("text_save <file> : <encoding>  -  see \"text_saveto\"") _T_RE_EOL \
   _T("clip_settext <text>  -  set the clipboard text") _T_RE_EOL \
   _T("npp_exec <script>  -  execute commands from specified NppExec\'s script") _T_RE_EOL \
@@ -367,8 +367,8 @@ typedef struct sCmdItemInfo {
   _T("      - search from current_position + 1") _T_RE_EOL \
   _T("    NPE_SF_INSELECTION = 0x00100000") _T_RE_EOL \
   _T("      - search only in the selected text") _T_RE_EOL \
-  _T("    NPE_SF_INWHOLETEXT = 0x00200000") _T_RE_EOL \
-  _T("      - search in the whole text, not only from the current position") _T_RE_EOL \
+  _T("    NPE_SF_INENTIRETEXT = 0x00200000") _T_RE_EOL \
+  _T("      - search in the entire text, not only from the current position") _T_RE_EOL \
   _T("    NPE_SF_SETPOS      = 0x01000000") _T_RE_EOL \
   _T("      - move the caret to the position of the occurrence found") _T_RE_EOL \
   _T("    NPE_SF_SETSEL      = 0x02000000") _T_RE_EOL \
@@ -1106,18 +1106,18 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  sci_find \"NPE_SF_BACKWARD | NPE_SF_SETSEL\" \"some text\"  // the same") _T_RE_EOL \
     _T("  set local flags ~ NPE_SF_BACKWARD | NPE_SF_SETSEL") _T_RE_EOL \
     _T("  sci_find $(flags) \"some text\"  // the same") _T_RE_EOL \
-    _T("  // search for a regular expression in the whole text, select if found:") _T_RE_EOL \
-    _T("  set local flags ~ NPE_SF_REGEXP | NPE_SF_INWHOLETEXT | NPE_SF_SETSEL") _T_RE_EOL \
+    _T("  // search for a regular expression in the entire text, select if found:") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_REGEXP | NPE_SF_INENTIRETEXT | NPE_SF_SETSEL") _T_RE_EOL \
     _T("  sci_find $(flags) \"[0-9]+\"") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  With NPE_SF_PRINTALL, it is possible to achieve a functionality similar to") _T_RE_EOL \
     _T("  (but not equal to) the standard \"Find result\" window.") _T_RE_EOL \
     _T("  Let's assume you want to find all occurrences of \"abc\":") _T_RE_EOL \
-    _T("    sci_find NPE_SF_INWHOLETEXT|NPE_SF_PRINTALL \"abc\"") _T_RE_EOL \
+    _T("    sci_find NPE_SF_INENTIRETEXT|NPE_SF_PRINTALL \"abc\"") _T_RE_EOL \
     _T("  This will print all the occurrences of \"abc\" in the Console in a form of:") _T_RE_EOL \
     _T("    (<line>,<column>)\t abc") _T_RE_EOL \
     _T("  In case of searching with regular expressions, e.g.") _T_RE_EOL \
-    _T("    sci_find NPE_SF_INWHOLETEXT|NPE_SF_REGEXP|NPE_SF_PRINTALL \"WM_[A-Z_]+\"") _T_RE_EOL \
+    _T("    sci_find NPE_SF_INENTIRETEXT|NPE_SF_REGEXP|NPE_SF_PRINTALL \"WM_[A-Z_]+\"") _T_RE_EOL \
     _T("  the results will be printed in a form of:") _T_RE_EOL \
     _T("    (<line>,<column>)\t <matched_string>") _T_RE_EOL \
     _T("  The \"(<line>,<column>)\" part and the matched string part are always separated") _T_RE_EOL \
@@ -1151,9 +1151,9 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  // replace the first occurrence of \"some text\" with nothing:") _T_RE_EOL \
     _T("  sci_replace 0 \"some text\"") _T_RE_EOL \
     _T("  // replace all occurrences of \"some text\" with nothing:") _T_RE_EOL \
-    _T("  sci_replace NPE_SF_INWHOLETEXT|NPE_SF_REPLACEALL \"some text\"") _T_RE_EOL \
+    _T("  sci_replace NPE_SF_INENTIRETEXT|NPE_SF_REPLACEALL \"some text\"") _T_RE_EOL \
     _T("  // replace all occurrences of \"some text\" with \"other text\":") _T_RE_EOL \
-    _T("  sci_replace NPE_SF_INWHOLETEXT|NPE_SF_REPLACEALL \"some text\" \"other text\"") _T_RE_EOL \
+    _T("  sci_replace NPE_SF_INENTIRETEXT|NPE_SF_REPLACEALL \"some text\" \"other text\"") _T_RE_EOL \
     _T("  // replace all occurrences in the selection, searching backward:") _T_RE_EOL \
     _T("  set local flags ~ NPE_SF_INSELECTION | NPE_SF_REPLACEALL | NPE_SF_BACKWARD") _T_RE_EOL \
     _T("  sci_replace $(flags) \"some text\" \"other text\"") _T_RE_EOL \
@@ -1175,7 +1175,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  The combination of NPE_SF_REPLACEALL|NPE_SF_PRINTALL|NPE_SF_BACKWARD will") _T_RE_EOL \
     _T("  most likely lead to incorrect character positions printed in the Console.") _T_RE_EOL \
     _T("  Why? Because each replacement with a string of different length changes the") _T_RE_EOL \
-    _T("  length of the whole text. And while the replacements are being done from") _T_RE_EOL \
+    _T("  length of the entire text. And while the replacements are being done from") _T_RE_EOL \
     _T("  the bottom to the top, each new replacement changes the offsets of all the") _T_RE_EOL \
     _T("  strings below it, affecting the positions of the occurrences that have") _T_RE_EOL \
     _T("  already been printed in the Console. (And yes, it proves that when you tell") _T_RE_EOL \
@@ -1986,7 +1986,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  \\r  - carriage return (CR) character;") _T_RE_EOL \
     _T("  \\t  - tabulation character;") _T_RE_EOL \
     _T("  \\\\  - \\;  \\\\n - \\n;  \\\\t - \\t.") _T_RE_EOL \
-    _T("  To replace the whole text rather than the selected text, use") _T_RE_EOL \
+    _T("  To replace the entire text rather than the selected text, use") _T_RE_EOL \
     _T("  the following script:") _T_RE_EOL \
     _T("    // 1. disabling redrawing") _T_RE_EOL \
     _T("    sci_sendmsg 0x000B 0 // WM_SETREDRAW FALSE") _T_RE_EOL \
@@ -2007,7 +2007,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("USAGE:") _T_RE_EOL \
     _T("  text_loadfrom <file>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
-    _T("  Replaces the whole text with the file\'s content") _T_RE_EOL \
+    _T("  Replaces the entire text with the file\'s content") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  text_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
@@ -2027,8 +2027,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  text_saveto <file>") _T_RE_EOL \
     _T("  text_saveto <file> : <encoding>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
-    _T("  1. Saves the whole text (in its current encoding) to a file") _T_RE_EOL \
-    _T("  2. Saves the whole text (converted to specified encoding) to a file") _T_RE_EOL \
+    _T("  1. Saves the entire text (in its current encoding) to a file") _T_RE_EOL \
+    _T("  2. Saves the entire text (converted to specified encoding) to a file") _T_RE_EOL \
     _T("     <encoding> may be:  a (ANSI), u (UTF-8), w (UCS-2 LE)") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  text_saveto c:\\temp\\output.txt // may be ANSI, UTF-8 or DBCS file") _T_RE_EOL \

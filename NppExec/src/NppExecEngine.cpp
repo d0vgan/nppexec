@@ -113,7 +113,7 @@ const TCHAR DIRECTIVE_COLLATERAL[]      = _T("!COLLATERAL");
 #define NPE_SF_BACKWARD     0x00010000 // search backward (from the bottom to the top)
 #define NPE_SF_NEXT         0x00020000 // search from current_position + 1
 #define NPE_SF_INSELECTION  0x00100000 // search only in the selected text
-#define NPE_SF_INWHOLETEXT  0x00200000 // search in the whole text, not only from the current position
+#define NPE_SF_INENTIRETEXT 0x00200000 // search in the entire text, not only from the current position
 #define NPE_SF_SETPOS       0x01000000 // move the caret to the position of the occurrence found
 #define NPE_SF_SETSEL       0x02000000 // move the caret + select the occurrence found
 #define NPE_SF_REPLACEALL   0x10000000 // replace all the occurrences from the current pos to the end
@@ -1302,13 +1302,13 @@ static FParserWrapper g_fp;
  * sel_settext+ <text>
  *   - replace current selection with the text specified
  * text_loadfrom <file> 
- *   - replace the whole text with a file's content
+ *   - replace the entire text with a file's content
  * text_load <file> 
  *   - see "text_loadfrom"
  * text_saveto <file>
- *   - save the whole text (in current encoding) to a file
+ *   - save the entire text (in current encoding) to a file
  * text_saveto <file> : <encoding>
- *   - save the whole text (in specified encoding) to a file
+ *   - save the entire text (in specified encoding) to a file
  * text_save <file> : <encoding>
  *   - see "text_saveto"
  * clip_settext <text>
@@ -6940,9 +6940,9 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
     INT_PTR nRangeStart = -1, nRangeEnd = -1;
     if ( (nFlags & NPE_SF_PRINTALL) || bReplacingAll )
     {
-        if ( nFlags & NPE_SF_INWHOLETEXT )
+        if ( nFlags & NPE_SF_INENTIRETEXT )
         {
-            // in the whole text
+            // in the entire text
             nRangeStart = 0;
             nRangeEnd = nTextLength;
         }
@@ -7169,7 +7169,7 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
             ::SendMessage(hSci, SCI_SETTARGETRANGE, nRangeStart, nRangeEnd);
 
         nPos = (INT_PTR) ::SendMessage( hSci, SCI_SEARCHINTARGET, (WPARAM) nFindStrLen, (LPARAM) (pFindStr ? pFindStr : "") );
-        if ( (nPos < 0) && (nFlags & NPE_SF_INWHOLETEXT) )
+        if ( (nPos < 0) && (nFlags & NPE_SF_INENTIRETEXT) )
         {
             // search again - in the rest of the document...
             if ( nFlags & NPE_SF_INSELECTION )

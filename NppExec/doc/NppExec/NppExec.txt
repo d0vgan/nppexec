@@ -84,10 +84,10 @@
  *        sel_save <file> : <encoding> - see "sel_saveto"
  *        sel_settext <text> - replace current selection with the text specified
  *        sel_settext+ <text> - replace current selection with the text specified
- *        text_loadfrom <file> - replace the whole text with a file's content
+ *        text_loadfrom <file> - replace the entire text with a file's content
  *        text_load <file> - see "text_loadfrom"
- *        text_saveto <file> - save the whole text to a file
- *        text_saveto <file> : <encoding> - save the whole text to a file
+ *        text_saveto <file> - save the entire text to a file
+ *        text_saveto <file> : <encoding> - save the entire text to a file
  *        text_save <file> : <encoding> - see "text_saveto"
  *        clip_settext <text> : set the clipboard text
  *        npp_exec <script> - execute commands from specified NppExec's script
