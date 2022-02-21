@@ -8,7 +8,7 @@
 <BODY>
 <h3>4.6.11. Clone current document to new editor pane</h3>
 
-<p>Let's consider the following scenario: you want to copy the whole content of the current document (opened in Notepad++) and paste it to a new editor pane.</p>
+<p>Let's consider the following scenario: you want to copy the entire content of the current document (opened in Notepad++) and paste it to a new editor pane.</p>
 <p>The first implementation that comes to your mind is:</p>
 <ol>
   <li>save the current position of the caret;</li>
@@ -45,13 +45,13 @@ NPP_SENDMSG WM_COMMAND IDM_FILE_NEW
 sci_sendmsg SCI_PASTE</pre>
 </blockquote>
 
-<p>Inspecting the Scintilla's documentation further, we can notice SCI_COPYRANGE that allows to simplify the whole script:</p>
+<p>Inspecting the Scintilla's documentation further, we can notice SCI_COPYRANGE that allows to simplify the entire script:</p>
 <blockquote>
   <pre>// getting the length of the document
 sci_sendmsg SCI_GETTEXTLENGTH
 set local textlength = $(MSG_RESULT)
 
-// copying the whole text to the clipboard
+// copying the entire text to the clipboard
 sci_sendmsg SCI_COPYRANGE 0 $(textlength)
 
 // open new editor pane
@@ -91,7 +91,7 @@ set local firstvisibleline = $(MSG_RESULT)
 sci_sendmsg SCI_GETTEXTLENGTH
 set local textlength = $(MSG_RESULT)
 
-// copying the whole text to the clipboard
+// copying the entire text to the clipboard
 sci_sendmsg SCI_COPYRANGE 0 $(textlength)
 
 // opening a new editor pane (new document)

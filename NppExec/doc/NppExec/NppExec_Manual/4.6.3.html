@@ -10,7 +10,7 @@
 <p>There are two ways (or forms) to get the text selected in Notepad++: </p>
 <ol>
   <li>Using pre-defined <a href="3.8.1.html">[3.8.1]</a> variable $(CURRENT_WORD) which can store limited number of selected characters; </li>
-  <li>Using SEL_SAVETO &quot;FilePathName&quot; to save the whole selected text into a text file specified. </li>
+  <li>Using SEL_SAVETO &quot;FilePathName&quot; to save the entire selected text into a text file specified. </li>
 </ol>
 <p>Then the selected text can be processed by some external tool as shown in <a href="4.6.1.html">[4.6.1]</a>. </p>
 <p>There are two ways (or forms) to replace the selected text with the text you want: </p>
@@ -55,7 +55,7 @@ SEL_LOADFROM $(SYS.TEMP)\out.txt</pre>
 SEL_SETTEXT $(OUTPUT)</pre>
   </blockquote>
 </blockquote>
-<p>The very last approach needs several additional steps. The $(OUTPUT) variable stores the whole external tool's output while NPE_CONSOLE V+ has been set. Let's see an example of such approach. </p>
+<p>The very last approach needs several additional steps. The $(OUTPUT) variable stores the entire external tool's output while NPE_CONSOLE V+ has been set. Let's see an example of such approach. </p>
 <p>Let's assume you select a word such as &quot;copy&quot;, &quot;dir&quot;, &quot;cd&quot; etc. and want to replace this word with its description from cmd's help. You can use $(CURRENT_WORD) variable to pass the selected word to cmd.exe. Also you want to replace the selected word with cmd's output. You can use $(OUTPUT) variable to do it. Here is the full NppExec's script which allows you to get the desired result: </p>
 <blockquote>
   <pre>// enable $(OUTPUT) variable within the current NppExec's script
@@ -80,7 +80,7 @@ SEL_SETTEXT $(OUTPUT)
   <li>Press OK </li>
   <li>Enjoy the result :-) </li>
 </ol>
-<p>The $(OUTPUT) variable is disabled by default to minimize the memory usage as this variable stores the whole external process'es output when enabled. </p>
+<p>The $(OUTPUT) variable is disabled by default to minimize the memory usage as this variable stores the entire external process'es output when enabled. </p>
 <p>You can clear this variable by assigning an empty value to it: </p>
 <blockquote>
   <pre>SET $(OUTPUT) =</pre>
