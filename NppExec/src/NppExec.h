@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.7.9.9 - February 2022
- ------------------------
+ v0.8 - February 2022
+ --------------------
  + added: built-in highlight filter that catches most of compiler error
    messages, thanks to David Maisonave.
    This filter is disabled by default to avoid an impact on performance.
@@ -50,7 +50,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * changed: the menu item "Disable command aliases" has been removed. Use
    the "npe_console q+/q-" instead.
  * changed: now "help" command works in NppExec's scripts.
- * npp_files updated to Notepad++ 8.2.2.
+ * npp_files updated to Notepad++ 8.3.
+ * note: 32-bit NppExec is compatible with Notepad++ 7.9.2 under Windows XP.
  - fixed: now "set local" (without an argument) prints only local vars.
  - fixed: "npe_console k3" did not work with Alt+key.
  + NppExec Manual updated
@@ -674,8 +675,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x07F9
-#define NPPEXEC_VER_STR   _T("0.7.9.9")
+#define NPPEXEC_VER_DWORD 0x08F0
+#define NPPEXEC_VER_STR   _T("0.8")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

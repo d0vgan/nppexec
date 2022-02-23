@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /****************************************************************************
- * NppExec plugin ver. 0.7.9.9 for Notepad++
+ * NppExec plugin ver. 0.8 for Notepad++
  * by DV <dvv81 @ ukr.net>, December 2006 - February 2022
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
