@@ -180,6 +180,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(NPP_FULL_FILE_PATH) : full path to notepad++.exe
  *        $(CURRENT_WORD)       : word(s) you selected in Notepad++
  *        $(CURRENT_LINE)       : current line number
+ *        $(CURRENT_LINESTR)    : text of the current line
  *        $(CURRENT_COLUMN)     : current column number
  *   7) Additional environment variables:
  *        $(SELECTED_TEXT)      : the text you selected in Notepad++

@@ -70,6 +70,7 @@ const TCHAR MACRO_WORKSPACE_ITEM_ROOT[] = _T("$(WORKSPACE_ITEM_ROOT)");
 /* const TCHAR MACRO_WORKSPACE_FOLDER[]    = _T("$(WORKSPACE_FOLDER"); */
 const TCHAR MACRO_CLOUD_LOCATION_PATH[] = _T("$(CLOUD_LOCATION_PATH)");
 const TCHAR MACRO_CURRENT_LINE[]        = _T("$(CURRENT_LINE)");
+const TCHAR MACRO_CURRENT_LINESTR[]     = _T("$(CURRENT_LINESTR)");
 const TCHAR MACRO_CURRENT_COLUMN[]      = _T("$(CURRENT_COLUMN)");
 const TCHAR MACRO_DOCNUMBER[]           = _T("$(#");
 const TCHAR MACRO_SYSVAR[]              = _T("$(SYS.");
@@ -1426,6 +1427,7 @@ static FParserWrapper g_fp;
  * $(NPP_FULL_FILE_PATH) : full path to notepad++.exe
  * $(CURRENT_WORD)       : word(s) you selected in Notepad++
  * $(CURRENT_LINE)       : current line number
+ * $(CURRENT_LINESTR)    : text of the current line
  * $(CURRENT_COLUMN)     : current column number
  *
  * Additional environment variables:
@@ -8021,37 +8023,28 @@ bool CNppExecMacroVars::CheckNppMacroVars(tstr& S, int& pos)
 #endif
   //if (StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0)
   {
-    const int    NPPSTR_COUNT = 9; // strings
+    typedef struct sNppVarMsg {
+        const TCHAR* str;
+        UINT msg;
+    } tNppVarMsg;
+
+    const int    NPPSTR_COUNT = 10; // strings
     const int    NPPVAR_COUNT = NPPSTR_COUNT + 2; // strings + numbers
-    const TCHAR* NPPVAR_STRINGS[NPPVAR_COUNT] = {
+    const tNppVarMsg NPPVARMSGS[NPPVAR_COUNT] = {
       // getting strings:
-      MACRO_FILE_FULLPATH,
-      MACRO_FILE_DIRPATH,
-      MACRO_FILE_FULLNAME,
-      MACRO_FILE_NAMEONLY,
-      MACRO_FILE_EXTONLY,
-      MACRO_NPP_DIRECTORY,
-      MACRO_NPP_FULL_FILE_PATH,
-      MACRO_CURRENT_WORD,
-      MACRO_FILE_NAME_AT_CURSOR,
+      { MACRO_FILE_FULLPATH,       NPPM_GETFULLCURRENTPATH },
+      { MACRO_FILE_DIRPATH,        NPPM_GETCURRENTDIRECTORY },
+      { MACRO_FILE_FULLNAME,       NPPM_GETFILENAME },
+      { MACRO_FILE_NAMEONLY,       NPPM_GETNAMEPART },
+      { MACRO_FILE_EXTONLY,        NPPM_GETEXTPART },
+      { MACRO_NPP_DIRECTORY,       NPPM_GETNPPDIRECTORY },
+      { MACRO_NPP_FULL_FILE_PATH,  NPPM_GETNPPFULLFILEPATH },
+      { MACRO_CURRENT_WORD,        NPPM_GETCURRENTWORD },
+      { MACRO_FILE_NAME_AT_CURSOR, NPPM_GETFILENAMEATCURSOR },
+      { MACRO_CURRENT_LINESTR,     NPPM_GETCURRENTLINESTR },
       // getting numbers:
-      MACRO_CURRENT_LINE,   // (int) line number
-      MACRO_CURRENT_COLUMN  // (int) column number
-    };
-    const UINT   NPPVAR_MESSAGES[NPPVAR_COUNT] = {
-      // getting strings:
-      NPPM_GETFULLCURRENTPATH,
-      NPPM_GETCURRENTDIRECTORY,
-      NPPM_GETFILENAME,
-      NPPM_GETNAMEPART,
-      NPPM_GETEXTPART,
-      NPPM_GETNPPDIRECTORY,
-      NPPM_GETNPPFULLFILEPATH,
-      NPPM_GETCURRENTWORD,
-      NPPM_GETFILENAMEATCURSOR,
-      // getting numbers:
-      NPPM_GETCURRENTLINE,
-      NPPM_GETCURRENTCOLUMN
+      { MACRO_CURRENT_LINE,        NPPM_GETCURRENTLINE },   // (int) line number
+      { MACRO_CURRENT_COLUMN,      NPPM_GETCURRENTCOLUMN }  // (int) column number
     };
 
     tstr Cmd = S;
@@ -8059,13 +8052,13 @@ bool CNppExecMacroVars::CheckNppMacroVars(tstr& S, int& pos)
 
     for (int j = 0; j < NPPVAR_COUNT; j++)
     {
-      const TCHAR* macro_str = NPPVAR_STRINGS[j];
-      const int    macro_len = lstrlen(macro_str);
+      const TCHAR* macro_str = NPPVARMSGS[j].str;
 
       if (StrUnsafeSubCmp(Cmd.c_str() + pos, macro_str) == 0)
       {
-        const UINT uNppMsg = NPPVAR_MESSAGES[j];
-        const int MACRO_SIZE = CONSOLECOMMAND_BUFSIZE;
+        const int macro_len = lstrlen(macro_str);
+        const UINT uNppMsg = NPPVARMSGS[j].msg;
+        const int MACRO_SIZE = 16*1024;
         TCHAR     szMacro[MACRO_SIZE];
 
         szMacro[0] = 0;

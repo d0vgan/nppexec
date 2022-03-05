@@ -20,6 +20,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.1
+ ------
+ * 24.02.2022: Russkiy voyenniy korabl, idi nahuy!!!
+ + added: $(CURRENT_LINESTR)
+
+
  v0.8 - February 2022
  --------------------
  + added: built-in highlight filter that catches most of compiler error

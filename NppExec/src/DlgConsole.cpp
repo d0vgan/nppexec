@@ -230,6 +230,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(NPP_FULL_FILE_PATH)  :  full path to notepad++.exe") _T_RE_EOL \
   _T("$(CURRENT_WORD)  :  word(s) you selected in Notepad++") _T_RE_EOL \
   _T("$(CURRENT_LINE)  :  current line number") _T_RE_EOL \
+  _T("$(CURRENT_LINESTR)  :  text of the current line") _T_RE_EOL \
   _T("$(CURRENT_COLUMN)  :  current column number") _T_RE_EOL \
   _T("$(SELECTED_TEXT)  :  the text you selected in Notepad++") _T_RE_EOL \
   _T("$(FILE_NAME_AT_CURSOR)  :  file name selected in the editor") _T_RE_EOL \
@@ -5113,6 +5114,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_EXITCODE );               //  $(EXITCODE)
   CmdVarsList.Add( MACRO_CURRENT_WORKING_DIR );    //  $(CWD)
   CmdVarsList.Add( MACRO_CURRENT_WORD );           //  $(CURRENT_WORD)
+  CmdVarsList.Add( MACRO_CURRENT_LINESTR );        //  $(CURRENT_LINESTR)
   CmdVarsList.Add( MACRO_CURRENT_LINE );           //  $(CURRENT_LINE)
   CmdVarsList.Add( MACRO_FILE_DIRPATH );           //  $(CURRENT_DIRECTORY)
   CmdVarsList.Add( MACRO_CURRENT_COLUMN );         //  $(CURRENT_COLUMN)
