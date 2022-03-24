@@ -82,6 +82,8 @@ const TCHAR* VariablesList[] = {
   _T("$(RARGV[1])"),           //  $(RARGV[1])
   MACRO_RIGHT_VIEW_FILE,       //  $(RIGHT_VIEW_FILE)
   MACRO_SCI_HWND,              //  $(SCI_HWND)
+  MACRO_SCI_HWND1,             //  $(SCI_HWND1)
+  MACRO_SCI_HWND2,             //  $(SCI_HWND2)
   MACRO_SELECTED_TEXT,         //  $(SELECTED_TEXT)
   _T("$(SYS.PATH)"),           //  $(SYS.PATH)
   MACRO_WORKSPACE_ITEM_DIR,    //  $(WORKSPACE_ITEM_DIR)

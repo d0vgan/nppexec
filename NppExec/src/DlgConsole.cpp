@@ -267,6 +267,8 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(MSG_LPARAM)  :  lParam (output) of \'npp_sendmsg[ex]\' or \'sci_sendmsg\'") _T_RE_EOL \
   _T("$(NPP_HWND)  :  Notepad++'s main window handle") _T_RE_EOL \
   _T("$(SCI_HWND)  :  current Scintilla's window handle") _T_RE_EOL \
+  _T("$(SCI_HWND1)  :  primary Scintilla's window handle (main view)") _T_RE_EOL \
+  _T("$(SCI_HWND2)  :  secondary Scintilla's window handle (second view)") _T_RE_EOL \
   _T("$(CON_HWND)  :  NppExec's Console window handle (RichEdit control)") _T_RE_EOL \
   _T("$(FOCUSED_HWND)  :  focused window handle") _T_RE_EOL \
   _T("$(SYS.<var>)  :  system\'s environment variable, e.g. $(SYS.PATH)") _T_RE_EOL \
@@ -5085,6 +5087,8 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_WORKSPACE_ITEM_DIR );     //  $(WORKSPACE_ITEM_DIR)
   CmdVarsList.Add( _T("$(SYS.PATH)") );            //  $(SYS.PATH)
   CmdVarsList.Add( MACRO_SELECTED_TEXT );          //  $(SELECTED_TEXT)
+  CmdVarsList.Add( MACRO_SCI_HWND2 );              //  $(SCI_HWND2)
+  CmdVarsList.Add( MACRO_SCI_HWND1 );              //  $(SCI_HWND1)
   CmdVarsList.Add( MACRO_SCI_HWND );               //  $(SCI_HWND)
   CmdVarsList.Add( MACRO_RIGHT_VIEW_FILE );        //  $(RIGHT_VIEW_FILE)
   CmdVarsList.Add( _T("$(RARGV[1])") );            //  $(RARGV[1])

@@ -218,6 +218,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  *        $(NPP_HWND)           : Notepad++'s main window handle
  *        $(SCI_HWND)           : current Scintilla's window handle
+ *        $(SCI_HWND1)          : primary Scintilla's window handle (main view)
+ *        $(SCI_HWND2)          : secondary Scintilla's window handle (second view)
  *        $(CON_HWND)           : NppExec's Console window handle (RichEdit control)
  *        $(FOCUSED_HWND)       : focused window handle
  *        $(SYS.<var>)          : system's environment variable, e.g. $(SYS.PATH)

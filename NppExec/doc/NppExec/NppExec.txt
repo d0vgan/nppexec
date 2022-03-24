@@ -163,6 +163,7 @@
  *        $(NPP_FULL_FILE_PATH) : full path to notepad++.exe
  *        $(CURRENT_WORD)       : word(s) you selected in Notepad++
  *        $(CURRENT_LINE)       : current line number
+ *        $(CURRENT_LINESTR)    : text of the current line
  *        $(CURRENT_COLUMN)     : current column number
  *   7) Additional environment variables:
  *        $(SELECTED_TEXT)      : the text you selected in Notepad++
@@ -200,6 +201,8 @@
  *        $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  *        $(NPP_HWND)           : Notepad++'s main window handle
  *        $(SCI_HWND)           : current Scintilla's window handle
+ *        $(SCI_HWND1)          : primary Scintilla's window handle (main view)
+ *        $(SCI_HWND2)          : secondary Scintilla's window handle (second view)
  *        $(CON_HWND)           : NppExec's Console window handle (RichEdit control)
  *        $(FOCUSED_HWND)       : focused window handle
  *        $(SYS.<var>)          : system's environment variable, e.g. $(SYS.PATH)
@@ -212,6 +215,12 @@
  *************
  *  HISTORY  *
  *************
+
+ v0.8.1
+ ------
+ * 24.02.2022: Russkii voennyi korabl', idi nakhui!!!
+ + added: $(CURRENT_LINESTR), $(SCI_HWND1), $(SCI_HWND2)
+
 
  v0.8 - February 2022
  --------------------

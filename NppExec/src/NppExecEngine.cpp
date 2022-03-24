@@ -98,6 +98,8 @@ const TCHAR MACRO_LAST_CMD_RESULT[]     = _T("$(LAST_CMD_RESULT)");
 const TCHAR MACRO_CLIPBOARD_TEXT[]      = _T("$(CLIPBOARD_TEXT)");
 const TCHAR MACRO_NPP_HWND[]            = _T("$(NPP_HWND)");
 const TCHAR MACRO_SCI_HWND[]            = _T("$(SCI_HWND)");
+const TCHAR MACRO_SCI_HWND1[]           = _T("$(SCI_HWND1)");
+const TCHAR MACRO_SCI_HWND2[]           = _T("$(SCI_HWND2)");
 const TCHAR MACRO_CON_HWND[]            = _T("$(CON_HWND)");
 const TCHAR MACRO_FOCUSED_HWND[]        = _T("$(FOCUSED_HWND)");
 
@@ -1467,6 +1469,8 @@ static FParserWrapper g_fp;
  * $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  * $(NPP_HWND)           : Notepad++'s main window handle
  * $(SCI_HWND)           : current Scintilla's window handle
+ * $(SCI_HWND1)          : primary Scintilla's window handle (main view)
+ * $(SCI_HWND2)          : secondary Scintilla's window handle (second view)
  * $(CON_HWND)           : NppExec's Console window handle (RichEdit control)
  * $(FOCUSED_HWND)       : focused window handle
  * $(SYS.<var>)          : system's environment variable, e.g. $(SYS.PATH)
@@ -8353,6 +8357,22 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            [](CNppExec* pNppExec)
            {
              return uptr2tstr((UINT_PTR)(pNppExec->GetScintillaHandle()));
+           }
+         ) ||
+         substituteMacroVar(
+           Cmd, S, pos,
+           MACRO_SCI_HWND1,
+           [](CNppExec* pNppExec)
+           {
+             return uptr2tstr((UINT_PTR)(pNppExec->m_nppData._scintillaMainHandle));
+           }
+         ) ||
+         substituteMacroVar(
+           Cmd, S, pos,
+           MACRO_SCI_HWND2,
+           [](CNppExec* pNppExec)
+           {
+             return uptr2tstr((UINT_PTR)(pNppExec->m_nppData._scintillaSecondHandle));
            }
          ) ||
          substituteMacroVar(
