@@ -227,15 +227,12 @@ template <class T>CFileBufT<T>::~CFileBufT()
 
 template <class T> int CFileBufT<T>::getLineLength(int nLineStartPos)
 {
-  int nMaxPos;
-  int i;
-
-  nMaxPos = m_buf.GetCount()-1;
-  i = nLineStartPos;
-  if (i > nMaxPos)
+  int nEndPos = m_buf.GetCount();
+  int i = nLineStartPos;
+  if (i > nEndPos)
     return (-1);
 
-  while (i <= nMaxPos)
+  while (i < nEndPos)
   {
     if (m_buf[i] == 0x0A)
     {
@@ -255,21 +252,18 @@ template <class T> int CFileBufT<T>::getLineLength(int nLineStartPos)
 
 template <class T> int CFileBufT<T>::getNextLineStartPos(int nLineStartPos, int nLineLength)
 {
-  int nMaxPos;
-  int i;
-
-  nMaxPos = m_buf.GetCount()-1;
-  i = nLineStartPos + nLineLength;
-  if (i > nMaxPos)
+  int nEndPos = m_buf.GetCount();
+  int i = nLineStartPos + nLineLength;
+  if (i > nEndPos)
     return (-1);
 
-  if (m_buf[i] == 0x0D)
+  if (i < nEndPos && m_buf[i] == 0x0D)
   {
     i += 1; // after 0x0D
   }
   i += 1; // after 0x0A
 
-  if (i > nMaxPos)
+  if (i > nEndPos)
     return (-1);
 
   return i;

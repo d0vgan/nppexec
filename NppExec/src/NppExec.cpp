@@ -1892,9 +1892,6 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
         {
             CNppExec& NppExec = Runtime::GetNppExec();
 
-            NppExec.m_FileWatcher.StopWatching();
-            Runtime::GetLogger().Add_WithoutOutput( _T("; CFileModificationWatcher - stopped") );
-
             if ( Runtime::GetLogger().IsLogFileOpen() )
             {
                 Runtime::GetLogger().Add/*_WithoutOutput*/( _T("; NPPN_SHUTDOWN - start") );
@@ -1903,6 +1900,12 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 
             CNppExec::_bIsNppShutdown = true; // Notepad++ is shutting down; no more Console output
             NppExec._consoleIsVisible = false; // stopping every script (except the exit script, if any) & child process
+
+            if ( NppExec.GetOptions().GetBool(OPTB_WATCHSCRIPTFILE) )
+            {
+                NppExec.m_FileWatcher.StopWatching();
+                Runtime::GetLogger().Add_WithoutOutput( _T("; CFileModificationWatcher - stopped") );
+            }
 
             NppExec.RunTheExitScript();
 
@@ -4657,8 +4660,11 @@ void CNppExec::Init()
   GetCommandExecutor().Start();
   GetPluginInterfaceImpl().Enable(true); // enabling it after the CommandExecutor is up
 
-  m_FileWatcher.StartWatching();
-  GetLogger().Add_WithoutOutput( _T("; CFileModificationWatcher - started") );
+  if ( GetOptions().GetBool(OPTB_WATCHSCRIPTFILE) )
+  {
+    m_FileWatcher.StartWatching();
+    GetLogger().Add_WithoutOutput( _T("; CFileModificationWatcher - started") );
+  }
 }
 
 void CNppExec::OnCmdHistory()

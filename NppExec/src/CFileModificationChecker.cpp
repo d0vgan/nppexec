@@ -64,12 +64,12 @@ DWORD WINAPI CDirectoryWatcher::WatchThreadProc(LPVOID lpParam)
 
     ::ResetEvent(pDirWatcher->m_hWatchThreadDoneEvent);
 
-    const size_t nObjs = pDirWatcher->m_Dirs.size() + 1;
+    const DWORD nObjs = static_cast<DWORD>(pDirWatcher->m_Dirs.size()) + 1;
     std::unique_ptr<HANDLE[]> hWaitObjs(new HANDLE[nObjs]);
 
     hWaitObjs[0] = pDirWatcher->m_hStopWatchThreadEvent;
 
-    size_t i = 1;
+    DWORD i = 1;
     for ( const auto& pDir : pDirWatcher->m_Dirs )
     {
         hWaitObjs[i] = ::FindFirstChangeNotification(pDir->sDirectory.c_str(), pDir->bRecursive, pDir->dwNotifyFilter);
