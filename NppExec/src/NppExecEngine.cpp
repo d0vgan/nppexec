@@ -1776,10 +1776,24 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                     pItem = pNext;
                 }
 
+                // In case of several npp_exec-ed scripts with the same CmdRange.pEnd,
+                // the currentScript reference will become invalid after the first call
+                // of m_execState.ScriptContextList.DeleteLast() below.
+                // That is why we should not refer to currentScript within the loop below.
+                // Instead, we are saving the values of currentScript.IsSharingLocalVars
+                // and currentScript.LocalMacroVars here.
+                tMacroVars localMacroVars;
+                bool isSharingLocalVars = currentScript.IsSharingLocalVars;
+                if ( isSharingLocalVars )
+                {
+                    localMacroVars.swap(currentScript.LocalMacroVars);
+                }
+
                 // There can be several npp_exec-ed scripts with the same CmdRange.pEnd
+                // Note: do _not_ use the currentScript within this loop (see the comment above)
                 while ( !m_execState.ScriptContextList.IsEmpty() )
                 {
-                    const ScriptContext& currScript = m_execState.GetCurrentScriptContext();
+                    ScriptContext& currScript = m_execState.GetCurrentScriptContext();
                     if ( currScript.IsNppExeced && (p == currScript.CmdRange.pEnd) )
                     {
                         Runtime::GetLogger().AddEx( _T("; script context removed: { Name = \"%s\"; CmdRange = [0x%X, 0x%X) }"), 
@@ -1798,20 +1812,18 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                             }
                         }
 
-                        if ( currentScript.IsSharingLocalVars )
-                        {
-                            auto pPrevContext = m_execState.ScriptContextList.GetLast()->GetPrev();
-                            if ( pPrevContext )
-                            {
-                                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-                                pPrevContext->GetItem().LocalMacroVars.swap(currentScript.LocalMacroVars);
-                            }
-                        }
-
                         m_execState.ScriptContextList.DeleteLast();
                     }
                     else
+                    {
+                        if ( isSharingLocalVars )
+                        {
+                            CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                            currScript.LocalMacroVars.swap(localMacroVars);
+                        }
+
                         break;
+                    }
                 }
 
                 Runtime::GetLogger().Add(   _T("") );

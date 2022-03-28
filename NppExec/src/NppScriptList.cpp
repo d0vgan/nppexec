@@ -19,9 +19,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NppScriptList.h"
 #include "NppExecHelpers.h"
 
-CNppScriptList::CNppScriptList()
+
+// CNppScriptFileChangeListener
+CNppScriptFileChangeListener::CNppScriptFileChangeListener(CNppScriptList* pNppScriptList)
+    : m_pNppScriptList(pNppScriptList)
 {
-  _bIsModified = false;
+}
+
+void CNppScriptFileChangeListener::HandleFileChange(const FileInfoStruct* pFile)
+{
+    int nFileState = m_pNppScriptList->GetFileState();
+    if ( nFileState & CNppScriptList::fsfIsSaving )
+    {
+        m_pNppScriptList->SetFileState(0);
+    }
+    else
+    {
+        m_pNppScriptList->SetFileState(CNppScriptList::fsfNeedsReload);
+    }
+}
+
+
+// CNppScriptList
+CNppScriptList::CNppScriptList() :
+  _nUtf8DetectLength(16384), _nFileState(0), _bIsModified(false)
+{
 }
 
 CNppScriptList::~CNppScriptList()
@@ -45,6 +67,8 @@ bool CNppScriptList::AddScript(const tstr& ScriptName, const CNppScript& newScri
 {
   if (!ModifyScript(ScriptName, newScript))
   {
+    ReloadScriptFileIfNeeded();
+
     CCriticalSectionLockGuard lock(_csScripts);
 
     CNppScript* pScript = new CNppScript(ScriptName, newScript.GetCmdList());
@@ -78,6 +102,8 @@ bool CNppScriptList::DeleteScript(const tstr& ScriptName)
 {
   bool bRet = false;
 
+  ReloadScriptFileIfNeeded();
+
   CCriticalSectionLockGuard lock(_csScripts);
 
   CListItemT<CNppScript *> * p = _Scripts.GetFirst();
@@ -107,6 +133,8 @@ bool CNppScriptList::GetScript(const tstr& ScriptName, CNppScript& outScript)
 
   outScript.GetCmdList().DeleteAll();
 
+  ReloadScriptFileIfNeeded();
+
   CCriticalSectionLockGuard lock(_csScripts);
 
   CListItemT<CNppScript *> * p = _Scripts.GetFirst();
@@ -126,15 +154,19 @@ bool CNppScriptList::GetScript(const tstr& ScriptName, CNppScript& outScript)
   return bRet;
 }
 
-int CNppScriptList::GetScriptCount() const
+int CNppScriptList::GetScriptCount()
 {
+  ReloadScriptFileIfNeeded();
+
   CCriticalSectionLockGuard lock(_csScripts);
 
   return _Scripts.GetCount(); 
 }
 
-CListT<tstr> CNppScriptList::GetScriptNames() const
+CListT<tstr> CNppScriptList::GetScriptNames()
 {
+  ReloadScriptFileIfNeeded();
+
   CCriticalSectionLockGuard lock(_csScripts);
 
   CListT<tstr> scriptNames;
@@ -149,8 +181,10 @@ CListT<tstr> CNppScriptList::GetScriptNames() const
   return scriptNames;
 }
 
-CListT<CNppScript> CNppScriptList::GetScripts() const
+CListT<CNppScript> CNppScriptList::GetScripts()
 {
+  ReloadScriptFileIfNeeded();
+
   CCriticalSectionLockGuard lock(_csScripts);
 
   CListT<CNppScript> scriptsList;
@@ -173,6 +207,7 @@ void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLengt
   Free();
   _Scripts.DeleteAll();
   _bIsModified = false;
+  _nUtf8DetectLength = nUtf8DetectLength;
   
   if (fbuf.LoadFromFile(cszFileName, true, nUtf8DetectLength))
   {
@@ -214,6 +249,8 @@ void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLengt
         }
       }
     }
+
+    _ScriptFileName = cszFileName;
   }
 }
 
@@ -221,6 +258,8 @@ bool CNppScriptList::ModifyScript(const tstr& ScriptName, const CNppScript& newS
 {
   tstr S2;
   bool bModified = false;
+
+  ReloadScriptFileIfNeeded();
 
   CCriticalSectionLockGuard lock(_csScripts);
 
@@ -281,6 +320,8 @@ void CNppScriptList::SaveToFile(const TCHAR* cszFileName)
 {
   CFileBufT<TCHAR> fbuf;
 
+  ReloadScriptFileIfNeeded();
+
   CCriticalSectionLockGuard lock(_csScripts);
 
   int totalSerializedLength = 0;
@@ -298,6 +339,8 @@ void CNppScriptList::SaveToFile(const TCHAR* cszFileName)
     pScript->SerializeToBuf( *fbuf.GetBufPtr(), CNppScript::sbfAppendMode );
   }
 
+  _nFileState |= fsfIsSaving;
+
   // .bak file...
   tstr bakFileName = cszFileName;
   bakFileName += _T(".bak");
@@ -309,9 +352,11 @@ void CNppScriptList::SaveToFile(const TCHAR* cszFileName)
   _bIsModified = false;
 }
 
-bool CNppScriptList::IsScriptPresent(const tstr& ScriptName) const
+bool CNppScriptList::IsScriptPresent(const tstr& ScriptName)
 {
   bool bRet = false;
+
+  ReloadScriptFileIfNeeded();
 
   CCriticalSectionLockGuard lock(_csScripts);
 
@@ -326,4 +371,13 @@ bool CNppScriptList::IsScriptPresent(const tstr& ScriptName) const
   }
 
   return bRet;
+}
+
+void CNppScriptList::ReloadScriptFileIfNeeded()
+{
+  if ( _nFileState & fsfNeedsReload )
+  {
+    LoadFromFile(_ScriptFileName.c_str(), _nUtf8DetectLength);
+    _nFileState = fsfWasReloaded;
+  }
 }

@@ -1491,6 +1491,9 @@ public:
   CBufT<TCHAR*>   npp_bufFileNames;
 
   MSGBOXTIMEOUTFUNC m_lpMsgBoxTimeoutFunc;
+
+  CFileModificationWatcher m_FileWatcher;
+  CNppScriptFileChangeListener m_ScriptFileChangeListener;
   
 public:
   static bool     _bIsNppReady;

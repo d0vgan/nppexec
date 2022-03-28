@@ -20,34 +20,112 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _file_modification_watcher_h_
 //---------------------------------------------------------------------------
 #include "base.h"
-#include "NppExec.h"
+#include "cpp/CStrT.h"
+#include <vector>
+#include <memory>
 
-class CFileModificationChecker
+typedef CStrT<TCHAR> tstr;
+
+struct FileInfoStruct;
+struct DirWatchStruct;
+
+class IDirectoryChangeListener
 {
-private:
-  tstr     m_path;
-  FILETIME m_modificationTime;
-  DWORD    m_dwFileSize;
-  BOOL     m_bTimeIsValid;
-  BOOL     m_bSizeIsValid;
+public:
+    IDirectoryChangeListener() { }
+    virtual ~IDirectoryChangeListener() { }
 
-  BOOL     getFileTime(HANDLE hFile, FILETIME* lpLastWriteTime);
-  DWORD    getFileSize(HANDLE hFile);
-  HANDLE   openTheFile();
+    virtual void HandleDirectoryChange(const DirWatchStruct* pDir) = 0;
+};
+
+class IFileChangeListener
+{
+public:
+    IFileChangeListener() { }
+    virtual ~IFileChangeListener() { }
+
+    virtual void HandleFileChange(const FileInfoStruct* pFile) = 0;
+};
+
+class CDirectoryWatcher
+{
+public:
+    typedef std::vector< std::unique_ptr<DirWatchStruct> > dir_items_type;
+    typedef std::vector< std::unique_ptr<FileInfoStruct> > file_items_type;
 
 public:
-  CFileModificationChecker();
-  ~CFileModificationChecker();
+    CDirectoryWatcher();
+    ~CDirectoryWatcher();
 
-  BOOL AssignFile(const TCHAR* cszFilePathName);   // assign a file
-  long IsFileSizeChanged(DWORD dwFileSize);        // comparison
-  long IsFileTimeChanged(const FILETIME* lpFileTime);
-  BOOL RequestFileSize(DWORD* lpdwSize);           // no internal update
-  BOOL RequestFileTime(FILETIME* lpLastWriteTime); // no internal update
-  void SetSize(DWORD dwFileSize);                  // internal update
-  void SetTime(const FILETIME* lpFileTime);        // internal update
-  BOOL UpdateFileInfo(); // request & update values of file time & size
-  
+    // dwNotifyFilter: see FILE_NOTIFY_CHANGE_* notifications, e.g. FILE_NOTIFY_CHANGE_LAST_WRITE
+    void AddDir(LPCTSTR cszDirectory, IDirectoryChangeListener* pChangeListener, DWORD dwNotifyFilter, BOOL bRecursive);
+
+    void AddFile(LPCTSTR cszFilePath, IFileChangeListener* pChangeListener, DWORD dwNotifyFilter);
+
+    void StartWatching();
+    void StopWatching();
+
+private:
+    dir_items_type::iterator findDir(const tstr& sDirectory);
+    static DWORD WINAPI WatchThreadProc(LPVOID lpParam);
+
+    class CInternalDirectoryChangeListener : public IDirectoryChangeListener
+    {
+    public:
+        virtual void HandleDirectoryChange(const DirWatchStruct* pDir) override;
+    };
+
+private:
+    HANDLE m_hStopWatchThreadEvent;
+    HANDLE m_hWatchThreadDoneEvent;
+    CInternalDirectoryChangeListener m_DirChangeListener;
+    dir_items_type m_Dirs;
+};
+
+class CFileModificationWatcher
+{
+public:
+    void AddFile(LPCTSTR cszFilePath, IFileChangeListener* pChangeListener);
+
+    void StartWatching();
+    void StopWatching();
+
+private:
+    CDirectoryWatcher m_DirWatcher;
+};
+
+struct FileInfoStruct
+{
+    IFileChangeListener* pChangeListener;
+    tstr filePath;
+    LARGE_INTEGER fileSize;
+    FILETIME fileLastWriteTime;
+
+    FileInfoStruct(IFileChangeListener* pChangeListener_, const tstr& filePath_);
+
+    static BOOL GetFileSizeAndTime(LPCTSTR cszFilePath, LARGE_INTEGER* pliSize, FILETIME* pLastWriteTime);
+
+    bool HasEqualSizeAndTime(const FileInfoStruct& other) const;
+    void CopySizeAndTime(const FileInfoStruct& other);
+};
+
+struct DirWatchStruct
+{
+    typedef std::vector< std::unique_ptr<FileInfoStruct> > file_items_type;
+
+    CDirectoryWatcher* pDirWatcher;
+    IDirectoryChangeListener* pChangeListener;
+    DWORD dwNotifyFilter;
+    BOOL bRecursive;
+    tstr sDirectory;
+    file_items_type Files;
+
+    DirWatchStruct(CDirectoryWatcher* pDirWatcher_, IDirectoryChangeListener* pChangeListener_, 
+                   DWORD dwNotifyFilter_, BOOL bRecursive_, const tstr& sDirectory_);
+
+    void AddFile(IFileChangeListener* pChangeListener, const tstr& sFilePath);
+
+    file_items_type::iterator findFile(const tstr& sFilePath);
 };
 
 //---------------------------------------------------------------------------

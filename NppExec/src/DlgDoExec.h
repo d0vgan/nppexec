@@ -35,7 +35,7 @@ class CDoExecDlg : public CAnyWindow
 {
 private:
   TCHAR        tmp_scriptname[MAX_SCRIPTNAME];
-  bool         checkScriptFile();
+  bool         isScriptFileChanged();
 
   static int   nCurrentDlgWidth;
   static int   nCurrentDlgHeight;

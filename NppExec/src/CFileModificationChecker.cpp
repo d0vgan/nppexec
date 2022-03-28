@@ -17,106 +17,247 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "CFileModificationChecker.h"
+#include "NppExecHelpers.h"
 
-CFileModificationChecker::CFileModificationChecker() : 
-  m_bTimeIsValid(FALSE), m_bSizeIsValid(FALSE)
-{
-}
 
-CFileModificationChecker::~CFileModificationChecker()
+namespace
 {
-}
-
-BOOL CFileModificationChecker::getFileTime(HANDLE hFile, FILETIME* lpLastWriteTime)
-{
-    return ::GetFileTime(hFile, NULL, NULL, lpLastWriteTime);
-}
-
-DWORD CFileModificationChecker::getFileSize(HANDLE hFile)
-{
-    return ::GetFileSize(hFile, NULL);
-}
-
-HANDLE CFileModificationChecker::openTheFile()
-{
-    HANDLE hFile = ::CreateFile( m_path.c_str(), GENERIC_READ, 
-                       FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL );
-    return ( (hFile != INVALID_HANDLE_VALUE) ? hFile : NULL );
-}
-
-BOOL CFileModificationChecker::AssignFile(const TCHAR* cszFilePathName)
-{
-    m_path = cszFilePathName;
-    return UpdateFileInfo();
-}
-
-long CFileModificationChecker::IsFileSizeChanged(DWORD dwFileSize)
-{
-    if ( !m_bSizeIsValid )  
-        m_dwFileSize = 0;
-    return ((long) m_dwFileSize) - ((long) dwFileSize);
-}
-
-long CFileModificationChecker::IsFileTimeChanged(const FILETIME* lpFileTime)
-{
-    if ( !m_bTimeIsValid )  
-        return -1;
-    return ::CompareFileTime( &m_modificationTime, lpFileTime );
-}
-
-BOOL CFileModificationChecker::RequestFileTime(FILETIME* lpLastWriteTime)
-{
-    BOOL bResult = FALSE;
-    if ( lpLastWriteTime )
+    tstr getFileDir(LPCTSTR cszFilePath, LPCTSTR* ppFileName = nullptr)
     {
-        HANDLE hFile = openTheFile();
-        if ( hFile )
+        tstr sDir = cszFilePath;
+        int nPos = sDir.RFindOneOf(_T("\\/"));
+        if ( nPos != -1 )
         {
-            bResult = getFileTime(hFile, lpLastWriteTime);
-            ::CloseHandle(hFile);
+            sDir.SetSize(nPos);
+            if ( ppFileName )
+                *ppFileName = cszFilePath + nPos + 1;
+        }
+        else
+        {
+            sDir = _T(".");
+            if ( ppFileName )
+                *ppFileName = cszFilePath;
+        }
+
+        return sDir;
+    }
+}
+
+
+// CDirectoryWatcher
+CDirectoryWatcher::CDirectoryWatcher()
+{
+    m_hStopWatchThreadEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
+    m_hWatchThreadDoneEvent = ::CreateEvent(NULL, TRUE, TRUE, NULL);
+}
+
+CDirectoryWatcher::~CDirectoryWatcher()
+{
+    StopWatching();
+    ::CloseHandle(m_hWatchThreadDoneEvent);
+    ::CloseHandle(m_hStopWatchThreadEvent);
+}
+
+DWORD WINAPI CDirectoryWatcher::WatchThreadProc(LPVOID lpParam)
+{
+    CDirectoryWatcher* pDirWatcher = (CDirectoryWatcher *) lpParam;
+
+    ::ResetEvent(pDirWatcher->m_hWatchThreadDoneEvent);
+
+    const size_t nObjs = pDirWatcher->m_Dirs.size() + 1;
+    std::unique_ptr<HANDLE[]> hWaitObjs(new HANDLE[nObjs]);
+
+    hWaitObjs[0] = pDirWatcher->m_hStopWatchThreadEvent;
+
+    size_t i = 1;
+    for ( const auto& pDir : pDirWatcher->m_Dirs )
+    {
+        hWaitObjs[i] = ::FindFirstChangeNotification(pDir->sDirectory.c_str(), pDir->bRecursive, pDir->dwNotifyFilter);
+        ++i;
+    }
+
+    for ( ; ; )
+    {
+        DWORD dwWaitStatus = ::WaitForMultipleObjects(nObjs, hWaitObjs.get(), FALSE, INFINITE);
+
+        if ( dwWaitStatus == WAIT_OBJECT_0 ) // m_hStopWatchThreadEvent
+            break;
+
+        if ( (dwWaitStatus > WAIT_OBJECT_0) && (dwWaitStatus < WAIT_OBJECT_0 + nObjs) )
+        {
+            i = dwWaitStatus - WAIT_OBJECT_0;
+            auto& pDir = pDirWatcher->m_Dirs[i - 1];
+            if ( pDir->pChangeListener )
+            {
+                pDir->pChangeListener->HandleDirectoryChange(pDir.get());
+            }
+
+            HANDLE hChange = hWaitObjs[i];
+            ::FindNextChangeNotification(hChange);
         }
     }
+
+    for ( i = 1; i < nObjs; ++i )
+    {
+        HANDLE hChange = hWaitObjs[i];
+        ::FindCloseChangeNotification(hChange);
+    }
+
+    ::SetEvent(pDirWatcher->m_hWatchThreadDoneEvent);
+    return 0;
+}
+
+CDirectoryWatcher::dir_items_type::iterator CDirectoryWatcher::findDir(const tstr& sDirectory)
+{
+    auto itrEnd = m_Dirs.end();
+    for ( auto itr = m_Dirs.begin(); itr != itrEnd; ++itr )
+    {
+        const auto& pDir = *itr;
+        if ( pDir->sDirectory == sDirectory )
+            return itr;
+    }
+    return itrEnd;
+}
+
+void CDirectoryWatcher::AddDir(LPCTSTR cszDirectory, IDirectoryChangeListener* pChangeListener, DWORD dwNotifyFilter, BOOL bRecursive)
+{
+    if ( findDir(cszDirectory) == m_Dirs.end() )
+    {
+        m_Dirs.push_back( std::make_unique<DirWatchStruct>(this, pChangeListener, dwNotifyFilter, bRecursive, cszDirectory) );
+    }
+}
+
+void CDirectoryWatcher::AddFile(LPCTSTR cszFilePath, IFileChangeListener* pChangeListener, DWORD dwNotifyFilter)
+{
+    tstr sDir = getFileDir(cszFilePath);
+
+    auto itr = findDir(sDir);
+    if ( itr == m_Dirs.end() )
+    {
+        m_Dirs.push_back( std::make_unique<DirWatchStruct>(this, &m_DirChangeListener, dwNotifyFilter, FALSE, sDir.c_str()) );
+        m_Dirs.back()->AddFile(pChangeListener, cszFilePath);
+    }
+    else
+    {
+        auto& pDir = *itr;
+        pDir->dwNotifyFilter |= dwNotifyFilter;
+        pDir->AddFile(pChangeListener, cszFilePath);
+    }
+}
+
+void CDirectoryWatcher::StartWatching()
+{
+    NppExecHelpers::CreateNewThread(WatchThreadProc, this);
+}
+
+void CDirectoryWatcher::StopWatching()
+{
+    ::SetEvent(m_hStopWatchThreadEvent);
+    ::WaitForSingleObject(m_hWatchThreadDoneEvent, INFINITE);
+}
+
+void CDirectoryWatcher::CInternalDirectoryChangeListener::HandleDirectoryChange(const DirWatchStruct* pDir)
+{
+    for ( auto& pFile : pDir->Files )
+    {
+        FileInfoStruct fileNow(pFile->pChangeListener, pFile->filePath);
+
+        if ( !pFile->HasEqualSizeAndTime(fileNow) )
+        {
+            pFile->CopySizeAndTime(fileNow);
+            if ( pFile->pChangeListener )
+            {
+                pFile->pChangeListener->HandleFileChange(pFile.get());
+            }
+        }
+    }
+}
+
+
+// CFileModificationWatcher
+void CFileModificationWatcher::AddFile(LPCTSTR cszFilePath, IFileChangeListener* pChangeListener)
+{
+    m_DirWatcher.AddFile(cszFilePath, pChangeListener, FILE_NOTIFY_CHANGE_LAST_WRITE);
+}
+
+void CFileModificationWatcher::StartWatching()
+{
+    m_DirWatcher.StartWatching();
+}
+
+void CFileModificationWatcher::StopWatching()
+{
+    m_DirWatcher.StopWatching();
+}
+
+
+// FileInfoStruct
+FileInfoStruct::FileInfoStruct(IFileChangeListener* pChangeListener_, const tstr& filePath_) : 
+  pChangeListener(pChangeListener_), filePath(filePath_)
+{
+    GetFileSizeAndTime(filePath.c_str(), &fileSize, &fileLastWriteTime);
+}
+
+BOOL FileInfoStruct::GetFileSizeAndTime(LPCTSTR cszFilePath, LARGE_INTEGER* pliSize, FILETIME* pLastWriteTime)
+{
+    ::ZeroMemory(pliSize, sizeof(LARGE_INTEGER));
+    ::ZeroMemory(pLastWriteTime, sizeof(FILETIME));
+
+    BOOL bResult = FALSE;
+    HANDLE hFile = ::CreateFile( cszFilePath, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL );
+
+    if ( hFile != INVALID_HANDLE_VALUE)
+    {
+        if ( ::GetFileSizeEx(hFile, pliSize) )
+            bResult = TRUE;
+
+        if ( !::GetFileTime(hFile, NULL, NULL, pLastWriteTime) )
+            bResult = FALSE;
+
+        ::CloseHandle(hFile);
+    }
+
     return bResult;
 }
 
-BOOL CFileModificationChecker::RequestFileSize(DWORD* lpdwSize)
+bool FileInfoStruct::HasEqualSizeAndTime(const FileInfoStruct& other) const
 {
-    if ( lpdwSize )
+    return ( fileSize.LowPart == other.fileSize.LowPart &&
+        fileSize.HighPart == other.fileSize.HighPart &&
+        ::CompareFileTime(&fileLastWriteTime, &other.fileLastWriteTime) == 0 );
+}
+
+void FileInfoStruct::CopySizeAndTime(const FileInfoStruct& other)
+{
+    ::CopyMemory(&fileSize, &other.fileSize, sizeof(fileSize));
+    ::CopyMemory(&fileLastWriteTime, &other.fileLastWriteTime, sizeof(fileLastWriteTime));
+}
+
+
+// DirWatchStruct
+DirWatchStruct::DirWatchStruct(CDirectoryWatcher* pDirWatcher_, IDirectoryChangeListener* pChangeListener_, 
+                               DWORD dwNotifyFilter_, BOOL bRecursive_, const tstr& sDirectory_) :
+  pDirWatcher(pDirWatcher_), pChangeListener(pChangeListener_),
+  dwNotifyFilter(dwNotifyFilter_), bRecursive(bRecursive_), sDirectory(sDirectory_)
+{
+}
+
+void DirWatchStruct::AddFile(IFileChangeListener* pChangeListener, const tstr& sFilePath)
+{
+    if ( findFile(sFilePath) == Files.end() )
     {
-        HANDLE hFile = openTheFile();
-        if ( hFile )
-        {
-            *lpdwSize = getFileSize(hFile);
-            ::CloseHandle(hFile);
-            return TRUE;
-        }
+        Files.push_back( std::make_unique<FileInfoStruct>(pChangeListener, sFilePath) );
     }
-    return FALSE;
 }
 
-void CFileModificationChecker::SetTime(const FILETIME* lpFileTime)
+DirWatchStruct::file_items_type::iterator DirWatchStruct::findFile(const tstr& sFilePath)
 {
-    ::CopyMemory( &m_modificationTime, lpFileTime, sizeof(FILETIME) );
-    m_bTimeIsValid = TRUE;
-}
-
-void CFileModificationChecker::SetSize(DWORD dwFileSize)
-{
-    m_dwFileSize = dwFileSize;
-    m_bSizeIsValid = TRUE;
-}
-
-BOOL CFileModificationChecker::UpdateFileInfo()
-{
-    HANDLE hFile = openTheFile();
-    if ( hFile )
+    auto itrEnd = Files.end();
+    for ( auto itr = Files.begin(); itr != itrEnd; ++itr )
     {
-        m_bTimeIsValid = getFileTime(hFile, &m_modificationTime);
-        m_dwFileSize = getFileSize(hFile);
-        m_bSizeIsValid = TRUE;
-        ::CloseHandle(hFile);
-        return m_bTimeIsValid;
+        const auto& pFile = *itr;
+        if ( pFile->filePath == sFilePath )
+            return itr;
     }
-    return FALSE;
+    return itrEnd;
 }
-

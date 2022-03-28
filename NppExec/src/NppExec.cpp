@@ -1183,7 +1183,6 @@ extern WNDPROC                  nppOriginalWndProc;
 extern CConsoleOutputFilterDlg  ConsoleOutputFilterDlg;
 extern CConsoleEncodingDlg      ConsoleEncodingDlg;
 extern CInputBoxDlg             InputBoxDlg;
-extern CFileModificationChecker g_scriptFileChecker;
 
 
 void empty_func()           { /* empty function */ }
@@ -1893,6 +1892,9 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
         {
             CNppExec& NppExec = Runtime::GetNppExec();
 
+            NppExec.m_FileWatcher.StopWatching();
+            Runtime::GetLogger().Add_WithoutOutput( _T("; CFileModificationWatcher - stopped") );
+
             if ( Runtime::GetLogger().IsLogFileOpen() )
             {
                 Runtime::GetLogger().Add/*_WithoutOutput*/( _T("; NPPN_SHUTDOWN - start") );
@@ -2024,8 +2026,9 @@ extern "C" __declspec(dllexport) BOOL isUnicode()
 bool CNppExec::_bIsNppReady = false;
 bool CNppExec::_bIsNppShutdown = false;
 
-CNppExec::CNppExec() 
-  : m_Options(_T("NppExec"), optArray, OPT_COUNT)
+CNppExec::CNppExec() :
+  m_Options(_T("NppExec"), optArray, OPT_COUNT),
+  m_ScriptFileChangeListener(&m_ScriptsList)
 {
     m_CommandExecutor.SetNppExec(this);
     m_PluginInterfaceImpl.SetNppExec(this);
@@ -4653,6 +4656,9 @@ void CNppExec::Init()
   ReadOptions();
   GetCommandExecutor().Start();
   GetPluginInterfaceImpl().Enable(true); // enabling it after the CommandExecutor is up
+
+  m_FileWatcher.StartWatching();
+  GetLogger().Add_WithoutOutput( _T("; CFileModificationWatcher - started") );
 }
 
 void CNppExec::OnCmdHistory()
@@ -5721,7 +5727,12 @@ void CNppExec::ReadOptions()
 
   const tstr pathToSavedScripts = ExpandToFullConfigPath(SCRIPTFILE_SAVED, true);
   m_ScriptsList.LoadFromFile(pathToSavedScripts.c_str(), GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH));
-  g_scriptFileChecker.AssignFile(pathToSavedScripts.c_str());
+
+  if (GetOptions().GetBool(OPTB_WATCHSCRIPTFILE))
+  {
+    m_FileWatcher.AddFile(pathToSavedScripts.c_str(), &m_ScriptFileChangeListener);
+  }
+
   /*
   const tstr pathToCloudSavedScripts = ExpandToFullConfigPath(SCRIPTFILE_SAVED, true);
   const tstr pathToLocalSavedScripts = ExpandToFullConfigPath(SCRIPTFILE_SAVED);
@@ -6087,7 +6098,8 @@ void CNppExec::SaveScripts(unsigned int nSaveFlags)
 
   if (nSaved & ssfScripts)
   {
-    g_scriptFileChecker.UpdateFileInfo();
+    // There is no need to update the file info here,
+    // CDirectoryWatcher::WatchThreadProc takes care of it.
   }
 }
 

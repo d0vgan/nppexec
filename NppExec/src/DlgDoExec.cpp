@@ -22,8 +22,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NppExecHelpers.h"
 
 
-CFileModificationChecker g_scriptFileChecker;
-
 CDoExecDlg               DoExecDlg;
 CScriptNameDlg           ScriptNameDlg;
 int                      g_nCurrentWordStart;
@@ -294,37 +292,29 @@ void CDoExecDlg::OnCbnSelChange()
   ShowScriptText(g_szPrevScriptName);
 }
 
-bool CDoExecDlg::checkScriptFile()
+bool CDoExecDlg::isScriptFileChanged()
 {
   CNppExec& NppExec = Runtime::GetNppExec();
   if ( !NppExec.GetOptions().GetBool(OPTB_WATCHSCRIPTFILE) )
     return false;
-    
-  FILETIME writeTime;
 
-  if ( g_scriptFileChecker.RequestFileTime(&writeTime) )
+  int nFileState = NppExec.m_ScriptsList.GetFileState();
+  if ( nFileState & CNppScriptList::fsfNeedsReload )
+    return true;
+
+  if ( nFileState & CNppScriptList::fsfWasReloaded )
   {
-    if ( g_scriptFileChecker.IsFileTimeChanged(&writeTime) != 0 )
-    {
-      tstr path = NppExec.ExpandToFullConfigPath(SCRIPTFILE_SAVED, true);
-      NppExec.m_ScriptsList.LoadFromFile(path.c_str(), NppExec.GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH));
-      g_scriptFileChecker.UpdateFileInfo();
-        //MessageBoxA(NULL,"","",MB_OK);
+      nFileState ^= CNppScriptList::fsfWasReloaded;
+      NppExec.m_ScriptsList.SetFileState(nFileState);
       return true;
-    }
   }
-  else
-  {
-    // No access to the script file.
-    // Maybe it has been deleted? Then we restore it.
-    NppExec.m_ScriptsList.SetModified(true);
-  }
+
   return false;
 }
 
 void CDoExecDlg::OnInitDialog(HWND hDlg)
 {
-  bool bScriptFileChanged = checkScriptFile();
+  bool bScriptFileChanged = isScriptFileChanged();
     
   m_bFirstSetFocus = true;
   
@@ -456,6 +446,11 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
     S = EXECUTE_DLG_TITLE;
     S += _T(" *");
     this->SetText( S.c_str() );
+
+    if (Runtime::GetNppExec().m_ScriptsList.GetFileState() == CNppScriptList::fsfWasReloaded)
+    {
+      Runtime::GetNppExec().m_ScriptsList.SetFileState(0);
+    }
   }
   else
   {
