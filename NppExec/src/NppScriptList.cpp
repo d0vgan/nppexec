@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // CNppScriptFileChangeListener
 CNppScriptFileChangeListener::CNppScriptFileChangeListener(CNppScriptList* pNppScriptList)
-    : m_pNppScriptList(pNppScriptList)
+  : m_pNppScriptList(pNppScriptList)
 {
 }
 
@@ -331,12 +331,20 @@ void CNppScriptList::SaveToFile(const TCHAR* cszFileName)
     totalSerializedLength += pScript->GetSerializedStringLength();
   }
 
-  fbuf.GetBufPtr()->Reserve(totalSerializedLength);
-
-  for (auto p = _Scripts.GetFirst(); p != NULL; p = p->GetNext())
+  if ( totalSerializedLength != 0 )
   {
-    const CNppScript* pScript = p->GetItem();
-    pScript->SerializeToBuf( *fbuf.GetBufPtr(), CNppScript::sbfAppendMode );
+    fbuf.GetBufPtr()->Reserve(totalSerializedLength);
+
+    for (auto p = _Scripts.GetFirst(); p != NULL; p = p->GetNext())
+    {
+      const CNppScript* pScript = p->GetItem();
+      pScript->SerializeToBuf( *fbuf.GetBufPtr(), CNppScript::sbfAppendMode );
+      if ( p == _Scripts.GetLast() )
+      {
+        totalSerializedLength -= 2; // the trailing extra "\r\n"
+        fbuf.GetBufPtr()->SetSize(totalSerializedLength);
+      }
+    }
   }
 
   _nFileState |= fsfIsSaving;

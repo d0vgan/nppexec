@@ -56,12 +56,11 @@ public:
 
 private:
   CListT<CNppScript *>  _Scripts;
+  tstr                  _ScriptFileName;
   int                   _nUtf8DetectLength;
   volatile int          _nFileState;
   bool                  _bIsModified;
   mutable CCriticalSection _csScripts;
-
-  tstr _ScriptFileName;
 
   void Free();
 
@@ -76,6 +75,7 @@ public:
   CListT<tstr> GetScriptNames();
   CListT<CNppScript> GetScripts();
   int  GetFileState() const  { return _nFileState; }
+  const tstr& GetScriptFileName() const { return _ScriptFileName; }
   bool IsModified() const  { return _bIsModified; }
   void LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLength = 16384);
   bool ModifyScript(const tstr& ScriptName, const CNppScript& newScript);

@@ -298,15 +298,22 @@ bool CDoExecDlg::isScriptFileChanged()
   if ( !NppExec.GetOptions().GetBool(OPTB_WATCHSCRIPTFILE) )
     return false;
 
-  int nFileState = NppExec.m_ScriptsList.GetFileState();
+  CNppScriptList& ScriptsList = NppExec.m_ScriptsList;
+  if ( !NppExecHelpers::CheckFileExists(ScriptsList.GetScriptFileName()) )
+  {
+    ScriptsList.SetModified(true);
+    return true;
+  }
+
+  int nFileState = ScriptsList.GetFileState();
   if ( nFileState & CNppScriptList::fsfNeedsReload )
     return true;
 
   if ( nFileState & CNppScriptList::fsfWasReloaded )
   {
-      nFileState ^= CNppScriptList::fsfWasReloaded;
-      NppExec.m_ScriptsList.SetFileState(nFileState);
-      return true;
+    nFileState ^= CNppScriptList::fsfWasReloaded;
+    ScriptsList.SetFileState(nFileState);
+    return true;
   }
 
   return false;

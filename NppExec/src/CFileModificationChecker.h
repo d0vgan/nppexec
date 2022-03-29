@@ -57,11 +57,12 @@ public:
     CDirectoryWatcher();
     ~CDirectoryWatcher();
 
+    // call these methods _before_ the StartWatching()
     // dwNotifyFilter: see FILE_NOTIFY_CHANGE_* notifications, e.g. FILE_NOTIFY_CHANGE_LAST_WRITE
     void AddDir(LPCTSTR cszDirectory, IDirectoryChangeListener* pChangeListener, DWORD dwNotifyFilter, BOOL bRecursive);
-
     void AddFile(LPCTSTR cszFilePath, IFileChangeListener* pChangeListener, DWORD dwNotifyFilter);
 
+    // invoke StartWatching() _after_ all the AddDir/AddFile calls
     void StartWatching();
     void StopWatching();
 

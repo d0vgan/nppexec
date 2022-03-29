@@ -223,8 +223,8 @@ BOOL FileInfoStruct::GetFileSizeAndTime(LPCTSTR cszFilePath, LARGE_INTEGER* pliS
 bool FileInfoStruct::HasEqualSizeAndTime(const FileInfoStruct& other) const
 {
     return ( fileSize.LowPart == other.fileSize.LowPart &&
-        fileSize.HighPart == other.fileSize.HighPart &&
-        ::CompareFileTime(&fileLastWriteTime, &other.fileLastWriteTime) == 0 );
+             fileSize.HighPart == other.fileSize.HighPart &&
+             ::CompareFileTime(&fileLastWriteTime, &other.fileLastWriteTime) == 0 );
 }
 
 void FileInfoStruct::CopySizeAndTime(const FileInfoStruct& other)
