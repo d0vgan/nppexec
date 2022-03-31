@@ -20,13 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "CAnyWindow.h"
 #include "NppExec.h"
 #include <shellapi.h>
+#include <CommCtrl.h>
 
 
 INT_PTR CALLBACK HelpAboutDlgProc(
   HWND   hDlg, 
   UINT   uMessage, 
   WPARAM wParam, 
-  LPARAM /*lParam*/)
+  LPARAM lParam)
 {
   if (uMessage == WM_COMMAND)
   {
@@ -44,7 +45,7 @@ INT_PTR CALLBACK HelpAboutDlgProc(
         ZeroMemory(&info, sizeof(SHELLEXECUTEINFO));
         info.cbSize = sizeof(SHELLEXECUTEINFO);
         info.hwnd = Runtime::GetNppExec().m_nppData._nppHandle;
-        info.lpFile = _T("http://sourceforge.net/donate/?user_id=1468738");
+        info.lpFile = _T("https://www.paypal.com/donate/?hosted_button_id=W852AH392AZDJ");
         info.lpParameters = NULL;
         info.nShow = SW_SHOW;
         ShellExecuteEx(&info);
@@ -52,6 +53,22 @@ INT_PTR CALLBACK HelpAboutDlgProc(
       }
       default:
         break;
+    }
+  }
+
+  else if (uMessage == WM_NOTIFY)
+  {
+    NMHDR* pnmHdr = (NMHDR*) lParam;
+    if (pnmHdr->code == NM_CLICK)
+    {
+      SHELLEXECUTEINFO info;
+      ZeroMemory(&info, sizeof(SHELLEXECUTEINFO));
+      info.cbSize = sizeof(SHELLEXECUTEINFO);
+      info.hwnd = Runtime::GetNppExec().m_nppData._nppHandle;
+      info.lpFile = _T("https://github.com/d0vgan/nppexec/");
+      info.lpParameters = NULL;
+      info.nShow = SW_SHOW;
+      ShellExecuteEx(&info);
     }
   }
 

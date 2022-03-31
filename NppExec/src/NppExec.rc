@@ -163,8 +163,10 @@ BEGIN
     LTEXT           "",IDC_ED_INFO,7,98,225,134,0,WS_EX_STATICEDGE
     CTEXT           "Thanks to:\r\nDon HO for Notepad++,\r\nJens Lorenz for the docking feature,\r\nJuha Nieminen and Joel Yliluoma for Function Parser\r\nand myself for this plugin :-)",
                     IDC_STATIC,5,46,229,48
-//    CTEXT           "If you are using this software for commercial purpose,\r\nplease think about donation.",
+//    CTEXT           "If you want to support the NppExec development,\r\nplease consider to make a donation.",
 //                    IDC_STATIC,5,238,229,20
+    RTEXT           "Home:",IDC_STATIC,5,238,40,8
+    CONTROL         "<a>https://github.com/d0vgan/nppexec/</a>",IDC_ST_HOME_ADDR,"SysLink",0,50,238,180,12
 END
 
 IDD_CONSOLE_FILTER DIALOGEX

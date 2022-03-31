@@ -40,6 +40,7 @@
 #define IDC_BOLD                                1022
 #define IDC_UNDERLINED                          1023
 #define IDC_BT_DONATE                           1025
+#define IDC_ST_HOME_ADDR                        1026
 
 #define IDC_CH_INCLUDE1                         1031
 #define IDC_CH_INCLUDE2                         1032
