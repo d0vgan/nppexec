@@ -45,7 +45,7 @@ private:
 };
 
 
-class CNppScriptList 
+class CNppScriptList
 {
 public:
   enum eFileStateFlags {
@@ -63,11 +63,13 @@ private:
   mutable CCriticalSection _csScripts;
 
   void Free();
+  void LoadFromFile_NoLock(const TCHAR* cszFileName, int nUtf8DetectLength);
+  void ReloadScriptFileIfNeeded_NoLock();
 
 public:
   CNppScriptList();
   ~CNppScriptList();
-  
+
   bool AddScript(const tstr& ScriptName, const CNppScript& newScript);
   bool DeleteScript(const tstr& ScriptName);
   bool GetScript(const tstr& ScriptName, CNppScript& outScript);
@@ -83,8 +85,6 @@ public:
   void SetModified(bool bIsModified)  { _bIsModified = bIsModified; }
   void SetFileState(int nFileState)  { _nFileState = nFileState; }
   bool IsScriptPresent(const tstr& ScriptName);
-
-  void ReloadScriptFileIfNeeded();
 };
 
 //--------------------------------------------------------------------

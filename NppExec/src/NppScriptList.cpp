@@ -67,13 +67,13 @@ bool CNppScriptList::AddScript(const tstr& ScriptName, const CNppScript& newScri
 {
   if (!ModifyScript(ScriptName, newScript))
   {
-    ReloadScriptFileIfNeeded();
-
     CCriticalSectionLockGuard lock(_csScripts);
+
+    ReloadScriptFileIfNeeded_NoLock();
 
     CNppScript* pScript = new CNppScript(ScriptName, newScript.GetCmdList());
     if (pScript)
-    {      
+    {
       if (_Scripts.Add(pScript))
       {
         // script is added -> list is modified
@@ -102,9 +102,9 @@ bool CNppScriptList::DeleteScript(const tstr& ScriptName)
 {
   bool bRet = false;
 
-  ReloadScriptFileIfNeeded();
-
   CCriticalSectionLockGuard lock(_csScripts);
+
+  ReloadScriptFileIfNeeded_NoLock();
 
   CListItemT<CNppScript *> * p = _Scripts.GetFirst();
   while (p)
@@ -133,9 +133,9 @@ bool CNppScriptList::GetScript(const tstr& ScriptName, CNppScript& outScript)
 
   outScript.GetCmdList().DeleteAll();
 
-  ReloadScriptFileIfNeeded();
-
   CCriticalSectionLockGuard lock(_csScripts);
+
+  ReloadScriptFileIfNeeded_NoLock();
 
   CListItemT<CNppScript *> * p = _Scripts.GetFirst();
   while (p)
@@ -156,18 +156,18 @@ bool CNppScriptList::GetScript(const tstr& ScriptName, CNppScript& outScript)
 
 int CNppScriptList::GetScriptCount()
 {
-  ReloadScriptFileIfNeeded();
-
   CCriticalSectionLockGuard lock(_csScripts);
 
-  return _Scripts.GetCount(); 
+  ReloadScriptFileIfNeeded_NoLock();
+
+  return _Scripts.GetCount();
 }
 
 CListT<tstr> CNppScriptList::GetScriptNames()
 {
-  ReloadScriptFileIfNeeded();
-
   CCriticalSectionLockGuard lock(_csScripts);
+
+  ReloadScriptFileIfNeeded_NoLock();
 
   CListT<tstr> scriptNames;
   CListItemT<CNppScript *> * p = _Scripts.GetFirst();
@@ -183,9 +183,9 @@ CListT<tstr> CNppScriptList::GetScriptNames()
 
 CListT<CNppScript> CNppScriptList::GetScripts()
 {
-  ReloadScriptFileIfNeeded();
-
   CCriticalSectionLockGuard lock(_csScripts);
+
+  ReloadScriptFileIfNeeded_NoLock();
 
   CListT<CNppScript> scriptsList;
   CListItemT<CNppScript *> * p = _Scripts.GetFirst();
@@ -200,15 +200,21 @@ CListT<CNppScript> CNppScriptList::GetScripts()
 
 void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLength)
 {
-  CFileBufT<TCHAR> fbuf;
-
   CCriticalSectionLockGuard lock(_csScripts);
+
+  LoadFromFile_NoLock(cszFileName, nUtf8DetectLength);
+}
+
+void CNppScriptList::LoadFromFile_NoLock(const TCHAR* cszFileName, int nUtf8DetectLength)
+{
+  CFileBufT<TCHAR> fbuf;
 
   Free();
   _Scripts.DeleteAll();
-  _bIsModified = false;
   _nUtf8DetectLength = nUtf8DetectLength;
-  
+  _nFileState = 0;
+  _bIsModified = false;
+
   if (fbuf.LoadFromFile(cszFileName, true, nUtf8DetectLength))
   {
     CStrT<TCHAR> S;
@@ -216,7 +222,7 @@ void CNppScriptList::LoadFromFile(const TCHAR* cszFileName, int nUtf8DetectLengt
     int          i;
     int          iScript;
     CNppScript*  pScript;
-    
+
     iScript = 0;
     pScript = NULL;
     while (fbuf.GetLine(S) >= 0)
@@ -259,9 +265,9 @@ bool CNppScriptList::ModifyScript(const tstr& ScriptName, const CNppScript& newS
   tstr S2;
   bool bModified = false;
 
-  ReloadScriptFileIfNeeded();
-
   CCriticalSectionLockGuard lock(_csScripts);
+
+  ReloadScriptFileIfNeeded_NoLock();
 
   CListItemT<CNppScript *> * p = _Scripts.GetFirst();
   while (p)
@@ -320,9 +326,9 @@ void CNppScriptList::SaveToFile(const TCHAR* cszFileName)
 {
   CFileBufT<TCHAR> fbuf;
 
-  ReloadScriptFileIfNeeded();
-
   CCriticalSectionLockGuard lock(_csScripts);
+
+  ReloadScriptFileIfNeeded_NoLock();
 
   int totalSerializedLength = 0;
   for (auto p = _Scripts.GetFirst(); p != NULL; p = p->GetNext())
@@ -364,9 +370,9 @@ bool CNppScriptList::IsScriptPresent(const tstr& ScriptName)
 {
   bool bRet = false;
 
-  ReloadScriptFileIfNeeded();
-
   CCriticalSectionLockGuard lock(_csScripts);
+
+  ReloadScriptFileIfNeeded_NoLock();
 
   CListItemT<CNppScript *> * p = _Scripts.GetFirst();
   while (p && !bRet)
@@ -381,11 +387,11 @@ bool CNppScriptList::IsScriptPresent(const tstr& ScriptName)
   return bRet;
 }
 
-void CNppScriptList::ReloadScriptFileIfNeeded()
+void CNppScriptList::ReloadScriptFileIfNeeded_NoLock()
 {
   if ( _nFileState & fsfNeedsReload )
   {
-    LoadFromFile(_ScriptFileName.c_str(), _nUtf8DetectLength);
+    LoadFromFile_NoLock(_ScriptFileName.c_str(), _nUtf8DetectLength);
     _nFileState = fsfWasReloaded;
   }
 }
