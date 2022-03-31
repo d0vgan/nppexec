@@ -5164,7 +5164,8 @@ bool ConsoleDlg::loadCmdHistory()
   {
     while ( fbuf.GetLine(S) >= 0 )
     {
-      CmdHistoryList.Add(S);
+      if ( !S.IsEmpty() )
+        CmdHistoryList.Add(S);
     }
 
     return true;
