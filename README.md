@@ -17,3 +17,7 @@ Note:
 If you see just blank pages inside the NppExec Manual or see messages similar to "This web content was blocked" or "This web page could not be shown", please follow the instructions below:
 * Unblocking CHM files for Windows XP : http://support.microsoft.com/kb/902225
 * Unblocking CHM files for Windows 7 : http://support.microsoft.com/kb/2021383
+
+To support NppExec development:
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=W852AH392AZDJ)
