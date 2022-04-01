@@ -14,6 +14,7 @@ mkdir %TMP_DIR%\NppExec
 mkdir %TMP_DIR%\NppExec\NppExec
 
 copy README.md %TMP_DIR%\doc\NppExec\README.txt
+sfk replace %TMP_DIR%\doc\NppExec\README.txt /\*/*/ -yes
 
 cd NppExec
 
