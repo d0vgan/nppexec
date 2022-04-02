@@ -1,7 +1,7 @@
 import os
 
-VERSION_TO_SET = "0.8"
-DATE_TO_SET = "February 2022"
+VERSION_TO_SET = "0.8.1"
+DATE_TO_SET = "April 2022"
 
 
 def run():
@@ -30,7 +30,7 @@ def update_version_and_date(filename: str, update_verdate: bool):
             pos_1 = line.find(" - ") + 3
             lines[line_idx] = line[0:pos_1] + DATE_TO_SET + get_line_end(line)
             is_date_replaced = True
-        elif not is_ver_date_replaced and line.startswith(" v{0} ".format(VERSION_TO_SET)):
+        elif not is_ver_date_replaced and line.startswith(" v{0}".format(VERSION_TO_SET)):
             line_updated = " v{0} - {1}".format(VERSION_TO_SET, DATE_TO_SET)
             line_end = get_line_end(line)
             lines[line_idx] = line_updated + line_end
@@ -58,7 +58,7 @@ def update_h_file(filename: str):
     is_ver_str_replaced = False
     line_idx = 0
     for line in lines:
-        if not is_ver_date_replaced and line.startswith(" v{0} ".format(VERSION_TO_SET)):
+        if not is_ver_date_replaced and line.startswith(" v{0}".format(VERSION_TO_SET)):
             line_updated = " v{0} - {1}".format(VERSION_TO_SET, DATE_TO_SET)
             line_end = get_line_end(line)
             lines[line_idx] = line_updated + line_end

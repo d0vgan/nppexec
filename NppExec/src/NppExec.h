@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.1
- ------
+ v0.8.1 - April 2022
+ -------------------
  * 24.02.2022: Russkii voennyi korabl', idi nakhui!!!
      In the memory of those who were killed.
      In the memory of what was destroyed.
@@ -687,8 +687,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F0
-#define NPPEXEC_VER_STR   _T("0.8")
+#define NPPEXEC_VER_DWORD 0x08F1
+#define NPPEXEC_VER_STR   _T("0.8.1")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

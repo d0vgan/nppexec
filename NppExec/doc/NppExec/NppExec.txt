@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.8 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - February 2022
+ * NppExec plugin ver. 0.8.1 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - April 2022
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
@@ -217,8 +217,8 @@
  *  HISTORY  *
  *************
 
- v0.8.1
- ------
+ v0.8.1 - April 2022
+ -------------------
  * 24.02.2022: Russkii voennyi korabl', idi nakhui!!!
      In the memory of those who were killed.
      In the memory of what was destroyed.
