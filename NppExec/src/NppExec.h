@@ -23,6 +23,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  v0.8.1
  ------
  * 24.02.2022: Russkii voennyi korabl', idi nakhui!!!
+     In the memory of those who were killed.
+     In the memory of what was destroyed.
+     God bless those who defend.
+     We will build the better future.
  + added: $(CURRENT_LINESTR), $(SCI_HWND1), $(SCI_HWND2)
  + added: dynamic reloading of the saved scripts ("npes_saved.txt")
  * the "About" dialog slightly updated
