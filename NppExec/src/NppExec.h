@@ -30,6 +30,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: $(CURRENT_LINESTR), $(SCI_HWND1), $(SCI_HWND2)
  + added: dynamic reloading of the saved scripts ("npes_saved.txt")
  * the "About" dialog slightly updated
+ - fixed: potential crash around ScriptContextList.DeleteLast()
+ - fixed: CFileBufT::GetLine did not read the trailng empty line
+ * changed: now ConsoleDlg::loadCmdHistory ignores empty lines
 
 
  v0.8 - February 2022
