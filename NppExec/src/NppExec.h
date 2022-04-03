@@ -1601,7 +1601,7 @@ public:
 
   void DoExecScript(const tstr& id, LPCTSTR szScriptName, bool bCanSaveAll, LPCTSTR szScriptArguments = NULL, unsigned int nRunFlags = 0);
   void DoRunScript(const CListT<tstr>& CmdList, unsigned int nRunFlags = 0);
-  void DoExecText(const tstr& sText, int nExecTextMode);
+  void DoExecText(const tstr& sText, unsigned int nExecTextMode);
 
   void RunTheStartScript();
   void RunTheExitScript();

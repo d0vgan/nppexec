@@ -4706,7 +4706,7 @@ void CNppExec::OnDirectExec(const tstr& id, bool bCanSaveAll, unsigned int nRunF
     }
 }
 
-void CNppExec::DoExecText(const tstr& sText, int nExecTextMode)
+void CNppExec::DoExecText(const tstr& sText, unsigned int nExecTextMode)
 {
     CNppExecCommandExecutor& CommandExecutor = GetCommandExecutor();
     const bool isChildProcess = CommandExecutor.IsChildProcessRunning();
@@ -4797,7 +4797,7 @@ void CNppExec::OnExecSelText()
 
     Runtime::GetLogger().Add( _T("; OnExecSelText") );
 
-    int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECSELTEXTMODE);
+    unsigned int nExecTextMode = GetOptions().GetUint(OPTI_CONSOLE_EXECSELTEXTMODE);
     DoExecText( sciGetSelText(), nExecTextMode );
 }
 
@@ -4808,7 +4808,7 @@ void CNppExec::OnExecClipText()
 
     Runtime::GetLogger().Add( _T("; OnExecClipText") );
 
-    int nExecTextMode = GetOptions().GetInt(OPTI_CONSOLE_EXECCLIPTEXTMODE);
+    unsigned int nExecTextMode = GetOptions().GetUint(OPTI_CONSOLE_EXECCLIPTEXTMODE);
     DoExecText( NppExecHelpers::GetClipboardText(), nExecTextMode );
 }
 

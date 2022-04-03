@@ -5908,7 +5908,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
     // executing the given text as NppExec's script
     // or sending the text to the running child process as an input
 
-    int nExecTextMode = c_base::_tstr2int(params.c_str());
+    unsigned int nExecTextMode = c_base::_tstr2uint(params.c_str());
 
     int n = params.FindOneOf(_T(" \t"));
     if ( n == -1 )

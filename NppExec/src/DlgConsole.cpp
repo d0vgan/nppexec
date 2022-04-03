@@ -2565,6 +2565,10 @@ namespace ConsoleDlg
   bool    loadCmdHistory();
   bool    saveCmdHistory();
 
+  bool    isMultilineInput(CAnyRichEdit& Edit, int* pnTotalLines = NULL, int* pnFirstInputLine = NULL);
+  bool    isCmdHistoryRequest(CAnyRichEdit& Edit, int* pnCurrLine);
+  tstr    getInputText(CAnyRichEdit& Edit, bool* pisMultiline, int* pnTotalTextLen);
+
   void    enableFindControls(bool bEnable);
 
   void    doWordWrap(HWND hDlg);
@@ -3907,11 +3911,9 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 #endif          
 
         Edit.ScrollCaret();
-        
-        int nPos = Edit.ExGetSelPos();
-        int nLine = Edit.ExLineFromChar(nPos);
-        if ((nLine >= Edit.ExLineFromChar(nConsoleFirstUnlockedPos)) &&
-            (nLine < Edit.GetLineCount()))
+
+        int nLine = -1;
+        if (isCmdHistoryRequest(Edit, &nLine))
         {
             // >>> (VK_UP || VK_DOWN) && (WM_KEYDOWN || WM_KEYUP) : WM_KEYDOWN
             if (lpmsgf->msg == WM_KEYDOWN)
@@ -4057,33 +4059,30 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
         }
 #endif
 
-        TCHAR szConsoleStr[CONSOLECOMMAND_BUFSIZE];
-        szConsoleStr[0] = 0;
+        if (bShift) // Shift+Enter
+        {
+            Edit.AddStr(Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER));
+            int nCharIndex = Edit.GetTextLengthEx();
+            Edit.ExSetSel(nCharIndex, nCharIndex);
+            lpmsgf->wParam = 0;
+            return 0;
+        }
 
         int nCharIndex = Edit.ExGetSelPos();
-        int nLines = Edit.ExLineFromChar(nCharIndex) + 1; //Edit.GetLineCount();
 
         if (Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRunning() &&
             (nCharIndex >= nConsoleFirstUnlockedPos))
         {
-            // input line as a console input
-            if (nLines >= 1)
-            {
-                int nLineStartIndex = 0;
-                int nLineLen = GetCompleteLine(Edit, nLines-1, szConsoleStr, CONSOLECOMMAND_BUFSIZE - 1, &nLineStartIndex);
-                Edit.ExSetSel(nLineStartIndex + nLineLen, nLineStartIndex + nLineLen);
-          
-                int nFirstUnlockedLine = Edit.ExLineFromChar(nConsoleFirstUnlockedPos);
-                if ((nFirstUnlockedLine <= nLines - 1) &&
-                    (nFirstUnlockedLine >= Edit.ExLineFromChar(nLineStartIndex)))
-                {
-                    int i = nConsoleFirstUnlockedPos - nLineStartIndex;
-                    lstrcpy(szConsoleStr, szConsoleStr + i);
-                    nLineLen -= i;
-                }
+            // input line(s) as a console input
+            bool isMultiline = false;
+            int nPos = 0;
+            tstr cmd = getInputText(Edit, &isMultiline, &nPos);
 
-                tstr cmd = szConsoleStr;
-                if (cmd.length() > 0)
+            if (cmd.length() > 0)
+            {
+                Edit.ExSetSel(nPos, nPos);
+
+                if (!isMultiline)
                 {
                     TCHAR ch;
                     while (((ch = cmd.GetLastChar()) == _T('\n')) || (ch == _T('\r')))
@@ -4092,11 +4091,13 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     }
                     AddCommandToHistoryList(cmd);
                 }
-          
-                //lstrcat(szConsoleStr, "\n");  nLen += 1;
 
-                //cmd += _T("\r\n");
                 Runtime::GetNppExec().GetCommandExecutor().ExecuteChildProcessCommand(cmd, true);
+            }
+            else
+            {
+                Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput(Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER));
+                Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed();
             }
         }
         else if (Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRunning())
@@ -4106,42 +4107,28 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
         }
         else if (nCharIndex >= nConsoleFirstUnlockedPos)
         {
-            // input line as a stand-alone command
-            TCHAR ch;
-            tstr  S;
-          
-            int nLineStartIndex = 0;
-            int nLineLen = GetCompleteLine(Edit, nLines-1, szConsoleStr, CONSOLECOMMAND_BUFSIZE - 1, &nLineStartIndex);
-            Edit.ExSetSel(nLineStartIndex + nLineLen, nLineStartIndex + nLineLen);
-        
-            int nFirstUnlockedLine = Edit.ExLineFromChar(nConsoleFirstUnlockedPos);
-            if ((nFirstUnlockedLine <= nLines - 1) &&
-                (nFirstUnlockedLine >= Edit.ExLineFromChar(nLineStartIndex)))
-            {
-                int i = nConsoleFirstUnlockedPos - nLineStartIndex;
-                lstrcpy(szConsoleStr, szConsoleStr + i);
-                nLineLen -= i;
-            }
+            // input line(s) as stand-alone command(s)
+            bool isMultiline = false;
+            int nPos = 0;
+            tstr S = getInputText(Edit, &isMultiline, &nPos);
 
-            S = szConsoleStr;
-        
-            int i = 0;
-            while ((i < S.length()) && 
-                   (((ch = S[i]) == ' ') || (ch == '\t') || (ch == '\r') || (ch == '\n')))
-            {
-                i++;
-            }
-            if (i > 0)
-                S.Delete(0, i);
-
-            while (((i = S.length() - 1) >= 0) && 
-                   (((ch = S[i]) == ' ') || (ch == '\t') || (ch == '\r') || (ch == '\n')))
-            {
-                S.Delete(i);
-            }
-        
             if (S.length() > 0)
             {
+                Edit.ExSetSel(nPos, nPos);
+
+                if (isMultiline)
+                {
+                    Runtime::GetLogger().AddEx( _T_RE_EOL _T("; @Input Command: %s"), S.c_str() );
+                    Runtime::GetLogger().Add( _T("; DoExecText") );
+
+                    Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed();
+
+                    unsigned int nMode = CNppExec::etfCollateralNoChildProc | CNppExec::etfNppExecPrefix | CNppExec::etfLastScript | CNppExec::etfShareLocalVars;
+                    Runtime::GetNppExec().DoExecText(S, nMode);
+
+                    return 0;
+                }
+
                 tstr S1 = S;
                 CScriptEngine::eNppExecCmdPrefix cmdPrefix = CScriptEngine::checkNppExecCmdPrefix(&Runtime::GetNppExec(), S1);
                 bool isScriptRunningOrQueued = Runtime::GetNppExec().GetCommandExecutor().IsScriptRunningOrQueued();
@@ -5226,6 +5213,58 @@ bool ConsoleDlg::saveCmdHistory()
 bool ConsoleDlg::SaveCmdHistory()
 {
   return saveCmdHistory();
+}
+
+bool ConsoleDlg::isMultilineInput(CAnyRichEdit& Edit, int* pnTotalLines, int* pnFirstInputLine)
+{
+  bool bRet = false;
+  int nFirstInputLine = 0;
+  int nTotalLines = Edit.GetLineCount();
+  if (nTotalLines > 1)
+  {
+    nFirstInputLine = Edit.ExLineFromChar(nConsoleFirstUnlockedPos);
+    if (nFirstInputLine != nTotalLines - 1)
+      bRet = true;
+  }
+
+  if (pnTotalLines) *pnTotalLines = nTotalLines;
+  if (pnFirstInputLine) *pnFirstInputLine = nFirstInputLine;
+  return bRet;
+}
+
+bool ConsoleDlg::isCmdHistoryRequest(CAnyRichEdit& Edit, int* pnCurrLine)
+{
+  int nTotalLines = 0, nFirstInputLine = 0;
+  if (isMultilineInput(Edit, &nTotalLines, &nFirstInputLine))
+    return false;
+
+  int nPos = Edit.ExGetSelPos();
+  int nLine = Edit.ExLineFromChar(nPos);
+  *pnCurrLine = nLine;
+  return ((nLine >= nFirstInputLine) && (nLine < nTotalLines));
+}
+
+tstr ConsoleDlg::getInputText(CAnyRichEdit& Edit, bool* pisMultiline, int* pnTotalTextLen)
+{
+    tstr S;
+    int nTotalLines = 0;
+    *pisMultiline = isMultilineInput(Edit, &nTotalLines);
+    if (nTotalLines != 0)
+    {
+        *pnTotalTextLen = Edit.GetTextLengthEx();
+        int nInputLength = *pnTotalTextLen; 
+        nInputLength -= nConsoleFirstUnlockedPos;
+        if (nInputLength > 0)
+        {
+            S.Reserve(nInputLength);
+
+            nInputLength = Edit.GetTextAt(nConsoleFirstUnlockedPos, nInputLength, S.c_str());
+            S.SetLengthValue(nInputLength);
+            S.Replace(_T_RE_EOL, Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER));
+        }
+    }
+
+    return S;
 }
 
 void ConsoleDlg::enableFindControls(bool bEnable)
