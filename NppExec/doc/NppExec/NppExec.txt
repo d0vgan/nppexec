@@ -226,6 +226,8 @@
      We will build the better future.
  + added: $(CURRENT_LINESTR), $(SCI_HWND1), $(SCI_HWND2)
  + added: dynamic reloading of the saved scripts ("npes_saved.txt")
+ + added: multi-line input in NppExec's Console
+ + added: Shift+Enter adds a new line (in NppExec's Console)
  * the "About" dialog slightly updated
  - fixed: potential crash around ScriptContextList.DeleteLast()
  - fixed: CFileBufT::GetLine did not read the trailng empty line

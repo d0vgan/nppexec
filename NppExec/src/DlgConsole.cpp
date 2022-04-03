@@ -60,6 +60,7 @@ const TCHAR PLUGIN_CURRENT_VER[] = NPPEXEC_VER_STR _T(" ANSI"); // see also: Npp
 const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("-------- Console keys --------") _T_RE_EOL \
   _T("Enter  -  executes entered command") _T_RE_EOL \
+  _T("Shift+Enter  -  new line") _T_RE_EOL \
   _T("Tab  -  auto-completes current command/looks through the commands history") _T_RE_EOL \
   _T("Shift+Tab  -  the same as Tab but backwards") _T_RE_EOL \
   _T("Arrow Up  -  previous command (when Console Commands History is enabled)") _T_RE_EOL \
