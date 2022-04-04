@@ -4093,12 +4093,12 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     AddCommandToHistoryList(cmd);
                 }
 
-                Runtime::GetNppExec().GetCommandExecutor().ExecuteChildProcessCommand(cmd, true);
+                Runtime::GetNppExec().GetCommandExecutor().ExecuteChildProcessCommand(cmd, true, true);
             }
             else
             {
                 Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput(Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER));
-                Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed();
+                Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed(true);
             }
         }
         else if (Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRunning())
@@ -4122,7 +4122,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     Runtime::GetLogger().AddEx( _T_RE_EOL _T("; @Input Command: %s"), S.c_str() );
                     Runtime::GetLogger().Add( _T("; DoExecText") );
 
-                    Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed();
+                    Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed(true);
 
                     unsigned int nMode = CNppExec::etfCollateralNoChildProc | CNppExec::etfNppExecPrefix | CNppExec::etfLastScript | \
                                          CNppExec::etfShareLocalVars | CNppExec::etfShareConsoleState;
@@ -4163,7 +4163,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     // the main thread itself may be trying to obtain the very same
                     // CriticalSection at the same time, thus blocking each other.
                     // CNppExecConsole has been designed to avoid such deadlocks.
-                    Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed();
+                    Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed(true);
 
                     if (IsConsoleVerCommand(S1))
                     {

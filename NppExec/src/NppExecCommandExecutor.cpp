@@ -573,7 +573,7 @@ void CNppExecCommandExecutor::SetTriedExitCmd(bool bTriedExitCmd)
         m_RunningScriptEngine->SetTriedExitCmd(bTriedExitCmd);
 }
 
-void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd, bool bSubstituteMacroVars)
+void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd, bool bSubstituteMacroVars, bool bForceLockEndPos )
 {
     Runtime::GetLogger().AddEx_WithoutOutput( _T_RE_EOL _T("; @Child Process\'es Input: %s"), cmd.c_str() );
     Runtime::GetLogger().Add( _T("") );
@@ -634,7 +634,7 @@ void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd, bool bSubsti
           // "\n" must be sent separately in some cases - ask M$ why
           // or, in case of NppExecCmdPrefix, it sends "\n" to show child process'es prompt
 
-        m_pNppExec->GetConsole().LockConsoleEndPosAfterEnterPressed();
+        m_pNppExec->GetConsole().LockConsoleEndPosAfterEnterPressed(bForceLockEndPos);
     }
 }
 

@@ -1211,7 +1211,7 @@ public:
 
     void LockConsolePos(INT nPos, bool bForce = false);
     void LockConsoleEndPos(bool bForce = false);
-    void LockConsoleEndPosAfterEnterPressed();
+    void LockConsoleEndPosAfterEnterPressed(bool bForce = false);
 
     // get/set...
     CAnyRichEdit& GetConsoleEdit();

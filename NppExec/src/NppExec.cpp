@@ -7018,14 +7018,17 @@ void CNppExecConsole::_lockConsoleEndPos(ScriptEngineId scrptEngnId)
     _lockConsolePos(scrptEngnId, m_reConsole.GetTextLengthEx());
 }
 
-void CNppExecConsole::LockConsoleEndPosAfterEnterPressed()
+void CNppExecConsole::LockConsoleEndPosAfterEnterPressed(bool bForce )
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
 
     const ScriptEngineId scrptEngnId = GetScriptEngineId();
-    if ( _isOutputEnabled(scrptEngnId) ) // <-- this is the only function that works when _isOutputEnabled() is false
-        return;
+    if ( !bForce )
+    {
+        if ( _isOutputEnabled(scrptEngnId) ) // <-- this is the only function that works when _isOutputEnabled() is false
+            return;
+    }
 
     if ( !postponeThisCall(scrptEngnId) )
     {
