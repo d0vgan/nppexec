@@ -137,9 +137,9 @@ public:
 
     enum eRunFlags : unsigned int
     {
-        rfShareLocalVars        = 0x0001, // can't be mixed with rfConsoleLocalVars
-        rfConsoleLocalVarsRead  = 0x0002, // can't be mixed with rfShareLocalVars
-        rfConsoleLocalVarsWrite = 0x0004, // can't be mixed with rfShareLocalVars
+        rfShareLocalVars        = 0x0001, // share LocalMacroVars; can't be mixed with rfConsoleLocalVars
+        rfConsoleLocalVarsRead  = 0x0002, // read UserConsoleMacroVars; can't be mixed with rfShareLocalVars
+        rfConsoleLocalVarsWrite = 0x0004, // write UserConsoleMacroVars; can't be mixed with rfShareLocalVars
         rfConsoleLocalVars      = (rfConsoleLocalVarsRead | rfConsoleLocalVarsWrite),
         rfShareConsoleState     = 0x0008, // share the OutputEnabled state
         rfCollateralScript      = 0x0010, // is running as a collateral script

@@ -4716,6 +4716,10 @@ void CNppExec::DoExecText(const tstr& sText, unsigned int nExecTextMode)
     {
         nRunFlags |= (IScriptEngine::rfShareLocalVars | IScriptEngine::rfShareConsoleLocalVars);
     }
+    if ( nExecTextMode & etfShareConsoleState )
+    {
+        nRunFlags |= IScriptEngine::rfShareConsoleState;
+    }
 
     tstr sProcessedText;
     const TCHAR* pszText = sText.c_str();

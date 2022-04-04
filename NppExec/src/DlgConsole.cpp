@@ -4124,7 +4124,8 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 
                     Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed();
 
-                    unsigned int nMode = CNppExec::etfCollateralNoChildProc | CNppExec::etfNppExecPrefix | CNppExec::etfLastScript | CNppExec::etfShareLocalVars;
+                    unsigned int nMode = CNppExec::etfCollateralNoChildProc | CNppExec::etfNppExecPrefix | CNppExec::etfLastScript | \
+                                         CNppExec::etfShareLocalVars | CNppExec::etfShareConsoleState;
                     Runtime::GetNppExec().DoExecText(S, nMode);
 
                     return 0;
