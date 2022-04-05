@@ -4062,9 +4062,11 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 
         if (bShift) // Shift+Enter
         {
-            Edit.AddStr(Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER));
-            int nCharIndex = Edit.GetTextLengthEx();
-            Edit.ExSetSel(nCharIndex, nCharIndex);
+            int nPos = 0, nEndPos = 0;
+            Edit.ExGetSelPos(&nPos, &nEndPos);
+            Edit.ReplaceSelText(Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER));
+            nPos += _T_RE_EOL_LEN;
+            Edit.ExSetSel(nPos, nPos);
             lpmsgf->wParam = 0;
             return 0;
         }
@@ -4076,12 +4078,12 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
         {
             // input line(s) as a console input
             bool isMultiline = false;
-            int nPos = 0;
-            tstr cmd = getInputText(Edit, &isMultiline, &nPos);
+            int nLenPos = 0;
+            tstr cmd = getInputText(Edit, &isMultiline, &nLenPos);
 
             if (cmd.length() > 0)
             {
-                Edit.ExSetSel(nPos, nPos);
+                Edit.ExSetSel(nLenPos, nLenPos);
 
                 if (!isMultiline)
                 {
@@ -4110,12 +4112,12 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
         {
             // input line(s) as stand-alone command(s)
             bool isMultiline = false;
-            int nPos = 0;
-            tstr S = getInputText(Edit, &isMultiline, &nPos);
+            int nLenPos = 0;
+            tstr S = getInputText(Edit, &isMultiline, &nLenPos);
 
             if (S.length() > 0)
             {
-                Edit.ExSetSel(nPos, nPos);
+                Edit.ExSetSel(nLenPos, nLenPos);
 
                 if (isMultiline)
                 {
