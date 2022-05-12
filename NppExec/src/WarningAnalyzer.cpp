@@ -500,6 +500,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             if ( filename.size() > 4 && lstrcmpi( filename.c_str() + (filename.size() - 4), _T(".exe")) == 0 )
                 return false;
             pszMask = m_BuiltInErrorFilter.Mask;
+            m_BuiltInErrorFilter.Effect.rgb = Runtime::GetNppExec().GetConsole().GetCurrentColorTextErr();
         }
         else
         {
@@ -558,7 +559,8 @@ int CWarningAnalyzer::GetCharNumber() const
 
 long CWarningAnalyzer::GetColor() const
 {
-    const TEffect& effect = m_Filter[ m_nLastFoundIndex ].Effect;
+    const TFilter& filter = (m_nLastFoundIndex == WARN_BUILTIN_ERROR_FILTER) ? m_BuiltInErrorFilter : m_Filter[m_nLastFoundIndex];
+    const TEffect& effect = filter.Effect;
     return ( RGB( effect.Red
                 , effect.Green
                 , effect.Blue
@@ -568,7 +570,8 @@ long CWarningAnalyzer::GetColor() const
 
 int CWarningAnalyzer::GetStyle() const
 {
-    const TEffect& effect = m_Filter[ m_nLastFoundIndex ].Effect;
+    const TFilter& filter = (m_nLastFoundIndex == WARN_BUILTIN_ERROR_FILTER) ? m_BuiltInErrorFilter : m_Filter[m_nLastFoundIndex];
+    const TEffect& effect = filter.Effect;
     return ( ( effect.Italic     ? CFE_ITALIC    : 0 )
            + ( effect.Bold       ? CFE_BOLD      : 0 )
            + ( effect.Underlined ? CFE_UNDERLINE : 0 )
