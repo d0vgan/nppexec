@@ -1230,6 +1230,7 @@ public:
 
     // other...
     void ClearText(bool bForce = false);
+    void ClearCurrentInput();
     BOOL IsScrollToEnd() const;
     void RestoreDefaultTextStyle(bool bLockPos);
     void UpdateColours();

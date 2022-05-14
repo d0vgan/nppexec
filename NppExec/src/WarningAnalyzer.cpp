@@ -466,14 +466,14 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         static tstring PreviousFileName;
         static int PreviousLineNo = 0;
         if ( std::regex_search( HeyStack, match, m_rgxFindFilename ) && match[0].str().size()) // Find file name (find needle in a hey stack)
-        {	
+        {
             tstring filename = match[0].str().size() > 1 && match[0].str()[0] == L'.' ? match[0].str().substr( 1 ) : match[0].str();
             if ( filename != PreviousFileName )
             {
                 PreviousFileName = filename;
                 ErrPositionIndicator.clear();
             }
-			lstrcpyn( m_FileName, filename.c_str(), sizeof( m_FileName )/sizeof( m_FileName[0]) );
+            lstrcpyn( m_FileName, filename.c_str(), sizeof( m_FileName )/sizeof( m_FileName[0]) );
             m_nLastFoundIndex = WARN_BUILTIN_ERROR_FILTER;
             tstring Suffix = match.suffix();
             tstring strLineNo = std::regex_replace( Suffix, m_rgxFindFileLineNo, _T("$1") ); // Replace to get file number only

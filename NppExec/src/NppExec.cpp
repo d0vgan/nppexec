@@ -6281,6 +6281,7 @@ bool CNppExec::checkCmdListAndPrepareConsole(const CListT<tstr>& CmdList, bool b
 
         if ( GetConsole().GetDialogWnd() ) 
         {
+            GetConsole().ClearCurrentInput();
             if ( bCanClearConsole && !GetOptions().GetBool(OPTB_CONSOLE_APPENDMODE) )
             {
                 if (!GetCommandExecutor().GetRunningScriptEngine()) // a collateral script may be running
@@ -7215,6 +7216,21 @@ void CNppExecConsole::ClearText(bool bForce )
             CCriticalSectionLockGuard lock(m_csStateList);
             _getState(scrptEngnId).PostponedCalls.push_back(postponedCall);
         }
+    }
+}
+
+void CNppExecConsole::ClearCurrentInput()
+{
+    extern INT nConsoleFirstUnlockedPos; // this is really ugly, but the whole design of the ConsoleDlg is very bad :(
+
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    INT nLen = m_reConsole.GetTextLengthEx();
+    if ( nLen > nConsoleFirstUnlockedPos )
+    {
+        m_reConsole.ExSetSel(nConsoleFirstUnlockedPos, -1);
+        m_reConsole.ReplaceSelText(_T(""));
     }
 }
 

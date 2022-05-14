@@ -44,6 +44,7 @@ extern COLORREF g_colorBkgnd;
 extern COLORREF g_colorTextNorm;
 
 INT  nConsoleFirstUnlockedPos = 0;
+bool  bFuncItemEntered = false;
 
 const TCHAR CONSOLE_CMD_HELP[]   = _T("HELP");   // show console commands
 const TCHAR CONSOLE_CMD_VER[]    = _T("VER");    // show plugin's version
@@ -2759,6 +2760,17 @@ INT_PTR CALLBACK ConsoleDlgProc(
     return 1;
   }
 
+  else if (uMessage == WM_CONSOLEDLG_EXECFUNCITEM)
+  {
+    int i = (int) wParam;
+    if (g_funcItem[i]._pFunc)
+    {
+      g_funcItem[i]._pFunc();
+    }
+    bFuncItemEntered = false;
+    return 1;
+  }
+
   /*
   else if (uMessage == WM_ACTIVATE)
   {
@@ -3371,7 +3383,6 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
   {
     static bool  bCommandEntered = false;
     static bool  bDoubleClkEntered = false;
-    static bool  bFuncItemEntered = false;
 
     MSGFILTER* lpmsgf = (MSGFILTER*) lParam;
 
@@ -3864,13 +3875,16 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                         }
                     #endif
 
+                    if ( Runtime::GetLogger().IsOutputMode() )
+                    {
+                        Runtime::GetNppExec().GetConsole().ClearCurrentInput();
+                    }
                     Runtime::GetLogger().AddEx( _T("; Hot-key: executing function [%d], \"%s\""), i, g_funcItem[i]._itemName );
 
                     lpmsgf->msg = 0;
                     lpmsgf->wParam = 0;
-                    if ( g_funcItem[i]._pFunc )
-                        g_funcItem[i]._pFunc();
                     bFuncItemEntered = true;
+                    ::PostMessage( Runtime::GetNppExec().GetConsole().GetDialogWnd(), WM_CONSOLEDLG_EXECFUNCITEM, i, 0 );
                     return 0;
                 }
             }
@@ -3882,6 +3896,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
     {
         if ( lpmsgf->msg == WM_CHAR || lpmsgf->msg == WM_SYSCHAR )
         {
+            bFuncItemEntered = false;
             lpmsgf->msg = 0; // disables the "bell" sound when e.g. Alt+Enter is pressed
             lpmsgf->wParam = 0;
             return 0;

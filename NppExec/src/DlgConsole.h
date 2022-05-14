@@ -28,6 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // this is sent in case of CScriptEngine's NPP_CONSOLE command --
 #define WM_CONSOLEDLG_CLOSE (WM_USER + 7701)
 
+// execute g_funcItem[i]._pFunc()
+#define WM_CONSOLEDLG_EXECFUNCITEM (WM_USER + 7702)
+
 // hm, what is this? --
 #define WM_NPPCLOSE         (WM_USER + 1011)
 
