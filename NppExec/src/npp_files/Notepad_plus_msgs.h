@@ -197,11 +197,31 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64, PF_ARM64 };
 	//void NPPM_TRIGGERTABBARCONTEXTMENU(int view, int index2Activate)
 
 	#define NPPM_GETNPPVERSION (NPPMSG + 50)
-	// int NPPM_GETNPPVERSION(0, 0)
-	// return version
-	// ex : v4.6
-	// HIWORD(version) == 4
-	// LOWORD(version) == 6
+	// int NPPM_GETNPPVERSION(BOOL ADD_ZERO_PADDING, 0)
+	// Get Notepad++ version
+	// HIWORD(returned_value) is major part of version: the 1st number
+	// LOWORD(returned_value) is minor part of version: the 3 last numbers
+	// 
+	// ADD_ZERO_PADDING == TRUE
+	// 
+	// version  | HIWORD | LOWORD
+	//------------------------------
+	// 8.9.6.4  | 8      | 964
+	// 9        | 9      | 0
+	// 6.9      | 6      | 900
+	// 6.6.6    | 6      | 660
+	// 13.6.6.6 | 13     | 666
+	// 
+	// 
+	// ADD_ZERO_PADDING == FALSE
+	// 
+	// version  | HIWORD | LOWORD
+	//------------------------------
+	// 8.9.6.4  | 8      | 964
+	// 9        | 9      | 0
+	// 6.9      | 6      | 9
+	// 6.6.6    | 6      | 66
+	// 13.6.6.6 | 13     | 666
 
 	#define NPPM_HIDETABBAR (NPPMSG + 51)
 	// BOOL NPPM_HIDETABBAR(0, BOOL hideOrNot)
@@ -480,6 +500,37 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64, PF_ARM64 };
 	// MacroStatus NPPM_GETCURRENTMACROSTATUS(0, 0)
 	// Gets current enum class MacroStatus { Idle - means macro is not in use and it's empty, RecordInProgress, RecordingStopped, PlayingBack }
 
+	#define NPPM_ISDARKMODEENABLED (NPPMSG + 107)
+	// bool NPPM_ISDARKMODEENABLED(0, 0)
+	// Returns true when Notepad++ Dark Mode is enable, false when it is not.
+
+	#define NPPM_GETDARKMODECOLORS (NPPMSG + 108)
+	// bool NPPM_GETDARKMODECOLORS (size_t cbSize, NppDarkMode::Colors* returnColors)
+	// - cbSize must be filled with sizeof(NppDarkMode::Colors).
+	// - returnColors must be a pre-allocated NppDarkMode::Colors struct.
+	// Returns true when successful, false otherwise.
+	// You need to uncomment the following code to use NppDarkMode::Colors structure:
+	//
+	// namespace NppDarkMode
+	// {
+	//	struct Colors
+	//	{
+	//		COLORREF background = 0;
+	//		COLORREF softerBackground = 0;
+	//		COLORREF hotBackground = 0;
+	//		COLORREF pureBackground = 0;
+	//		COLORREF errorBackground = 0;
+	//		COLORREF text = 0;
+	//		COLORREF darkerText = 0;
+	//		COLORREF disabledText = 0;
+	//		COLORREF linkText = 0;
+	//		COLORREF edge = 0;
+	//		COLORREF hotEdge = 0;
+	//	};
+	// }
+	//
+	// Note: in the case of calling failure ("false" is returned), you may need to change NppDarkMode::Colors structure to:
+	// https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/NppDarkMode.h#L32
 
 
 #define VAR_NOT_RECOGNIZED 0
@@ -520,7 +571,6 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64, PF_ARM64 };
 	// return the caret current position column
 
 	#define NPPM_GETNPPFULLFILEPATH			(RUNCOMMAND_USER + NPP_FULL_FILE_PATH)
-
 
 
 // Notification code
@@ -666,3 +716,9 @@ enum Platform { PF_UNKNOWN, PF_X86, PF_X64, PF_IA64, PF_ARM64 };
 	//scnNotification->nmhdr.code = NPPN_FILEDELETED;
 	//scnNotification->nmhdr.hwndFrom = hwndNpp;
 	//scnNotification->nmhdr.idFrom = BufferID;
+
+	#define NPPN_DARKMODECHANGED (NPPN_FIRST + 27) // To notify plugins that Dark Mode was enabled/disabled
+	//scnNotification->nmhdr.code = NPPN_DARKMODECHANGED;
+	//scnNotification->nmhdr.hwndFrom = hwndNpp;
+	//scnNotification->nmhdr.idFrom = 0;
+
