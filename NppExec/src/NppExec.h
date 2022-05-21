@@ -20,6 +20,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.2
+ ------
+ * Glory to Ukraine! Glory to the heroes!
+ + added: new option "Use Editor Colors" (in the Advanced Options).
+ - fixed: TextColorError (in the Advanced Options) was not applied to the
+   built-in error filter ("npe_console local -- x+").
+ - fixed: in rare cases, the NppExec's Console could "swallow" a first typed
+   character. It was caused by the ConsoleDlg not resetting the value of the
+   `bFuncItemEntered` back to `false`.
+ - fixed: NppExec Manual no more contains the misleading HTML tags saying
+   `META NAME="Generator"`. (The HTML files are actually modified in a text
+   editor such as Notepad++ or AkelPad without any HTML generator).
+ * npp_files updated to Notepad++ 8.4.1.
+
+
  v0.8.1 - April 2022
  -------------------
  * 24.02.2022: Russkii voennyi korabl', idi nakhui!!!
