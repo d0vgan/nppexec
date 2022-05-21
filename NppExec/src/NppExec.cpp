@@ -2306,7 +2306,8 @@ int CNppExec::textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly)
   {
     if ( (szFileAndEncoding[i+1] != _T('\\')) && (szFileAndEncoding[i+1] != _T('/')) )
     {
-      TCHAR* p = c_base::_tstr_unsafe_skip_tabspaces(szFileAndEncoding + i + 1);
+      TCHAR* p = szFileAndEncoding + i + 1;
+      while ( NppExecHelpers::IsAnySpaceChar(*p) )  ++p;
       const TCHAR ch = NppExecHelpers::LatinCharUpper(*p);
       if ( ch != 0 )
       {
@@ -2326,7 +2327,8 @@ int CNppExec::textSaveTo(LPTSTR szFileAndEncoding, bool bSelectionOnly)
           enc = encUCS2LE;
         }
       }
-      p = c_base::_tstr_unsafe_rskip_tabspaces(szFileAndEncoding, i);
+      p = szFileAndEncoding + i - 1;
+      while ( NppExecHelpers::IsAnySpaceChar(*p) )  --p;
       if ( *p == _T('\"') )
         *p = 0; // skip last \" in file name
       else
@@ -5293,7 +5295,7 @@ void CNppExec::OnUserMenuItem(int nItemNumber)
                     {
                         len += lstrlen(cszUserMenuItemSep);
                         psz += len; // before cszUserMenuItemSep
-                        psz = c_base::_tstr_unsafe_skip_tabspaces(psz);
+                        while ( NppExecHelpers::IsAnySpaceChar(*psz) )  ++psz;
                         if ( *psz )
                         {
                             DoExecScript(tstr(), psz, true);

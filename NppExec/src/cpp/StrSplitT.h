@@ -4,6 +4,19 @@
 #include "CStrT.h"
 #include "CListT.h"
 
+namespace StrSplitT
+{
+    inline bool is_any_space_char(char ch)
+    {
+        return (ch == ' ' || ch == '\t' || ch == '\v' || ch == '\f');
+    }
+
+    inline bool is_any_space_char(wchar_t ch)
+    {
+        return (ch == L' ' || ch == L'\t' || ch == L'\v' || ch == L'\f');
+    }
+}
+
 // split to args, considering quotes
 template <class T> int StrSplitToArgs(const T* str,
   CListT< CStrT<T> >& outList, int max_items = 0)
@@ -19,8 +32,6 @@ template <class T> int StrSplitToArgs(const T* str,
         const T   CHAR_DBLQUOTES = '\"';
         const T   CHAR_SGLQUOTE1 = '\'';
         const T   CHAR_SGLQUOTE2 = '`';
-        const T   CHAR_SPACE     = ' ';
-        const T   CHAR_TAB       = '\t';
 
         int      mode = MODE_TABSPACE;
         CStrT<T> S;
@@ -69,7 +80,7 @@ template <class T> int StrSplitToArgs(const T* str,
             }
             if ( mode == MODE_TABSPACE )
             {
-                if ( (ch == CHAR_SPACE) || (ch == CHAR_TAB) )
+                if ( StrSplitT::is_any_space_char(ch) )
                 {
                     ++str;
                     continue;
@@ -100,7 +111,7 @@ template <class T> int StrSplitToArgs(const T* str,
             {
                 mode = MODE_SGLQUOTE2;
             }
-            else if ( (ch == CHAR_SPACE) || (ch == CHAR_TAB) )
+            else if ( StrSplitT::is_any_space_char(ch) )
             {
                 mode = MODE_TABSPACE;
                 outList.Add( S );
@@ -135,8 +146,6 @@ template <class T> int StrSplitAsArgs(const T* str,
         const T   CHAR_DBLQUOTES = '\"';
         const T   CHAR_SGLQUOTE1 = '\'';
         const T   CHAR_SGLQUOTE2 = '`';
-        const T   CHAR_SPACE     = ' ';
-        const T   CHAR_TAB       = '\t';
 
         int      n = 0;
         int      mode = MODE_TABSPACE;
@@ -189,7 +198,7 @@ template <class T> int StrSplitAsArgs(const T* str,
             }
             if ( mode == MODE_TABSPACE )
             {
-                if ( (ch == CHAR_SPACE) || (ch == CHAR_TAB) )
+                if ( StrSplitT::is_any_space_char(ch) )
                 {
                     ++str;
                     continue;
@@ -225,7 +234,7 @@ template <class T> int StrSplitAsArgs(const T* str,
                 mode = MODE_TABSPACE;
 
                 int i = S.length() - 1;
-                while ( (i >= n) && ((S.GetAt(i) == CHAR_SPACE) || (S.GetAt(i) == CHAR_TAB)) )  --i;
+                while ( (i >= n) && StrSplitT::is_any_space_char(S.GetAt(i)) )  --i;
                 S.SetSize(i + 1);
                 outList.Add( S );
                 S.Clear();

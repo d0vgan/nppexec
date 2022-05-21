@@ -228,7 +228,7 @@ void CNppScriptList::LoadFromFile_NoLock(const TCHAR* cszFileName, int nUtf8Dete
     while (fbuf.GetLine(S) >= 0)
     {
       i = 0;
-      while ((i < S.length()) && NppExecHelpers::IsTabSpaceChar(S[i]))
+      while ((i < S.length()) && NppExecHelpers::IsAnySpaceChar(S[i]))
       {
         i++;
       }
@@ -237,7 +237,7 @@ void CNppScriptList::LoadFromFile_NoLock(const TCHAR* cszFileName, int nUtf8Dete
         // it is a script name
         ScriptName = S.GetData() + i + 2;
         i = ScriptName.length() - 1;
-        while ((i >= 0) && NppExecHelpers::IsTabSpaceChar(ScriptName[i]))
+        while ((i >= 0) && NppExecHelpers::IsAnySpaceChar(ScriptName[i]))
         {
           ScriptName.Delete(i);
           i--;

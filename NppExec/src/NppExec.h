@@ -32,6 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  - fixed: NppExec Manual no more contains the misleading HTML tags saying
    `META NAME="Generator"`. (The HTML files are actually modified in a text
    editor such as Notepad++ or AkelPad without any HTML generator).
+ * changed: IsTabSpaceChar() was replaced with IsAnySpaceChar() to handle
+   additional space characters such as '\v' and \f'.
  * npp_files updated to Notepad++ 8.4.1.
 
 

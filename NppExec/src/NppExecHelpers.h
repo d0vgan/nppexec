@@ -437,13 +437,51 @@ namespace NppExecHelpers
     int StrCmpNoCase(const TCHAR* S1, const tstr& S2); // comparing case-insensitively
     int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2); // comparing case-insensitively
 
-    inline bool IsTabSpaceChar(char ch) { return ((ch == ' ') || (ch == '\t')); }
-    inline bool IsTabSpaceChar(wchar_t ch) { return ((ch == L' ') || (ch == L'\t')); }
+    inline bool IsTabSpaceChar(char ch)
+    {
+        return ((ch == ' ') || (ch == '\t'));
+    }
+    inline bool IsTabSpaceChar(wchar_t ch)
+    {
+        return ((ch == L' ') || (ch == L'\t'));
+    }
+    inline bool IsAnySpaceChar(char ch)
+    {
+        switch ( ch )
+        {
+            case ' ':   // 0x20, space
+            case '\t':  // 0x09, tabulation
+            //case '\n':  // 0x0A, line feed
+            case '\v':  // 0x0B, line tabulation
+            case '\f':  // 0x0C, form feed
+            //case '\r':  // 0x0D, carriage return
+                return true;
+        }
+        return false;
+    }
+    inline bool IsAnySpaceChar(wchar_t ch)
+    {
+        switch ( ch )
+        {
+            case L' ':   // 0x20, space
+            case L'\t':  // 0x09, tabulation
+            //case L'\n':  // 0x0A, line feed
+            case L'\v':  // 0x0B, line tabulation
+            case L'\f':  // 0x0C, form feed
+            //case L'\r':  // 0x0D, carriage return
+                return true;
+        }
+        return false;
+    }
 
     void StrDelLeadingTabSpaces(CStrT<char>& S);
     void StrDelLeadingTabSpaces(CStrT<wchar_t>& S);
     void StrDelTrailingTabSpaces(CStrT<char>& S);
     void StrDelTrailingTabSpaces(CStrT<wchar_t>& S);
+    void StrDelLeadingAnySpaces(CStrT<char>& S);
+    void StrDelLeadingAnySpaces(CStrT<wchar_t>& S);
+    void StrDelTrailingAnySpaces(CStrT<char>& S);
+    void StrDelTrailingAnySpaces(CStrT<wchar_t>& S);
 
     CWStr CStrToWStr(const CStr& S, UINT aCodePage = CP_ACP);
     CStr  WStrToCStr(const CWStr& S, UINT aCodePage = CP_ACP);

@@ -835,10 +835,12 @@ void CAdvOptDlg::OnLbMenuItemsSelChange()
         i = c_base::_tstr_unsafe_rfind(szItemName, i, cszUserMenuItemSep);
         if ( i >= 0 )
         {
-            p = c_base::_tstr_unsafe_rskip_tabspaces(szItemName, i);
+            p = szItemName + i - 1;
+            while ( NppExecHelpers::IsAnySpaceChar(*p) )  --p;
             *(++p) = 0; // cut at cszItemSep position
             i += lstrlen(cszUserMenuItemSep); // postion after cszItemSep
-            p = c_base::_tstr_unsafe_skip_tabspaces(szItemName + i);
+            p = szItemName + i;
+            while ( NppExecHelpers::IsAnySpaceChar(*p) )  ++p;
             lstrcpy(szItemScript, p);
         }
         else

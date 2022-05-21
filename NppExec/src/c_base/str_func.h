@@ -9,6 +9,8 @@ namespace c_base {
 extern "C" {
 #endif
 
+int is_space_char( char ch );
+
 // returns:  == 0  if matched
 //            > 0  if str1 > str2
 //            < 0  if str1 < str2
@@ -139,6 +141,9 @@ char* str_unsafe_skip_ch( const char* str, const char ch );
 char* str_unsafe_skip_tabspaces( const char* str ); 
 
 //---------------------------------------------------------------------------
+
+
+int is_space_charw( wchar_t ch );
 
 // returns:  == 0  if matched
 //            > 0  if strw1 > strw2
@@ -275,6 +280,7 @@ wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw );
 // definitions
 /////////////////////////////////////////////////////////////////////////////
 #ifdef UNICODE
+  #define _tis_space_char              is_space_charw
   #define _tstr_safe_cmp               strw_safe_cmp
   #define _tstr_safe_cmpn              strw_safe_cmpn
   #define _tstr_safe_cpy               strw_safe_cpy
@@ -310,6 +316,7 @@ wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw );
   #define _tstr_unsafe_skip_ch         strw_unsafe_skip_ch
   #define _tstr_unsafe_skip_tabspaces  strw_unsafe_skip_tabspaces
 #else
+  #define _tis_space_char              is_space_char
   #define _tstr_safe_cmp               str_safe_cmp
   #define _tstr_safe_cmpn              str_safe_cmpn
   #define _tstr_safe_cpy               str_safe_cpy

@@ -792,6 +792,46 @@ namespace NppExecHelpers
         S.Delete(i + 1, -1);
     }
 
+    void StrDelLeadingAnySpaces(CStrT<char>& S)
+    {
+        int i = 0;
+        while ( IsAnySpaceChar(S.GetAt(i)) )
+        {
+            ++i;
+        }
+        S.Delete(0, i);
+    }
+
+    void StrDelLeadingAnySpaces(CStrT<wchar_t>& S)
+    {
+        int i = 0;
+        while ( IsAnySpaceChar(S.GetAt(i)) )
+        {
+            ++i;
+        }
+        S.Delete(0, i);
+    }
+
+    void StrDelTrailingAnySpaces(CStrT<char>& S)
+    {
+        int i = S.length() - 1;
+        while ( IsAnySpaceChar(S.GetAt(i)) )
+        {
+            --i;
+        }
+        S.Delete(i + 1, -1);
+    }
+
+    void StrDelTrailingAnySpaces(CStrT<wchar_t>& S)
+    {
+        int i = S.length() - 1;
+        while ( IsAnySpaceChar(S.GetAt(i)) )
+        {
+            --i;
+        }
+        S.Delete(i + 1, -1);
+    }
+
     CWStr CStrToWStr(const CStr& S, UINT aCodePage )
     {
         if ( S.IsEmpty() )

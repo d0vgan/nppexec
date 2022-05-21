@@ -582,12 +582,13 @@ void CDoExecDlg::ShowScriptText(const tstr& ScriptName)
 
 bool IsDelimiterCharacter(const TCHAR ch)
 {
-  return (ch == ' '  || ch == '\t' || 
-          ch == ','  || ch == '.'  ||
-          ch == ';'  || ch == ':'  ||
-          ch == '/'  || ch == '\\' ||
-          ch == '|'  || ch == '\"' || 
-          ch == '\r' || ch == '\n' ||
+  return (ch == _T(' ')  || ch == _T('\t') || 
+          ch == _T(',')  || ch == _T('.')  ||
+          ch == _T(';')  || ch == _T(':')  ||
+          ch == _T('/')  || ch == _T('\\') ||
+          ch == _T('|')  || ch == _T('\"') || 
+          ch == _T('\r') || ch == _T('\n') ||
+          ch == _T('\v') || ch == _T('\f') ||
           ch == 0);
 }
 
@@ -943,7 +944,7 @@ bool CScriptNameDlg::OnBtSave()
     return false;
   }
 
-  if ( NppExecHelpers::IsTabSpaceChar(DoExecDlg.m_szScriptNameToSave[0]) )
+  if ( NppExecHelpers::IsAnySpaceChar(DoExecDlg.m_szScriptNameToSave[0]) )
   {
     DoExecDlg.m_szScriptNameToSave[0] = 0;
     MessageBox(m_hWnd, _T("Script name can\'t contain leading space characters"), 

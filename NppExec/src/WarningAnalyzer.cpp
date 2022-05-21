@@ -430,14 +430,14 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             postr2 = m_FileName;
             postr1 = ostr1;
             // skip leading spaces
-            postr1 = c_base::_tstr_unsafe_skip_tabspaces(postr1);
+            while ( NppExecHelpers::IsAnySpaceChar(*postr1))  ++postr1;
             // copy
             while ( (*postr2++ = *postr1++) != 0 );
             // skip trailing spaces
             --postr2;
             while ( --postr2 >= m_FileName )
             {
-                if ( !NppExecHelpers::IsTabSpaceChar(*postr2) )
+                if ( !NppExecHelpers::IsAnySpaceChar(*postr2) )
                     break;
             }
             *(++postr2) = 0;
@@ -449,11 +449,11 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         }
         
         // skip leading spaces
-        postr3 = c_base::_tstr_unsafe_skip_tabspaces(postr3);
+        while ( NppExecHelpers::IsAnySpaceChar(*postr3) )  ++postr3;
         m_nLine = _ttoi(postr3);
 
         // skip leading spaces
-        postr4 = c_base::_tstr_unsafe_skip_tabspaces(postr4);
+        while ( NppExecHelpers::IsAnySpaceChar(*postr4) )  ++postr4;
         m_nChar = _ttoi(postr4);
     }
     else if ( Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONFLTR_COMPILER_ERRORS) )
@@ -699,7 +699,7 @@ bool match_mask_2( const TCHAR* mask
             {
                 if ( ( *pMask == *pStr ) // exact match, case-sensitive
                   || ( (*pMask == _T('?')) && (*pStr != 0) ) // any character
-                  || ( (*pMask == _T(' ')) && (*pStr == _T('\t')) ) // tab treated as space
+                  || ( (*pMask == _T(' ')) && NppExecHelpers::IsAnySpaceChar(*pStr) ) // tab treated as space
                    ) 
                 {
                     ++pMask;
@@ -721,7 +721,7 @@ bool is_num_str(const TCHAR* s)
 {
     if ( *s )
     {
-        s = c_base::_tstr_unsafe_skip_tabspaces(s);
+        while ( NppExecHelpers::IsAnySpaceChar(*s) )  ++s;
         if ( *s )
         {
             if ( (*s == _T('-')) || (*s == _T('+')) )

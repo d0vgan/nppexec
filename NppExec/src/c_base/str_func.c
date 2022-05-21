@@ -9,6 +9,21 @@ namespace c_base {
 #endif
 
 
+int is_space_char( char ch )
+{
+    switch ( ch )
+    {
+        case ' ':   // 0x20, space
+        case '\t':  // 0x09, tabulation
+        //case '\n':  // 0x0A, line feed
+        case '\v':  // 0x0B, line tabulation
+        case '\f':  // 0x0C, form feed
+        //case '\r':  // 0x0D, carriage return
+            return 1;
+    }
+    return 0;
+}
+
 int str_safe_cmp( const char* str1, const char* str2 )
 {
     if ( str1 )
@@ -362,7 +377,7 @@ char* str_unsafe_rskip_tabspaces( const char* str, int len )
     while ( len-- > 0)
     {
         --str;
-        if ((*str != ' ') && (*str != '\t'))
+        if ( !is_space_char(*str) )
             break;
     }
     return ( (char *) str );
@@ -394,7 +409,7 @@ char* str_safe_skip_tabspaces( const char* str )
 // CONDITION: str != 0
 char* str_unsafe_skip_tabspaces( const char* str )
 {
-    while ( (*str == ' ') || (*str == '\t') )
+    while ( is_space_char(*str) )
     {
         ++str;
     }
@@ -402,6 +417,21 @@ char* str_unsafe_skip_tabspaces( const char* str )
 }
 
 //---------------------------------------------------------------------------
+
+int is_space_charw( wchar_t ch )
+{
+    switch ( ch )
+    {
+        case L' ':   // 0x20, space
+        case L'\t':  // 0x09, tabulation
+        //case L'\n':  // 0x0A, line feed
+        case L'\v':  // 0x0B, line tabulation
+        case L'\f':  // 0x0C, form feed
+        //case L'\r':  // 0x0D, carriage return
+            return 1;
+    }
+    return 0;
+}
 
 int strw_safe_cmp( const wchar_t* strw1, const wchar_t* strw2 )
 {
@@ -756,7 +786,7 @@ wchar_t* strw_unsafe_rskip_tabspaces( const wchar_t* strw, int len )
     while ( len-- > 0)
     {
         --strw;
-        if ((*strw != L' ') && (*strw != L'\t'))
+        if ( !is_space_charw(*strw) )
             break;
     }
     return ( (wchar_t *) strw );
@@ -788,7 +818,7 @@ wchar_t* strw_safe_skip_tabspaces( const wchar_t* strw )
 // CONDITION: strw != 0
 wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw )
 {
-    while ( (*strw == L' ') || (*strw == L'\t') )
+    while ( is_space_charw(*strw) )
     {
         ++strw;
     }
