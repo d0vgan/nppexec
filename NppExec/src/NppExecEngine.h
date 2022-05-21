@@ -927,6 +927,12 @@ class CScriptEngine : public IScriptEngine
                     mHasValues |= fColorBkgnd;
                 }
 
+                void setUseEditorColors(bool bUseEditorColors)
+                {
+                    mUseEditorColors = bUseEditorColors;
+                    mHasValues |= fUseEditorColors;
+                }
+
                 void setConFltrInclMask(int nConFltrInclMask)
                 {
                     mConFltrInclMask = nConFltrInclMask;
@@ -1101,6 +1107,7 @@ class CScriptEngine : public IScriptEngine
 
                 bool hasColorTextNorm() const { return ((mHasValues & fColorTextNorm) != 0); }
                 bool hasColorBkgnd() const { return ((mHasValues & fColorBkgnd) != 0); }
+                bool hasUseEditorColors() const { return ((mHasValues & fUseEditorColors) != 0); }
                 bool hasConFltrInclMask() const { return ((mHasValues & fConFltrInclMask) != 0); }
                 bool hasConFltrExclMask() const { return ((mHasValues & fConFltrExclMask) != 0); }
                 bool hasRplcFltrFindMask() const { return ((mHasValues & fRplcFltrFindMask) != 0); }
@@ -1139,6 +1146,7 @@ class CScriptEngine : public IScriptEngine
 
                 void removeColorTextNorm() { mHasValues &= ~fColorTextNorm; }
                 void removeColorBkgnd() { mHasValues &= ~fColorBkgnd; }
+                void removeUseEditorColors() { mHasValues &= ~fUseEditorColors; }
                 void removeConFltrInclMask() { mHasValues &= ~fConFltrInclMask; }
                 void removeConFltrExclMask() { mHasValues &= ~fConFltrExclMask; }
                 void removeRplcFltrFindMask() { mHasValues &= ~fRplcFltrFindMask; }
@@ -1190,6 +1198,7 @@ class CScriptEngine : public IScriptEngine
             protected:
                 void restoreConColors(CNppExec* pNppExec)
                 {
+                    bool bNeedToUpdateColours = false;
                     if ( hasColorTextNorm() )
                     {
                         pNppExec->GetConsole().SetCurrentColorTextNorm(mColorTextNorm);
@@ -1198,6 +1207,15 @@ class CScriptEngine : public IScriptEngine
                     if ( hasColorBkgnd() )
                     {
                         pNppExec->GetConsole().SetCurrentColorBkgnd(mColorBkgnd);
+                        bNeedToUpdateColours = true;
+                    }
+                    if ( hasUseEditorColors() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_USEEDITORCOLORS, mUseEditorColors);
+                        pNppExec->GetConsole().ApplyEditorColours(false);
+                    }
+                    if ( bNeedToUpdateColours )
+                    {
                         pNppExec->GetConsole().UpdateColours();
                     }
                 }
@@ -1454,7 +1472,8 @@ class CScriptEngine : public IScriptEngine
                     fConFltrCompilerErrors    = 0x02000000,
                     fExecClipTextMode         = 0x04000000,
                     fExecSelTextMode          = 0x08000000,
-                    fConsoleKillProcTree      = 0x10000000
+                    fConsoleKillProcTree      = 0x10000000,
+                    fUseEditorColors          = 0x20000000
                 };
 
                 // we might use std::optional (C++17) instead, but would it be so fun? :)
@@ -1463,6 +1482,7 @@ class CScriptEngine : public IScriptEngine
                 // DoConColour:
                 COLORREF mColorTextNorm;
                 COLORREF mColorBkgnd;
+                bool     mUseEditorColors;
 
                 // DoConFilter:
                 int mConFltrInclMask;

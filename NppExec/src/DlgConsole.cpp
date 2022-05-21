@@ -2559,6 +2559,7 @@ namespace ConsoleDlg
   void    OnDestroy(HWND hDlg);
   void    OnInitDialog(HWND hDlg);
   INT_PTR OnNotify(HWND hDlg, LPARAM lParam);
+  INT_PTR OnCtlColorEdit(WPARAM wParam, LPARAM lParam);
   INT_PTR OnPaste(CAnyRichEdit& Edit, MSGFILTER* lpmsgf);
   void    OnShowWindow(HWND hDlg);
   void    OnSize(HWND hDlg);
@@ -2740,6 +2741,11 @@ INT_PTR CALLBACK ConsoleDlgProc(
     return ConsoleDlg::OnNotify(hDlg, lParam);
   }
 
+  else if (uMessage == WM_CTLCOLOREDIT)
+  {
+    return ConsoleDlg::OnCtlColorEdit(wParam, lParam);
+  }
+
   else if (uMessage == WM_SIZE)
   {
     ConsoleDlg::OnSize(hDlg);
@@ -2771,6 +2777,16 @@ INT_PTR CALLBACK ConsoleDlgProc(
     return 1;
   }
 
+  else if (uMessage == WM_CONSOLEDLG_UPDATECOLOR)
+  {
+    HWND hEdFindWnd = ConsoleDlg::edFind.m_hWnd;
+    if (hEdFindWnd && ::IsWindowVisible(hEdFindWnd))
+    {
+      ::InvalidateRect(hEdFindWnd, NULL, TRUE);
+      ::UpdateWindow(hEdFindWnd);
+    }
+    return 1;
+  }
   /*
   else if (uMessage == WM_ACTIVATE)
   {
@@ -3052,6 +3068,7 @@ void ConsoleDlg::OnInitDialog(HWND hDlg)
     NppExec.GetConsole().GetConsoleEdit().SetFont(pLogFont);
   }
 
+  NppExec.GetConsole().ApplyEditorColours(false);
   NppExec.GetConsole().UpdateColours();
 
   Edit.ExLimitText(NppExec.GetOptions().GetInt(OPTI_RICHEDIT_MAXTEXTLEN));
@@ -4876,6 +4893,41 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
       }
   }
   return 0;
+}
+
+INT_PTR ConsoleDlg::OnCtlColorEdit(WPARAM wParam, LPARAM lParam)
+{
+    if ( edFind.m_hWnd == (HWND) lParam )
+    {
+        COLORREF crTextColor;
+        COLORREF crBkgndColor;
+        HBRUSH   hBkgndBrush = NULL;
+
+        if ( Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) )
+        {
+            hBkgndBrush = Runtime::GetNppExec().GetConsole().GetCurrentBkgndBrush();
+        }
+
+        if ( hBkgndBrush != NULL )
+        {
+            crTextColor = Runtime::GetNppExec().GetConsole().GetCurrentColorTextNorm();
+            crBkgndColor = Runtime::GetNppExec().GetConsole().GetCurrentColorBkgnd();
+        }
+        else
+        {
+            crTextColor = GetSysColor(COLOR_WINDOWTEXT);
+            crBkgndColor = GetSysColor(COLOR_WINDOW);
+            hBkgndBrush = GetSysColorBrush(COLOR_WINDOW);
+        }
+
+        SetTextColor( (HDC) wParam, crTextColor );
+        SetBkMode( (HDC) wParam, TRANSPARENT );
+        SetBkColor( (HDC) wParam, crBkgndColor );
+
+        return (LRESULT) hBkgndBrush;
+    }
+
+    return 0;
 }
 
 void ConsoleDlg::OnShowWindow(HWND hDlg)

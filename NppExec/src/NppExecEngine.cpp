@@ -3002,14 +3002,19 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                     SavedConfiguration& savedConf = currentScript.SavedConf;
                     if ( isLocal )
                     {
+                        if ( !savedConf.hasUseEditorColors() )
+                            savedConf.setUseEditorColors( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) );
                         if ( !savedConf.hasColorTextNorm() )
                             savedConf.setColorTextNorm( m_pNppExec->GetConsole().GetCurrentColorTextNorm() );
                     }
                     else
                     {
+                        if ( savedConf.hasUseEditorColors() )
+                            savedConf.removeUseEditorColors();
                         if ( savedConf.hasColorTextNorm() )
                             savedConf.removeColorTextNorm();
                     }
+                    m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_USEEDITORCOLORS, false);
                     m_pNppExec->GetConsole().SetCurrentColorTextNorm(color);
                 }
                 else
@@ -3045,14 +3050,19 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                     SavedConfiguration& savedConf = currentScript.SavedConf;
                     if ( isLocal )
                     {
+                        if ( !savedConf.hasUseEditorColors() )
+                            savedConf.setUseEditorColors( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) );
                         if ( !savedConf.hasColorBkgnd() )
                             savedConf.setColorBkgnd( m_pNppExec->GetConsole().GetCurrentColorBkgnd() );
                     }
                     else
                     {
+                        if ( savedConf.hasUseEditorColors() )
+                            savedConf.removeUseEditorColors();
                         if ( savedConf.hasColorBkgnd() )
                             savedConf.removeColorBkgnd();
                     }
+                    m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_USEEDITORCOLORS, false);
                     m_pNppExec->GetConsole().SetCurrentColorBkgnd(color);
                     m_pNppExec->GetConsole().UpdateColours();
                 }

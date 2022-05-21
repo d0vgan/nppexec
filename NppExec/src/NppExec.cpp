@@ -369,6 +369,8 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
       INI_SECTION_CONSOLE, _T("CmdHistory"), -1, NULL },
     { OPTB_CONSOLE_SAVECMDHISTORY, OPTT_INT | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("SaveCmdHistory"), -1, NULL },
+    { OPTB_CONSOLE_USEEDITORCOLORS, OPTT_BOOL | OPTF_READWRITE,
+      INI_SECTION_CONSOLE, _T("UseEditorColors"), 0, NULL },
 
     { OPTI_RICHEDIT_MAXTEXTLEN, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("RichEdit_MaxTextLength"),
@@ -2000,6 +2002,21 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
             }
         } // NPPN_TBMODIFICATION
     
+    }
+    else
+    {
+        switch ( notifyCode->nmhdr.code )
+        {
+            case SCN_PAINTED:
+            {
+                CNppExecConsole& NppExecConsole = Runtime::GetNppExec().GetConsole();
+                if ( NppExecConsole.GetDialogWnd() && ::IsWindowVisible(NppExecConsole.GetDialogWnd()) )
+                {
+                    NppExecConsole.ApplyEditorColours(true);
+                }
+                break;
+            }
+        }
     }
 
 }
@@ -6303,6 +6320,7 @@ void CNppExec::showConsoleDialog(eShowConsoleAction showAction, unsigned int nSh
     if (initConsoleDialog()) 
     {
       ConsoleDlg::DockDialog();
+      GetConsole().ApplyEditorColours(false);
       SendNppMsg(NPPM_DMMSHOW, 0, (LPARAM) GetConsole().GetDialogWnd());
       setConsoleVisible(true);
     }
@@ -6421,13 +6439,13 @@ TCHAR CNppConsoleRichEdit::GetNulChar()
 //-------------------------------------------------------------------------
 
 CNppExecConsole::CNppExecConsole() //: m_pNppExec(0)
-  : m_colorTextNorm(0)
+  : m_hDlg(NULL)
+  , m_hBkgndBrush(NULL)
+  , m_colorTextNorm(0)
   , m_colorTextMsg(0)
   , m_colorTextErr(0)
   , m_colorBkgnd(0)
 {
-    m_hDlg = NULL;
-    
     m_StateList.push_back(ConsoleState());
 }
 
@@ -6455,6 +6473,11 @@ CNppExecConsole::~CNppExecConsole()
     // as m_StateList is created last and destroyed first...
     // but just in case :)
     m_StateList.clear();
+
+    if ( m_hBkgndBrush != NULL )
+    {
+        ::DeleteObject(m_hBkgndBrush);
+    }
 }
 
 //CNppExec* CNppExecConsole::GetNppExec() const
@@ -7308,6 +7331,44 @@ void CNppExecConsole::UpdateColours()
     }
 }
 
+void CNppExecConsole::ApplyEditorColours(bool bCanUpdateColours)
+{
+    CNppExec& NppExec = Runtime::GetNppExec();
+
+    if ( NppExec.GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) )
+    {
+        bool bColorChanged = false;
+
+        const COLORREF prevTextNorm = GetCurrentColorTextNorm();
+        const COLORREF prevBkgnd = GetCurrentColorBkgnd();
+
+        const COLORREF editorTextNorm = static_cast<COLORREF>( NppExec.SendNppMsg(NPPM_GETEDITORDEFAULTFOREGROUNDCOLOR) );
+        const COLORREF editorBkgnd = static_cast<COLORREF>( NppExec.SendNppMsg(NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR) );
+
+        if ( editorBkgnd != prevBkgnd )
+        {
+            SetCurrentColorBkgnd(editorBkgnd);
+            if ( m_hBkgndBrush != NULL )
+            {
+                ::DeleteObject(m_hBkgndBrush);
+            }
+            m_hBkgndBrush = ::CreateSolidBrush(editorBkgnd);
+            bColorChanged = true;
+        }
+
+        if ( editorTextNorm != prevTextNorm )
+        {
+            SetCurrentColorTextNorm(editorTextNorm);
+            bColorChanged = true;
+        }
+
+        if ( bColorChanged && bCanUpdateColours )
+        {
+            UpdateColours();
+        }
+    }
+}
+
 void CNppExecConsole::_updateColours(ScriptEngineId scrptEngnId)
 {
     if ( CNppExec::_bIsNppShutdown )
@@ -7344,6 +7405,8 @@ void CNppExecConsole::_updateColours(ScriptEngineId scrptEngnId)
     m_reConsole.SendMsg( EM_SETCHARFORMAT, SCF_ALL, (LPARAM) &cf );
     // set character format explicitly
     _restoreDefaultTextStyle(scrptEngnId, false);
+
+    ::PostMessage(m_hDlg, WM_CONSOLEDLG_UPDATECOLOR, 0, 0);
 }
 
 void CNppExecConsole::ProcessSlashR() // "\r"

@@ -792,6 +792,7 @@ enum EPluginOptions {
     OPTI_CONSOLE_CD_UNNAMEDFILE,
     OPTB_CONSOLE_CMDHISTORY,
     OPTB_CONSOLE_SAVECMDHISTORY,
+    OPTB_CONSOLE_USEEDITORCOLORS,
 
   #ifdef _SCROLL_TO_LATEST  
     OPTB_CONSOLE_SCROLL2LATEST,
@@ -1191,6 +1192,7 @@ public:
     COLORREF GetCurrentColorTextMsg() const;
     COLORREF GetCurrentColorTextErr() const;
     COLORREF GetCurrentColorBkgnd() const;
+    HBRUSH   GetCurrentBkgndBrush() const { return m_hBkgndBrush; }
 
     void SetCurrentColorTextNorm(COLORREF colorTextNorm);
     void SetCurrentColorTextMsg(COLORREF colorTextMsg);
@@ -1234,6 +1236,7 @@ public:
     BOOL IsScrollToEnd() const;
     void RestoreDefaultTextStyle(bool bLockPos);
     void UpdateColours();
+    void ApplyEditorColours(bool bCanUpdateColours);
 
     // special characters...
     void ProcessSlashR(); // "\r"
@@ -1281,7 +1284,8 @@ protected:
     // data...
     //CNppExec* m_pNppExec;
     CNppConsoleRichEdit m_reConsole;
-    HWND m_hDlg;
+    HWND     m_hDlg;
+    HBRUSH   m_hBkgndBrush;
     COLORREF m_colorTextNorm;
     COLORREF m_colorTextMsg;
     COLORREF m_colorTextErr;
