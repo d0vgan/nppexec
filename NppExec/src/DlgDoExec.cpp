@@ -582,14 +582,26 @@ void CDoExecDlg::ShowScriptText(const tstr& ScriptName)
 
 bool IsDelimiterCharacter(const TCHAR ch)
 {
-  return (ch == _T(' ')  || ch == _T('\t') || 
-          ch == _T(',')  || ch == _T('.')  ||
-          ch == _T(';')  || ch == _T(':')  ||
-          ch == _T('/')  || ch == _T('\\') ||
-          ch == _T('|')  || ch == _T('\"') || 
-          ch == _T('\r') || ch == _T('\n') ||
-          ch == _T('\v') || ch == _T('\f') ||
-          ch == 0);
+  switch (ch)
+  {
+    case _T(' '):
+    case _T('\t'):
+    case _T(','):
+    case _T('.'):
+    case _T(';'):
+    case _T(':'):
+    case _T('/'):
+    case _T('\\'):
+    case _T('|'):
+    case _T('\"'):
+    case _T('\r'):
+    case _T('\n'):
+    case _T('\v'):
+    case _T('\f'):
+    case 0:
+      return true;
+  }
+  return false;
 }
 
 int GetCurrentEditWord(HWND hEd, TCHAR* lpWordBuf, int nWordBufSize)

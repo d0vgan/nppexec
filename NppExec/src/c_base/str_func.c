@@ -9,7 +9,7 @@ namespace c_base {
 #endif
 
 
-int is_space_char( char ch )
+int is_any_space_char( char ch )
 {
     switch ( ch )
     {
@@ -365,19 +365,19 @@ char* str_unsafe_rskip_ch( const char* str, int len, const char ch )
     return ( (char *) str );
 }
 
-char* str_safe_rskip_tabspaces( const char* str, int len )
+char* str_safe_rskip_anyspaces( const char* str, int len )
 {
-    return ( (str && (len > 0)) ? str_unsafe_rskip_tabspaces(str, len) : ((char *) str) );
+    return ( (str && (len > 0)) ? str_unsafe_rskip_anyspaces(str, len) : ((char *) str) );
 }
 
 // CONDITION: str != 0 && len >= 0
-char* str_unsafe_rskip_tabspaces( const char* str, int len )
+char* str_unsafe_rskip_anyspaces( const char* str, int len )
 {
     str += len;
     while ( len-- > 0)
     {
         --str;
-        if ( !is_space_char(*str) )
+        if ( !is_any_space_char(*str) )
             break;
     }
     return ( (char *) str );
@@ -401,15 +401,15 @@ char* str_unsafe_skip_ch( const char* str, const char ch )
     return ( (char *) str );
 }
 
-char* str_safe_skip_tabspaces( const char* str )
+char* str_safe_skip_anyspaces( const char* str )
 {
-    return ( str ? str_unsafe_skip_tabspaces(str) : ((char *) str) );
+    return ( str ? str_unsafe_skip_anyspaces(str) : ((char *) str) );
 }
 
 // CONDITION: str != 0
-char* str_unsafe_skip_tabspaces( const char* str )
+char* str_unsafe_skip_anyspaces( const char* str )
 {
-    while ( is_space_char(*str) )
+    while ( is_any_space_char(*str) )
     {
         ++str;
     }
@@ -418,7 +418,7 @@ char* str_unsafe_skip_tabspaces( const char* str )
 
 //---------------------------------------------------------------------------
 
-int is_space_charw( wchar_t ch )
+int is_any_space_charw( wchar_t ch )
 {
     switch ( ch )
     {
@@ -774,19 +774,19 @@ wchar_t* strw_unsafe_rskip_ch( const wchar_t* strw, int len, const wchar_t wch )
     return ( (wchar_t *) strw );
 }
 
-wchar_t* strw_safe_rskip_tabspaces( const wchar_t* strw, int len )
+wchar_t* strw_safe_rskip_anyspaces( const wchar_t* strw, int len )
 {
-    return ( (strw && (len > 0)) ? strw_unsafe_rskip_tabspaces(strw, len) : ((wchar_t *) strw) );
+    return ( (strw && (len > 0)) ? strw_unsafe_rskip_anyspaces(strw, len) : ((wchar_t *) strw) );
 }
 
 // CONDITION: strw != 0 && len >= 0
-wchar_t* strw_unsafe_rskip_tabspaces( const wchar_t* strw, int len )
+wchar_t* strw_unsafe_rskip_anyspaces( const wchar_t* strw, int len )
 {
     strw += len;
     while ( len-- > 0)
     {
         --strw;
-        if ( !is_space_charw(*strw) )
+        if ( !is_any_space_charw(*strw) )
             break;
     }
     return ( (wchar_t *) strw );
@@ -810,15 +810,15 @@ wchar_t* strw_unsafe_skip_ch( const wchar_t* strw, const wchar_t wch )
     return ( (wchar_t *) strw );
 }
 
-wchar_t* strw_safe_skip_tabspaces( const wchar_t* strw )
+wchar_t* strw_safe_skip_anyspaces( const wchar_t* strw )
 {
-    return ( strw ? strw_unsafe_skip_tabspaces(strw) : ((wchar_t *) strw) );
+    return ( strw ? strw_unsafe_skip_anyspaces(strw) : ((wchar_t *) strw) );
 }
 
 // CONDITION: strw != 0
-wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw )
+wchar_t* strw_unsafe_skip_anyspaces( const wchar_t* strw )
 {
-    while ( is_space_charw(*strw) )
+    while ( is_any_space_charw(*strw) )
     {
         ++strw;
     }

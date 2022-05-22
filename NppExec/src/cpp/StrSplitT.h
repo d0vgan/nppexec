@@ -8,12 +8,28 @@ namespace StrSplitT
 {
     inline bool is_any_space_char(char ch)
     {
-        return (ch == ' ' || ch == '\t' || ch == '\v' || ch == '\f');
+        switch ( ch )
+        {
+            case ' ':
+            case '\t':
+            case '\v':
+            case '\f':
+                return true;
+        }
+        return false;
     }
 
     inline bool is_any_space_char(wchar_t ch)
     {
-        return (ch == L' ' || ch == L'\t' || ch == L'\v' || ch == L'\f');
+        switch ( ch )
+        {
+            case L' ':
+            case L'\t':
+            case L'\v':
+            case L'\f':
+                return true;
+        }
+        return false;
     }
 }
 

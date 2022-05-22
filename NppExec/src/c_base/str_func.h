@@ -9,7 +9,7 @@ namespace c_base {
 extern "C" {
 #endif
 
-int is_space_char( char ch );
+int is_any_space_char( char ch );
 
 // returns:  == 0  if matched
 //            > 0  if str1 > str2
@@ -56,16 +56,16 @@ int   str_safe_rfindoneof( const char* str, int len, const char* charset );
 char* str_safe_rskip_ch( const char* str, int len, const char ch );
 
 // skips trailing tabs and spaces
-// returns a pointer to last non-tabspace character in str
-char* str_safe_rskip_tabspaces( const char* str, int len ); 
+// returns a pointer to last non-anyspace character in str
+char* str_safe_rskip_anyspaces( const char* str, int len );
 
 // skips leading characters ch
 // returns a pointer to first character != ch
 char* str_safe_skip_ch( const char* str, const char ch );
 
 // skips leading tabs and spaces
-// returns a pointer to first non-tabspace character in str
-char* str_safe_skip_tabspaces( const char* str ); 
+// returns a pointer to first non-anyspace character in str
+char* str_safe_skip_anyspaces( const char* str );
 
 // returns:  == 0  if matched
 //            > 0  if str1 > str2
@@ -126,9 +126,9 @@ int   str_unsafe_rfindoneof( const char* str, int len, const char* charset );
 char* str_unsafe_rskip_ch( const char* str, int len, const char ch );
 
 // skips trailing tabs and spaces
-// returns a pointer to last non-tabspace character in str
+// returns a pointer to last non-anyspace character in str
 // CONDITION: str != 0 && len >= 0
-char* str_unsafe_rskip_tabspaces( const char* str, int len ); 
+char* str_unsafe_rskip_anyspaces( const char* str, int len );
 
 // skips leading characters ch
 // returns a pointer to first character != ch
@@ -136,14 +136,14 @@ char* str_unsafe_rskip_tabspaces( const char* str, int len );
 char* str_unsafe_skip_ch( const char* str, const char ch );
 
 // skips leading tabs and spaces
-// returns a pointer to first non-tabspace character in str
+// returns a pointer to first non-anyspace character in str
 // CONDITION: str != 0
-char* str_unsafe_skip_tabspaces( const char* str ); 
+char* str_unsafe_skip_anyspaces( const char* str );
 
 //---------------------------------------------------------------------------
 
 
-int is_space_charw( wchar_t ch );
+int is_any_space_charw( wchar_t ch );
 
 // returns:  == 0  if matched
 //            > 0  if strw1 > strw2
@@ -190,16 +190,16 @@ int   strw_safe_rfindoneof( const wchar_t* strw, int len, const wchar_t* charset
 wchar_t* strw_safe_rskip_ch( const wchar_t* strw, int len, const wchar_t wch );
 
 // skips trailing tabs and spaces
-// returns a pointer to last non-tabspace character in strw
-wchar_t* strw_safe_rskip_tabspaces( const wchar_t* strw, int len ); 
+// returns a pointer to last non-anyspace character in strw
+wchar_t* strw_safe_rskip_anyspaces( const wchar_t* strw, int len );
 
 // skips leading characters wch
 // returns a pointer to first character != wch
 wchar_t* strw_safe_skip_ch( const wchar_t* strw, const wchar_t wch );
 
 // skips leading tabs and spaces
-// returns a pointer to first non-tabspace character in strw
-wchar_t* strw_safe_skip_tabspaces( const wchar_t* strw ); 
+// returns a pointer to first non-anyspace character in strw
+wchar_t* strw_safe_skip_anyspaces( const wchar_t* strw );
 
 // returns:  == 0  if matched
 //            > 0  if strw1 > strw2
@@ -260,9 +260,9 @@ int   strw_unsafe_rfindoneof( const wchar_t* strw, int len, const wchar_t* chars
 wchar_t* strw_unsafe_rskip_ch( const wchar_t* strw, int len, const wchar_t wch );
 
 // skips trailing tabs and spaces
-// returns a pointer to last non-tabspace character in strw
+// returns a pointer to last non-anyspace character in strw
 // CONDITION: strw != 0 && len >= 0
-wchar_t* strw_unsafe_rskip_tabspaces( const wchar_t* strw, int len ); 
+wchar_t* strw_unsafe_rskip_anyspaces( const wchar_t* strw, int len );
 
 // skips leading characters wch
 // returns a pointer to first character != wch
@@ -270,9 +270,9 @@ wchar_t* strw_unsafe_rskip_tabspaces( const wchar_t* strw, int len );
 wchar_t* strw_unsafe_skip_ch( const wchar_t* strw, const wchar_t wch );
 
 // skips leading tabs and spaces
-// returns a pointer to first non-tabspace character in strw
+// returns a pointer to first non-anyspace character in strw
 // CONDITION: strw != 0
-wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw ); 
+wchar_t* strw_unsafe_skip_anyspaces( const wchar_t* strw );
 
 //---------------------------------------------------------------------------
 
@@ -280,7 +280,7 @@ wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw );
 // definitions
 /////////////////////////////////////////////////////////////////////////////
 #ifdef UNICODE
-  #define _tis_space_char              is_space_charw
+  #define _tis_any_space_char          is_any_space_charw
   #define _tstr_safe_cmp               strw_safe_cmp
   #define _tstr_safe_cmpn              strw_safe_cmpn
   #define _tstr_safe_cpy               strw_safe_cpy
@@ -295,9 +295,9 @@ wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw );
   #define _tstr_safe_rfindch           strw_safe_rfindch
   #define _tstr_safe_rfindoneof        strw_safe_rfindoneof
   #define _tstr_safe_rskip_ch          strw_safe_rskip_ch
-  #define _tstr_safe_rskip_tabspaces   strw_safe_rskip_tabspaces
+  #define _tstr_safe_rskip_anyspaces   strw_safe_rskip_anyspaces
   #define _tstr_safe_skip_ch           strw_safe_skip_ch
-  #define _tstr_safe_skip_tabspaces    strw_safe_skip_tabspaces
+  #define _tstr_safe_skip_anyspaces    strw_safe_skip_anyspaces
   #define _tstr_unsafe_cmp             strw_unsafe_cmp
   #define _tstr_unsafe_cmpn            strw_unsafe_cmpn
   #define _tstr_unsafe_cpy             strw_unsafe_cpy
@@ -312,11 +312,11 @@ wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw );
   #define _tstr_unsafe_rfindch         strw_unsafe_rfindch
   #define _tstr_unsafe_rfindoneof      strw_unsafe_rfindoneof
   #define _tstr_unsafe_rskip_ch        strw_unsafe_rskip_ch
-  #define _tstr_unsafe_rskip_tabspaces strw_unsafe_rskip_tabspaces
+  #define _tstr_unsafe_rskip_anyspaces strw_unsafe_rskip_anyspaces
   #define _tstr_unsafe_skip_ch         strw_unsafe_skip_ch
-  #define _tstr_unsafe_skip_tabspaces  strw_unsafe_skip_tabspaces
+  #define _tstr_unsafe_skip_anyspaces  strw_unsafe_skip_anyspaces
 #else
-  #define _tis_space_char              is_space_char
+  #define _tis_any_space_char          is_any_space_char
   #define _tstr_safe_cmp               str_safe_cmp
   #define _tstr_safe_cmpn              str_safe_cmpn
   #define _tstr_safe_cpy               str_safe_cpy
@@ -331,9 +331,9 @@ wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw );
   #define _tstr_safe_rfindch           str_safe_rfindch
   #define _tstr_safe_rfindoneof        str_safe_rfindoneof
   #define _tstr_safe_rskip_ch          str_safe_rskip_ch
-  #define _tstr_safe_rskip_tabspaces   str_safe_rskip_tabspaces
+  #define _tstr_safe_rskip_anyspaces   str_safe_rskip_anyspaces
   #define _tstr_safe_skip_ch           str_safe_skip_ch
-  #define _tstr_safe_skip_tabspaces    str_safe_skip_tabspaces
+  #define _tstr_safe_skip_anyspaces    str_safe_skip_anyspaces
   #define _tstr_unsafe_cmp             str_unsafe_cmp
   #define _tstr_unsafe_cmpn            str_unsafe_cmpn
   #define _tstr_unsafe_cpy             str_unsafe_cpy
@@ -348,9 +348,9 @@ wchar_t* strw_unsafe_skip_tabspaces( const wchar_t* strw );
   #define _tstr_unsafe_rfindch         str_unsafe_rfindch
   #define _tstr_unsafe_rfindoneof      str_unsafe_rfindoneof
   #define _tstr_unsafe_rskip_ch        str_unsafe_rskip_ch
-  #define _tstr_unsafe_rskip_tabspaces str_unsafe_rskip_tabspaces
+  #define _tstr_unsafe_rskip_anyspaces str_unsafe_rskip_anyspaces
   #define _tstr_unsafe_skip_ch         str_unsafe_skip_ch
-  #define _tstr_unsafe_skip_tabspaces  str_unsafe_skip_tabspaces
+  #define _tstr_unsafe_skip_anyspaces  str_unsafe_skip_anyspaces
 #endif // !UNICODE
 
 
