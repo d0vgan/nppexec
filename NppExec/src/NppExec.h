@@ -20,10 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.2
- ------
+ v0.8.2 - June 2022
+ ------------------
  * Glory to Ukraine! Glory to the heroes!
  + added: new option "Use Editor Colors" (in the Advanced Options).
+   For dark color themes, the following colors may be used:
+     Error   - C0 30 30
+     Message - 40 A0 40
+     Warning - 40 80 C0
  - fixed: TextColorError (in the Advanced Options) was not applied to the
    built-in error filter ("npe_console local -- x+").
  - fixed: in rare cases, the NppExec's Console could "swallow" a first typed
@@ -34,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    editor such as Notepad++ or AkelPad without any HTML generator).
  * changed: IsTabSpaceChar() was replaced with IsAnySpaceChar() to handle
    additional space characters such as '\v' and \f'.
- * npp_files updated to Notepad++ 8.4.1.
+ * npp_files updated to Notepad++ 8.4.2.
 
 
  v0.8.1 - April 2022

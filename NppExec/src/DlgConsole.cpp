@@ -1094,7 +1094,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("USAGE:") _T_RE_EOL \
     _T("  sci_find <flags> <find_what>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
-    _T("  Searches for the given string using the specified flags.") _T_RE_EOL \
+    _T("  Searches for the given string according to the specified flags.") _T_RE_EOL \
+    _T("  The actual behavior completely depends on the <flags> specified.") _T_RE_EOL \
     _T("  It is recommended to enquote the \"find_what\" string.") _T_RE_EOL \
     _T("  Use the \"Bitwise OR\" operator '|' to combine the flags.") _T_RE_EOL \
     _T_HELP_NPE_SEARCHFLAGS _T_RE_EOL \
@@ -1143,7 +1144,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("USAGE:") _T_RE_EOL \
     _T("  sci_replace <flags> <find_what> <replace_with>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
-    _T("  Searches for the given string using the specified flags and replaces it.") _T_RE_EOL \
+    _T("  Searches for the given string according to the specified flags and replaces it.") _T_RE_EOL \
+    _T("  The actual behavior completely depends on the <flags> specified.") _T_RE_EOL \
     _T("  It is recommended to enquote the \"find_what\" and \"replace_with\" strings.") _T_RE_EOL \
     _T("  Use the \"Bitwise OR\" operator '|' to combine the flags.") _T_RE_EOL \
     _T_HELP_NPE_SEARCHFLAGS _T_RE_EOL \
