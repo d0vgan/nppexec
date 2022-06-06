@@ -717,8 +717,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F1
-#define NPPEXEC_VER_STR   _T("0.8.1")
+#define NPPEXEC_VER_DWORD 0x08F2
+#define NPPEXEC_VER_STR   _T("0.8.2")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
