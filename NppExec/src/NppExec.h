@@ -26,19 +26,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: new option "Use Editor Colors" (in the Advanced Options).
    For dark color themes, the following colors may be used:
      Error   - C0 30 30
-     Message - 40 A0 40
+     Message - 40 B0 40
      Warning - 40 80 C0
+   The default colors (for bright color themes) are:
+     Error   - A0 10 10
+     Message - 20 80 20
  - fixed: TextColorError (in the Advanced Options) was not applied to the
    built-in error filter ("npe_console local -- x+").
  - fixed: in rare cases, the NppExec's Console could "swallow" a first typed
    character. It was caused by the ConsoleDlg not resetting the value of the
    `bFuncItemEntered` back to `false`.
- - fixed: NppExec Manual no more contains the misleading HTML tags saying
-   `META NAME="Generator"`. (The HTML files are actually modified in a text
-   editor such as Notepad++ or AkelPad without any HTML generator).
  * changed: IsTabSpaceChar() was replaced with IsAnySpaceChar() to handle
    additional space characters such as '\v' and \f'.
  * npp_files updated to Notepad++ 8.4.2.
+ + NppExec Manual updated
+ - fixed: NppExec Manual no more contains the misleading HTML tags saying
+   `META NAME="Generator"`. (The HTML files are actually modified in a text
+   editor such as Notepad++ or AkelPad without any HTML generator).
 
 
  v0.8.1 - April 2022

@@ -170,7 +170,7 @@
 				<param name="Local" value="4.6.7.html">
 				</OBJECT>
 			<LI> <OBJECT type="text/sitemap">
-				<param name="Name" value="4.6.8. Clipboard, keysrokes and much more">
+				<param name="Name" value="4.6.8. Clipboard, keystrokes and much more">
 				<param name="Local" value="4.6.8.html">
 				</OBJECT>
 			<LI> <OBJECT type="text/sitemap">
@@ -188,6 +188,10 @@
 			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="4.6.12. Passing multiple files to external tool">
 				<param name="Local" value="4.6.12.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.13. Working with Notepad++'es Replace dialog">
+				<param name="Local" value="4.6.13.html">
 				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">

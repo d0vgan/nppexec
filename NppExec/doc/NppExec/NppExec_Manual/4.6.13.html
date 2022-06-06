@@ -1,0 +1,82 @@
+<HTML>
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.13. Working with Notepad++'es Replace dialog</title>
+</HEAD>
+<BODY>
+<h3>4.6.13. Working with Notepad++'es Replace dialog</h3>
+
+<p>Let's imagine you want to invoke Notepad++'es Replace dialog, populate its 'Find what' and 'Replace with' fields with specific strings, check or uncheck the search-related checkboxes and finally press the 'Find Next' button. And you want to do all of this programmatically.</p>
+<p>The first tool that comes to my mind to do such kind of things is either AutoIt (https://www.autoitscript.com/) or AutoHotKey (https://www.autohotkey.com/).</p>
+<p>But let's consider something simpler. For example, NirCmd from NirSoft (https://www.nirsoft.net/).</p>
+<p>First let's create the following NppExec script:</p>
+
+<blockquote>
+  <pre>env_set local PATH = $(SYS.PATH);C:\tools\NirSoft  // TODO: specify path to the folder with nircmd.exe here!
+npp_sendmsg WM_COMMAND IDM_SEARCH_REPLACE  // showing the Replace dialog
+nircmd script &quot;$(NPP_DIRECTORY)\replace.ncl&quot;  // TODO: you may specify other folder than $(NPP_DIRECTORY)</pre>
+</blockquote>
+
+<p>Then, as the NppExec script above mentions &quot;$(NPP_DIRECTORY)\replace.ncl&quot;, let's create a file named &quot;replace.ncl&quot; under your Notepad++ folder. It will be a simple non-Unicode text file with the following lines:</p>
+
+<blockquote>
+  <pre>// set 'Find what' text:
+dlg &quot;notepad++.exe&quot; &quot;Replace&quot; settext 1601 &quot;Find what&quot;
+// set 'Replace with' text:
+dlg &quot;notepad++.exe&quot; &quot;Replace&quot; settext 1602 &quot;Replace with&quot;
+// uncheck 'Whole word' checkbox:
+win child title &quot;Replace&quot; sendmsg id 1603 0x00F1 0x0000 0
+// uncheck 'Match case' checkbox:
+win child title &quot;Replace&quot; sendmsg id 1604 0x00F1 0x0000 0
+// check 'Wrap around' checkbox:
+win child title &quot;Replace&quot; sendmsg id 1606 0x00F1 0x0001 0
+// uncheck 'Backward direction' checkbox:
+win child title &quot;Replace&quot; sendmsg id 1722 0x00F1 0x0000 0
+// click 'Regular expression' button:
+win child title &quot;Replace&quot; sendmsg id 1605 0x00F5 0 0
+// uncheck '. matches newline' checkbox:
+win child title &quot;Replace&quot; sendmsg id 1703 0x00F1 0x0000 0
+// click 'Find Next' button:
+win child title &quot;Replace&quot; sendmsg id 1 0x00F5 0 0</pre>
+</blockquote>
+
+<p>This file uses a hard-coded string &quot;Replace&quot; as the title of Notepad++'es Replace dialog. If you are using non-English localization, you should replace the word &quot;Replace&quot; with the localization-dependent title (such as &quot;Remplacer&quot; for French).</p>
+<p>Also, this file uses several magic numbers such as 1601 and 1602, 0x00F1 and 0x00F5, 0x0000 and 0x0001. Let me explain what they mean.</p>
+<p>To deal with controls (elements) of a dialog, we need to know the corresponding control identifiers (control IDs). Here is what we can see inside Notepad++'es source file https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/ScintillaComponent/FindReplaceDlg_rc.h :</p>
+<blockquote>
+  <pre>#define	IDFINDWHAT						1601
+#define	IDREPLACEWITH					1602
+#define	IDWHOLEWORD						1603
+#define	IDMATCHCASE						1604
+#define IDREGEXP						1605
+#define	IDWRAP							1606</pre>
+</blockquote>
+<p>I believe this explains where the magic numbers of 1601, 1602 and so on came from. These are the control IDs. Another way to get these IDs is to use a specific program such as Property Edit (https://mh-nexus.de/en/downloads.php?product=Property%20Edit).</p>
+<p>Now, knowing the control IDs, we want to send some specific messages to these controls. The BM_SETCHECK message is responsible for checking/unchecking a checkbox control; the BM_CLICK message is responsible for clicking a button. When we look inside a Windows header file &quot;winuser.h&quot;, we can see that BM_SETCHECK is defined as 0x00F1 and BM_CLICK is defined as 0x00F5.</p>
+<p>Finally, the values of 0x0000 and 0x0001 in this context are parameters of the BM_SETCHECK (0x00F1) message. Their meanings with respect to the BM_SETCHECK message are: 0x0000 is BST_UNCHECKED and 0x0001 is BST_CHECKED. So, &quot;0x00F1 0x0001 0&quot; checks a checkbox control, whereas &quot;0x00F1 0x0000 0&quot; unchecks it. You may read more here: https://docs.microsoft.com/en-us/windows/win32/controls/bm-setcheck .</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p>Note: If you want to find or replace some string programmatically <i>without showing the Replace dialog</i>, NppExec proposes the following commands for this: SCI_FIND and SCI_REPLACE. The actual behavior of these commands completely depend on the &lt;flags&gt; parameter specified. The description and examples are available by typing either of:</p>
+
+<blockquote>
+  <pre>help sci_find
+help sci_replace
+help all</pre>
+</blockquote>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p>See also: Clipboard, keystrokes and much more <a href="4.6.8.html">[4.6.8]</a>.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>

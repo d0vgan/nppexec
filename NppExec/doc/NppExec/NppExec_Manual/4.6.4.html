@@ -21,7 +21,7 @@
 npp_save  // save current file (a .py file is expected)
 cd "$(CURRENT_DIRECTORY)"  // use the current file's dir
 set local @exit_cmd_silent = exit()  // allows to exit Python automatically
-env_set local PATH = $(SYS.PATH);C:\Python27  // use Python 2.7
+env_set local PATH = $(SYS.PATH);C:\Python27  // using Python 2.7
 npp_setfocus con  // set the focus to the Console
 npp_console local +  // enable output to the Console
 python -i -u "$(FILE_NAME)"  // run Python's program interactively
