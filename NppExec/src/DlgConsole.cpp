@@ -1083,6 +1083,11 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  sci_sendmsg SCI_GETFIRSTVISIBLELINE  // returns line number as LRESULT") _T_RE_EOL \
     _T("  sci_sendmsg SCI_GETLINE $(MSG_RESULT) @\"\"") _T_RE_EOL \
     _T("  echo $(MSG_LPARAM)  // prints the string pointed by lParam") _T_RE_EOL \
+    _T("  // insert some text at the current position:") _T_RE_EOL \
+    _T("  sci_sendmsg SCI_INSERTTEXT -1 \"Some text\"") _T_RE_EOL \
+    _T("  // insert some multi-line text:") _T_RE_EOL \
+    _T("  set local s ~ strunescape 123\\n456\\n789") _T_RE_EOL \
+    _T("  sci_sendmsg SCI_INSERTTEXT -1 \"$(s)\"") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  npp_sendmsg, npp_sendmsgex, npe_sendmsgbuflen, set") _T_RE_EOL
   },
