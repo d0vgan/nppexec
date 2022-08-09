@@ -13,7 +13,8 @@ NPP_FILES = [
     "PowerEditor/src/MISC/PluginsManager/Notepad_plus_msgs.h",
     "PowerEditor/src/MISC/PluginsManager/PluginInterface.h",
     "scintilla/include/Sci_Position.h",
-    "scintilla/include/Scintilla.h"
+    "scintilla/include/Scintilla.h",
+    "scintilla/include/BoostRegexSearch.h"
 ]
 
 
