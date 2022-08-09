@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DirFileLister.h"
 #include "fparser/fparser.hh"
 #include "npp_files/menuCmdID.h"
+#include "npp_files/BoostRegexSearch.h"
 #include <stdio.h>
 #include <shellapi.h>
 #include <limits>
@@ -113,6 +114,9 @@ const TCHAR DIRECTIVE_COLLATERAL[]      = _T("!COLLATERAL");
 #define NPE_SF_REGEXP       0x00000100 // search using a regular expression
 #define NPE_SF_POSIX        0x00000200 // search using a POSIX-compatible regular expression
 #define NPE_SF_CXX11REGEX   0x00000400 // search using a C++11 regular expression
+#define NPE_SF_REGEXP_EMPTYMATCH_NOTAFTERMATCH 0x00002000
+#define NPE_SF_REGEXP_EMPTYMATCH_ALL           0x00004000
+#define NPE_SF_REGEXP_EMPTYMATCH_ALLOWATSTART  0x00008000
 #define NPE_SF_BACKWARD     0x00010000 // search backward (from the bottom to the top)
 #define NPE_SF_NEXT         0x00020000 // search from current_position + 1
 #define NPE_SF_INSELECTION  0x00100000 // search only in the selected text
@@ -6958,6 +6962,12 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
         nSearchFlags |= SCFIND_POSIX;
     if ( nFlags & NPE_SF_CXX11REGEX )
         nSearchFlags |= SCFIND_CXX11REGEX;
+    if ( nFlags & NPE_SF_REGEXP_EMPTYMATCH_NOTAFTERMATCH )
+        nSearchFlags |= SCFIND_REGEXP_EMPTYMATCH_NOTAFTERMATCH;
+    if ( nFlags & NPE_SF_REGEXP_EMPTYMATCH_ALL )
+        nSearchFlags |= SCFIND_REGEXP_EMPTYMATCH_ALL;
+    if ( nFlags & NPE_SF_REGEXP_EMPTYMATCH_ALLOWATSTART )
+        nSearchFlags |= SCFIND_REGEXP_EMPTYMATCH_ALLOWATSTART;
     ::SendMessage(hSci, SCI_SETSEARCHFLAGS, nSearchFlags, 0);
 
     // 3. Search range...

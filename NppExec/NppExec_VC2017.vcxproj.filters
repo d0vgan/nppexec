@@ -242,6 +242,9 @@
     <ClInclude Include="src\NppScript.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\npp_files\BoostRegexSearch.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
     <ClInclude Include="src\npp_files\Docking.h">
       <Filter>Header Files\npp_files</Filter>
     </ClInclude>

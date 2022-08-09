@@ -324,6 +324,7 @@
     <ClInclude Include="src\fparser\fparser.hh" />
     <ClInclude Include="src\fparser\fpconfig.hh" />
     <ClInclude Include="src\NppScript.h" />
+    <ClInclude Include="src\npp_files\BoostRegexSearch.h" />
     <ClInclude Include="src\npp_files\Docking.h" />
     <ClInclude Include="src\npp_files\menuCmdID.h" />
     <ClInclude Include="src\npp_files\Notepad_plus_msgs.h" />

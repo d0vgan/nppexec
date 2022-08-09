@@ -366,6 +366,12 @@ typedef struct sCmdItemInfo {
   _T("      - search using a POSIX-compatible regular expression") _T_RE_EOL \
   _T("    NPE_SF_CXX11REGEX  = 0x00000400") _T_RE_EOL \
   _T("      - search using a C++11 regular expression") _T_RE_EOL \
+  _T("    NPE_SF_REGEXP_EMPTYMATCH_NOTAFTERMATCH = 0x00002000") _T_RE_EOL \
+  _T("      - allows an empty match, not after another match") _T_RE_EOL \
+  _T("    NPE_SF_REGEXP_EMPTYMATCH_ALL = 0x00004000") _T_RE_EOL \
+  _T("      - allows an empty match") _T_RE_EOL \
+  _T("    NPE_SF_REGEXP_EMPTYMATCH_ALLOWATSTART = 0x00008000") _T_RE_EOL \
+  _T("      - allows an empty match, at start") _T_RE_EOL \
   _T("    NPE_SF_BACKWARD    = 0x00010000") _T_RE_EOL \
   _T("      - search backward (from the bottom to the top)") _T_RE_EOL \
   _T("    NPE_SF_NEXT        = 0x00020000") _T_RE_EOL \
@@ -1120,6 +1126,12 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  // search for a regular expression in the entire text, select if found:") _T_RE_EOL \
     _T("  set local flags ~ NPE_SF_REGEXP | NPE_SF_INENTIRETEXT | NPE_SF_SETSEL") _T_RE_EOL \
     _T("  sci_find $(flags) \"[0-9]+\"") _T_RE_EOL \
+    _T("  // find all empty lines:") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_INENTIRETEXT | NPE_SF_REGEXP | NPE_SF_REGEXP_EMPTYMATCH_ALL | NPE_SF_PRINTALL") _T_RE_EOL \
+    _T("  sci_find $(flags) \"^$\"") _T_RE_EOL \
+    _T("  // find all non-empty lines:") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_INENTIRETEXT | NPE_SF_REGEXP | NPE_SF_PRINTALL") _T_RE_EOL \
+    _T("  sci_find $(flags) \"^.+$\"") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  With NPE_SF_PRINTALL, it is possible to achieve a functionality similar to") _T_RE_EOL \
     _T("  (but not equal to) the standard \"Find result\" window.") _T_RE_EOL \
@@ -1178,6 +1190,18 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  sci_replace NPE_SF_BACKWARD|NPE_SF_REGEXP \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
     _T("  // replace using a regular expression, select if found:") _T_RE_EOL \
     _T("  sci_replace NPE_SF_REGEXP|NPE_SF_SETSEL \"([a-z]+)-([a-z]+)\" \"\\2-\\1\"") _T_RE_EOL \
+    _T("  // insert \"abc\" at the beginning of every line:") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_INENTIRETEXT | NPE_SF_REGEXP | NPE_SF_REGEXP_EMPTYMATCH_ALL | NPE_SF_REPLACEALL") _T_RE_EOL \
+    _T("  sci_replace $(flags) \"^\" \"abc\"") _T_RE_EOL \
+    _T("  // append \"xyz\" to every line:") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_INENTIRETEXT | NPE_SF_REGEXP | NPE_SF_REGEXP_EMPTYMATCH_ALL | NPE_SF_REPLACEALL") _T_RE_EOL \
+    _T("  sci_replace $(flags) \"$\" \"xyz\"") _T_RE_EOL \
+    _T("  // append \"xyz\" to every non-empty line:") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_INENTIRETEXT | NPE_SF_REGEXP | NPE_SF_REPLACEALL") _T_RE_EOL \
+    _T("  sci_replace $(flags) \"^(.+)$\" \"\\1xyz\"") _T_RE_EOL \
+    _T("  // replace every empty line with \"EMPTY\":") _T_RE_EOL \
+    _T("  set local flags ~ NPE_SF_INENTIRETEXT | NPE_SF_REGEXP | NPE_SF_REGEXP_EMPTYMATCH_ALL | NPE_SF_REPLACEALL") _T_RE_EOL \
+    _T("  sci_replace $(flags) \"^$\" \"EMPTY\"") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  Combining NPE_SF_REPLACEALL with NPE_SF_PRINTALL, it is possible to see all") _T_RE_EOL \
     _T("  the replaced occurrences in the Console (see also: sci_find).") _T_RE_EOL \
