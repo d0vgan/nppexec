@@ -20,6 +20,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.3
+ ------
+ * Glory to Ukraine! Glory to the heroes!
+ + added: "Use Editor Colors" is also applied to the "Execute..." dialog
+ + added: NPE_SF_REGEXP_EMPTYMATCH_* flags for SCI_FIND and SCI_REPLACE
+ * npp_files updated to Notepad++ 8.4.4
+
+
  v0.8.2 - June 2022
  ------------------
  * Glory to Ukraine! Glory to the heroes!

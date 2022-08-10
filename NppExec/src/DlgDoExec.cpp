@@ -476,7 +476,7 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
     COLORREF prevBkgnd = m_editorBkgnd;
     m_editorTextNorm = static_cast<COLORREF>(Runtime::GetNppExec().SendNppMsg(NPPM_GETEDITORDEFAULTFOREGROUNDCOLOR));
     m_editorBkgnd = static_cast<COLORREF>(Runtime::GetNppExec().SendNppMsg(NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR));
-    if ( m_editorBkgnd != prevBkgnd )
+    if ( m_editorBkgnd != prevBkgnd || m_hBkgndBrush == NULL )
     {
       if ( m_hBkgndBrush != NULL )
       {
