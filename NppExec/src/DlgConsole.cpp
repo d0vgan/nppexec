@@ -4955,7 +4955,7 @@ INT_PTR ConsoleDlg::OnCtlColorEdit(WPARAM wParam, LPARAM lParam)
         SetBkMode( (HDC) wParam, TRANSPARENT );
         SetBkColor( (HDC) wParam, crBkgndColor );
 
-        return (LRESULT) hBkgndBrush;
+        return (INT_PTR) hBkgndBrush;
     }
 
     return 0;

@@ -145,6 +145,16 @@ INT_PTR CALLBACK DoExecDlgProc(
     
   }
 
+  else if (uMessage == WM_CTLCOLOREDIT)
+  {
+    return DoExecDlg.OnCtlColorEdit(wParam, lParam);
+  }
+
+  else if (uMessage == WM_CTLCOLORLISTBOX)
+  {
+    return DoExecDlg.OnCtlColorListBox(wParam, lParam);
+  }
+
   else if (uMessage == WM_INITDIALOG)
   {
     DoExecDlg.OnInitDialog(hDlg);
@@ -164,10 +174,20 @@ INT_PTR CALLBACK DoExecDlgProc(
 
 CDoExecDlg::CDoExecDlg() : CAnyWindow()
 {
+  m_nCurrentWordStart = 0;
+  m_nCurrentWordEnd = 0;
+  m_bFirstSetFocus = true;
+  m_editorTextNorm = 0xFFFFFFFF;
+  m_editorBkgnd = 0xFFFFFFFF;
+  m_hBkgndBrush = NULL;
 }
 
 CDoExecDlg::~CDoExecDlg()
 {
+  if ( m_hBkgndBrush != NULL )
+  {
+    ::DeleteObject(m_hBkgndBrush);
+  }
 }
 
 void CDoExecDlg::OnBtOK(BOOL bUpdateCmdList)
@@ -292,6 +312,63 @@ void CDoExecDlg::OnCbnSelChange()
   ShowScriptText(g_szPrevScriptName);
 }
 
+INT_PTR CDoExecDlg::OnCtlColorEdit(WPARAM wParam, LPARAM lParam)
+{
+  if ( m_edScript.m_hWnd == (HWND) lParam )
+  {
+    HBRUSH hBkBrush;
+    COLORREF crBkColor;
+    COLORREF crTextColor;
+
+    if ( m_hBkgndBrush != NULL )
+    {
+      hBkBrush = m_hBkgndBrush;
+      crBkColor = m_editorBkgnd;
+      crTextColor = m_editorTextNorm;
+    }
+    else
+    {
+      hBkBrush = GetSysColorBrush(COLOR_WINDOW);
+      crBkColor = GetSysColor(COLOR_WINDOW);
+      crTextColor = GetSysColor(COLOR_WINDOWTEXT);
+    }
+
+    SetTextColor( (HDC) wParam, crTextColor );
+    SetBkMode( (HDC) wParam, OPAQUE );
+    SetBkColor( (HDC) wParam, crBkColor );
+    return (INT_PTR) hBkBrush;
+  }
+
+  return 0;
+}
+
+INT_PTR CDoExecDlg::OnCtlColorListBox(WPARAM wParam, LPARAM lParam)
+{
+  (lParam);
+
+  HBRUSH hBkBrush;
+  COLORREF crBkColor;
+  COLORREF crTextColor;
+
+  if ( m_hBkgndBrush != NULL )
+  {
+    hBkBrush = m_hBkgndBrush;
+    crBkColor = m_editorBkgnd;
+    crTextColor = m_editorTextNorm;
+  }
+  else
+  {
+    hBkBrush = GetSysColorBrush(COLOR_WINDOW);
+    crBkColor = GetSysColor(COLOR_WINDOW);
+    crTextColor = GetSysColor(COLOR_WINDOWTEXT);
+  }
+
+  SetTextColor( (HDC) wParam, crTextColor );
+  SetBkMode( (HDC) wParam, TRANSPARENT );
+  SetBkColor( (HDC) wParam, crBkColor );
+  return (INT_PTR) hBkBrush;
+}
+
 bool CDoExecDlg::isScriptFileChanged()
 {
   CNppExec& NppExec = Runtime::GetNppExec();
@@ -392,6 +469,31 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
     {
       m_edScript.SendMsg( WM_SETFONT, (WPARAM) hEdFont, 0 );
     }
+  }
+
+  if ( Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) )
+  {
+    COLORREF prevBkgnd = m_editorBkgnd;
+    m_editorTextNorm = static_cast<COLORREF>(Runtime::GetNppExec().SendNppMsg(NPPM_GETEDITORDEFAULTFOREGROUNDCOLOR));
+    m_editorBkgnd = static_cast<COLORREF>(Runtime::GetNppExec().SendNppMsg(NPPM_GETEDITORDEFAULTBACKGROUNDCOLOR));
+    if ( m_editorBkgnd != prevBkgnd )
+    {
+      if ( m_hBkgndBrush != NULL )
+      {
+        ::DeleteObject(m_hBkgndBrush);
+      }
+      m_hBkgndBrush = ::CreateSolidBrush(m_editorBkgnd);
+    }
+  }
+  else
+  {
+    if ( m_hBkgndBrush != NULL )
+    {
+      ::DeleteObject(m_hBkgndBrush);
+    }
+    m_hBkgndBrush = NULL;
+    m_editorTextNorm = 0xFFFFFFFF;
+    m_editorBkgnd = 0xFFFFFFFF;
   }
 
   m_cbScriptNames.AddString(TEMP_SCRIPT_NAME);
@@ -825,7 +927,12 @@ LRESULT CALLBACK edScriptWindowProc(
       return lResult;
     }
   }
-     
+
+  else if (uMessage == WM_CTLCOLORLISTBOX)
+  {
+    return DoExecDlg.OnCtlColorListBox(wParam, lParam);
+  }
+
   return CallWindowProc(OriginalEditProc, hEd, uMessage, wParam, lParam);
 }
 

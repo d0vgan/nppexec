@@ -58,12 +58,17 @@ public:
   int           m_nCurrentWordStart;
   int           m_nCurrentWordEnd;
   bool          m_bFirstSetFocus;
+  COLORREF      m_editorTextNorm;
+  COLORREF      m_editorBkgnd;
+  HBRUSH        m_hBkgndBrush;
 
   CDoExecDlg();
   ~CDoExecDlg();
   void OnBtOK(BOOL bUpdateCmdList);
   void OnBtSave();
   void OnCbnSelChange();
+  INT_PTR OnCtlColorEdit(WPARAM wParam, LPARAM lParam);
+  INT_PTR OnCtlColorListBox(WPARAM wParam, LPARAM lParam);
   void OnInitDialog(HWND hDlg);
   void OnSize();
   void OnSizing(RECT* lpRect);
