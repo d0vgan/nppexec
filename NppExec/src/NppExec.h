@@ -746,6 +746,7 @@ const COLORREF COLOR_CON_TEXTNORM = RGB(0x00, 0x00, 0x00); // black
 const COLORREF COLOR_CON_TEXTERR  = RGB(0xA0, 0x10, 0x10); // ~red
 const COLORREF COLOR_CON_TEXTMSG  = RGB(0x20, 0x80, 0x20); // ~green
 const COLORREF COLOR_CON_BKGND    = 0xFFFFFFFF; // means system default
+const COLORREF COLOR_INVALID      = 0xCC000000;
 
 enum enumNFuncItems {
   N_DO_EXEC_DLG = 0,

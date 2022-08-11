@@ -177,8 +177,8 @@ CDoExecDlg::CDoExecDlg() : CAnyWindow()
   m_nCurrentWordStart = 0;
   m_nCurrentWordEnd = 0;
   m_bFirstSetFocus = true;
-  m_editorTextNorm = 0xFFFFFFFF;
-  m_editorBkgnd = 0xFFFFFFFF;
+  m_editorTextNorm = COLOR_INVALID;
+  m_editorBkgnd = COLOR_INVALID;
   m_hBkgndBrush = NULL;
 }
 
@@ -489,8 +489,8 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
       ::DeleteObject(m_hBkgndBrush);
     }
     m_hBkgndBrush = NULL;
-    m_editorTextNorm = 0xFFFFFFFF;
-    m_editorBkgnd = 0xFFFFFFFF;
+    m_editorTextNorm = COLOR_INVALID;
+    m_editorBkgnd = COLOR_INVALID;
   }
 
   m_cbScriptNames.AddString(TEMP_SCRIPT_NAME);

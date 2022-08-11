@@ -6447,10 +6447,10 @@ TCHAR CNppConsoleRichEdit::GetNulChar()
 CNppExecConsole::CNppExecConsole() //: m_pNppExec(0)
   : m_hDlg(NULL)
   , m_hBkgndBrush(NULL)
-  , m_colorTextNorm(0)
-  , m_colorTextMsg(0)
-  , m_colorTextErr(0)
-  , m_colorBkgnd(0)
+  , m_colorTextNorm(COLOR_INVALID)
+  , m_colorTextMsg(COLOR_INVALID)
+  , m_colorTextErr(COLOR_INVALID)
+  , m_colorBkgnd(COLOR_INVALID)
 {
     m_StateList.push_back(ConsoleState());
 }
@@ -6515,7 +6515,7 @@ COLORREF CNppExecConsole::_getCurrentColorTextNorm() const
         colorTextNorm = m_colorTextNorm;
     }
 
-    return (colorTextNorm != 0 ? colorTextNorm : g_colorTextNorm);
+    return (colorTextNorm != COLOR_INVALID ? colorTextNorm : g_colorTextNorm);
 }
 
 
@@ -6538,7 +6538,7 @@ COLORREF CNppExecConsole::_getCurrentColorTextMsg() const
         colorTextMsg = m_colorTextMsg;
     }
 
-    return (colorTextMsg != 0 ? colorTextMsg : g_colorTextMsg);
+    return (colorTextMsg != COLOR_INVALID ? colorTextMsg : g_colorTextMsg);
 }
 
 COLORREF CNppExecConsole::GetCurrentColorTextErr() const
@@ -6560,7 +6560,7 @@ COLORREF CNppExecConsole::_getCurrentColorTextErr() const
         colorTextErr = m_colorTextErr;
     }
 
-    return (colorTextErr != 0 ? colorTextErr : g_colorTextErr);
+    return (colorTextErr != COLOR_INVALID ? colorTextErr : g_colorTextErr);
 }
 
 COLORREF CNppExecConsole::GetCurrentColorBkgnd() const
@@ -6582,7 +6582,7 @@ COLORREF CNppExecConsole::_getCurrentColorBkgnd() const
         colorBkgnd = m_colorBkgnd;
     }
 
-    return (colorBkgnd != 0 ? colorBkgnd : g_colorBkgnd);
+    return (colorBkgnd != COLOR_INVALID ? colorBkgnd : g_colorBkgnd);
 }
 
 bool CNppExecConsole::postponeThisCall(ScriptEngineId scrptEngnId)
@@ -7383,8 +7383,9 @@ void CNppExecConsole::_updateColours(ScriptEngineId scrptEngnId)
     // Important: SendMsg() calls must _not_ be under m_csStateList
 
     // background color
-    if ( _getCurrentColorBkgnd() != 0xFFFFFFFF )
-        m_reConsole.SendMsg(EM_SETBKGNDCOLOR, 0, _getCurrentColorBkgnd());
+    COLORREF bkColor = _getCurrentColorBkgnd();
+    if ( bkColor != COLOR_CON_BKGND )
+        m_reConsole.SendMsg(EM_SETBKGNDCOLOR, 0, bkColor);
     else
         m_reConsole.SendMsg(EM_SETBKGNDCOLOR, 0, GetSysColor(COLOR_WINDOW));
 

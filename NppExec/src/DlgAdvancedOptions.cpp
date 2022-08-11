@@ -347,7 +347,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     c_base::_tbuf2hexstr( (lpcbyte_t) &g_colorTextMsg, 3, szText, 64 - 1, _T(" ") );
     m_edTextColorMsg.SetWindowText(szText);
     
-    if ( g_colorBkgnd == 0xFFFFFFFF )
+    if ( g_colorBkgnd == COLOR_CON_BKGND )
     {
         m_edBkColor.SetWindowText( _T("0") );
     }
