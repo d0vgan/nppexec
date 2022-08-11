@@ -3006,15 +3006,15 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                     SavedConfiguration& savedConf = currentScript.SavedConf;
                     if ( isLocal )
                     {
-                        if ( !savedConf.hasUseEditorColors() )
-                            savedConf.setUseEditorColors( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) );
+                        if ( !savedConf.hasUseEditorColorsInConsole() )
+                            savedConf.setUseEditorColorsInConsole( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) );
                         if ( !savedConf.hasColorTextNorm() )
                             savedConf.setColorTextNorm( m_pNppExec->GetConsole().GetCurrentColorTextNorm() );
                     }
                     else
                     {
-                        if ( savedConf.hasUseEditorColors() )
-                            savedConf.removeUseEditorColors();
+                        if ( savedConf.hasUseEditorColorsInConsole() )
+                            savedConf.removeUseEditorColorsInConsole();
                         if ( savedConf.hasColorTextNorm() )
                             savedConf.removeColorTextNorm();
                     }
@@ -3054,15 +3054,15 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                     SavedConfiguration& savedConf = currentScript.SavedConf;
                     if ( isLocal )
                     {
-                        if ( !savedConf.hasUseEditorColors() )
-                            savedConf.setUseEditorColors( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) );
+                        if ( !savedConf.hasUseEditorColorsInConsole() )
+                            savedConf.setUseEditorColorsInConsole( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) );
                         if ( !savedConf.hasColorBkgnd() )
                             savedConf.setColorBkgnd( m_pNppExec->GetConsole().GetCurrentColorBkgnd() );
                     }
                     else
                     {
-                        if ( savedConf.hasUseEditorColors() )
-                            savedConf.removeUseEditorColors();
+                        if ( savedConf.hasUseEditorColorsInConsole() )
+                            savedConf.removeUseEditorColorsInConsole();
                         if ( savedConf.hasColorBkgnd() )
                             savedConf.removeColorBkgnd();
                     }

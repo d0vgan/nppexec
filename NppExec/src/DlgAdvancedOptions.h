@@ -63,14 +63,15 @@ class CAdvOptDlg : public CAnyWindow
         CAnyWindow   m_btMoveDown;
         CAnyWindow   m_btModify;
         CAnyWindow   m_btDelete;
-        CAnyCheckBox m_chUseEditorColors;
+        CAnyCheckBox m_chUseEditorColorsInConsole;
+        CAnyCheckBox m_chUseEditorColorsInExecDlg;
 
         CByteBuf     m_bufColorTextNorm;
         CByteBuf     m_bufColorTextErr;
         CByteBuf     m_bufColorTextMsg;
         CByteBuf     m_bufColorBkgnd;
         int          m_nREMaxLen;
-        bool         m_bUseEditorColors;
+        bool         m_bUseEditorColorsInConsole;
         bool         m_bNppRestartRequired;
 
     protected:
@@ -92,7 +93,7 @@ class CAdvOptDlg : public CAnyWindow
         void OnCbOptHotkeySelChange();
         void OnCbOptToolbarBtnSelChange();
         void OnChMacrosSubmenu();
-        void OnChEditorColors();
+        void OnChEditorColorsConsole();
         void OnEdItemNameChange();
         void OnLbMenuItemsSelChange();
 

@@ -1053,6 +1053,8 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     // [ExecDlg]
     { OPTD_EXECDLG_FONT, OPTT_DATA | OPTF_READWRITE,
       INI_SECTION_EXECDLG, _T("Font"), 0, NULL },
+    { OPTB_EXECDLG_USEEDITORCOLORS, OPTT_BOOL | OPTF_READWRITE,
+      INI_SECTION_EXECDLG, _T("UseEditorColors"), 0, NULL },
 
     // --- read-only options ---
 

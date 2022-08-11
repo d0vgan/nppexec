@@ -314,32 +314,29 @@ void CDoExecDlg::OnCbnSelChange()
 
 INT_PTR CDoExecDlg::OnCtlColorEdit(WPARAM wParam, LPARAM lParam)
 {
-  if ( m_edScript.m_hWnd == (HWND) lParam )
+  (lParam);
+
+  HBRUSH hBkBrush;
+  COLORREF crBkColor;
+  COLORREF crTextColor;
+
+  if ( m_hBkgndBrush != NULL )
   {
-    HBRUSH hBkBrush;
-    COLORREF crBkColor;
-    COLORREF crTextColor;
-
-    if ( m_hBkgndBrush != NULL )
-    {
-      hBkBrush = m_hBkgndBrush;
-      crBkColor = m_editorBkgnd;
-      crTextColor = m_editorTextNorm;
-    }
-    else
-    {
-      hBkBrush = GetSysColorBrush(COLOR_WINDOW);
-      crBkColor = GetSysColor(COLOR_WINDOW);
-      crTextColor = GetSysColor(COLOR_WINDOWTEXT);
-    }
-
-    SetTextColor( (HDC) wParam, crTextColor );
-    SetBkMode( (HDC) wParam, OPAQUE );
-    SetBkColor( (HDC) wParam, crBkColor );
-    return (INT_PTR) hBkBrush;
+    hBkBrush = m_hBkgndBrush;
+    crBkColor = m_editorBkgnd;
+    crTextColor = m_editorTextNorm;
+  }
+  else
+  {
+    hBkBrush = GetSysColorBrush(COLOR_WINDOW);
+    crBkColor = GetSysColor(COLOR_WINDOW);
+    crTextColor = GetSysColor(COLOR_WINDOWTEXT);
   }
 
-  return 0;
+  SetTextColor( (HDC) wParam, crTextColor );
+  SetBkMode( (HDC) wParam, OPAQUE );
+  SetBkColor( (HDC) wParam, crBkColor );
+  return (INT_PTR) hBkBrush;
 }
 
 INT_PTR CDoExecDlg::OnCtlColorListBox(WPARAM wParam, LPARAM lParam)
@@ -471,7 +468,7 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
     }
   }
 
-  if ( Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) )
+  if ( Runtime::GetNppExec().GetOptions().GetBool(OPTB_EXECDLG_USEEDITORCOLORS) )
   {
     COLORREF prevBkgnd = m_editorBkgnd;
     m_editorTextNorm = static_cast<COLORREF>(Runtime::GetNppExec().SendNppMsg(NPPM_GETEDITORDEFAULTFOREGROUNDCOLOR));

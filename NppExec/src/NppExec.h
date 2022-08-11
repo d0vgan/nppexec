@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  v0.8.3
  ------
  * Glory to Ukraine! Glory to the heroes!
- + added: "Use Editor Colors" is also applied to the "Execute..." dialog
+ + added: "Use Editor Colors in the Execute dialog" (in the Advanced Options)
  + added: NPE_SF_REGEXP_EMPTYMATCH_* flags for SCI_FIND and SCI_REPLACE
  * npp_files updated to Notepad++ 8.4.4
 
@@ -826,6 +826,7 @@ enum EPluginOptions {
     OPTB_CONSOLE_CMDHISTORY,
     OPTB_CONSOLE_SAVECMDHISTORY,
     OPTB_CONSOLE_USEEDITORCOLORS,
+    OPTB_EXECDLG_USEEDITORCOLORS,
 
   #ifdef _SCROLL_TO_LATEST  
     OPTB_CONSOLE_SCROLL2LATEST,

@@ -116,11 +116,11 @@ INT_PTR CALLBACK AdvancedOptionsDlgProc(
                 }
                 break;
             }
-            case IDC_CH_OPT_USEEDITORCOLORS:
+            case IDC_CH_OPT_USEEDITORCOLORS_CONSOLE:
             {
                 if ( HIWORD(wParam) == BN_CLICKED )
                 {
-                    advOptDlg.OnChEditorColors();
+                    advOptDlg.OnChEditorColorsConsole();
                 }
                 break;
             }
@@ -172,6 +172,7 @@ CAdvOptDlg::~CAdvOptDlg()
 void CAdvOptDlg::OnInitDlg(HWND hDlg)
 {
     CNppExec& NppExec = Runtime::GetNppExec();
+    CStaticOptionsManager& Options = NppExec.GetOptions();
 
     m_hWnd = hDlg;
 
@@ -195,7 +196,8 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     m_btMoveDown.m_hWnd = ::GetDlgItem(hDlg, IDC_BT_MOVEDOWN);
     m_btModify.m_hWnd = ::GetDlgItem(hDlg, IDC_BT_ITEMNEW);
     m_btDelete.m_hWnd = ::GetDlgItem(hDlg, IDC_BT_ITEMDELETE);
-    m_chUseEditorColors.m_hWnd = ::GetDlgItem(hDlg, IDC_CH_OPT_USEEDITORCOLORS);
+    m_chUseEditorColorsInConsole.m_hWnd = ::GetDlgItem(hDlg, IDC_CH_OPT_USEEDITORCOLORS_CONSOLE);
+    m_chUseEditorColorsInExecDlg.m_hWnd = ::GetDlgItem(hDlg, IDC_CH_OPT_USEEDITORCOLORS_EXECDLG);
 
     m_edItemName.SendMsg(EM_LIMITTEXT, MAX_SCRIPTNAME/2, 0);
     m_edCommentDelim.SendMsg(EM_LIMITTEXT, 9, 0);
@@ -206,7 +208,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     
     // notepad++ macros submenu...
     
-    m_chMacrosSubmenu.SetCheck( NppExec.GetOptions().GetBool(OPTB_USERMENU_NPPMACROS) ? TRUE : FALSE );
+    m_chMacrosSubmenu.SetCheck( Options.GetBool(OPTB_USERMENU_NPPMACROS) ? TRUE : FALSE );
     
     int     i;
     LPCTSTR psz;
@@ -215,7 +217,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
 
     for ( i = 0; i < MAX_USERMENU_ITEMS; i++ )
     {
-        psz = NppExec.GetOptions().GetStr(OPTS_USERMENU_ITEM01 + i);
+        psz = Options.GetStr(OPTS_USERMENU_ITEM01 + i);
         if ( psz && psz[0] )
         {
             m_lbMenuItems.AddString(psz);
@@ -242,7 +244,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     }
 
     i = 0;
-    psz = NppExec.GetOptions().GetStr(OPTS_SCRIPT_NPPSTART);
+    psz = Options.GetStr(OPTS_SCRIPT_NPPSTART);
     if ( psz )
     {
         i = m_cbScriptNppStart.FindStringExact( psz );
@@ -251,7 +253,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     m_cbScriptNppStart.SetCurSel(i);
 
     i = 0;
-    psz = NppExec.GetOptions().GetStr(OPTS_SCRIPT_NPPEXIT);
+    psz = Options.GetStr(OPTS_SCRIPT_NPPEXIT);
     if ( psz )
     {
         i = m_cbScriptNppExit.FindStringExact( psz );
@@ -274,7 +276,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     m_cbHotKey.AddString( _T("F10") );
     m_cbHotKey.AddString( _T("F11") );
     m_cbHotKey.AddString( _T("F12") );
-    unsigned int uHotKey = NppExec.GetOptions().GetUint(OPTU_PLUGIN_HOTKEY);
+    unsigned int uHotKey = Options.GetUint(OPTU_PLUGIN_HOTKEY);
     for ( i = 0; i < 12; i++ )
     {
         if ( uHotKey == static_cast<unsigned int>(VK_F1 + i) )
@@ -299,7 +301,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
         m_cbToolbarBtn.AddString( btnName );
     }
     const int nMaxBtn = m_cbToolbarBtn.GetCount() - 1;
-    i = NppExec.GetOptions().GetInt(OPTI_TOOLBARBTN);
+    i = Options.GetInt(OPTI_TOOLBARBTN);
     if ( i < 0 || i > nMaxBtn )  i = 0;
     m_cbToolbarBtn.SetCurSel(i);
     
@@ -308,7 +310,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     m_cbConVisible.AddString( _T("Auto") );
     m_cbConVisible.AddString( _T("Yes") );
     m_cbConVisible.AddString( _T("No") );
-    i = NppExec.GetOptions().GetInt(OPTI_CONSOLE_VISIBLE);
+    i = Options.GetInt(OPTI_CONSOLE_VISIBLE);
     if ( i < CON_AUTO || i > CON_NO )  i = CON_AUTO;
     m_cbConVisible.SetCurSel(i);
 
@@ -316,21 +318,21 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     
     m_cbConShowHelp.AddString( _T("No") );
     m_cbConShowHelp.AddString( _T("Yes") );
-    i = NppExec.GetOptions().GetBool(OPTB_CONSOLE_SHOWHELP) ? 1 : 0;
+    i = Options.GetBool(OPTB_CONSOLE_SHOWHELP) ? 1 : 0;
     m_cbConShowHelp.SetCurSel(i);
 
     // fill save cmd history combo-box...
     
     m_cbSaveCmdHst.AddString( _T("No") );
     m_cbSaveCmdHst.AddString( _T("Yes") );
-    i = NppExec.GetOptions().GetBool(OPTB_CONSOLE_SAVECMDHISTORY) ? 1 : 0;
+    i = Options.GetBool(OPTB_CONSOLE_SAVECMDHISTORY) ? 1 : 0;
     m_cbSaveCmdHst.SetCurSel(i);
     
     // fill edit-controls...
 
     TCHAR szText[64];
 
-    S = NppExec.GetOptions().GetStr(OPTS_COMMENTDELIMITER);
+    S = Options.GetStr(OPTS_COMMENTDELIMITER);
     m_edCommentDelim.SetWindowText(S.c_str());
     
     szText[0] = 0;
@@ -356,9 +358,12 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
         m_edBkColor.SetWindowText(szText);
     }
 
-    BOOL bUseEditorColors = NppExec.GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) ? TRUE : FALSE;
-    m_chUseEditorColors.SetCheck(bUseEditorColors);
-    OnChEditorColors();
+    BOOL bUseEditorColors = Options.GetBool(OPTB_CONSOLE_USEEDITORCOLORS) ? TRUE : FALSE;
+    m_chUseEditorColorsInConsole.SetCheck(bUseEditorColors);
+    OnChEditorColorsConsole();
+
+    bUseEditorColors = Options.GetBool(OPTB_EXECDLG_USEEDITORCOLORS) ? TRUE : FALSE;
+    m_chUseEditorColorsInExecDlg.SetCheck(bUseEditorColors);
 
     // buttons...
 
@@ -377,7 +382,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
 
     // finally...
 
-    m_nREMaxLen = NppExec.GetOptions().GetInt(OPTI_RICHEDIT_MAXTEXTLEN);
+    m_nREMaxLen = Options.GetInt(OPTI_RICHEDIT_MAXTEXTLEN);
     colorValuesInit();
 
     // some options do not require n++ to be restarted
@@ -389,6 +394,8 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
 BOOL CAdvOptDlg::OnBtOK()
 {
     CNppExec& NppExec = Runtime::GetNppExec();
+    CStaticOptionsManager& Options = NppExec.GetOptions();
+
     c_base::byte_t bt[4];
     TCHAR szText[MAX_SCRIPTNAME];
     int   i;
@@ -401,12 +408,12 @@ BOOL CAdvOptDlg::OnBtOK()
     i = c_base::_thexstr2buf( szText, bt, 4 );
     if ( i >= 3 )
     {
-        NppExec.GetOptions().SetData(OPTD_COLOR_TEXTNORM, bt, 3);
+        Options.SetData(OPTD_COLOR_TEXTNORM, bt, 3);
         g_colorTextNorm = RGB( bt[0], bt[1], bt[2] );
     }
     else if ( i <= 1 )
     {
-        NppExec.GetOptions().SetData(OPTD_COLOR_TEXTNORM, bt, 1);
+        Options.SetData(OPTD_COLOR_TEXTNORM, bt, 1);
         g_colorTextNorm = COLOR_CON_TEXTNORM;
     }
     else
@@ -421,12 +428,12 @@ BOOL CAdvOptDlg::OnBtOK()
     i = c_base::_thexstr2buf( szText, bt, 4 );
     if ( i >= 3 )
     {
-        NppExec.GetOptions().SetData(OPTD_COLOR_TEXTERR, bt, 3);
+        Options.SetData(OPTD_COLOR_TEXTERR, bt, 3);
         g_colorTextErr = RGB( bt[0], bt[1], bt[2] );
     }
     else if ( i <= 1 )
     {
-        NppExec.GetOptions().SetData(OPTD_COLOR_TEXTERR, bt, 1);
+        Options.SetData(OPTD_COLOR_TEXTERR, bt, 1);
         g_colorTextErr = COLOR_CON_TEXTERR;
     }
     else
@@ -441,12 +448,12 @@ BOOL CAdvOptDlg::OnBtOK()
     i = c_base::_thexstr2buf( szText, bt, 4 );
     if ( i >= 3 )
     {
-        NppExec.GetOptions().SetData(OPTD_COLOR_TEXTMSG, bt, 3);
+        Options.SetData(OPTD_COLOR_TEXTMSG, bt, 3);
         g_colorTextMsg = RGB( bt[0], bt[1], bt[2] );
     }
     else if ( i <= 1 )
     {
-        NppExec.GetOptions().SetData(OPTD_COLOR_TEXTMSG, bt, 1);
+        Options.SetData(OPTD_COLOR_TEXTMSG, bt, 1);
         g_colorTextMsg = COLOR_CON_TEXTMSG;
     }
     else
@@ -461,12 +468,12 @@ BOOL CAdvOptDlg::OnBtOK()
     i = c_base::_thexstr2buf( szText, bt, 4 );
     if ( i >= 3 )
     {
-        NppExec.GetOptions().SetData(OPTD_COLOR_BKGND, bt, 3);
+        Options.SetData(OPTD_COLOR_BKGND, bt, 3);
         g_colorBkgnd = RGB( bt[0], bt[1], bt[2] );
     }
     else if ( i <= 1 )
     {
-        NppExec.GetOptions().SetData(OPTD_COLOR_BKGND, bt, 1);
+        Options.SetData(OPTD_COLOR_BKGND, bt, 1);
         g_colorBkgnd = COLOR_CON_BKGND;
     }
     else
@@ -475,11 +482,12 @@ BOOL CAdvOptDlg::OnBtOK()
         return FALSE;
     }
 
-    NppExec.GetOptions().SetBool( OPTB_CONSOLE_USEEDITORCOLORS, m_chUseEditorColors.IsChecked() ? true : false );
+    Options.SetBool( OPTB_CONSOLE_USEEDITORCOLORS, m_chUseEditorColorsInConsole.IsChecked() ? true : false );
+    Options.SetBool( OPTB_EXECDLG_USEEDITORCOLORS, m_chUseEditorColorsInExecDlg.IsChecked() ? true : false );
 
     // notepad++ macros submenu...
 
-    NppExec.GetOptions().SetBool( OPTB_USERMENU_NPPMACROS, m_chMacrosSubmenu.IsChecked() ? true : false );
+    Options.SetBool( OPTB_USERMENU_NPPMACROS, m_chMacrosSubmenu.IsChecked() ? true : false );
 
     // user menu items...
 
@@ -489,11 +497,11 @@ BOOL CAdvOptDlg::OnBtOK()
     {
         szText[0] = 0;
         m_lbMenuItems.GetString(j, szText);
-        NppExec.GetOptions().SetStr( OPTS_USERMENU_ITEM01 + j, szText );
+        Options.SetStr( OPTS_USERMENU_ITEM01 + j, szText );
     }
     while ( i < MAX_USERMENU_ITEMS )
     {
-        NppExec.GetOptions().SetStr( OPTS_USERMENU_ITEM01 + i, _T("") );
+        Options.SetStr( OPTS_USERMENU_ITEM01 + i, _T("") );
         ++i;
     }
 
@@ -504,7 +512,7 @@ BOOL CAdvOptDlg::OnBtOK()
     {
         szText[0] = 0;
         m_cbScriptNppStart.GetLBText(i, szText);
-        NppExec.GetOptions().SetStr(OPTS_SCRIPT_NPPSTART, szText);
+        Options.SetStr(OPTS_SCRIPT_NPPSTART, szText);
     }
 
     i = m_cbScriptNppExit.GetCurSel();
@@ -512,7 +520,7 @@ BOOL CAdvOptDlg::OnBtOK()
     {
         szText[0] = 0;
         m_cbScriptNppExit.GetLBText(i, szText);
-        NppExec.GetOptions().SetStr(OPTS_SCRIPT_NPPEXIT, szText);
+        Options.SetStr(OPTS_SCRIPT_NPPEXIT, szText);
     }
 
     // plugin hot-key...
@@ -520,7 +528,7 @@ BOOL CAdvOptDlg::OnBtOK()
     i = m_cbHotKey.GetCurSel();
     if ( i >= 0 )
     {
-        NppExec.GetOptions().SetUint(OPTU_PLUGIN_HOTKEY, VK_F1 + i);
+        Options.SetUint(OPTU_PLUGIN_HOTKEY, VK_F1 + i);
     }
 
     // toolbar btn...
@@ -528,7 +536,7 @@ BOOL CAdvOptDlg::OnBtOK()
     i = m_cbToolbarBtn.GetCurSel();
     if ( i >= 0 )
     {
-        NppExec.GetOptions().SetInt(OPTI_TOOLBARBTN, i);
+        Options.SetInt(OPTI_TOOLBARBTN, i);
     }
 
     // console visible...
@@ -536,7 +544,7 @@ BOOL CAdvOptDlg::OnBtOK()
     i = m_cbConVisible.GetCurSel();
     if ( i >= 0 )
     {
-        NppExec.GetOptions().SetInt(OPTI_CONSOLE_VISIBLE, i);
+        Options.SetInt(OPTI_CONSOLE_VISIBLE, i);
     }
 
     // console show help...
@@ -544,27 +552,27 @@ BOOL CAdvOptDlg::OnBtOK()
     i = m_cbConShowHelp.GetCurSel();
     if ( i >= 0 )
     {
-        NppExec.GetOptions().SetBool(OPTB_CONSOLE_SHOWHELP, i ? true : false);
+        Options.SetBool(OPTB_CONSOLE_SHOWHELP, i ? true : false);
     }
 
     // save cmd history...
     i = m_cbSaveCmdHst.GetCurSel();
     if ( i >= 0 )
     {
-        NppExec.GetOptions().SetBool(OPTB_CONSOLE_SAVECMDHISTORY, i ? true : false);
+        Options.SetBool(OPTB_CONSOLE_SAVECMDHISTORY, i ? true : false);
     }
 
     // comment delimiter...
 
     szText[0] = 0;
     m_edCommentDelim.GetWindowText(szText, MAX_SCRIPTNAME - 1);
-    NppExec.GetOptions().SetStr(OPTS_COMMENTDELIMITER, szText);
+    Options.SetStr(OPTS_COMMENTDELIMITER, szText);
 
     // applying options...
 
     if ( colorValuesChanged() )
     {
-        if ( NppExec.GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) )
+        if ( Options.GetBool(OPTB_CONSOLE_USEEDITORCOLORS) )
         {
             NppExec.GetConsole().ApplyEditorColours(false);
         }
@@ -576,7 +584,7 @@ BOOL CAdvOptDlg::OnBtOK()
         NppExec.GetConsole().UpdateColours();
     }
 
-    i = NppExec.GetOptions().GetInt(OPTI_RICHEDIT_MAXTEXTLEN);
+    i = Options.GetInt(OPTI_RICHEDIT_MAXTEXTLEN);
     if ( m_nREMaxLen != i )
     {
         NppExec.GetConsole().GetConsoleEdit().ExLimitText(i);
@@ -773,9 +781,9 @@ void CAdvOptDlg::OnChMacrosSubmenu()
     m_bNppRestartRequired = true;
 }
 
-void CAdvOptDlg::OnChEditorColors()
+void CAdvOptDlg::OnChEditorColorsConsole()
 {
-    BOOL bIsChecked = m_chUseEditorColors.IsChecked();
+    BOOL bIsChecked = m_chUseEditorColorsInConsole.IsChecked();
     m_edTextColorNorm.EnableWindow(!bIsChecked);
     m_edBkColor.EnableWindow(!bIsChecked);
 }
@@ -888,7 +896,7 @@ void CAdvOptDlg::colorValuesInit()
     m_bufColorTextErr.Assign( (lpcbyte_t) &g_colorTextErr, sizeof(COLORREF) );
     m_bufColorTextMsg.Assign( (lpcbyte_t) &g_colorTextMsg, sizeof(COLORREF) );
     m_bufColorBkgnd.Assign( (lpcbyte_t) &g_colorBkgnd, sizeof(COLORREF) );
-    m_bUseEditorColors = Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS);
+    m_bUseEditorColorsInConsole = Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS);
 }
 
 BOOL CAdvOptDlg::colorValuesChanged()
@@ -897,7 +905,7 @@ BOOL CAdvOptDlg::colorValuesChanged()
          m_bufColorTextErr.Compare((lpcbyte_t) &g_colorTextErr, sizeof(COLORREF)) != 0 ||
          m_bufColorTextMsg.Compare((lpcbyte_t) &g_colorTextMsg, sizeof(COLORREF)) != 0 ||
          m_bufColorBkgnd.Compare((lpcbyte_t) &g_colorBkgnd, sizeof(COLORREF)) != 0 ||
-         m_bUseEditorColors != Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) )
+         m_bUseEditorColorsInConsole != Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) )
     {
         return TRUE;
     }

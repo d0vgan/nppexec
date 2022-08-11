@@ -239,7 +239,8 @@
 #define IDC_ED_OPT_TEXTCOLORMSG                 1345
 #define IDC_ST_OPT_BKCOLOR                      1346
 #define IDC_ED_OPT_BKCOLOR                      1347
-#define IDC_CH_OPT_USEEDITORCOLORS              1348
+#define IDC_CH_OPT_USEEDITORCOLORS_CONSOLE      1348
+#define IDC_CH_OPT_USEEDITORCOLORS_EXECDLG      1349
 
 #define IDC_ST_VARMESSAGE                       1380
 #define IDC_ST_VARNAME                          1381
