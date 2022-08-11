@@ -38,6 +38,9 @@ public:
   HWND GetParentWnd() const;
   void SetParentWnd(HWND hParentWnd);
   bool Show(const TCHAR* szCurrentWord);
+
+private:
+  int getRequiredWidth();
 };
 
 //---------------------------------------------------------------------------

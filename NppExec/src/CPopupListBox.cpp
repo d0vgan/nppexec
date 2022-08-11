@@ -141,7 +141,7 @@ bool CPopupListBox::FillPopupList(const TCHAR* szCurrentWord)
 {
   ShowWindow(SW_HIDE);
   ResetContent();
-  
+
   int nLen = (szCurrentWord == NULL) ? 0 : lstrlen(szCurrentWord);
   if (nLen > 0)
   {
@@ -305,6 +305,49 @@ void CPopupListBox::SetParentWnd(HWND hParentWnd)
   m_hParentWnd = hParentWnd;
 }
 
+int CPopupListBox::getRequiredWidth()
+{
+  int nWidth = 0;
+
+  HDC hDC = ::GetDC(m_hWnd);
+  if (hDC)
+  {
+    HFONT hFont = (HFONT) ::SendMessage(m_hWnd, WM_GETFONT, 0, 0);
+    HGDIOBJ hPrevFont = ::SelectObject(hDC, hFont);
+    SIZE sz;
+    TCHAR szItemText[64];
+
+    int nItems = GetCount();
+    for (int n = 0; n < nItems; ++n)
+    {
+      sz.cx = 0;
+      sz.cy = 0;
+
+      int nItemTextLen = GetString(n, szItemText);
+      szItemText[nItemTextLen++] = _T('W');
+      szItemText[nItemTextLen] = 0;
+      ::GetTextExtentPoint32(hDC, szItemText, nItemTextLen, &sz);
+
+      if (nWidth < sz.cx)
+        nWidth = sz.cx;
+    }
+
+    ::SelectObject(hDC, hPrevFont);
+    ::ReleaseDC(m_hWnd, hDC);
+  }
+
+  if (nWidth > 0)
+  {
+    int nScrollBarWidth = ::GetSystemMetrics(SM_CXVSCROLL);
+    nWidth += nScrollBarWidth;
+  }
+  else
+  {
+    nWidth = 160;
+  }
+  return nWidth;
+}
+
 bool CPopupListBox::Show(const TCHAR* szCurrentWord)
 {
   if (FillPopupList(szCurrentWord))
@@ -328,7 +371,7 @@ bool CPopupListBox::Show(const TCHAR* szCurrentWord)
       int y;
       int height;
       int x = pt.x;
-      int width = 160;
+      int width = getRequiredWidth();
       int ih = (itemHeight > 0) ? itemHeight : 12;
       if (x + width > rc.right - rc.left)
       {
