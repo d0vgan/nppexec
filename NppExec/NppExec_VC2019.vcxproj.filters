@@ -1,0 +1,311 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\fparser">
+      <UniqueIdentifier>{3dd2d2c6-05d4-41b8-a602-2731eddfc239}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\fparser">
+      <UniqueIdentifier>{2e542de7-1a8f-4b53-97a0-736ae0c257c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\npp_files">
+      <UniqueIdentifier>{d6bb39d9-dfd2-4771-a80d-2617c7f0ec31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\cpp">
+      <UniqueIdentifier>{e6dadeeb-d381-419e-8c25-f921e51b9235}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\c_base">
+      <UniqueIdentifier>{7f553aa3-1d98-4f1c-b924-024428bfff6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\cpp">
+      <UniqueIdentifier>{975a6d58-a2e8-4a99-9cf8-78f4754bf1dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\c_base">
+      <UniqueIdentifier>{17860ebd-8035-4dd1-aa6b-3db759dcd616}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\CAnyCheckBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CAnyComboBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CAnyListBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CAnyRichEdit.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CAnyWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CFileModificationChecker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CPopupListBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CSimpleLogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\CStaticOptionsManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DirFileLister.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DlgAdvancedOptions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DlgConsole.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DlgConsoleEncoding.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DlgConsoleOutputFilter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DlgDoExec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DlgHelpAbout.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DlgInputBox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NppExec.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NppExecEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PluginCommunication\NppExecPluginInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NppScriptList.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\encodings\SysUniConv.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\WarningAnalyzer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NppExecCommandExecutor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NppExecHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\fparser\fparser.cc">
+      <Filter>Source Files\fparser</Filter>
+    </ClCompile>
+    <ClCompile Include="src\NppScript.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\cpp\CFileBufT.cpp">
+      <Filter>Source Files\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\HexStr.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\int2str.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\MatchMask.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\max_int.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\PackDataStr.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\str_func.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+    <ClCompile Include="src\c_base\str2int.c">
+      <Filter>Source Files\c_base</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\base.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CAnyCheckBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CAnyComboBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CAnyListBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CAnyRichEdit.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CAnyWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CFileModificationChecker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CPopupListBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CSimpleLogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CStaticOptionsManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DirFileLister.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DlgAdvancedOptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DlgConsole.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DlgConsoleEncoding.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DlgConsoleOutputFilter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DlgDoExec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DlgHelpAbout.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\DlgInputBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NppExec.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PluginCommunication\nppexec_msgs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NppExecEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PluginCommunication\NppExecPluginInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NppScriptList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\encodings\SysUniConv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\WarningAnalyzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NppExecCommandExecutor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NppExecHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fparser\fpconfig.hh">
+      <Filter>Header Files\fparser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fparser\fparser.hh">
+      <Filter>Header Files\fparser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fparser\extrasrc\fpaux.hh">
+      <Filter>Header Files\fparser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\fparser\extrasrc\fptypes.hh">
+      <Filter>Header Files\fparser</Filter>
+    </ClInclude>
+    <ClInclude Include="src\NppScript.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\BoostRegexSearch.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\Docking.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\menuCmdID.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\Notepad_plus_msgs.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\PluginInterface.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\Scintilla.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\npp_files\Sci_Position.h">
+      <Filter>Header Files\npp_files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\CBufT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\CFileBufT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\CListT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\CStrT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\cpp\StrSplitT.h">
+      <Filter>Header Files\cpp</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\types.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\HexStr.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\int2str.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\MatchMask.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\max_int.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\PackDataStr.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\str_func.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\c_base\str2int.h">
+      <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\NppExec.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>

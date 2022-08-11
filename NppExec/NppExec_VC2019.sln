@@ -1,0 +1,33 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.32413.511
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{65281C0D-EEA5-49A9-BF22-ABF2FCAF6A49}") = "NppExec", "NppExec_VC2019.vcxproj", "{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Debug (ANSI)|Win32 = Debug (ANSI)|Win32
+		Debug (ANSI)|x64 = Debug (ANSI)|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Debug|Win32.ActiveCfg = Debug|Win32
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Debug|Win32.Build.0 = Debug|Win32
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Debug|x64.ActiveCfg = Debug|x64
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Debug|x64.Build.0 = Debug|x64
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Debug (ANSI)|Win32.ActiveCfg = Debug (ANSI)|Win32
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Debug (ANSI)|Win32.Build.0 = Debug (ANSI)|Win32
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Debug (ANSI)|x64.ActiveCfg = Debug (ANSI)|x64
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Debug (ANSI)|x64.Build.0 = Debug (ANSI)|x64
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Release|Win32.ActiveCfg = Release|Win32
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Release|Win32.Build.0 = Release|Win32
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Release|x64.ActiveCfg = Release|x64
+		{70DF0FCD-0D4D-4C2A-B56D-A7DF0296CD93}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
