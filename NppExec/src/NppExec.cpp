@@ -4399,6 +4399,8 @@ bool CChildProcess::IsWindowsNT()
 {
 #ifdef _WIN64
   return true; // 64-bit Windows XP or later? Definitely Windows NT!
+#elif defined(_MSC_VER) && (_MSC_VER >= 1910) // Visual Studio 2017 or later
+  return true;
 #else
   OSVERSIONINFO osv;
   osv.dwOSVersionInfoSize = sizeof(osv);
