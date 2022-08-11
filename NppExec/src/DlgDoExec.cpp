@@ -396,11 +396,19 @@ bool CDoExecDlg::isScriptFileChanged()
 void CDoExecDlg::OnInitDialog(HWND hDlg)
 {
   bool bScriptFileChanged = isScriptFileChanged();
-    
+
   m_bFirstSetFocus = true;
-  
+
   m_hWnd = hDlg;
   m_edScript.m_hWnd = ::GetDlgItem(hDlg, IDC_ED_CMDLINE);
+  {
+    HFONT hEdFont = Runtime::GetNppExec()._execdlgFont;
+    if ( hEdFont )
+    {
+      m_edScript.SendMsg( WM_SETFONT, (WPARAM) hEdFont, 0 );
+    }
+  }
+
   m_cbScriptNames.m_hWnd = ::GetDlgItem(hDlg, IDC_CB_SCRIPT);
   m_btOK.m_hWnd = ::GetDlgItem(hDlg, IDOK);
   m_btSave.m_hWnd = ::GetDlgItem(hDlg, IDSAVE);
@@ -459,14 +467,6 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
     ResizeWindow(nCurrentDlgWidth, nCurrentDlgHeight);
   }
   CenterWindow(Runtime::GetNppExec().m_nppData._nppHandle);
-
-  {
-    HFONT hEdFont = Runtime::GetNppExec()._execdlgFont;
-    if ( hEdFont )
-    {
-      m_edScript.SendMsg( WM_SETFONT, (WPARAM) hEdFont, 0 );
-    }
-  }
 
   if ( Runtime::GetNppExec().GetOptions().GetBool(OPTB_EXECDLG_USEEDITORCOLORS) )
   {

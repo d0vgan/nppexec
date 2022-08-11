@@ -114,16 +114,14 @@ HWND CPopupListBox::Create(HWND hParentWnd,
     WS_CHILD | WS_BORDER | WS_VSCROLL | LBS_HASSTRINGS | LBS_SORT,
     left, top, width, height, 
     hParentWnd, NULL, NULL, NULL);
-  
+
   if (m_hWnd)
   {
-    HFONT   hFont;
-
-    hFont = (HFONT) ::SendMessage(hParentWnd, WM_GETFONT, 0, 0);
-    ::SendMessage(m_hWnd, WM_SETFONT, (WPARAM) hFont, (LPARAM) FALSE);
+    HFONT hFont = (HFONT) ::SendMessage(hParentWnd, WM_GETFONT, 0, 0);
+    ::SendMessage(m_hWnd, WM_SETFONT, (WPARAM) hFont, (LPARAM) 0);
     m_hParentWnd = hParentWnd;
   }
-  
+
   return m_hWnd;
 }
 

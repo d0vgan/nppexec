@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Glory to Ukraine! Glory to the heroes!
  + added: "Use Editor Colors in the Execute dialog" (in the Advanced Options)
  + added: NPE_SF_REGEXP_EMPTYMATCH_* flags for SCI_FIND and SCI_REPLACE
+ - fixed: setting proper width and font of the Execute dialog's popup listbox
  * npp_files updated to Notepad++ 8.4.4
 
 
