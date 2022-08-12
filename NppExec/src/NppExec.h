@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.3
- ------
+ v0.8.3 - August 2022
+ --------------------
  * Glory to Ukraine! Glory to the heroes!
  + added: "Use Editor Colors in the Execute dialog" (in the Advanced Options)
  + added: NPE_SF_REGEXP_EMPTYMATCH_* flags for SCI_FIND and SCI_REPLACE
@@ -726,8 +726,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F2
-#define NPPEXEC_VER_STR   _T("0.8.2")
+#define NPPEXEC_VER_DWORD 0x08F3
+#define NPPEXEC_VER_STR   _T("0.8.3")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

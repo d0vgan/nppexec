@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.8.2 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - June 2022
+ * NppExec plugin ver. 0.8.3 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - August 2022
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
@@ -216,6 +216,15 @@
  *************
  *  HISTORY  *
  *************
+
+ v0.8.3 - August 2022
+ --------------------
+ * Glory to Ukraine! Glory to the heroes!
+ + added: "Use Editor Colors in the Execute dialog" (in the Advanced Options)
+ + added: NPE_SF_REGEXP_EMPTYMATCH_* flags for SCI_FIND and SCI_REPLACE
+ - fixed: setting proper width and font of the Execute dialog's popup listbox
+ * npp_files updated to Notepad++ 8.4.4
+
 
  v0.8.2 - June 2022
  ------------------
