@@ -124,7 +124,7 @@ struct DirWatchStruct
     DirWatchStruct(CDirectoryWatcher* pDirWatcher_, IDirectoryChangeListener* pChangeListener_, 
                    DWORD dwNotifyFilter_, BOOL bRecursive_, const tstr& sDirectory_);
 
-    void AddFile(IFileChangeListener* pChangeListener, const tstr& sFilePath);
+    void AddFile(IFileChangeListener* pChangeListener_, const tstr& sFilePath);
 
     file_items_type::iterator findFile(const tstr& sFilePath);
 };

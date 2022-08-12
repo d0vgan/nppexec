@@ -357,7 +357,7 @@ namespace NppExecHelpers
                 n = ::PathGetDriveNumber(path);
                 if ( n >= 0 )
                 {
-                    return tstr(_T('A') + n);
+                    return tstr(static_cast<TCHAR>(_T('A') + n));
                 }
                 break;
 

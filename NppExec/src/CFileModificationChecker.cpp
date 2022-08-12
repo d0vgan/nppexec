@@ -242,11 +242,11 @@ DirWatchStruct::DirWatchStruct(CDirectoryWatcher* pDirWatcher_, IDirectoryChange
 {
 }
 
-void DirWatchStruct::AddFile(IFileChangeListener* pChangeListener, const tstr& sFilePath)
+void DirWatchStruct::AddFile(IFileChangeListener* pChangeListener_, const tstr& sFilePath)
 {
     if ( findFile(sFilePath) == Files.end() )
     {
-        Files.push_back( std::make_unique<FileInfoStruct>(pChangeListener, sFilePath) );
+        Files.push_back( std::make_unique<FileInfoStruct>(pChangeListener_, sFilePath) );
     }
 }
 

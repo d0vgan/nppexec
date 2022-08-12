@@ -3337,9 +3337,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                                 {
                                     const CWarningAnalyzer& WarnAn = m_pNppExec->GetWarningAnalyzer();
                                     bool WarnEffectEnabled[WARN_MAX_FILTER];
-                                    for ( int i = 0; i < WARN_MAX_FILTER; ++i )
+                                    for ( int j = 0; j < WARN_MAX_FILTER; ++j )
                                     {
-                                        WarnEffectEnabled[i] = WarnAn.IsEffectEnabled(i);
+                                        WarnEffectEnabled[j] = WarnAn.IsEffectEnabled(j);
                                     }
                                     savedConf.setWarnEffectEnabled(WarnEffectEnabled);
                                 }
@@ -3350,9 +3350,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoConFilter(const tstr& params)
                                 {
                                     const bool* savedWarnEffectEnabled = savedConf.getWarnEffectEnabled();
                                     bool updatedWarnEffectEnabled[WARN_MAX_FILTER];
-                                    for ( int i = 0; i < WARN_MAX_FILTER; ++i )
+                                    for ( int j = 0; j < WARN_MAX_FILTER; ++j )
                                     {
-                                        updatedWarnEffectEnabled[i] = savedWarnEffectEnabled[i];
+                                        updatedWarnEffectEnabled[j] = savedWarnEffectEnabled[j];
                                     }
                                     updatedWarnEffectEnabled[nIndex] = bEnable;
                                     savedConf.setWarnEffectEnabled(updatedWarnEffectEnabled);
@@ -6041,22 +6041,22 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
                 scriptContext.LocalMacroVars = m_execState.GetCurrentScriptContext().LocalMacroVars;
             }
 
-            int n = 0;
+            int nLines = 0;
             CListItemT<tstr>* pline = m_execState.pScriptLineCurrent;
             for ( CListItemT<tstr>* p = CmdList.GetFirst(); p != NULL; p = p->GetNext() )
             {
                 const tstr& line = p->GetItem();
                 if (line.length() > 0)
                 {
-                    ++n;
+                    ++nLines;
 
-                    Runtime::GetLogger().AddEx( _T("; + line %d:  %s"), n, line.c_str() );
+                    Runtime::GetLogger().AddEx( _T("; + line %d:  %s"), nLines, line.c_str() );
 
                     pline = m_CmdList.Insert(pline, true, line);
                 }
             }
 
-            if (n != 0)
+            if (nLines != 0)
             {
                 scriptContext.CmdRange.pBegin = scriptContext.CmdRange.pBegin->GetNext();
                 m_execState.ScriptContextList.Add(scriptContext);
@@ -8537,7 +8537,7 @@ bool CNppExecMacroVars::CheckEmptyMacroVars(tstr& S, int& pos)
   assert( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 );
 #endif
   //if ( StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0 )
-  {
+  //{
     int j = pos + 2;
     unsigned int nBracketDepth = 0;
     for ( ; j < S.length(); ++j )
@@ -8563,10 +8563,10 @@ bool CNppExecMacroVars::CheckEmptyMacroVars(tstr& S, int& pos)
 
     logOutput( S.c_str() );
     return true;
-  }
+  //}
 
-  logNoOutput();
-  return false;
+  //logNoOutput();
+  //return false;
 }
 
 bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging, int nCmdType )
@@ -8670,7 +8670,6 @@ bool CNppExecMacroVars::CheckInnerMacroVars(CScriptEngine* pScriptEngine, tstr& 
 #endif
     //if (StrUnsafeSubCmp(S.c_str() + pos, _T("$(")) == 0)
     {
-        bool isSubstituted = false;
         int n1 = pos; // outer "$("
         //  $( ...
         //  n1

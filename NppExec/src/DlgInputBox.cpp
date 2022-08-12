@@ -112,6 +112,8 @@ CInputBoxDlg::~CInputBoxDlg()
 
 void CInputBoxDlg::updateCaptionWithTimeout(HWND hDlg)
 {
+    (hDlg);
+
     if ( m_nTimeout != 0 )
     {
         if ( m_type == IBT_INPUTBOX )
