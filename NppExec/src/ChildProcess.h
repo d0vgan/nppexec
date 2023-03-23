@@ -36,6 +36,47 @@ class CProcessKiller
         PROCESS_INFORMATION m_ProcInfo;
 };
 
+struct PseudoConsoleHelper
+{
+    static const DWORD constPROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE = 0x00020016;
+    static const DWORD constEXTENDED_STARTUPINFO_PRESENT = 0x00080000;
+
+    typedef HANDLE typeHPCON;
+
+    typedef HRESULT (WINAPI *typeCreatePseudoConsole)(
+        _In_ COORD size,
+        _In_ HANDLE hInput,
+        _In_ HANDLE hOutput,
+        _In_ DWORD dwFlags,
+        _Out_ typeHPCON* phPC
+    );
+
+    typedef HRESULT (WINAPI *typeResizePseudoConsole)(
+        _In_ typeHPCON hPC,
+        _In_ COORD size
+    );
+
+    typedef void (WINAPI *typeClosePseudoConsole)(
+        _In_ typeHPCON hPC
+    );
+
+    PseudoConsoleHelper()
+    {
+        HMODULE hKernel32 = ::GetModuleHandle(_T("kernel32"));
+        if (hKernel32)
+        {
+            // Available from Windows 10 October 2018 Update (version 1809)
+            pfnCreatePseudoConsole = (typeCreatePseudoConsole) ::GetProcAddress(hKernel32, "CreatePseudoConsole");
+            pfnResizePseudoConsole = (typeResizePseudoConsole) ::GetProcAddress(hKernel32, "ResizePseudoConsole");
+            pfnClosePseudoConsole = (typeClosePseudoConsole) ::GetProcAddress(hKernel32, "ClosePseudoConsole");
+        }
+    }
+
+    typeCreatePseudoConsole pfnCreatePseudoConsole = nullptr;
+    typeResizePseudoConsole pfnResizePseudoConsole = nullptr;
+    typeClosePseudoConsole  pfnClosePseudoConsole = nullptr;
+};
+
 class CChildProcess
 {
     public:
@@ -79,6 +120,7 @@ class CChildProcess
         void  reset();
         bool  isBreaking() const;
         void  closePipes();
+        void  closePseudoConsole();
         bool  applyOutputFilters(const tstr& _line, bool bOutput);
         bool  applyReplaceFilters(tstr& _line, tstr& printLine, bool bOutput);
         DWORD readPipesAndOutput(CStrT<char>& bufLine, 
@@ -98,6 +140,8 @@ class CChildProcess
         HANDLE              m_hStdInWritePipe; 
         HANDLE              m_hStdOutReadPipe;
         HANDLE              m_hStdOutWritePipe;
+        PseudoConsoleHelper::typeHPCON m_hPsCon;
+        LPPROC_THREAD_ATTRIBUTE_LIST   m_pAttributeList;
         PROCESS_INFORMATION m_ProcessInfo;
 };
 

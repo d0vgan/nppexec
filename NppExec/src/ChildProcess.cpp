@@ -15,6 +15,8 @@
 //    reset();
 //}
 
+PseudoConsoleHelper g_pseudoCon;
+
 CChildProcess::CChildProcess(CScriptEngine* pScriptEngine)
 {
     m_strInstance = NppExecHelpers::GetInstanceAsString(this);
@@ -179,7 +181,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
 {
     SECURITY_DESCRIPTOR sd;
     SECURITY_ATTRIBUTES sa;
-    STARTUPINFO         si;
+    STARTUPINFOEX       si;
 
     reset();
 
@@ -241,6 +243,19 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     ::SetHandleInformation(m_hStdInWritePipe, HANDLE_FLAG_INHERIT, 0);
     ::SetHandleInformation(m_hStdOutReadPipe, HANDLE_FLAG_INHERIT, 0);
 
+    m_hPsCon = NULL;
+    m_pAttributeList = NULL;
+
+    if ( g_pseudoCon.pfnCreatePseudoConsole )
+    {
+        COORD conSize = { 80, 1000 };
+        HRESULT hr = g_pseudoCon.pfnCreatePseudoConsole(conSize, m_hStdInReadPipe, m_hStdOutWritePipe, 0, &m_hPsCon);
+        if ( FAILED(hr) )
+        {
+            m_hPsCon = NULL;
+        }
+    }
+
     // Job object
     HANDLE hJob = NULL;
     if ( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_KILLPROCTREE) )
@@ -267,15 +282,59 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     dwMode = PIPE_READMODE_BYTE | PIPE_NOWAIT;
     SetNamedPipeHandleState(m_hStdOutReadPipe, &dwMode, NULL, NULL);
     */
-    
-    // initialize STARTUPINFO struct
-    ::ZeroMemory(&si, sizeof(STARTUPINFO));
-    si.cb = sizeof(STARTUPINFO);
-    si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
-    si.wShowWindow = SW_HIDE;
-    si.hStdInput = m_hStdInReadPipe;
-    si.hStdOutput = m_hStdOutWritePipe;
-    si.hStdError = m_hStdOutWritePipe;
+
+    DWORD dwCreationFlags = 0;
+
+    // initialize STARTUPINFOEX struct
+    ::ZeroMemory(&si, sizeof(STARTUPINFOEX));
+    si.StartupInfo.cb = sizeof(STARTUPINFOEX);
+    si.StartupInfo.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+    si.StartupInfo.wShowWindow = SW_HIDE;
+    if ( m_hPsCon )
+    {
+        SIZE_T bytesRequired = 0;
+        ::InitializeProcThreadAttributeList(NULL, 1, 0, &bytesRequired);
+        si.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST) ::HeapAlloc(::GetProcessHeap(), 0, bytesRequired);
+        if ( si.lpAttributeList )
+        {
+            if ( ::InitializeProcThreadAttributeList(si.lpAttributeList, 1, 0, &bytesRequired) )
+            {
+                if ( ::UpdateProcThreadAttribute(
+                         si.lpAttributeList,
+                         0, 
+                         PseudoConsoleHelper::constPROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
+                         m_hPsCon,
+                         sizeof(m_hPsCon),
+                         NULL,
+                         NULL) )
+                {
+                    dwCreationFlags |= PseudoConsoleHelper::constEXTENDED_STARTUPINFO_PRESENT;
+                    m_pAttributeList = si.lpAttributeList;
+                }
+                else
+                {
+                    HeapFree(GetProcessHeap(), 0, si.lpAttributeList);
+                    closePseudoConsole();
+                }
+            }
+            else
+            {
+                HeapFree(GetProcessHeap(), 0, si.lpAttributeList);
+                closePseudoConsole();
+            }
+        }
+        else
+        {
+            closePseudoConsole();
+        }
+    }
+
+    if ( !m_hPsCon )
+    {
+        si.StartupInfo.hStdInput = m_hStdInReadPipe;
+        si.StartupInfo.hStdOutput = m_hStdOutWritePipe;
+        si.StartupInfo.hStdError = m_hStdOutWritePipe;
+    }
 
     eCommandLinePolicy mode = clpNone;
     switch ( m_pNppExec->GetOptions().GetInt(OPTU_CHILDP_RUNPOLICY) )
@@ -290,7 +349,6 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     tstr sCmdLine = cszCommandLine;
     applyCommandLinePolicy(sCmdLine, mode);
 
-    DWORD dwCreationFlags = 0;
     if ( hJob != NULL )
     {
         BOOL bIsProcessInJob = FALSE;
@@ -310,7 +368,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
             dwCreationFlags,             // creation flags
             NULL,                        // environment
             NULL,                        // current directory
-            &si,                         // startup info
+            &si.StartupInfo,             // startup info
             &m_ProcessInfo               // process info
        ) )
     {
@@ -324,8 +382,11 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
         }
 
         ::CloseHandle(m_ProcessInfo.hThread); m_ProcessInfo.hThread = NULL;
-        //::CloseHandle(hStdOutWritePipe); hStdOutWritePipe = NULL;
-        //::CloseHandle(hStdInReadPipe); hStdInReadPipe = NULL;
+        if ( m_hPsCon )
+        {
+            ::CloseHandle(m_hStdOutWritePipe); m_hStdOutWritePipe = NULL;
+            ::CloseHandle(m_hStdInReadPipe); m_hStdInReadPipe = NULL;
+        }
 
         bool isConsoleProcessRunning = true;
     
@@ -488,6 +549,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
 
         // Process cleanup
         ::CloseHandle(m_ProcessInfo.hProcess); m_ProcessInfo.hProcess = NULL;
+        closePseudoConsole();
         closePipes();
         if ( hJob != NULL )
         {
@@ -518,6 +580,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     {
         DWORD dwErrorCode = ::GetLastError();
 
+        closePseudoConsole();
         closePipes();
         if ( hJob != NULL )
         {
@@ -544,6 +607,8 @@ void CChildProcess::reset()
     m_hStdInWritePipe = NULL; 
     m_hStdOutReadPipe = NULL;
     m_hStdOutWritePipe = NULL;
+    m_hPsCon = NULL;
+    m_pAttributeList = NULL;
     ::ZeroMemory(&m_ProcessInfo, sizeof(PROCESS_INFORMATION));
 }
 
@@ -1273,10 +1338,31 @@ bool CChildProcess::WriteInput(const TCHAR* szLine, bool bFFlush )
 
 void CChildProcess::closePipes()
 {
-    ::CloseHandle(m_hStdOutReadPipe);  m_hStdOutReadPipe = NULL;
-    ::CloseHandle(m_hStdOutWritePipe); m_hStdOutWritePipe = NULL;
-    ::CloseHandle(m_hStdInReadPipe);   m_hStdInReadPipe = NULL;
-    ::CloseHandle(m_hStdInWritePipe);  m_hStdInWritePipe = NULL;
+    auto closePipe = [](HANDLE& hPipe)
+    {
+        if ( hPipe )
+        {
+            ::CloseHandle(hPipe);
+            hPipe = NULL;
+        }
+    };
+
+    closePipe(m_hStdOutReadPipe);
+    closePipe(m_hStdOutWritePipe);
+    closePipe(m_hStdInReadPipe);
+    closePipe(m_hStdInWritePipe);
+}
+
+void CChildProcess::closePseudoConsole()
+{
+    if ( g_pseudoCon.pfnClosePseudoConsole && m_hPsCon )
+    {
+        g_pseudoCon.pfnClosePseudoConsole(m_hPsCon); m_hPsCon = NULL;
+    }
+    if ( m_pAttributeList )
+    {
+        ::DeleteProcThreadAttributeList(m_pAttributeList); m_pAttributeList = NULL;
+    }
 }
 
 tstr& CChildProcess::GetOutput()

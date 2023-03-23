@@ -750,7 +750,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DEFAULT_NPPEXEC_CMD_PREFIX _T("nppexec:")
 #define DEFAULT_ALIAS_CMD_NPPEXEC  _T("\\")
 #define DEFAULT_ALIAS_CMD_LABEL    _T(':')
-#define DEFAULT_KEY_ENTER          _T("\\n")
+#define DEFAULT_KEY_ENTER          _T("\\r")  // TODO: \\n without pseudo-console???
 
 const COLORREF COLOR_CON_TEXTNORM = RGB(0x00, 0x00, 0x00); // black
 const COLORREF COLOR_CON_TEXTERR  = RGB(0xA0, 0x10, 0x10); // ~red
