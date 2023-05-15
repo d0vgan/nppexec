@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define PICKCOLORBTN_INC
 #include <windows.h>
 #include <commdlg.h>
+#include <CommCtrl.h>
 
 
 enum PICKCOLORBTNNOTIFYCMD {
