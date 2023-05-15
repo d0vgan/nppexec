@@ -38,10 +38,6 @@ public:
   static const int HISTORY_ITEMS         = 16;
   static const int REPLACE_ITEMS         = 4;
 
-  static const int FILTER_REC_RED        = 0;
-  static const int FILTER_REC_GREEN      = 1;
-  static const int FILTER_REC_BLUE       = 2;
-  static const int FILTER_REC_COLOR      = 3;
   static const int FILTER_REC_ITALIC     = 0;
   static const int FILTER_REC_BOLD       = 1;
   static const int FILTER_REC_UNDERLINED = 2;
@@ -81,7 +77,6 @@ private:
 
   CAnyCheckBox m_ch_Recognition[RECOGNITION_ITEMS];
   CAnyComboBox m_cb_Recognition[RECOGNITION_ITEMS];
-  CAnyWindow   m_ed_Recognition_Color[RECOGNITION_ITEMS][FILTER_REC_COLOR];
   CAnyCheckBox m_ch_Recognition_Style[RECOGNITION_ITEMS][FILTER_REC_STYLE];
 
 public:

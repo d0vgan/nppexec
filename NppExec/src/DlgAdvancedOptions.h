@@ -66,10 +66,10 @@ class CAdvOptDlg : public CAnyWindow
         CAnyCheckBox m_chUseEditorColorsInConsole;
         CAnyCheckBox m_chUseEditorColorsInExecDlg;
 
-        CByteBuf     m_bufColorTextNorm;
-        CByteBuf     m_bufColorTextErr;
-        CByteBuf     m_bufColorTextMsg;
-        CByteBuf     m_bufColorBkgnd;
+        COLORREF     m_OrgColorTextNorm;
+        COLORREF     m_OrgColorTextErr;
+        COLORREF     m_OrgColorTextMsg;
+        COLORREF     m_OrgColorBkgnd;
         int          m_nREMaxLen;
         bool         m_bUseEditorColorsInConsole;
         bool         m_bNppRestartRequired;

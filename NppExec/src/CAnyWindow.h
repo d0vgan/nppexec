@@ -32,6 +32,7 @@ public:
 
   CAnyWindow();
   ~CAnyWindow();
+  HWND    GetWindowHandle() { return m_hWnd; }
   BOOL    BringWindowToTop();
   BOOL    CenterWindow(HWND hParentWnd, BOOL bRepaint = FALSE);
   BOOL    EnableWindow(BOOL bEnable = TRUE);
