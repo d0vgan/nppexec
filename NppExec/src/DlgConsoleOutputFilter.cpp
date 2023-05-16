@@ -926,6 +926,6 @@ INT_PTR CALLBACK ConsoleHighLightFilterProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     }
 
     // Note: This is greedy and must be the last handler
-    if (PickColorBtn::HandleMessageForDialog(hDlg, uMsg, wParam, lParam)) return true;
+    if (PickColorBtn_HandleMessageForDialog(hDlg, uMsg, wParam, lParam)) return true;
     return false;
 }

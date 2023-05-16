@@ -163,7 +163,7 @@ INT_PTR CALLBACK AdvancedOptionsDlgProc(
     }
 
     // Note: This is greedy and must be the last handler
-    if (PickColorBtn::HandleMessageForDialog(hDlg, uMessage, wParam, lParam)) return true;
+    if (PickColorBtn_HandleMessageForDialog(hDlg, uMessage, wParam, lParam)) return true;
     return false;
 }
 
@@ -378,12 +378,9 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     advOptDlg.CenterWindow(NppExec.m_nppData._nppHandle);
 }
 
-template<class OM, class W> static void SaveColorOption(
-  OM &Options, 
-  W &Wnd, 
-  UINT Optd, 
-  COLORREF &Var, 
-  COLORREF Default)
+static void SaveColorOption(
+  CStaticOptionsManager& Options, CAnyWindow &Wnd, 
+  UINT Optd, COLORREF &Var, COLORREF Default)
 {
     c_base::byte_t bt[4];
     bool invalid = false;
