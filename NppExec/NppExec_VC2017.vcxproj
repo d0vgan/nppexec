@@ -277,6 +277,7 @@
     <ClCompile Include="src\DlgInputBox.cpp" />
     <ClCompile Include="src\encodings\SysUniConv.cpp" />
     <ClCompile Include="src\fparser\fparser.cc" />
+    <ClCompile Include="src\PickColorBtn.cpp" />
     <ClCompile Include="src\NppExec.cpp" />
     <ClCompile Include="src\NppExecCommandExecutor.cpp" />
     <ClCompile Include="src\NppExecEngine.cpp" />
