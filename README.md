@@ -15,7 +15,7 @@ It will extract the file "NppExec.dll" as well as the "doc\NppExec" and "NppExec
 
 Note:
 If you see just blank pages inside the NppExec Manual or see messages similar to "This web content was blocked" or "This web page could not be shown", please follow the instructions below:
-* Unblocking CHM files for Windows 7 and above : http://support.microsoft.com/kb/2021383
+* Unblocking CHM files for Windows 7 and above : https://support.microsoft.com/kb/2021383
 * Unblocking CHM files : https://stackoverflow.com/questions/4400744/chm-viewer-unable-to-show-contents
 * And also: https://stackoverflow.com/questions/11438634/opening-a-chm-file-produces-navigation-to-the-webpage-was-canceled
 
