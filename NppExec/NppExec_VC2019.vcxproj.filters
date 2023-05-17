@@ -144,6 +144,9 @@
     <ClCompile Include="src\PickColorBtn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\ChildProcess.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\base.h">
@@ -306,6 +309,9 @@
       <Filter>Header Files\c_base</Filter>
     </ClInclude>
     <ClInclude Include="src\PickColorBtn.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ChildProcess.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

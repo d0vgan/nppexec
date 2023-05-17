@@ -33,7 +33,6 @@ class LogFileWriter;
 class CSimpleLogger
 {
 public:
-    typedef CStrT<TCHAR> tstr; 
     typedef void (*OUTPUTFUNC)(const TCHAR* str, int len);
 
 public:

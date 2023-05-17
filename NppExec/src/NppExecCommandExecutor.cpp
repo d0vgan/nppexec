@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NppExecCommandExecutor.h"
 #include "NppExec.h"
 #include "NppExecEngine.h"
+#include "ChildProcess.h"
 #include "resource.h"
 #include "DlgDoExec.h"
 #include "DlgConsole.h"
@@ -1603,102 +1604,3 @@ void CNppExecCommandExecutor::TryExitChildProcessCommand::Expire()
 
 //-------------------------------------------------------------------------
 
-/////////////////////////////////////////////////////////////////////////////
-
-CProcessKiller::CProcessKiller(const PROCESS_INFORMATION* pProcInfo)
-{
-    ::CopyMemory(&m_ProcInfo, pProcInfo, sizeof(PROCESS_INFORMATION));
-}
-
-CProcessKiller::~CProcessKiller()
-{
-}
-
-bool CProcessKiller::Kill(eKillMethod nKillMethod, unsigned int nWaitTimeout)
-{
-    bool isKilled = !IsProcessActive();
-    if ( !isKilled )
-    {
-        switch ( nKillMethod )
-        {
-            case killCtrlBreak:
-                isKilled = KillByCtrlBreak(nWaitTimeout);
-                break;
-            case killCtrlC:
-                isKilled = KillByCtrlC(nWaitTimeout);
-                break;
-            case killWmClose:
-                isKilled = KillByWmClose(nWaitTimeout);
-                break;
-        }
-    }
-    return isKilled;
-}
-
-bool CProcessKiller::KillByCtrlBreak(unsigned int nWaitTimeout)
-{
-    return KillByConsoleCtrlEvent(CTRL_BREAK_EVENT, nWaitTimeout);
-}
-
-bool CProcessKiller::KillByCtrlC(unsigned int nWaitTimeout)
-{
-    return KillByConsoleCtrlEvent(CTRL_C_EVENT, nWaitTimeout);
-}
-
-bool CProcessKiller::KillByWmClose(unsigned int nWaitTimeout)
-{
-    bool isKilled = false;
-    ::EnumWindows(KillAppEnumFunc, m_ProcInfo.dwProcessId);
-    if ( ::WaitForSingleObject(m_ProcInfo.hProcess, nWaitTimeout) == WAIT_OBJECT_0 )
-    {
-        isKilled = true;
-    }
-    return isKilled;
-}
-
-BOOL CALLBACK CProcessKiller::KillAppEnumFunc(HWND hWnd, LPARAM lParam)
-{
-    DWORD dwID = 0;
-    GetWindowThreadProcessId(hWnd, &dwID);
-    if ( dwID == (DWORD) lParam )
-    {
-        ::PostMessage(hWnd, WM_CLOSE, 0, 0) ;
-    }
-    return TRUE; // continue enumeration
-}
-
-bool CProcessKiller::KillByConsoleCtrlEvent(unsigned int nCtrlEvent, unsigned int nWaitTimeout)
-{
-    typedef BOOL (WINAPI * PFNATTCON)(DWORD);
-
-    bool isKilled = false;
-    HMODULE hKernel32 = ::GetModuleHandle(_T("kernel32"));
-    if ( hKernel32 )
-    {
-        PFNATTCON pfnAttachConsole = (PFNATTCON) ::GetProcAddress(hKernel32, "AttachConsole");
-        if ( pfnAttachConsole )
-        {
-            if ( pfnAttachConsole(m_ProcInfo.dwProcessId) )
-            {
-                ::SetConsoleCtrlHandler(NULL, TRUE); // Disable Ctrl-C handling for our program
-                ::GenerateConsoleCtrlEvent(nCtrlEvent, m_ProcInfo.dwProcessId);
-                if ( ::WaitForSingleObject(m_ProcInfo.hProcess, nWaitTimeout) == WAIT_OBJECT_0 )
-                {
-                    isKilled = true;
-                }
-                ::FreeConsole();
-                ::SetConsoleCtrlHandler(NULL, FALSE); // Re-enable Ctrl-C handling
-            }
-        }
-    }
-    return isKilled;
-}
-
-bool CProcessKiller::IsProcessActive() const
-{
-    DWORD dwExitCode = (DWORD)(-1);;
-    ::GetExitCodeProcess(m_ProcInfo.hProcess, &dwExitCode);
-    return (dwExitCode == STILL_ACTIVE);
-}
-
-/////////////////////////////////////////////////////////////////////////////

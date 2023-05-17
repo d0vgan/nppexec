@@ -58,8 +58,6 @@ class CStaticOptionsManager
             MAX_STRSIZE  = 1024
         };
 
-        typedef CStrT<TCHAR> tstr;
-        
         typedef struct OPT_ITM {
             unsigned int id;             // option's unique id
             unsigned int flags;          // flags = (OPTT_xx | OPTF_yy)

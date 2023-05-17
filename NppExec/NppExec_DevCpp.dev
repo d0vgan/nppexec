@@ -1,7 +1,7 @@
 [Project]
 FileName=NppExec_DevCpp.dev
 Name=NppExec
-UnitCount=85
+UnitCount=86
 Type=3
 Ver=2
 IsCpp=1
@@ -924,6 +924,16 @@ BuildCmd=
 
 [Unit85]
 FileName=src\PickColorBtn.cpp
+CompileCpp=1
+Folder=NppExec
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit86]
+FileName=src\ChildProcess.cpp
 CompileCpp=1
 Folder=NppExec
 Compile=1

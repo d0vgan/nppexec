@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CStaticOptionsManager.h"
 
-CStaticOptionsManager::tstr CStaticOptionsManager::_emptyStr;
+tstr CStaticOptionsManager::_emptyStr;
 CByteBuf CStaticOptionsManager::_emptyBuf;
 
 CStaticOptionsManager::CStaticOptionsManager(const TCHAR* name,
@@ -577,7 +577,7 @@ int CStaticOptionsManager::getIntListItem(void* listItemPtr,
 }
 
 // Internal function. For OPTT_STR only!!!
-const CStaticOptionsManager::tstr& CStaticOptionsManager::getStrListItem(
+const tstr& CStaticOptionsManager::getStrListItem(
   void* listItemPtr, bool actual) const
 {
     if ( !listItemPtr )

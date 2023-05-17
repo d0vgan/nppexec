@@ -28,8 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <algorithm>
 #include <functional>
 
-typedef CStrT<TCHAR> tstr;
-
 class CCriticalSection // <-- inspired by CCriticalSection from Win32++ (C) David Nash
 {
 public:

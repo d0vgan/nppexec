@@ -150,7 +150,7 @@ public:
   T*    Assign(const CStrT& Str);
   T*    Assign(CStrT&& Str);
   T*    Attach(T* pStr, int nLen, int nSize); // attaches to pStr without copying
-  T*    c_str() const  { return ( m_pData ? m_pData : (T*) "\x00\x00" ); }
+  T*    c_str() const  { return ( m_pData ? m_pData : (T*) "\x00\x00\x00\x00" ); }
   int   CalculateLength();
   void  Clear();
   int   Compare(const T* pStr) const; 
@@ -178,7 +178,7 @@ public:
   T     GetFirstChar() const;
   T     GetLastChar() const;
   int   GetLength() const  { return m_nLength; }
-  T*    GetData() const  { return ( m_pData ? m_pData : (T*) "\x00\x00" ); }  
+  T*    GetData() const  { return ( m_pData ? m_pData : (T*) "\x00\x00\x00\x00" ); }  
   int   GetMemSize() const  { return m_nMemSize; }
   T*    Insert(int nPos, const T* pStr, int nLength = -1); 
           // -1 means all characters
@@ -260,6 +260,7 @@ public:
 
 typedef  CStrT<char>     CStr;
 typedef  CStrT<wchar_t>  CWStr;
+typedef  CStrT<TCHAR>    tstr;
 
 //----------------------------------------------------------------------------
 

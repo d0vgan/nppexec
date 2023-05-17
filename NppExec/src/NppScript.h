@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cpp/CBufT.h"
 #include "cpp/CListT.h"
 
-typedef CStrT<TCHAR> tstr;
 typedef CListT<tstr> tCmdList;
 
 class CNppScript

@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "NppExecEngine.h"
 //#include "NppExec.h"
+#include "ChildProcess.h"
 #include "DlgConsole.h"
 #include "DlgConsoleEncoding.h"
 #include "DlgInputBox.h"

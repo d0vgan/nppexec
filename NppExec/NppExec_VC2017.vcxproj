@@ -256,6 +256,7 @@
     <ClCompile Include="src\CAnyRichEdit.cpp" />
     <ClCompile Include="src\CAnyWindow.cpp" />
     <ClCompile Include="src\CFileModificationChecker.cpp" />
+    <ClCompile Include="src\ChildProcess.cpp" />
     <ClCompile Include="src\CPopupListBox.cpp" />
     <ClCompile Include="src\cpp\CFileBufT.cpp" />
     <ClCompile Include="src\CSimpleLogger.cpp" />
@@ -295,6 +296,7 @@
     <ClInclude Include="src\CAnyRichEdit.h" />
     <ClInclude Include="src\CAnyWindow.h" />
     <ClInclude Include="src\CFileModificationChecker.h" />
+    <ClInclude Include="src\ChildProcess.h" />
     <ClInclude Include="src\CPopupListBox.h" />
     <ClInclude Include="src\cpp\CBufT.h" />
     <ClInclude Include="src\cpp\CFileBufT.h" />
