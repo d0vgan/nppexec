@@ -18,6 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "DlgAdvancedOptions.h"
 #include "CAnyWindow.h"
+#include "PickColorBtn.h"
 #include "NppExec.h"
 #include "DlgDoExec.h"
 #include "DlgConsole.h"
@@ -34,15 +35,13 @@ extern COLORREF g_colorTextErr;
 extern COLORREF g_colorTextMsg;
 extern COLORREF g_colorBkgnd;
 
-typedef const c_base::byte_t * lpcbyte_t;
-
 CAdvOptDlg advOptDlg;
 
 INT_PTR CALLBACK AdvancedOptionsDlgProc(
   HWND   hDlg, 
   UINT   uMessage, 
   WPARAM wParam, 
-  LPARAM /*lParam*/)
+  LPARAM lParam)
 {
     if ( uMessage == WM_COMMAND )
     {
@@ -143,6 +142,11 @@ INT_PTR CALLBACK AdvancedOptionsDlgProc(
         }
     }
 
+    else if ( uMessage == WM_NOTIFY )
+    {
+        PickColorBtn_HandleTooltipsNotify(hDlg, wParam, lParam);
+    }
+
     else if ( uMessage == WM_SYSCOMMAND )
     {
         if ( wParam == SC_CLOSE )
@@ -158,7 +162,9 @@ INT_PTR CALLBACK AdvancedOptionsDlgProc(
         advOptDlg.OnInitDlg(hDlg);
     }
 
-    return 0;
+    // Note: This is greedy and must be the last handler
+    if (PickColorBtn_HandleMessageForDialog(hDlg, uMessage, wParam, lParam)) return true;
+    return false;
 }
 
 CAdvOptDlg::CAdvOptDlg() : CAnyWindow()
@@ -201,13 +207,9 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
 
     m_edItemName.SendMsg(EM_LIMITTEXT, MAX_SCRIPTNAME/2, 0);
     m_edCommentDelim.SendMsg(EM_LIMITTEXT, 9, 0);
-    m_edTextColorNorm.SendMsg(EM_LIMITTEXT, 9, 0);
-    m_edTextColorErr.SendMsg(EM_LIMITTEXT, 9, 0);
-    m_edTextColorMsg.SendMsg(EM_LIMITTEXT, 9, 0);
-    m_edBkColor.SendMsg(EM_LIMITTEXT, 9, 0);
     
     // notepad++ macros submenu...
-    
+
     m_chMacrosSubmenu.SetCheck( Options.GetBool(OPTB_USERMENU_NPPMACROS) ? TRUE : FALSE );
     
     int     i;
@@ -330,33 +332,18 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     
     // fill edit-controls...
 
-    TCHAR szText[64];
-
     S = Options.GetStr(OPTS_COMMENTDELIMITER);
     m_edCommentDelim.SetWindowText(S.c_str());
-    
-    szText[0] = 0;
-    c_base::_tbuf2hexstr( (lpcbyte_t) &g_colorTextNorm, 3, szText, 64 - 1, _T(" ") );
-    m_edTextColorNorm.SetWindowText(szText);
-    
-    szText[0] = 0;
-    c_base::_tbuf2hexstr( (lpcbyte_t) &g_colorTextErr, 3, szText, 64 - 1, _T(" ") );
-    m_edTextColorErr.SetWindowText(szText);
-    
-    szText[0] = 0;
-    c_base::_tbuf2hexstr( (lpcbyte_t) &g_colorTextMsg, 3, szText, 64 - 1, _T(" ") );
-    m_edTextColorMsg.SetWindowText(szText);
-    
-    if ( g_colorBkgnd == COLOR_CON_BKGND )
-    {
-        m_edBkColor.SetWindowText( _T("0") );
-    }
-    else
-    {
-        szText[0] = 0;
-        c_base::_tbuf2hexstr( (lpcbyte_t) &g_colorBkgnd, 3, szText, 64 - 1, _T(" ") );
-        m_edBkColor.SetWindowText(szText);
-    }
+
+    COLORREF clr;
+    PickColorBtn_SetColor(m_edTextColorNorm.GetWindowHandle(), g_colorTextNorm);
+    PickColorBtn_SetColor(m_edTextColorErr.GetWindowHandle(), g_colorTextErr);
+    PickColorBtn_SetColor(m_edTextColorMsg.GetWindowHandle(), g_colorTextMsg);
+    clr = g_colorBkgnd;
+    if (clr == COLOR_CON_BKGND) clr |= (COLOR_CON_BKGND & 0xff000000);
+    PickColorBtn_SetColor(m_edBkColor.GetWindowHandle(), clr);
+
+    PickColorBtn_InitializeTooltips(hDlg, IDC_ED_OPT_TEXTCOLORNORM, IDC_ED_OPT_BKCOLOR);
 
     BOOL bUseEditorColors = Options.GetBool(OPTB_CONSOLE_USEEDITORCOLORS) ? TRUE : FALSE;
     m_chUseEditorColorsInConsole.SetCheck(bUseEditorColors);
@@ -391,96 +378,38 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     advOptDlg.CenterWindow(NppExec.m_nppData._nppHandle);
 }
 
+static void SaveColorOption(
+  CStaticOptionsManager& Options, CAnyWindow &Wnd, 
+  UINT Optd, COLORREF &Var, COLORREF Default)
+{
+    c_base::byte_t bt[4];
+    bool invalid = false;
+    COLORREF clr = PickColorBtn_GetColor(Wnd.GetWindowHandle());
+    bt[0] = GetRValue(clr), bt[1] = GetGValue(clr), bt[2] = GetBValue(clr);
+    if (clr & 0xff000000)
+    {
+        clr = Default;
+        invalid = true;
+        bt[0] = 0;
+    }
+    Options.SetData(Optd, bt, invalid ? 1 : 3);
+    Var = clr;
+}
+
 BOOL CAdvOptDlg::OnBtOK()
 {
     CNppExec& NppExec = Runtime::GetNppExec();
     CStaticOptionsManager& Options = NppExec.GetOptions();
 
-    c_base::byte_t bt[4];
     TCHAR szText[MAX_SCRIPTNAME];
     int   i;
 
     // text/background colours...
 
-    bt[0] = 0;
-    szText[0] = 0;
-    m_edTextColorNorm.GetWindowText(szText, MAX_SCRIPTNAME - 1);
-    i = c_base::_thexstr2buf( szText, bt, 4 );
-    if ( i >= 3 )
-    {
-        Options.SetData(OPTD_COLOR_TEXTNORM, bt, 3);
-        g_colorTextNorm = RGB( bt[0], bt[1], bt[2] );
-    }
-    else if ( i <= 1 )
-    {
-        Options.SetData(OPTD_COLOR_TEXTNORM, bt, 1);
-        g_colorTextNorm = COLOR_CON_TEXTNORM;
-    }
-    else
-    {
-        ShowError( _T("Incorrect value of TextColorNormal") );
-        return FALSE;
-    }
-
-    bt[0] = 0;
-    szText[0] = 0;
-    m_edTextColorErr.GetWindowText(szText, MAX_SCRIPTNAME - 1);
-    i = c_base::_thexstr2buf( szText, bt, 4 );
-    if ( i >= 3 )
-    {
-        Options.SetData(OPTD_COLOR_TEXTERR, bt, 3);
-        g_colorTextErr = RGB( bt[0], bt[1], bt[2] );
-    }
-    else if ( i <= 1 )
-    {
-        Options.SetData(OPTD_COLOR_TEXTERR, bt, 1);
-        g_colorTextErr = COLOR_CON_TEXTERR;
-    }
-    else
-    {
-        ShowError( _T("Incorrect value of TextColorError") );
-        return FALSE;
-    }
-
-    bt[0] = 0;
-    szText[0] = 0;
-    m_edTextColorMsg.GetWindowText(szText, MAX_SCRIPTNAME - 1);
-    i = c_base::_thexstr2buf( szText, bt, 4 );
-    if ( i >= 3 )
-    {
-        Options.SetData(OPTD_COLOR_TEXTMSG, bt, 3);
-        g_colorTextMsg = RGB( bt[0], bt[1], bt[2] );
-    }
-    else if ( i <= 1 )
-    {
-        Options.SetData(OPTD_COLOR_TEXTMSG, bt, 1);
-        g_colorTextMsg = COLOR_CON_TEXTMSG;
-    }
-    else
-    {
-        ShowError( _T("Incorrect value of TextColorMessage") );
-        return FALSE;
-    }
-
-    bt[0] = 0;
-    szText[0] = 0;
-    m_edBkColor.GetWindowText(szText, MAX_SCRIPTNAME - 1);
-    i = c_base::_thexstr2buf( szText, bt, 4 );
-    if ( i >= 3 )
-    {
-        Options.SetData(OPTD_COLOR_BKGND, bt, 3);
-        g_colorBkgnd = RGB( bt[0], bt[1], bt[2] );
-    }
-    else if ( i <= 1 )
-    {
-        Options.SetData(OPTD_COLOR_BKGND, bt, 1);
-        g_colorBkgnd = COLOR_CON_BKGND;
-    }
-    else
-    {
-        ShowError( _T("Incorrect value of BackgroundColor") );
-        return FALSE;
-    }
+    SaveColorOption(Options, m_edTextColorNorm, OPTD_COLOR_TEXTNORM, g_colorTextNorm, COLOR_CON_TEXTNORM);
+    SaveColorOption(Options, m_edTextColorErr, OPTD_COLOR_TEXTERR, g_colorTextErr, COLOR_CON_TEXTERR);
+    SaveColorOption(Options, m_edTextColorMsg, OPTD_COLOR_TEXTMSG, g_colorTextMsg, COLOR_CON_TEXTMSG);
+    SaveColorOption(Options, m_edBkColor, OPTD_COLOR_BKGND, g_colorBkgnd, COLOR_CON_BKGND);
 
     Options.SetBool( OPTB_CONSOLE_USEEDITORCOLORS, m_chUseEditorColorsInConsole.IsChecked() ? true : false );
     Options.SetBool( OPTB_EXECDLG_USEEDITORCOLORS, m_chUseEditorColorsInExecDlg.IsChecked() ? true : false );
@@ -892,19 +821,19 @@ void CAdvOptDlg::ShowWarning(LPCTSTR szMessage)
 
 void CAdvOptDlg::colorValuesInit()
 {
-    m_bufColorTextNorm.Assign( (lpcbyte_t) &g_colorTextNorm, sizeof(COLORREF) );
-    m_bufColorTextErr.Assign( (lpcbyte_t) &g_colorTextErr, sizeof(COLORREF) );
-    m_bufColorTextMsg.Assign( (lpcbyte_t) &g_colorTextMsg, sizeof(COLORREF) );
-    m_bufColorBkgnd.Assign( (lpcbyte_t) &g_colorBkgnd, sizeof(COLORREF) );
+    m_OrgColorTextNorm = g_colorTextNorm;
+    m_OrgColorTextErr = g_colorTextErr;
+    m_OrgColorTextMsg = g_colorTextMsg;
+    m_OrgColorBkgnd = g_colorBkgnd;
     m_bUseEditorColorsInConsole = Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS);
 }
 
 BOOL CAdvOptDlg::colorValuesChanged()
 {
-    if ( m_bufColorTextNorm.Compare((lpcbyte_t) &g_colorTextNorm, sizeof(COLORREF)) != 0 ||
-         m_bufColorTextErr.Compare((lpcbyte_t) &g_colorTextErr, sizeof(COLORREF)) != 0 ||
-         m_bufColorTextMsg.Compare((lpcbyte_t) &g_colorTextMsg, sizeof(COLORREF)) != 0 ||
-         m_bufColorBkgnd.Compare((lpcbyte_t) &g_colorBkgnd, sizeof(COLORREF)) != 0 ||
+    if ( m_OrgColorTextNorm != g_colorTextNorm ||
+         m_OrgColorTextErr != g_colorTextErr ||
+         m_OrgColorTextMsg != g_colorTextMsg ||
+         m_OrgColorBkgnd != g_colorBkgnd ||
          m_bUseEditorColorsInConsole != Runtime::GetNppExec().GetOptions().GetBool(OPTB_CONSOLE_USEEDITORCOLORS) )
     {
         return TRUE;

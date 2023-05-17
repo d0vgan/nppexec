@@ -295,129 +295,76 @@ IDD_CONSOLE_HIGHLIGHTFILTER DIALOGEX
 BEGIN
 
     GROUPBOX        "HighLight mask(s):", IDC_ST_FILTER_HIGHLIGHT,     5,   5, 369,  178
-    GROUPBOX        "Red",                IDC_RED,                   206,  10,  29,  169
-    GROUPBOX        "Green",              IDC_GREEN,                 240,  10,  29,  169
-    GROUPBOX        "Blue",               IDC_BLUE,                  274,  10,  29,  169
     GROUPBOX        "I",                  IDC_ITALIC,                308,  10,  17,  169
     GROUPBOX        "B",                  IDC_BOLD,                  330,  10,  17,  169
     GROUPBOX        "U",                  IDC_UNDERLINED,            352,  10,  17,  169
 
     CONTROL         "",IDC_CH_HIGHLIGHT1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  20,   9,   9
-    COMBOBOX           IDC_CB_HIGHLIGHT1,                             22,  18, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                209,  21,   7,  10
-    EDITTEXT           IDC_ED_HIGHLIGHT_R1,                          217,  19,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                243,  21,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G1,                             251,  19,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                277,  21,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B1,                             285,  19,  13,  12
+    COMBOBOX           IDC_CB_HIGHLIGHT1,                             22,  18, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR1,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 18, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  20,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  20,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U1,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  20,   9,   9
 
     CONTROL         "",IDC_CH_HIGHLIGHT2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  36,   9,   9
-    COMBOBOX        IDC_CB_HIGHLIGHT2,                                22,  34, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                209,  37,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_R2,                             217,  35,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                243,  37,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G2,                             251,  35,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                277,  37,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B2,                             285,  35,  13,  12
+    COMBOBOX        IDC_CB_HIGHLIGHT2,                                22,  34, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR2,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 34, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  36,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  36,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  36,   9,   9
     
     CONTROL         "",IDC_CH_HIGHLIGHT3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  52,   9,   9
-    COMBOBOX        IDC_CB_HIGHLIGHT3,                                22,  50, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                209,  53,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_R3,                             217,  51,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                243,  53,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G3,                             251,  51,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                277,  53,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B3,                             285,  51,  13,  12
+    COMBOBOX        IDC_CB_HIGHLIGHT3,                                22,  50, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR3,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 50, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  52,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  52,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U3,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  52,   9,   9
 
     CONTROL         "",IDC_CH_HIGHLIGHT4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  68,   9,   9
-    COMBOBOX        IDC_CB_HIGHLIGHT4,                                22,  66, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                209,  69,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_R4,                             217,  67,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                243,  69,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G4,                             251,  67,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                277,  69,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B4,                             285,  67,  13,  12
+    COMBOBOX        IDC_CB_HIGHLIGHT4,                                22,  66, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR4,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 66, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  68,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  68,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U4,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  68,   9,   9
 
     CONTROL         "",IDC_CH_HIGHLIGHT5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10,  84,   9,   9
-    COMBOBOX        IDC_CB_HIGHLIGHT5,                                22,  82, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                209,  85,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_R5,                             217,  83,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                243,  85,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G5,                             251,  83,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                277,  85,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B5,                             285,  83,  13,  12
+    COMBOBOX        IDC_CB_HIGHLIGHT5,                                22,  82, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR5,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 82, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312,  84,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334,  84,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U5,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356,  84,   9,   9
 
     CONTROL         "",IDC_CH_HIGHLIGHT6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 100,   9,   9
-    COMBOBOX        IDC_CB_HIGHLIGHT6,                                22,  98, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                209, 101,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_R6,                             217,  99,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                243, 101,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G6,                             251,  99,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                277, 101,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B6,                             285,  99,  13,  12
+    COMBOBOX        IDC_CB_HIGHLIGHT6,                                22,  98, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR6,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 98, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 100,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 100,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U6,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 100,   9,   9
 
     CONTROL         "",IDC_CH_HIGHLIGHT7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 116,   9,   9
-    COMBOBOX        IDC_CB_HIGHLIGHT7,                                22, 114, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                209, 117,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_R7,                             217, 115,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                243, 117,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G7,                             251, 115,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                277, 117,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B7,                             285, 115,  13,  12
+    COMBOBOX        IDC_CB_HIGHLIGHT7,                                22, 114, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR7,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 114, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 116,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 116,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U7,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 116,   9,   9
 
     CONTROL         "",IDC_CH_HIGHLIGHT8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 132,   9,   9
-    COMBOBOX        IDC_CB_HIGHLIGHT8,                                22, 130, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                209, 133,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_R8,                             217, 131,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                243, 133,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G8,                             251, 131,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                277, 133,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B8,                             285, 131,  13,  12
+    COMBOBOX        IDC_CB_HIGHLIGHT8,                                22, 130, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR8,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 130, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 132,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 132,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U8,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 132,   9,   9
     
     CONTROL         "",IDC_CH_HIGHLIGHT9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 148,   9,   9
-    COMBOBOX        IDC_CB_HIGHLIGHT9,                                22, 146, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                209, 149,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_R9,                             217, 147,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                243, 149,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G9,                             251, 147,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                277, 149,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B9,                             285, 147,  13,  12
+    COMBOBOX        IDC_CB_HIGHLIGHT9,                                22, 146, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR9,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 146, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 148,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 148,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U9,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 148,   9,   9
 
     CONTROL         "",IDC_CH_HIGHLIGHT10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,    10, 164,  9,   9
-    COMBOBOX        IDC_CB_HIGHLIGHT10,                                22, 162, 179,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "0x", IDC_STATIC,                                 209, 165,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_R10,                             217, 163,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                 243, 165,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_G10,                             251, 163,  13,  12
-    LTEXT           "0x", IDC_STATIC,                                 277, 165,   7,  10
-    EDITTEXT        IDC_ED_HIGHLIGHT_B10,                             285, 163,  13,  12
+    COMBOBOX        IDC_CB_HIGHLIGHT10,                                22, 162, 266,  100, CBS_DROPDOWN | CBS_AUTOHSCROLL | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "",IDC_HIGHLIGHT_COLOR10,"Button",BS_OWNERDRAW | WS_TABSTOP,    291, 162, 13, 13, WS_EX_STATICEDGE
     CONTROL         "",IDC_CH_HIGHLIGHT_I10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 312, 164,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_B10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 334, 164,   9,   9
     CONTROL         "",IDC_CH_HIGHLIGHT_U10,"Button",BS_AUTOCHECKBOX | WS_TABSTOP, 356, 164,   9,   9
@@ -468,14 +415,14 @@ BEGIN
     COMBOBOX        IDC_CB_OPT_SAVECMDHST, 292, 168, 48, 57, WS_TABSTOP | WS_VSCROLL | CBS_DROPDOWNLIST | CBS_HASSTRINGS
     LTEXT           "CommentDelimiter", IDC_ST_OPT_COMMENTDELIM, 174, 186, 112, 8
     EDITTEXT        IDC_ED_OPT_COMMENTDELIM, 292, 184, 48, 14, ES_AUTOHSCROLL
-    LTEXT           "TextColorNormal (RR GG BB)", IDC_ST_OPT_TEXTCOLORNORM, 174, 202, 112, 8
-    EDITTEXT        IDC_ED_OPT_TEXTCOLORNORM, 292, 200, 48, 14, ES_AUTOHSCROLL
-    LTEXT           "TextColorError (RR GG BB)", IDC_ST_OPT_TEXTCOLORERR, 174, 218, 112, 8
-    EDITTEXT        IDC_ED_OPT_TEXTCOLORERR, 292, 216, 48, 14, ES_AUTOHSCROLL
-    LTEXT           "TextColorMessage (RR GG BB)", IDC_ST_OPT_TEXTCOLORMSG, 174, 234, 112, 8
-    EDITTEXT        IDC_ED_OPT_TEXTCOLORMSG, 292, 232, 48, 14, ES_AUTOHSCROLL
-    LTEXT           "BackgroundColor (RR GG BB)", IDC_ST_OPT_BKCOLOR, 174, 250, 112, 8
-    EDITTEXT        IDC_ED_OPT_BKCOLOR, 292, 248, 48, 14, ES_AUTOHSCROLL
+    LTEXT           "TextColorNormal", IDC_ST_OPT_TEXTCOLORNORM, 174, 202, 112, 8
+    CONTROL         "",IDC_ED_OPT_TEXTCOLORNORM, "Button", BS_OWNERDRAW | WS_TABSTOP, 292, 200, 48, 14, WS_EX_STATICEDGE
+    LTEXT           "TextColorError", IDC_ST_OPT_TEXTCOLORERR, 174, 218, 112, 8
+    CONTROL         "",IDC_ED_OPT_TEXTCOLORERR, "Button", BS_OWNERDRAW | WS_TABSTOP, 292, 216, 48, 14, WS_EX_STATICEDGE
+    LTEXT           "TextColorMessage", IDC_ST_OPT_TEXTCOLORMSG, 174, 234, 112, 8
+    CONTROL         "",IDC_ED_OPT_TEXTCOLORMSG, "Button", BS_OWNERDRAW | WS_TABSTOP, 292, 232, 48, 14, WS_EX_STATICEDGE
+    LTEXT           "BackgroundColor", IDC_ST_OPT_BKCOLOR, 174, 250, 112, 8
+    CONTROL         "",IDC_ED_OPT_BKCOLOR, "Button", BS_OWNERDRAW | WS_TABSTOP, 292, 248, 48, 14, WS_EX_STATICEDGE
     CONTROL         "Use Editor colors in the Console", IDC_CH_OPT_USEEDITORCOLORS_CONSOLE, "Button", BS_AUTOCHECKBOX | 
                     WS_CHILD | WS_TABSTOP, 174, 268, 155, 10
     CONTROL         "Use Editor colors in the ""Execute"" dialog", IDC_CH_OPT_USEEDITORCOLORS_EXECDLG, "Button", BS_AUTOCHECKBOX | 

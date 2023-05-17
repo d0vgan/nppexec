@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DlgConsoleOutputFilter.h"
 #include "Resource.h"
 #include "NppExec.h"
+#include "PickColorBtn.h"
 
 
 // for Dev-C++
@@ -30,6 +31,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define  TCS_HOTTRACK  0x0040
 #endif
 
+enum {
+    HL_FIRSTCOLORID = IDC_HIGHLIGHT_COLOR1,
+    HL_LASTCOLORID = IDC_HIGHLIGHT_COLOR10,
+};
 
 CConsoleOutputFilterDlg      ConsoleOutputFilterDlg;
 
@@ -261,6 +266,7 @@ void CConsoleOutputFilterDlg::OnBtOK()
 
     if ( m_hTabDlg[DLG_HGLT] )
     {
+        HWND hDlgHglt = GetParent(m_ch_Recognition[0].m_hWnd);
         CWarningAnalyzer& WarningAnalyzer = Runtime::GetNppExec().GetWarningAnalyzer();
         CWarningAnalyzer::TEffect Effect;
 
@@ -271,17 +277,10 @@ void CConsoleOutputFilterDlg::OnBtOK()
             Effect.Bold       = m_ch_Recognition_Style[i][FILTER_REC_BOLD      ].IsChecked() ? true : false;
             Effect.Underlined = m_ch_Recognition_Style[i][FILTER_REC_UNDERLINED].IsChecked() ? true : false;
 
-            str[1] = 0;
-            m_ed_Recognition_Color[i][FILTER_REC_RED  ].GetWindowText( str, OUTPUTFILTER_BUFSIZE - 1 );
-            Effect.Red   = CWarningAnalyzer::xtou( str[0], str[1] );
-
-            str[1] = 0;
-            m_ed_Recognition_Color[i][FILTER_REC_GREEN].GetWindowText( str, OUTPUTFILTER_BUFSIZE - 1 );
-            Effect.Green = CWarningAnalyzer::xtou( str[0], str[1] );
-
-            str[1] = 0;
-            m_ed_Recognition_Color[i][FILTER_REC_BLUE ].GetWindowText( str, OUTPUTFILTER_BUFSIZE - 1 );
-            Effect.Blue  = CWarningAnalyzer::xtou( str[0], str[1] );
+            COLORREF color = PickColorBtn_GetColor(GetDlgItem(hDlgHglt, HL_FIRSTCOLORID + i));
+            Effect.Red = GetRValue(color);
+            Effect.Green = GetGValue(color);
+            Effect.Blue = GetBValue(color);
 
             m_cb_Recognition[i].GetWindowText(str, OUTPUTFILTER_BUFSIZE - 1);
             WarningAnalyzer.SetMask( i, str );
@@ -736,9 +735,6 @@ void CConsoleOutputFilterDlg::OnInitDlgHglt(HWND hDlgHglt)
     {
         m_ch_Recognition[i].m_hWnd          = ::GetDlgItem(hDlgHglt, IDC_CH_HIGHLIGHT1 + i);
         m_cb_Recognition[i].m_hWnd          = ::GetDlgItem(hDlgHglt, IDC_CB_HIGHLIGHT1 + i);
-        m_ed_Recognition_Color[i][0].m_hWnd = ::GetDlgItem(hDlgHglt, IDC_ED_HIGHLIGHT_R1 + i);
-        m_ed_Recognition_Color[i][1].m_hWnd = ::GetDlgItem(hDlgHglt, IDC_ED_HIGHLIGHT_G1 + i);
-        m_ed_Recognition_Color[i][2].m_hWnd = ::GetDlgItem(hDlgHglt, IDC_ED_HIGHLIGHT_B1 + i);
         m_ch_Recognition_Style[i][0].m_hWnd = ::GetDlgItem(hDlgHglt, IDC_CH_HIGHLIGHT_I1 + i);
         m_ch_Recognition_Style[i][1].m_hWnd = ::GetDlgItem(hDlgHglt, IDC_CH_HIGHLIGHT_B1 + i);
         m_ch_Recognition_Style[i][2].m_hWnd = ::GetDlgItem(hDlgHglt, IDC_CH_HIGHLIGHT_U1 + i);
@@ -757,20 +753,20 @@ void CConsoleOutputFilterDlg::OnInitDlgHglt(HWND hDlgHglt)
         if ( RecMask[0] )
         {
             CWarningAnalyzer::TEffect Effect;
-            TCHAR col[4];
 
             WarningAnalyzer.GetEffect( i, Effect );
             m_ch_Recognition[i].SetCheck( Effect.Enable );
             m_ch_Recognition_Style[i][FILTER_REC_ITALIC    ].SetCheck( Effect.Italic     );
             m_ch_Recognition_Style[i][FILTER_REC_BOLD      ].SetCheck( Effect.Bold       );
             m_ch_Recognition_Style[i][FILTER_REC_UNDERLINED].SetCheck( Effect.Underlined );
-            m_ed_Recognition_Color[i][FILTER_REC_RED  ].SetWindowText( CWarningAnalyzer::utox( Effect.Red,   col, 3 ) );
-            m_ed_Recognition_Color[i][FILTER_REC_GREEN].SetWindowText( CWarningAnalyzer::utox( Effect.Green, col, 3 ) );
-            m_ed_Recognition_Color[i][FILTER_REC_BLUE ].SetWindowText( CWarningAnalyzer::utox( Effect.Blue,  col, 3 ) );
+
+            COLORREF color = RGB(Effect.Red, Effect.Green, Effect.Blue);
+            PickColorBtn_SetColor(GetDlgItem(hDlgHglt, HL_FIRSTCOLORID + i), color);
         }
     }
 
     updateComboBoxContent(m_cb_Recognition, -1, RECOGNITION_ITEMS, m_HighlightHistory);
+    PickColorBtn_InitializeTooltips(hDlgHglt, HL_FIRSTCOLORID, HL_LASTCOLORID);
 }
 
 void CConsoleOutputFilterDlg::OnInitDlgRplc(HWND hDlgRplc)
@@ -919,12 +915,17 @@ INT_PTR CALLBACK ConsoleHighLightFilterProc(HWND hDlg, UINT uMsg, WPARAM wParam,
             {
                 ConsoleOutputFilterDlg.OnCbnDropDown(LOWORD(wParam));
             }
-            return 0;
+            break;
 
         case WM_CTLCOLORSTATIC:
             return ConsoleOutputFilterDlg.OnCtlColorStatic(hDlg, wParam, lParam);
 
-        default:
-            return 0;
+        case WM_NOTIFY:
+            PickColorBtn_HandleTooltipsNotify(hDlg, wParam, lParam);
+            break;
     }
+
+    // Note: This is greedy and must be the last handler
+    if (PickColorBtn_HandleMessageForDialog(hDlg, uMsg, wParam, lParam)) return true;
+    return false;
 }

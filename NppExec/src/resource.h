@@ -88,38 +88,16 @@
 #define IDC_CB_HIGHLIGHT9                       1089
 #define IDC_CB_HIGHLIGHT10                      1090
 
-#define IDC_ED_HIGHLIGHT_R1                     1091
-#define IDC_ED_HIGHLIGHT_R2                     1092
-#define IDC_ED_HIGHLIGHT_R3                     1093
-#define IDC_ED_HIGHLIGHT_R4                     1094
-#define IDC_ED_HIGHLIGHT_R5                     1095
-#define IDC_ED_HIGHLIGHT_R6                     1096
-#define IDC_ED_HIGHLIGHT_R7                     1097
-#define IDC_ED_HIGHLIGHT_R8                     1098
-#define IDC_ED_HIGHLIGHT_R9                     1099
-#define IDC_ED_HIGHLIGHT_R10                    1100
-
-#define IDC_ED_HIGHLIGHT_G1                     1101
-#define IDC_ED_HIGHLIGHT_G2                     1102
-#define IDC_ED_HIGHLIGHT_G3                     1103
-#define IDC_ED_HIGHLIGHT_G4                     1104
-#define IDC_ED_HIGHLIGHT_G5                     1105
-#define IDC_ED_HIGHLIGHT_G6                     1106
-#define IDC_ED_HIGHLIGHT_G7                     1107
-#define IDC_ED_HIGHLIGHT_G8                     1108
-#define IDC_ED_HIGHLIGHT_G9                     1109
-#define IDC_ED_HIGHLIGHT_G10                    1110
-
-#define IDC_ED_HIGHLIGHT_B1                     1111
-#define IDC_ED_HIGHLIGHT_B2                     1112
-#define IDC_ED_HIGHLIGHT_B3                     1113
-#define IDC_ED_HIGHLIGHT_B4                     1114
-#define IDC_ED_HIGHLIGHT_B5                     1115
-#define IDC_ED_HIGHLIGHT_B6                     1116
-#define IDC_ED_HIGHLIGHT_B7                     1117
-#define IDC_ED_HIGHLIGHT_B8                     1118
-#define IDC_ED_HIGHLIGHT_B9                     1119
-#define IDC_ED_HIGHLIGHT_B10                    1120
+#define IDC_HIGHLIGHT_COLOR1                    1091
+#define IDC_HIGHLIGHT_COLOR2                    1092
+#define IDC_HIGHLIGHT_COLOR3                    1093
+#define IDC_HIGHLIGHT_COLOR4                    1094
+#define IDC_HIGHLIGHT_COLOR5                    1095
+#define IDC_HIGHLIGHT_COLOR6                    1096
+#define IDC_HIGHLIGHT_COLOR7                    1097
+#define IDC_HIGHLIGHT_COLOR8                    1098
+#define IDC_HIGHLIGHT_COLOR9                    1099
+#define IDC_HIGHLIGHT_COLOR10                   1100
 
 #define IDC_CH_HIGHLIGHT_U1                     1121
 #define IDC_CH_HIGHLIGHT_U2                     1122
