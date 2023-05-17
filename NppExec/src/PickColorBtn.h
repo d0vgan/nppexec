@@ -30,7 +30,7 @@ enum PICKCOLORBTNNOTIFYCMD {
 INT_PTR CALLBACK PickColorBtn_HandleMessage(HWND hDlg, UINT Msg, WPARAM WPar, LPARAM LPar, LRESULT *RetVal);
 INT_PTR CALLBACK PickColorBtn_HandleMessageForDialog(HWND hDlg, UINT Msg, WPARAM WPar, LPARAM LPar);
 
-void PickColorBtn_InitializeTooltips(HWND hDlg, UINT first, UINT last);
+HWND PickColorBtn_InitializeTooltips(HWND hDlg, UINT first, UINT last);
 void PickColorBtn_HandleTooltipsNotify(HWND hDlg, WPARAM, LPARAM lParam);
 
 #endif

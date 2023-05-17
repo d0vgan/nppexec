@@ -20,6 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.4 - 2023
+ -------------
+ * Glory to Ukraine! Glory to the heroes!
+ + added: Color pickers in the Advanced Options and Highlight Output Filters,
+   thanks to Anders (sredna)
+
+
  v0.8.3 - August 2022
  --------------------
  * Glory to Ukraine! Glory to the heroes!

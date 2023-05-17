@@ -66,6 +66,8 @@ class CAdvOptDlg : public CAnyWindow
         CAnyCheckBox m_chUseEditorColorsInConsole;
         CAnyCheckBox m_chUseEditorColorsInExecDlg;
 
+        HWND         m_hToolTip;
+
         COLORREF     m_OrgColorTextNorm;
         COLORREF     m_OrgColorTextErr;
         COLORREF     m_OrgColorTextMsg;
@@ -83,6 +85,7 @@ class CAdvOptDlg : public CAnyWindow
         ~CAdvOptDlg();
 
         void OnInitDlg(HWND hDlg);
+        void OnEndDlg();
         BOOL OnBtOK();
         void OnBtCancel();
         void OnBtItemNew();

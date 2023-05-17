@@ -337,6 +337,7 @@
     <ClInclude Include="src\NppExecEngine.h" />
     <ClInclude Include="src\NppExecHelpers.h" />
     <ClInclude Include="src\NppScriptList.h" />
+    <ClInclude Include="src\PickColorBtn.h" />
     <ClInclude Include="src\PluginCommunication\NppExecPluginInterface.h" />
     <ClInclude Include="src\PluginCommunication\nppexec_msgs.h" />
     <ClInclude Include="src\resource.h" />

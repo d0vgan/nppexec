@@ -127,14 +127,16 @@ INT_PTR CALLBACK AdvancedOptionsDlgProc(
             {
                 if ( advOptDlg.OnBtOK() )
                 {
-                    EndDialog(hDlg, 1);
+                    advOptDlg.OnEndDlg();
+                    ::EndDialog(hDlg, 1);
                 }
                 return 1;
             }
             case IDCANCEL:
             {
                 advOptDlg.OnBtCancel();
-                EndDialog(hDlg, 0);
+                advOptDlg.OnEndDlg();
+                ::EndDialog(hDlg, 0);
                 return 1;
             }
             default:
@@ -152,7 +154,8 @@ INT_PTR CALLBACK AdvancedOptionsDlgProc(
         if ( wParam == SC_CLOSE )
         {
             advOptDlg.OnBtCancel();
-            EndDialog(hDlg, 0);
+            advOptDlg.OnEndDlg();
+            ::EndDialog(hDlg, 0);
             return 1;
         }
     }
@@ -163,8 +166,8 @@ INT_PTR CALLBACK AdvancedOptionsDlgProc(
     }
 
     // Note: This is greedy and must be the last handler
-    if (PickColorBtn_HandleMessageForDialog(hDlg, uMessage, wParam, lParam)) return true;
-    return false;
+    if (PickColorBtn_HandleMessageForDialog(hDlg, uMessage, wParam, lParam)) return TRUE;
+    return FALSE;
 }
 
 CAdvOptDlg::CAdvOptDlg() : CAnyWindow()
@@ -343,7 +346,7 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     if (clr == COLOR_CON_BKGND) clr |= (COLOR_CON_BKGND & 0xff000000);
     PickColorBtn_SetColor(m_edBkColor.GetWindowHandle(), clr);
 
-    PickColorBtn_InitializeTooltips(hDlg, IDC_ED_OPT_TEXTCOLORNORM, IDC_ED_OPT_BKCOLOR);
+    m_hToolTip = PickColorBtn_InitializeTooltips(hDlg, IDC_ED_OPT_TEXTCOLORNORM, IDC_ED_OPT_BKCOLOR);
 
     BOOL bUseEditorColors = Options.GetBool(OPTB_CONSOLE_USEEDITORCOLORS) ? TRUE : FALSE;
     m_chUseEditorColorsInConsole.SetCheck(bUseEditorColors);
@@ -376,6 +379,15 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     m_bNppRestartRequired = false;
     
     advOptDlg.CenterWindow(NppExec.m_nppData._nppHandle);
+}
+
+void CAdvOptDlg::OnEndDlg()
+{
+    if ( m_hToolTip )
+    {
+        ::DestroyWindow(m_hToolTip);
+        m_hToolTip = NULL;
+    }
 }
 
 static void SaveColorOption(

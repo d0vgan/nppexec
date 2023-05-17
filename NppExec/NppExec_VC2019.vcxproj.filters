@@ -141,6 +141,9 @@
     <ClCompile Include="src\c_base\str2int.c">
       <Filter>Source Files\c_base</Filter>
     </ClCompile>
+    <ClCompile Include="src\PickColorBtn.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\base.h">
@@ -301,6 +304,9 @@
     </ClInclude>
     <ClInclude Include="src\c_base\str2int.h">
       <Filter>Header Files\c_base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PickColorBtn.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

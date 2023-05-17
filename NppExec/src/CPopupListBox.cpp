@@ -96,7 +96,7 @@ const TCHAR* DirectivesList[] = {
   DIRECTIVE_COLLATERAL
 };
 
-CPopupListBox::CPopupListBox() : CAnyListBox()
+CPopupListBox::CPopupListBox() : CAnyListBox(), m_hParentWnd(NULL)
 {
 }
 

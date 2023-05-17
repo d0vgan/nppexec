@@ -102,7 +102,7 @@ INT_PTR CALLBACK PickColorBtn_HandleMessageForDialog(HWND hDlg, UINT Msg, WPARAM
 }
 
 
-void PickColorBtn_InitializeTooltips(HWND hDlg, UINT first, UINT last)
+HWND PickColorBtn_InitializeTooltips(HWND hDlg, UINT first, UINT last)
 {
     HWND hTT = CreateWindowEx(WS_EX_TOPMOST|WS_EX_TOOLWINDOW, TOOLTIPS_CLASS, 0, WS_POPUP|TTS_ALWAYSTIP|TTS_NOPREFIX, 0, 0, 0, 0, hDlg, 0, 0, 0);
     TOOLINFO ti;
@@ -119,6 +119,8 @@ void PickColorBtn_InitializeTooltips(HWND hDlg, UINT first, UINT last)
         ti.uId = (SIZE_T) hCtl;
         if ( hTT && ti.uId ) SendMessage(hTT, TTM_ADDTOOL, 0, (LPARAM) &ti);
     }
+
+    return hTT;
 }
 
 void PickColorBtn_HandleTooltipsNotify(HWND hDlg, WPARAM, LPARAM lParam)

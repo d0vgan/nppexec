@@ -59,6 +59,7 @@ private:
 
   int  m_nLastTab;
   HBRUSH m_hBrushBkCheckbox;
+  HWND m_hToolTip;
   
   CAnyCheckBox m_ch_Include[FILTER_ITEMS];
   CAnyComboBox m_cb_Include[FILTER_ITEMS];

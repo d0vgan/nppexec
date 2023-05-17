@@ -64,6 +64,7 @@ public:
                   , Italic(false), Bold(false), Underlined(false)
                   , Red(0), Green(0), Blue(0)
         {
+            rgb = 0;
         }
     };
 

@@ -112,20 +112,20 @@ INT_PTR CALLBACK ConsoleOutputFilterDlgProc( HWND   hDlg
 {
     if ( uMessage == WM_COMMAND )
     {
-        switch (LOWORD(wParam))
+        switch ( LOWORD(wParam) )
         {
             case IDOK:
             {
                 ConsoleOutputFilterDlg.OnBtOK();
                 ConsoleOutputFilterDlg.OnEndDialog();
-                EndDialog(hDlg, 1);
+                ::EndDialog(hDlg, 1);
                 return 1;
             }
             case IDCANCEL:
             {
                 ConsoleOutputFilterDlg.OnBtCancel();
                 ConsoleOutputFilterDlg.OnEndDialog();
-                EndDialog(hDlg, 0);
+                ::EndDialog(hDlg, 0);
                 return 1;
             }
             default:
@@ -139,7 +139,7 @@ INT_PTR CALLBACK ConsoleOutputFilterDlgProc( HWND   hDlg
         {
             ConsoleOutputFilterDlg.OnBtCancel();
             ConsoleOutputFilterDlg.OnEndDialog();
-            EndDialog(hDlg, 0);
+            ::EndDialog(hDlg, 0);
             return 1;
         }
     }
@@ -766,7 +766,7 @@ void CConsoleOutputFilterDlg::OnInitDlgHglt(HWND hDlgHglt)
     }
 
     updateComboBoxContent(m_cb_Recognition, -1, RECOGNITION_ITEMS, m_HighlightHistory);
-    PickColorBtn_InitializeTooltips(hDlgHglt, HL_FIRSTCOLORID, HL_LASTCOLORID);
+    m_hToolTip = PickColorBtn_InitializeTooltips(hDlgHglt, HL_FIRSTCOLORID, HL_LASTCOLORID);
 }
 
 void CConsoleOutputFilterDlg::OnInitDlgRplc(HWND hDlgRplc)
@@ -837,6 +837,12 @@ void CConsoleOutputFilterDlg::OnEndDialog()
     {
         ::DeleteObject(m_hBrushBkCheckbox);
         m_hBrushBkCheckbox = NULL;
+    }
+
+    if ( m_hToolTip )
+    {
+        ::DestroyWindow(m_hToolTip);
+        m_hToolTip = NULL;
     }
 }
 
@@ -926,6 +932,6 @@ INT_PTR CALLBACK ConsoleHighLightFilterProc(HWND hDlg, UINT uMsg, WPARAM wParam,
     }
 
     // Note: This is greedy and must be the last handler
-    if (PickColorBtn_HandleMessageForDialog(hDlg, uMsg, wParam, lParam)) return true;
-    return false;
+    if (PickColorBtn_HandleMessageForDialog(hDlg, uMsg, wParam, lParam)) return TRUE;
+    return FALSE;
 }
