@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Glory to Ukraine! Glory to the heroes!
  + added: Color pickers in the Advanced Options and Highlight Output Filters,
    thanks to Anders (sredna)
+ * npp_files updated to Notepad++ 8.5.3
+ * internal: CChildProcess and CProcessKiller moved to "ChildProcess.cpp"
 
 
  v0.8.3 - August 2022

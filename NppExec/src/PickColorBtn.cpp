@@ -123,7 +123,7 @@ HWND PickColorBtn_InitializeTooltips(HWND hDlg, UINT first, UINT last)
     return hTT;
 }
 
-void PickColorBtn_HandleTooltipsNotify(HWND hDlg, WPARAM, LPARAM lParam)
+void PickColorBtn_HandleTooltipsNotify(HWND, WPARAM, LPARAM lParam)
 {
     NMTTDISPINFO*pTTDI = (NMTTDISPINFO*) lParam;
     if ( pTTDI->hdr.code == TTN_GETDISPINFO && (pTTDI->uFlags & TTF_IDISHWND) )
