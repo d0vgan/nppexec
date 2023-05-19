@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.4 - 2023
- -------------
+ v0.8.4 - May 2023
+ -----------------
  * Glory to Ukraine! Glory to the heroes!
  + added: Color pickers in the Advanced Options and Highlight Output Filters,
    thanks to Anders (sredna)
@@ -735,8 +735,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F3
-#define NPPEXEC_VER_STR   _T("0.8.3")
+#define NPPEXEC_VER_DWORD 0x08F4
+#define NPPEXEC_VER_STR   _T("0.8.4")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

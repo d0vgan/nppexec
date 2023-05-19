@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.8.3 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - August 2022
+ * NppExec plugin ver. 0.8.4 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - May 2023
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
@@ -217,8 +217,8 @@
  *  HISTORY  *
  *************
 
- v0.8.4 - 2023
- -------------
+ v0.8.4 - May 2023
+ -----------------
  * Glory to Ukraine! Glory to the heroes!
  + added: Color pickers in the Advanced Options and Highlight Output Filters,
    thanks to Anders (sredna)
