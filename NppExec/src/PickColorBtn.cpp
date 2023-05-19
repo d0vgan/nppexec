@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PickColorBtn.h"
 
 
-static inline void PickColorBtn_FillRectColor(HDC hDC, const RECT*pR, COLORREF Clr)
+static inline void PickColorBtn_FillRectColor(HDC hDC, const RECT* pR, COLORREF Clr)
 {
     UINT orgbc = SetBkColor(hDC, Clr);
     ExtTextOut(hDC, 0, 0, ETO_OPAQUE, pR, NULL, 0, NULL);
@@ -31,8 +31,8 @@ static inline void PickColorBtn_FillRectColor(HDC hDC, const RECT*pR, COLORREF C
 
 INT_PTR CALLBACK PickColorBtn_HandleMessage(HWND hDlg, UINT Msg, WPARAM WPar, LPARAM LPar, LRESULT *RetVal)
 {
-    DRAWITEMSTRUCT*pDIS = (DRAWITEMSTRUCT*) LPar;
-    switch(Msg)
+    DRAWITEMSTRUCT* pDIS = (DRAWITEMSTRUCT*) LPar;
+    switch (Msg)
     {
     case WM_DRAWITEM:
         if (pDIS->CtlType != ODT_BUTTON)
@@ -125,7 +125,7 @@ HWND PickColorBtn_InitializeTooltips(HWND hDlg, UINT first, UINT last)
 
 void PickColorBtn_HandleTooltipsNotify(HWND, WPARAM, LPARAM lParam)
 {
-    NMTTDISPINFO*pTTDI = (NMTTDISPINFO*) lParam;
+    NMTTDISPINFO* pTTDI = (NMTTDISPINFO*) lParam;
     if ( pTTDI->hdr.code == TTN_GETDISPINFO && (pTTDI->uFlags & TTF_IDISHWND) )
     {
         COLORREF c = PickColorBtn_GetColor((HWND) pTTDI->hdr.idFrom);
