@@ -289,7 +289,7 @@ template <class T> int CBufT<T>::Compare(const T* pData, int nCount) const
 {
     if ( m_pData == pData )
     {
-        if ( m_nCount == m_nCount )
+        if ( m_nCount == nCount )
             return 0;
         else if ( m_nCount > nCount )
             return 2;

@@ -28,8 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "cpp/CBufT.h"
 
 
-extern const TCHAR* cszUserMenuItemSep;
-extern const TCHAR* cszUserMenuSeparator;
+extern const TCHAR* const cszUserMenuItemSep;
+extern const TCHAR* const cszUserMenuSeparator;
 
 INT_PTR CALLBACK AdvancedOptionsDlgProc(HWND, UINT, WPARAM, LPARAM);
 

@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "NppExecEngine.h"
 
 
-const TCHAR* NpeSearchFlagsList[] = {
+const TCHAR* const NpeSearchFlagsList[] = {
   // search flags:
   _T("NPE_SF_MATCHCASE"),
   _T("NPE_SF_WHOLEWORD"),
@@ -39,7 +39,7 @@ const TCHAR* NpeSearchFlagsList[] = {
   _T("NPE_SF_PRINTALL")
 };
 
-const TCHAR* VariablesList[] = {
+const TCHAR* const VariablesList[] = {
   _T("$(#1)"),                 //  $(#1)
   MACRO_EXIT_CMD,              //  $(@EXIT_CMD)
   MACRO_EXIT_CMD_SILENT,       //  $(@EXIT_CMD_SILENT)
@@ -92,7 +92,7 @@ const TCHAR* VariablesList[] = {
   MACRO_WORKSPACE_ITEM_ROOT    //  $(WORKSPACE_ITEM_ROOT)
 };
 
-const TCHAR* DirectivesList[] = {
+const TCHAR* const DirectivesList[] = {
   DIRECTIVE_COLLATERAL
 };
 

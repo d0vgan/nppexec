@@ -27,8 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "c_base/str2int.h"
 #include "c_base/str_func.h"
 
-const TCHAR* cszUserMenuItemSep = _T(" :: ");
-const TCHAR* cszUserMenuSeparator = _T("---- <menu separator> ----");
+const TCHAR* const cszUserMenuItemSep = _T(" :: ");
+const TCHAR* const cszUserMenuSeparator = _T("---- <menu separator> ----");
 
 extern COLORREF g_colorTextNorm;
 extern COLORREF g_colorTextErr;
@@ -397,7 +397,7 @@ static void SaveColorOption(
     c_base::byte_t bt[4];
     bool invalid = false;
     COLORREF clr = PickColorBtn_GetColor(Wnd.GetWindowHandle());
-    bt[0] = GetRValue(clr), bt[1] = GetGValue(clr), bt[2] = GetBValue(clr);
+    bt[0] = GetRValue(clr); bt[1] = GetGValue(clr); bt[2] = GetBValue(clr);
     if (clr & 0xff000000)
     {
         clr = Default;

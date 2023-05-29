@@ -18,9 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CAnyWindow.h"
 
-CAnyWindow::CAnyWindow() 
+CAnyWindow::CAnyWindow() : m_hWnd(NULL)
 {
-  m_hWnd = NULL;
 }
 
 CAnyWindow::~CAnyWindow()

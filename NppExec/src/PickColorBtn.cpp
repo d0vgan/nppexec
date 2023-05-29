@@ -60,7 +60,7 @@ INT_PTR CALLBACK PickColorBtn_HandleMessage(HWND hDlg, UINT Msg, WPARAM WPar, LP
         {
             DrawFocusRect(pDIS->hDC, &pDIS->rcItem);
         }
-        return (*RetVal = (SIZE_T) pDIS);
+        return (*RetVal = (LRESULT) pDIS);
 
     case WM_COMMAND:
         if (LPar && (GetWindowLongPtr((HWND) LPar, GWL_STYLE) & BS_TYPEMASK) == BS_OWNERDRAW)
@@ -95,7 +95,7 @@ INT_PTR CALLBACK PickColorBtn_HandleMessage(HWND hDlg, UINT Msg, WPARAM WPar, LP
 
 INT_PTR CALLBACK PickColorBtn_HandleMessageForDialog(HWND hDlg, UINT Msg, WPARAM WPar, LPARAM LPar)
 {
-    LRESULT r;
+    LRESULT r = 0;
     LRESULT handled = PickColorBtn_HandleMessage(hDlg, Msg, WPar, LPar, &r);
     if (handled) SetWindowLongPtr(hDlg, DWLP_MSGRESULT, r);
     return handled;
