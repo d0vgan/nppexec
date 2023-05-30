@@ -6077,10 +6077,11 @@ void CNppExecConsole::_updateColours(ScriptEngineId scrptEngnId)
 
     // background color
     COLORREF bkColor = _getCurrentColorBkgnd();
-    if ( bkColor != COLOR_CON_BKGND )
-        m_reConsole.SendMsg(EM_SETBKGNDCOLOR, 0, bkColor);
-    else
-        m_reConsole.SendMsg(EM_SETBKGNDCOLOR, 0, GetSysColor(COLOR_WINDOW));
+    if ( bkColor == COLOR_CON_BKGND )
+    {
+        bkColor = GetSysColor(COLOR_WINDOW);
+    }
+    m_reConsole.SendMsg(EM_SETBKGNDCOLOR, 0, bkColor);
 
 //#ifdef UNICODE
     DWORD dwLangOpt = (DWORD) m_reConsole.SendMsg( EM_GETLANGOPTIONS, 0, 0 );

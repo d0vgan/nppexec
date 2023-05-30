@@ -21,12 +21,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <CommCtrl.h>
 #include "PickColorBtn.h"
 
+#include "NppExec.h"
+
 
 static inline void PickColorBtn_FillRectColor(HDC hDC, const RECT* pR, COLORREF Clr)
 {
     UINT orgbc = SetBkColor(hDC, Clr);
     ExtTextOut(hDC, 0, 0, ETO_OPAQUE, pR, NULL, 0, NULL);
     SetBkColor(hDC, orgbc);
+}
+
+static unsigned int PickColorBtn_addNewColor(COLORREF colors[], unsigned int nColors, const COLORREF color)
+{
+    unsigned int n = 0;
+    for ( ; n < nColors; ++n )
+    {
+        if ( colors[n] == color )
+            break; // this color is already present in the colors
+    }
+    if ( n == nColors )
+    {
+        // this color is not present in the colors
+        colors[nColors] = color;
+        ++nColors;
+    }
+    return nColors;
 }
 
 INT_PTR CALLBACK PickColorBtn_HandleMessage(HWND hDlg, UINT Msg, WPARAM WPar, LPARAM LPar, LRESULT *RetVal)
@@ -71,13 +90,32 @@ INT_PTR CALLBACK PickColorBtn_HandleMessage(HWND hDlg, UINT Msg, WPARAM WPar, LP
                 HWND hCtl = (HWND) LPar;
                 COLORREF orgclr = PickColorBtn_GetColor(hCtl) & 0xffffff;
                 COLORREF colors[16];
-                for (SIZE_T i = 0; i < 16; ++i) colors[i] = RGB(i * 16, i * 16, i * 16);
+                for (unsigned int i = 0; i < 16; ++i) colors[i] = RGB(i * 16, i * 16, i * 16);
+
+                colors[0] = orgclr;
+                colors[1] = COLOR_CON_TEXTERR;               // error
+                colors[2] = COLOR_CON_TEXTMSG;               // message
+                colors[3] = COLOR_CON_TEXTINF1;              // info 1
+                colors[4] = COLOR_CON_TEXTINF2;              // info 2
+                colors[5] = ::GetSysColor(COLOR_WINDOWTEXT); // normal text
+                colors[6] = ::GetSysColor(COLOR_WINDOW);     // background
+                unsigned int nColors = 7;
+                const auto& nppExecConsole = Runtime::GetNppExec().GetConsole();
+                nColors = PickColorBtn_addNewColor(colors, nColors, nppExecConsole.GetCurrentColorTextErr());
+                nColors = PickColorBtn_addNewColor(colors, nColors, nppExecConsole.GetCurrentColorTextMsg());
+                nColors = PickColorBtn_addNewColor(colors, nColors, nppExecConsole.GetCurrentColorTextNorm());
+                COLORREF bkColor = nppExecConsole.GetCurrentColorBkgnd();
+                if ( bkColor == COLOR_CON_BKGND )
+                {
+                    bkColor = ::GetSysColor(COLOR_WINDOW);
+                }
+                nColors = PickColorBtn_addNewColor(colors, nColors, bkColor);
 
                 CHOOSECOLOR cc;
                 cc.lStructSize = sizeof(cc);
                 cc.hwndOwner = hCtl;
                 cc.Flags = CC_RGBINIT | CC_ANYCOLOR | CC_FULLOPEN;
-                cc.rgbResult = colors[0] = orgclr;
+                cc.rgbResult = orgclr;
                 cc.lpCustColors = colors;
 
                 SendMessage(hDlg, WM_COMMAND, MAKEWPARAM(id, PCBN_INITCHOOSE), (SIZE_T) &cc); // Set cc.lpCustColors to something better if you wish

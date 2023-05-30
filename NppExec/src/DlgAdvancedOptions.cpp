@@ -338,13 +338,15 @@ void CAdvOptDlg::OnInitDlg(HWND hDlg)
     S = Options.GetStr(OPTS_COMMENTDELIMITER);
     m_edCommentDelim.SetWindowText(S.c_str());
 
-    COLORREF clr;
     PickColorBtn_SetColor(m_edTextColorNorm.GetWindowHandle(), g_colorTextNorm);
     PickColorBtn_SetColor(m_edTextColorErr.GetWindowHandle(), g_colorTextErr);
     PickColorBtn_SetColor(m_edTextColorMsg.GetWindowHandle(), g_colorTextMsg);
-    clr = g_colorBkgnd;
-    if (clr == COLOR_CON_BKGND) clr |= (COLOR_CON_BKGND & 0xff000000);
-    PickColorBtn_SetColor(m_edBkColor.GetWindowHandle(), clr);
+    COLORREF bkColor = g_colorBkgnd;
+    if ( bkColor == COLOR_CON_BKGND )
+    {
+        bkColor = ::GetSysColor(COLOR_WINDOW);
+    }
+    PickColorBtn_SetColor(m_edBkColor.GetWindowHandle(), bkColor);
 
     m_hToolTip = PickColorBtn_InitializeTooltips(hDlg, IDC_ED_OPT_TEXTCOLORNORM, IDC_ED_OPT_BKCOLOR);
 

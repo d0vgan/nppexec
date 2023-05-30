@@ -755,6 +755,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 const COLORREF COLOR_CON_TEXTNORM = RGB(0x00, 0x00, 0x00); // black
 const COLORREF COLOR_CON_TEXTERR  = RGB(0xA0, 0x10, 0x10); // ~red
 const COLORREF COLOR_CON_TEXTMSG  = RGB(0x20, 0x80, 0x20); // ~green
+const COLORREF COLOR_CON_TEXTINF1 = RGB(0x20, 0x70, 0xC0); // ~blue
+const COLORREF COLOR_CON_TEXTINF2 = RGB(0x90, 0x70, 0x10); // ~brown
 const COLORREF COLOR_CON_BKGND    = 0xFFFFFFFF; // means system default
 const COLORREF COLOR_INVALID      = 0xCC000000;
 
