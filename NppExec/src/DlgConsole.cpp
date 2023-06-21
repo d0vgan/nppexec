@@ -1889,7 +1889,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  npe_console local -- v+  // within this script") _T_RE_EOL \
     _T("  cmd /c time /t") _T_RE_EOL \
     _T("  npe_queue -v -s echo $(OUTPUT)") _T_RE_EOL \
-    _T("  npp_console +") _T_RE_EOL \
+    _T("  npp_console local +") _T_RE_EOL \
     _T("  // now something really crazy, just because we _can_ do it:") _T_RE_EOL \
     _T("  npe_queue npe_queue npe_queue sleep 2000 Let's sleep for 2 seconds...") _T_RE_EOL \
     _T("  npe_queue -s npe_queue -s npe_queue -s sleep 2000 Let's sleep for 2 seconds...") _T_RE_EOL \
