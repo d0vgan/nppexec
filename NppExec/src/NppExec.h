@@ -20,10 +20,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.5
+ ------
+ * Glory to Ukraine! Glory to the heroes!
+ - fixed: several issues discovered by SonarCloud
+ + added: improvements around the Color Pickers (see v0.8.4)
+ + added: experimental support of PseudoConsole via "npe_console u+/u-"
+   (ideally, PseudoConsole requires full support of ANSI escape sequences;
+    NppExec currently can remove but not render these sequences)
+ + NppExec Manual slightly updated
+
+
  v0.8.4 - May 2023
  -----------------
  * Glory to Ukraine! Glory to the heroes!
- + added: Color pickers in the Advanced Options and Highlight Output Filters,
+ + added: Color Pickers in the Advanced Options and Highlight Output Filters,
    thanks to Anders Kjersem (sredna)
  * npp_files updated to Notepad++ 8.5.3
  * internal: CChildProcess and CProcessKiller moved to "ChildProcess.cpp"
