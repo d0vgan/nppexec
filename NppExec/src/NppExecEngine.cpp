@@ -584,7 +584,7 @@ class FParserWrapper
         typedef struct sUserConst {
             CStrT<char> constName;
             CStrT<char> constValue;
-            int         nLine;
+            int         nLine{};
         } tUserConst;
 
     public:
@@ -4844,6 +4844,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                     // a+/a-     append mode on/off
                     // d+/d-     follow current directory on/off
                     // e0/e1     ansi escape sequences: raw/remove
+                    // u+/u-     pseudoconsole on/off (experimental)
                     // h+/h-     console commands history on/off
                     // m+/m-     console internal messages on/off
                     // p+/p-     print "==== READY ====" on/off
@@ -4925,6 +4926,25 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                     m_pNppExec->GetOptions().SetInt(OPTI_CONSOLE_ANSIESCSEQ, nAnsiEscSeq);
                                     isOK = true;
                                 }
+                            }
+                            break;
+
+                        case _T('U'):
+                            if ( arg[1] == _T('+') || arg[1] == _T('-') )
+                            {
+                                bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConPseudoConsole() )
+                                        savedConf.setConPseudoConsole( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConPseudoConsole() )
+                                        savedConf.removeConPseudoConsole();
+                                }
+                                m_pNppExec->GetOptions().SetBool(OPTB_CHILDP_PSEUDOCONSOLE, bOn);
+                                isOK = true;
                             }
                             break;
 
@@ -5299,8 +5319,12 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                 { CChildProcess::escRemove, _T("remove") },
                 { 0x00, NULL } // trailing element with .str=NULL
             };
-            appendInt( m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ), S1, S2, escMappings );
+            appendInt( m_pNppExec->GetCommandExecutor().GetChildProcessAnsiEscSeq(), S1, S2, escMappings );
         }
+        // pseudocon
+        S1 += _T(" u");
+        S2 += _T(", pseudocon: ");
+        appendOnOff( m_pNppExec->GetCommandExecutor().IsChildProcessPseudoCon(), S1, S2 );
         // cmd_history
         S1 += _T(" h");
         S2 += _T_RE_EOL _T("; cmd_history: ");
@@ -5336,7 +5360,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S2 += _T(", compiler_errors: ");
         appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_COMPILER_ERRORS), S1, S2 );
         // out_enc
-        unsigned int enc_opt = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
+        unsigned int enc_opt = m_pNppExec->GetCommandExecutor().GetChildProcessEncoding();
         S1 += _T(" o");
         S2 += _T_RE_EOL _T("; out_enc: ");
         appendEnc( enc_opt, false, S1, S2 );
@@ -6014,7 +6038,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
             Runtime::GetLogger().Add( _T("; sending the text to the running child process") );
 
             CommandExecutor.WriteChildProcessInput( pszText );
-            CommandExecutor.WriteChildProcessInput( m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+            CommandExecutor.WriteChildProcessInputNewLine();
         }
     }
     else
@@ -7374,7 +7398,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoProcInput(const tstr& params)
     const TCHAR ch = params.GetLastChar();
     if ( ch != _T('\n') && ch != _T('\r') )
     {
-        CommandExecutor.WriteChildProcessInput( m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+        CommandExecutor.WriteChildProcessInputNewLine();
     }
 
     return CMDRESULT_SUCCEEDED;

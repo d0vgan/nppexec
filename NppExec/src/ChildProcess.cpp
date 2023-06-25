@@ -243,16 +243,16 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     ::SetHandleInformation(m_hStdInWritePipe, HANDLE_FLAG_INHERIT, 0);
     ::SetHandleInformation(m_hStdOutReadPipe, HANDLE_FLAG_INHERIT, 0);
 
-    m_hPsCon = NULL;
+    m_hPseudoCon = NULL;
     m_pAttributeList = NULL;
 
-    if ( g_pseudoCon.pfnCreatePseudoConsole )
+    if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && g_pseudoCon.pfnCreatePseudoConsole )
     {
         COORD conSize = { 80, 1000 };
-        HRESULT hr = g_pseudoCon.pfnCreatePseudoConsole(conSize, m_hStdInReadPipe, m_hStdOutWritePipe, 0, &m_hPsCon);
+        HRESULT hr = g_pseudoCon.pfnCreatePseudoConsole(conSize, m_hStdInReadPipe, m_hStdOutWritePipe, 0, &m_hPseudoCon);
         if ( FAILED(hr) )
         {
-            m_hPsCon = NULL;
+            m_hPseudoCon = NULL;
         }
     }
 
@@ -290,7 +290,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     si.StartupInfo.cb = sizeof(STARTUPINFOEX);
     si.StartupInfo.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
     si.StartupInfo.wShowWindow = SW_HIDE;
-    if ( m_hPsCon )
+    if ( m_hPseudoCon )
     {
         SIZE_T bytesRequired = 0;
         ::InitializeProcThreadAttributeList(NULL, 1, 0, &bytesRequired);
@@ -303,8 +303,8 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
                          si.lpAttributeList,
                          0, 
                          PseudoConsoleHelper::constPROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
-                         m_hPsCon,
-                         sizeof(m_hPsCon),
+                         m_hPseudoCon,
+                         sizeof(m_hPseudoCon),
                          NULL,
                          NULL) )
                 {
@@ -329,7 +329,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
         }
     }
 
-    if ( !m_hPsCon )
+    if ( !m_hPseudoCon )
     {
         si.StartupInfo.hStdInput = m_hStdInReadPipe;
         si.StartupInfo.hStdOutput = m_hStdOutWritePipe;
@@ -382,7 +382,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
         }
 
         ::CloseHandle(m_ProcessInfo.hThread); m_ProcessInfo.hThread = NULL;
-        if ( m_hPsCon )
+        if ( m_hPseudoCon )
         {
             ::CloseHandle(m_hStdOutWritePipe); m_hStdOutWritePipe = NULL;
             ::CloseHandle(m_hStdInReadPipe); m_hStdInReadPipe = NULL;
@@ -607,7 +607,7 @@ void CChildProcess::reset()
     m_hStdInWritePipe = NULL; 
     m_hStdOutReadPipe = NULL;
     m_hStdOutWritePipe = NULL;
-    m_hPsCon = NULL;
+    m_hPseudoCon = NULL;
     m_pAttributeList = NULL;
     ::ZeroMemory(&m_ProcessInfo, sizeof(PROCESS_INFORMATION));
 }
@@ -792,7 +792,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
     const bool bConFltrExclAllEmpty = m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_EXCLALLEMPTY);
     const bool bConFltrExclDupEmpty = m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_EXCLDUPEMPTY);
     const bool bOutputVar = m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_SETOUTPUTVAR);
-    const int  nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
+    const unsigned int nAnsiEscSeq = GetAnsiEscSeq();
 
     const int nBufLineLength = bufLine.length();
 
@@ -920,8 +920,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
 
                                     if ( outLine.length() > 0 )
                                     {
-                                        unsigned int enc = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
-                                        enc = CConsoleEncodingDlg::getOutputEncoding(enc);
+                                        unsigned int enc = CConsoleEncodingDlg::getOutputEncoding(GetEncoding());
                                     
                                       #ifdef UNICODE
 
@@ -1256,9 +1255,7 @@ bool CChildProcess::WriteInput(const TCHAR* szLine, bool bFFlush )
     char*        pStr = NULL;
     int          len = 0;
     DWORD        dwBytesWritten = 0;
-    unsigned int enc = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
-        
-    enc = CConsoleEncodingDlg::getInputEncoding(enc);
+    unsigned int enc = CConsoleEncodingDlg::getInputEncoding(GetEncoding());
 
   #ifdef UNICODE
     
@@ -1355,9 +1352,9 @@ void CChildProcess::closePipes()
 
 void CChildProcess::closePseudoConsole()
 {
-    if ( g_pseudoCon.pfnClosePseudoConsole && m_hPsCon )
+    if ( g_pseudoCon.pfnClosePseudoConsole && m_hPseudoCon )
     {
-        g_pseudoCon.pfnClosePseudoConsole(m_hPsCon); m_hPsCon = NULL;
+        g_pseudoCon.pfnClosePseudoConsole(m_hPseudoCon); m_hPseudoCon = NULL;
     }
     if ( m_pAttributeList )
     {
@@ -1383,6 +1380,28 @@ DWORD CChildProcess::GetProcessId() const
 const PROCESS_INFORMATION* CChildProcess::GetProcessInfo() const
 {
     return &m_ProcessInfo;
+}
+
+bool CChildProcess::IsPseudoCon() const
+{
+    return (m_hPseudoCon ? true : false);
+}
+
+const TCHAR* CChildProcess::GetNewLine() const
+{
+    return (m_hPseudoCon ? _T("\r") : m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER));
+}
+
+unsigned int CChildProcess::GetEncoding() const
+{
+    return (m_hPseudoCon ? CConsoleEncodingDlg::getPseudoConsoleEncoding() : m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING));
+}
+
+unsigned int CChildProcess::GetAnsiEscSeq() const
+{
+    // TODO: PsequdoConsole requires _full_ support of ANSI Escape Sequences
+    // (NppExec does not support them, so the best it can do is to remove them)
+    return (m_hPseudoCon ? CChildProcess::escRemove : m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ));
 }
 
 bool CChildProcess::IsWindowsNT()

@@ -53,7 +53,7 @@ class CNppExecPluginInterfaceImpl
                 tstr              SrcModuleName;
                 tstr              ID;
                 ResultStruct      Result;
-                CommunicationInfo ci;
+                CommunicationInfo ci{};
 
                 CPluginMsg() { }
                 CPluginMsg(const TCHAR* srcModuleName, const tstr& id) : SrcModuleName(srcModuleName), ID(id) { }

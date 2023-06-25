@@ -200,6 +200,11 @@ unsigned int CConsoleEncodingDlg::defaultEncodingOption()
     return ENC_OEM + (ENC_OEM * 0x10);
 }
 
+unsigned int CConsoleEncodingDlg::getPseudoConsoleEncoding()
+{
+    return ENC_UTF8 + (ENC_UTF8 * 0x10);
+}
+
 unsigned int CConsoleEncodingDlg::getEnc(unsigned int enc)
 {
     switch ( enc )

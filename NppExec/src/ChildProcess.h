@@ -105,6 +105,11 @@ class CChildProcess
         DWORD GetProcessId() const;
         const PROCESS_INFORMATION* GetProcessInfo() const;
 
+        bool IsPseudoCon() const;
+        const TCHAR* GetNewLine() const; // usually "\n" or "\r"
+        unsigned int GetEncoding() const;
+        unsigned int GetAnsiEscSeq() const;
+
         static void RemoveAnsiEscSequencesFromLine(tstr& Line);
 
     protected:
@@ -140,7 +145,7 @@ class CChildProcess
         HANDLE              m_hStdInWritePipe; 
         HANDLE              m_hStdOutReadPipe;
         HANDLE              m_hStdOutWritePipe;
-        PseudoConsoleHelper::typeHPCON m_hPsCon;
+        PseudoConsoleHelper::typeHPCON m_hPseudoCon;
         LPPROC_THREAD_ATTRIBUTE_LIST   m_pAttributeList;
         PROCESS_INFORMATION m_ProcessInfo;
 };

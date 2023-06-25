@@ -1640,7 +1640,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  npe_console") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_console") _T_RE_EOL \
-    _T("  npe_console a+/a- d+/d- e0/e1 h+/h- m+/m- p+/p- q+/q- v+/v- j+/j- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
+    _T("  npe_console a+/a- d+/d- e0/e1 u+/u- h+/h- m+/m- p+/p- q+/q- v+/v- j+/j- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
     _T("  npe_console c<N> s<N>") _T_RE_EOL \
     _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
     _T("  npe_console <options> --") _T_RE_EOL \
@@ -1651,6 +1651,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("       a+/a-  append mode (don\'t clear Console) on/off") _T_RE_EOL \
     _T("       d+/d-  follow $(CURRENT_DIRECTORY) on/off") _T_RE_EOL \
     _T("       e0/e1  ansi escape sequences: raw/remove") _T_RE_EOL \
+    _T("       u+/u-  pseudoconsole on/off (experimental)") _T_RE_EOL \
     _T("       h+/h-  console commands history on/off") _T_RE_EOL \
     _T("       m+/m-  console internal messages on/off") _T_RE_EOL \
     _T("       p+/p-  print \"==== READY ====\" on/off") _T_RE_EOL \
@@ -1696,6 +1697,16 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         There is no corresponding menu item.") _T_RE_EOL \
     _T("         This option is saved as \"AnsiEscapeSequences\".") _T_RE_EOL \
     _T("         Default value: 0.") _T_RE_EOL \
+    _T("         Note: if a child process is running, NPE_CONSOLE prints the value") _T_RE_EOL \
+    _T("         of this option corresponding to the child process.") _T_RE_EOL \
+    _T("  u+/u-  pseudoconsole on/off (experimental).") _T_RE_EOL \
+    _T("         When On, the console new line is set to '\\r';") _T_RE_EOL \
+    _T("         the input and output encodings are set to UTF-8 (i2, o2);") _T_RE_EOL \
+    _T("         the ANSI escape sequences are set to \"remove\" (e1).") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is saved as \"ChildProcess_PseudoConsole\".") _T_RE_EOL \
+    _T("         Note: if a child process is running, NPE_CONSOLE prints the value") _T_RE_EOL \
+    _T("         of this option corresponding to the child process.") _T_RE_EOL \
     _T("  h+/h-  Console commands history on/off.") _T_RE_EOL \
     _T("         Corresponding menu item: Console Commands History.") _T_RE_EOL \
     _T("         If On, NppExec\'s Console remembers the commands you typed.") _T_RE_EOL \
@@ -1795,9 +1806,13 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  o0/o1/o2  Console output encoding: ANSI/OEM/UTF8") _T_RE_EOL \
     _T("            Corresponding menu item: Console Output...") _T_RE_EOL \
     _T("            Sets Console output encoding.") _T_RE_EOL \
+    _T("            Note: if a child process is running, NPE_CONSOLE prints the value") _T_RE_EOL \
+    _T("            of this option corresponding to the child process.") _T_RE_EOL \
     _T("  i0/i1/i2  Console input encoding: ANSI/OEM/UTF8") _T_RE_EOL \
     _T("            Corresponding menu item: Console Output...") _T_RE_EOL \
     _T("            Sets Console input encoding.") _T_RE_EOL \
+    _T("            Note: if a child process is running, NPE_CONSOLE prints the value") _T_RE_EOL \
+    _T("            of this option corresponding to the child process.") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  con_filter, npp_console, npe_noemptyvars") _T_RE_EOL
   },
@@ -3732,7 +3747,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     Runtime::GetNppExec().GetConsole().PrintStr( _T("^Z") );
                     Runtime::GetNppExec().GetConsole().LockConsoleEndPos();
                     Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput( _T("\x1A") ); // ^Z
-                    Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput( Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER) );
+                    Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInputNewLine();
                     return 0;
                 }
             }
@@ -3751,7 +3766,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     Runtime::GetNppExec().GetConsole().PrintStr( _T("^D") );
                     Runtime::GetNppExec().GetConsole().LockConsoleEndPos();
                     Runtime::GetNppExec().WriteChildProcessInput( _T("\x04") ); // ^D ???
-                    Runtime::GetNppExec().WriteChildProcessInput( Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER) );
+                    Runtime::GetNppExec().WriteChildProcessInputNewLine();
                     return 0;
                 }
             }
@@ -4129,7 +4144,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
         {
             int nPos = 0, nEndPos = 0;
             Edit.ExGetSelPos(&nPos, &nEndPos);
-            Edit.ReplaceSelText(Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER));
+            Edit.ReplaceSelText(Runtime::GetNppExec().GetCommandExecutor().GetChildProcessNewLine().c_str());
             nPos += _T_RE_EOL_LEN;
             Edit.ExSetSel(nPos, nPos);
             lpmsgf->wParam = 0;
@@ -4164,7 +4179,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
             }
             else
             {
-                Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput(Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER));
+                Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInputNewLine();
                 Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed(true);
             }
         }
@@ -5363,7 +5378,7 @@ tstr ConsoleDlg::getInputText(CAnyRichEdit& Edit, bool* pisMultiline, int* pnTot
 
             nInputLength = Edit.GetTextAt(nConsoleFirstUnlockedPos, nInputLength, S.c_str());
             S.SetLengthValue(nInputLength);
-            S.Replace(_T_RE_EOL, Runtime::GetNppExec().GetOptions().GetStr(OPTS_KEY_ENTER));
+            S.Replace(_T_RE_EOL, Runtime::GetNppExec().GetCommandExecutor().GetChildProcessNewLine().c_str());
         }
     }
 

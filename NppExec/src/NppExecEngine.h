@@ -911,7 +911,7 @@ class CScriptEngine : public IScriptEngine
 
         class SavedConfiguration {
             public:
-                SavedConfiguration() : mHasValues(0)
+                SavedConfiguration()
                 {
                 }
 
@@ -973,6 +973,12 @@ class CScriptEngine : public IScriptEngine
                 {
                     mConFltrCompilerErrors = bConFltrCompilerErrors;
                     mHasValues |= fConFltrCompilerErrors;
+                }
+
+                void setConPseudoConsole(bool bConPseudoConsole)
+                {
+                    mConPseudoConsole = bConPseudoConsole;
+                    mHasValues |= fConPseudoConsole;
                 }
 
                 void setWarnEffectEnabled(const bool* pWarnEffectEnabled)
@@ -1115,6 +1121,7 @@ class CScriptEngine : public IScriptEngine
                 bool hasConFltrEnable() const { return ((mHasValues & fConFltrEnable) != 0); }
                 bool hasConFltrRplcEnable() const { return ((mHasValues & fConFltrRplcEnable) != 0); }
                 bool hasConFltrCompilerErrors() const { return ((mHasValues & fConFltrCompilerErrors) != 0); }
+                bool hasConPseudoConsole() const { return ((mHasValues & fConPseudoConsole) != 0); }
                 bool hasWarnEffectEnabled() const { return ((mHasValues & fWarnEffectEnabled) != 0); }
                 bool hasEnvVar(const tstr& varName) const { return (mEnvVars.find(varName) != mEnvVars.end()); }
                 bool hasConsoleEncoding() const { return ((mHasValues & fConsoleEncoding) != 0); }
@@ -1154,6 +1161,7 @@ class CScriptEngine : public IScriptEngine
                 void removeConFltrEnable() { mHasValues &= ~fConFltrEnable; }
                 void removeConFltrRplcEnable() { mHasValues &= ~fConFltrRplcEnable; }
                 void removeConFltrCompilerErrors() { mHasValues &= ~fConFltrCompilerErrors; }
+                void removeConPseudoConsole() { mHasValues &= ~fConPseudoConsole; }
                 void removeWarnEffectEnabled() { mHasValues &= ~fWarnEffectEnabled; }
                 void removeEnvVar(const tstr& varName) { auto itr = mEnvVars.find(varName); if (itr != mEnvVars.end()) mEnvVars.erase(itr); }
                 void removeConsoleEncoding() { mHasValues &= ~fConsoleEncoding; }
@@ -1249,6 +1257,10 @@ class CScriptEngine : public IScriptEngine
                     if ( hasConFltrCompilerErrors() )
                     {
                         pNppExec->GetOptions().SetBool(OPTB_CONFLTR_COMPILER_ERRORS, mConFltrCompilerErrors);
+                    }
+                    if ( hasConPseudoConsole() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CHILDP_PSEUDOCONSOLE, mConPseudoConsole);
                     }
                     if ( hasWarnEffectEnabled() )
                     {
@@ -1473,55 +1485,57 @@ class CScriptEngine : public IScriptEngine
                     fExecClipTextMode         = 0x04000000,
                     fExecSelTextMode          = 0x08000000,
                     fConsoleKillProcTree      = 0x10000000,
-                    fUseEditorColorsInConsole = 0x20000000
+                    fUseEditorColorsInConsole = 0x20000000,
+                    fConPseudoConsole         = 0x40000000
                 };
 
                 // we might use std::optional (C++17) instead, but would it be so fun? :)
-                unsigned int mHasValues;
+                unsigned int mHasValues{0};
 
                 // DoConColour:
-                COLORREF mColorTextNorm;
-                COLORREF mColorBkgnd;
-                bool     mUseEditorColorsInConsole;
+                COLORREF mColorTextNorm{};
+                COLORREF mColorBkgnd{};
+                bool     mUseEditorColorsInConsole{};
 
                 // DoConFilter:
-                int mConFltrInclMask;
-                int mConFltrExclMask;
-                int mRplcFltrFindMask;
-                int mRplcFltrCaseMask;
-                bool mConFltrEnable;
-                bool mConFltrRplcEnable;
-                bool mConFltrCompilerErrors;
-                bool mWarnEffectEnabled[WARN_MAX_FILTER];
+                int mConFltrInclMask{};
+                int mConFltrExclMask{};
+                int mRplcFltrFindMask{};
+                int mRplcFltrCaseMask{};
+                bool mConFltrEnable{};
+                bool mConFltrRplcEnable{};
+                bool mConFltrCompilerErrors{};
+                bool mConPseudoConsole{};
+                bool mWarnEffectEnabled[WARN_MAX_FILTER]{};
 
                 // DoNpeConsole:
-                unsigned int mConsoleEncoding;
-                unsigned int mConsoleCatchShortcutKeys;
-                int  mConsoleAnsiEscSeq;
-                int  mExecClipTextMode;
-                int  mExecSelTextMode;
-                bool mConsoleAppendMode;
-                bool mConsoleCdCurDir;
-                bool mConsoleCmdHistory;
-                bool mConsoleNoIntMsgs;
-                bool mConsolePrintMsgReady;
-                bool mConsoleNoCmdAliases;
-                bool mConsoleSetOutputVar;
-                bool mConsoleKillProcTree;
+                unsigned int mConsoleEncoding{};
+                unsigned int mConsoleCatchShortcutKeys{};
+                int  mConsoleAnsiEscSeq{};
+                int  mExecClipTextMode{};
+                int  mExecSelTextMode{};
+                bool mConsoleAppendMode{};
+                bool mConsoleCdCurDir{};
+                bool mConsoleCmdHistory{};
+                bool mConsoleNoIntMsgs{};
+                bool mConsolePrintMsgReady{};
+                bool mConsoleNoCmdAliases{};
+                bool mConsoleSetOutputVar{};
+                bool mConsoleKillProcTree{};
 
                 // DoNpeDebugLog
-                bool mConsoleDebugLog;
-                bool mLoggerOutputMode;
+                bool mConsoleDebugLog{};
+                bool mLoggerOutputMode{};
 
                 // DoNpeNoEmptyVars:
-                bool mConsoleNoEmptyVars;
+                bool mConsoleNoEmptyVars{};
 
                 // DoNpeSendMsgBufLen:
-                int mSendMsgBufLen;
+                int mSendMsgBufLen{};
 
                 // DoNppConsole:
-                bool mConsoleDialogVisible;
-                bool mConsoleIsOutputEnabled;
+                bool mConsoleDialogVisible{};
+                bool mConsoleIsOutputEnabled{};
 
                 // DoEnvSet:
                 std::map<tstr, tstr> mEnvVars;

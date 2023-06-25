@@ -56,6 +56,7 @@ class CConsoleEncodingDlg : public CAnyWindow
         void OnInitDialog(HWND hDlg);
 
         static unsigned int defaultEncodingOption();
+        static unsigned int getPseudoConsoleEncoding();
         static unsigned int getInputEncoding(unsigned int enc_opt);
         static const TCHAR* getInputEncodingName(unsigned int enc_opt);
         static unsigned int getOutputEncoding(unsigned int enc_opt);

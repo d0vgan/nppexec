@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "DlgDoExec.h"
 #include "DlgConsole.h"
 #include "DlgInputBox.h"
+#include "DlgConsoleEncoding.h"
 #include "c_base/int2str.h"
 #include <algorithm>
 
@@ -52,7 +53,7 @@ static DWORD WINAPI dwRunCollateralScriptThread(LPVOID lpScrptEngnRnr)
             scrptEngnId = pParentScriptEngine->GetThreadId();
         if ( pNppExec->GetConsole().GetOutputEnabledDirectly(scrptEngnId) != 0 )
         {
-            pNppExec->GetCommandExecutor().WriteChildProcessInput( pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+            pNppExec->GetCommandExecutor().WriteChildProcessInputNewLine();
               // sends "\n" to show child process'es prompt
 
             pNppExec->GetConsole().LockConsoleEndPosAfterEnterPressed();
@@ -557,6 +558,66 @@ std::shared_ptr<CChildProcess> CNppExecCommandExecutor::GetRunningChildProcess()
     return std::shared_ptr<CChildProcess>();
 }
 
+const std::shared_ptr<CChildProcess> CNppExecCommandExecutor::GetRunningChildProcess() const
+{
+    {
+        CCriticalSectionLockGuard lock(m_csRunningScriptEngine);
+        if ( m_RunningScriptEngine )
+            return m_RunningScriptEngine->GetRunningChildProcess();
+    }
+    return std::shared_ptr<CChildProcess>();
+}
+
+bool CNppExecCommandExecutor::IsChildProcessPseudoCon() const
+{
+    bool isPseudoCon;
+    const auto pChildProc = GetRunningChildProcess();
+    if ( pChildProc )
+        isPseudoCon = pChildProc->IsPseudoCon();
+    else
+        isPseudoCon = m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE);
+    return isPseudoCon;
+}
+
+const tstr CNppExecCommandExecutor::GetChildProcessNewLine() const
+{
+    const TCHAR* pszNewLine;
+    const auto pChildProc = GetRunningChildProcess();
+    if ( pChildProc )
+        pszNewLine = pChildProc->GetNewLine();
+    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) )
+        pszNewLine = _T("\r"); // PseudoConsole
+    else
+        pszNewLine = m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER);
+    return tstr(pszNewLine);
+}
+
+unsigned int CNppExecCommandExecutor::GetChildProcessEncoding() const
+{
+    unsigned int enc;
+    const auto pChildProc = GetRunningChildProcess();
+    if ( pChildProc )
+        enc = pChildProc->GetEncoding();
+    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) )
+        enc = CConsoleEncodingDlg::getPseudoConsoleEncoding();
+    else
+        enc = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
+    return enc;
+}
+
+unsigned int CNppExecCommandExecutor::GetChildProcessAnsiEscSeq() const
+{
+    unsigned int nAnsiEscSeq;
+    const auto pChildProc = GetRunningChildProcess();
+    if ( pChildProc )
+        nAnsiEscSeq = pChildProc->GetAnsiEscSeq();
+    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) )
+        nAnsiEscSeq = CChildProcess::escRemove; // TODO: PsequdoConsole requires _full_ support of ANSI Escape Sequences
+    else
+        nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
+    return nAnsiEscSeq;
+}
+
 bool CNppExecCommandExecutor::GetTriedExitCmd() const
 {
     {
@@ -631,7 +692,7 @@ void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd, bool bSubsti
 
     if ( !bScriptThreadRunning )
     {
-        WriteChildProcessInput( m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+        WriteChildProcessInputNewLine();
           // "\n" must be sent separately in some cases - ask M$ why
           // or, in case of NppExecCmdPrefix, it sends "\n" to show child process'es prompt
 
@@ -643,6 +704,12 @@ bool CNppExecCommandExecutor::WriteChildProcessInput(const TCHAR* szLine, bool b
 {
     std::shared_ptr<CChildProcess> pChildProc = GetRunningChildProcess();
     return (pChildProc ? pChildProc->WriteInput(szLine, bFFlush) : false);
+}
+
+bool CNppExecCommandExecutor::WriteChildProcessInputNewLine(bool bFFlush )
+{
+    std::shared_ptr<CChildProcess> pChildProc = GetRunningChildProcess();
+    return (pChildProc ? pChildProc->WriteInput(pChildProc->GetNewLine(), bFFlush) : false);
 }
 
 void CNppExecCommandExecutor::ChildProcessMustBreak(unsigned int nBreakMethod)
@@ -1143,7 +1210,7 @@ DWORD CNppExecCommandExecutor::ScriptableCommand::RunConsoleScript(Command* pCom
             scrptEngnId = pParentScriptEngine->GetThreadId();
         if ( pNppExec->GetConsole().GetOutputEnabledDirectly(scrptEngnId) != 0 )
         {
-            pCommand->GetExecutor()->WriteChildProcessInput( pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+            pCommand->GetExecutor()->WriteChildProcessInputNewLine();
               // sends "\n" to show child process'es prompt
 
             pNppExec->GetConsole().LockConsoleEndPosAfterEnterPressed();
@@ -1328,7 +1395,7 @@ void CNppExecCommandExecutor::ScriptableCommand::DoNppExit()
                 bDoClose = false;
 
                 // send "\n" to show child process'es prompt
-                GetExecutor()->WriteChildProcessInput( pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER) );
+                GetExecutor()->WriteChildProcessInputNewLine();
             }
         }
     

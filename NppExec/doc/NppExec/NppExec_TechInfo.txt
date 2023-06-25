@@ -23,6 +23,7 @@
  |  ChildProcess_KillTimeout_ms     |  500                            |  int   |
  |  ChildProcess_RunPolicy          |  0                              |  int   |
  |  ChildProcess_ComSpecSwitches    |  /C                             | string |
+ |  ChildProcess_PseudoConsole      |  0                              |  BOOL  |
  |  ChildScript_SyncTimeout_ms      |  200                            |  int   |
  |  ExitScript_Timeout_ms           |  4000                           |  int   |
  |  Path_AutoDblQuotes              |  0                     (FALSE)  |  BOOL  |
@@ -106,6 +107,7 @@
    ChildProcess_KillTimeout_ms=500
    ChildProcess_RunPolicy=0
    ChildProcess_ComSpecSwitches=/C
+   ChildProcess_PseudoConsole=0
    ChildScript_SyncTimeout_ms=200
    ExitScript_Timeout_ms=4000
    Path_AutoDblQuotes=0
@@ -249,6 +251,15 @@
    The command line switch(es) to be used with %ComSpec% when the value of the
    advanced option "ChildProcess_RunPolicy" is set to 2.
    The default value is "/C".
+
+
+ ChildProcess_PseudoConsole
+ --------------------------
+   Specifies whether to use PseudoConsole when a child process is created.
+   (PseudoConsole is available since Windows 10 October 2018 Update, ver. 1809.
+    PseudoConsole deals with ANSI escape sequences and uses UTF-8 encoding).
+   This option is experimental.
+   Can be enabled/disabled via "npe_console u+/u-".
 
 
  ChildScript_SyncTimeout_ms

@@ -340,12 +340,18 @@ public:
     void RunScriptEngine(std::shared_ptr<CScriptEngine> pScriptEngine, unsigned int nRunFlags);
 
     std::shared_ptr<CChildProcess> GetRunningChildProcess();
+    const std::shared_ptr<CChildProcess> GetRunningChildProcess() const;
+    bool IsChildProcessPseudoCon() const;
+    const tstr GetChildProcessNewLine() const;
+    unsigned int GetChildProcessEncoding() const;
+    unsigned int GetChildProcessAnsiEscSeq() const;
 
     bool GetTriedExitCmd() const;
     void SetTriedExitCmd(bool bTriedExitCmd);
 
     void ExecuteChildProcessCommand(tstr& cmd, bool bSubstituteMacroVars, bool bForceLockEndPos = false);
     bool WriteChildProcessInput(const TCHAR* szLine, bool bFFlush = false);
+    bool WriteChildProcessInputNewLine(bool bFFlush = false); // writes "\n" or "\r"
 
     void ChildProcessMustBreak(unsigned int nBreakMethod); // about to break the current child process
     void ChildProcessMustBreakAll(unsigned int nBreakMethod); // about to break all child processes

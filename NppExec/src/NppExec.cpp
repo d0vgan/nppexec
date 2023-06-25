@@ -310,6 +310,7 @@ const int   DEFAULT_CHILDP_CYCLETIMEOUT_MS    = 120;
 const int   DEFAULT_CHILDP_EXITTIMEOUT_MS     = 2000;
 const int   DEFAULT_CHILDP_KILLTIMEOUT_MS     = 500;
 const int   DEFAULT_CHILDP_RUNPOLICY          = 0;
+const int   DEFAULT_CHILDP_PSEUDOCONSOLE      = 0;
 const int   DEFAULT_CHILDS_SYNCTIMEOUT_MS     = 200;
 const int   DEFAULT_EXITS_TIMEOUT_MS          = 4000;
 const int   DEFAULT_PATH_AUTODBLQUOTES        = 0;
@@ -1101,6 +1102,9 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTS_CHILDP_COMSPECSWITCHES, OPTT_STR | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("ChildProcess_ComSpecSwitches"),
       0, DEFAULT_CHILDP_COMSPECSWITCHES },
+    { OPTB_CHILDP_PSEUDOCONSOLE, OPTT_BOOL,
+      INI_SECTION_CONSOLE, _T("ChildProcess_PseudoConsole"),
+      DEFAULT_CHILDP_PSEUDOCONSOLE, NULL },
     { OPTU_CHILDS_SYNCTIMEOUT_MS, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("ChildScript_SyncTimeout_ms"),
       DEFAULT_CHILDS_SYNCTIMEOUT_MS, NULL },
@@ -3483,7 +3487,7 @@ void CNppExec::DoExecText(const tstr& sText, unsigned int nExecTextMode)
             if ( CollateralCmdList.IsEmpty() )
             {
                 CommandExecutor.WriteChildProcessInput( pszText );
-                CommandExecutor.WriteChildProcessInput( GetOptions().GetStr(OPTS_KEY_ENTER) );
+                CommandExecutor.WriteChildProcessInputNewLine();
             }
             else
             {
@@ -3493,7 +3497,7 @@ void CNppExec::DoExecText(const tstr& sText, unsigned int nExecTextMode)
         else
         {
             CommandExecutor.WriteChildProcessInput( pszText );
-            CommandExecutor.WriteChildProcessInput( GetOptions().GetStr(OPTS_KEY_ENTER) );
+            CommandExecutor.WriteChildProcessInputNewLine();
         }
     }
     else
