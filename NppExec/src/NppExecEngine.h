@@ -1254,14 +1254,6 @@ class CScriptEngine : public IScriptEngine
                     {
                         pNppExec->GetOptions().SetBool(OPTB_CONFLTR_R_ENABLE, mConFltrRplcEnable);
                     }
-                    if ( hasConFltrCompilerErrors() )
-                    {
-                        pNppExec->GetOptions().SetBool(OPTB_CONFLTR_COMPILER_ERRORS, mConFltrCompilerErrors);
-                    }
-                    if ( hasConPseudoConsole() )
-                    {
-                        pNppExec->GetOptions().SetBool(OPTB_CHILDP_PSEUDOCONSOLE, mConPseudoConsole);
-                    }
                     if ( hasWarnEffectEnabled() )
                     {
                         CWarningAnalyzer& WarnAn = pNppExec->GetWarningAnalyzer();
@@ -1282,9 +1274,17 @@ class CScriptEngine : public IScriptEngine
                     {
                         pNppExec->GetOptions().SetUint(OPTU_CONSOLE_CATCHSHORTCUTKEYS, mConsoleCatchShortcutKeys);
                     }
+                    if ( hasConFltrCompilerErrors() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONFLTR_COMPILER_ERRORS, mConFltrCompilerErrors);
+                    }
                     if ( hasConsoleAnsiEscSeq() )
                     {
                         pNppExec->GetOptions().SetInt(OPTI_CONSOLE_ANSIESCSEQ, mConsoleAnsiEscSeq);
+                    }
+                    if ( hasConPseudoConsole() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CHILDP_PSEUDOCONSOLE, mConPseudoConsole);
                     }
                     if ( hasExecClipTextMode() )
                     {
