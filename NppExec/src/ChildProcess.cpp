@@ -246,7 +246,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     m_hPseudoCon = NULL;
     m_pAttributeList = NULL;
 
-    if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && g_pseudoCon.pfnCreatePseudoConsole )
+    if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
     {
         COORD conSize = { 80, 1000 };
         HRESULT hr = g_pseudoCon.pfnCreatePseudoConsole(conSize, m_hStdInReadPipe, m_hStdOutWritePipe, 0, &m_hPseudoCon);
@@ -293,13 +293,13 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
     if ( m_hPseudoCon )
     {
         SIZE_T bytesRequired = 0;
-        ::InitializeProcThreadAttributeList(NULL, 1, 0, &bytesRequired);
+        g_pseudoCon.pfnInitializeProcThreadAttributeList(NULL, 1, 0, &bytesRequired);
         si.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST) ::HeapAlloc(::GetProcessHeap(), 0, bytesRequired);
         if ( si.lpAttributeList )
         {
-            if ( ::InitializeProcThreadAttributeList(si.lpAttributeList, 1, 0, &bytesRequired) )
+            if ( g_pseudoCon.pfnInitializeProcThreadAttributeList(si.lpAttributeList, 1, 0, &bytesRequired) )
             {
-                if ( ::UpdateProcThreadAttribute(
+                if ( g_pseudoCon.pfnUpdateProcThreadAttribute(
                          si.lpAttributeList,
                          0, 
                          PseudoConsoleHelper::constPROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
@@ -1358,7 +1358,7 @@ void CChildProcess::closePseudoConsole()
     }
     if ( m_pAttributeList )
     {
-        ::DeleteProcThreadAttributeList(m_pAttributeList); m_pAttributeList = NULL;
+        g_pseudoCon.pfnDeleteProcThreadAttributeList(m_pAttributeList); m_pAttributeList = NULL;
     }
 }
 
@@ -1384,6 +1384,7 @@ const PROCESS_INFORMATION* CChildProcess::GetProcessInfo() const
 
 bool CChildProcess::IsPseudoCon() const
 {
+    // See also: CNppExecCommandExecutor::IsChildProcessPseudoCon()
     return (m_hPseudoCon ? true : false);
 }
 

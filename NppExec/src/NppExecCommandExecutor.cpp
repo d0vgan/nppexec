@@ -28,6 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "c_base/int2str.h"
 #include <algorithm>
 
+extern PseudoConsoleHelper g_pseudoCon;
 
 static DWORD WINAPI dwRunCollateralScriptThread(LPVOID lpScrptEngnRnr)
 {
@@ -570,12 +571,13 @@ const std::shared_ptr<CChildProcess> CNppExecCommandExecutor::GetRunningChildPro
 
 bool CNppExecCommandExecutor::IsChildProcessPseudoCon() const
 {
+    // See also: CChildProcess::IsPseudoCon()
     bool isPseudoCon;
     const auto pChildProc = GetRunningChildProcess();
     if ( pChildProc )
         isPseudoCon = pChildProc->IsPseudoCon();
     else
-        isPseudoCon = m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE);
+        isPseudoCon = m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr);
     return isPseudoCon;
 }
 
@@ -585,7 +587,7 @@ const tstr CNppExecCommandExecutor::GetChildProcessNewLine() const
     const auto pChildProc = GetRunningChildProcess();
     if ( pChildProc )
         pszNewLine = pChildProc->GetNewLine();
-    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) )
+    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
         pszNewLine = _T("\r"); // PseudoConsole
     else
         pszNewLine = m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER);
@@ -598,7 +600,7 @@ unsigned int CNppExecCommandExecutor::GetChildProcessEncoding() const
     const auto pChildProc = GetRunningChildProcess();
     if ( pChildProc )
         enc = pChildProc->GetEncoding();
-    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) )
+    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
         enc = CConsoleEncodingDlg::getPseudoConsoleEncoding();
     else
         enc = m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING);
@@ -611,7 +613,7 @@ unsigned int CNppExecCommandExecutor::GetChildProcessAnsiEscSeq() const
     const auto pChildProc = GetRunningChildProcess();
     if ( pChildProc )
         nAnsiEscSeq = pChildProc->GetAnsiEscSeq();
-    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) )
+    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
         nAnsiEscSeq = CChildProcess::escRemove; // TODO: PsequdoConsole requires _full_ support of ANSI Escape Sequences
     else
         nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);

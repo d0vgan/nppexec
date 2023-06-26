@@ -60,6 +60,27 @@ struct PseudoConsoleHelper
         _In_ typeHPCON hPC
     );
 
+    typedef BOOL (WINAPI *typeInitializeProcThreadAttributeList)(
+        LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList,
+        DWORD dwAttributeCount,
+        DWORD dwFlags,
+        PSIZE_T lpSize
+    );
+
+    typedef BOOL (WINAPI *typeUpdateProcThreadAttribute)(
+        LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList,
+        DWORD dwFlags,
+        DWORD_PTR Attribute,
+        PVOID lpValue,
+        SIZE_T cbSize,
+        PVOID lpPreviousValue,
+        PSIZE_T lpReturnSize
+    );
+
+    typedef VOID (WINAPI *typeDeleteProcThreadAttributeList)(
+        LPPROC_THREAD_ATTRIBUTE_LIST lpAttributeList
+    );
+
     PseudoConsoleHelper()
     {
         HMODULE hKernel32 = ::GetModuleHandle(_T("kernel32"));
@@ -69,12 +90,20 @@ struct PseudoConsoleHelper
             pfnCreatePseudoConsole = (typeCreatePseudoConsole) ::GetProcAddress(hKernel32, "CreatePseudoConsole");
             pfnResizePseudoConsole = (typeResizePseudoConsole) ::GetProcAddress(hKernel32, "ResizePseudoConsole");
             pfnClosePseudoConsole = (typeClosePseudoConsole) ::GetProcAddress(hKernel32, "ClosePseudoConsole");
+
+            // Available from Windows Vista
+            pfnInitializeProcThreadAttributeList = (typeInitializeProcThreadAttributeList) ::GetProcAddress(hKernel32, "InitializeProcThreadAttributeList");
+            pfnUpdateProcThreadAttribute = (typeUpdateProcThreadAttribute) ::GetProcAddress(hKernel32, "UpdateProcThreadAttribute");
+            pfnDeleteProcThreadAttributeList = (typeDeleteProcThreadAttributeList) ::GetProcAddress(hKernel32, "DeleteProcThreadAttributeList");
         }
     }
 
     typeCreatePseudoConsole pfnCreatePseudoConsole = nullptr;
     typeResizePseudoConsole pfnResizePseudoConsole = nullptr;
     typeClosePseudoConsole  pfnClosePseudoConsole = nullptr;
+    typeInitializeProcThreadAttributeList pfnInitializeProcThreadAttributeList = nullptr;
+    typeUpdateProcThreadAttribute pfnUpdateProcThreadAttribute = nullptr;
+    typeDeleteProcThreadAttributeList pfnDeleteProcThreadAttributeList = nullptr;
 };
 
 class CChildProcess
