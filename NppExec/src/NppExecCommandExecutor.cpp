@@ -612,11 +612,19 @@ unsigned int CNppExecCommandExecutor::GetChildProcessAnsiEscSeq() const
     unsigned int nAnsiEscSeq;
     const auto pChildProc = GetRunningChildProcess();
     if ( pChildProc )
+    {
         nAnsiEscSeq = pChildProc->GetAnsiEscSeq();
-    else if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
-        nAnsiEscSeq = CChildProcess::escRemove; // TODO: PsequdoConsole requires _full_ support of ANSI Escape Sequences
+    }
     else
+    {
         nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
+        if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
+        {
+            // TODO: NppExec simply removes ANSI Escape Sequences
+            if ( nAnsiEscSeq == CChildProcess::escKeepRaw )
+                nAnsiEscSeq = CChildProcess::escProcess;
+        }
+    }
     return nAnsiEscSeq;
 }
 

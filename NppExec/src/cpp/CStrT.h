@@ -163,6 +163,7 @@ public:
           // -1 means all characters from nPos
   bool  DeleteFirstChar()  { return Delete(0, 1); }
   bool  DeleteLastChar()  { return Delete(m_nLength - 1, 1); }
+  bool  DeleteLast(int nCharacters);
   T*    Detach(int* pnLen = NULL, int* pnSize = NULL);
   bool  EndsWith(const T ch) const;
   bool  EndsWith(const T* pStr) const;
@@ -516,6 +517,20 @@ template <class T> bool CStrT<T>::Delete(int nPos, int nCharacters )
       nMaxDeleteCharacters - nCharacters, true);
     m_nLength -= nCharacters;
     // m_pData[m_nLength] = 0 - is set by StrUnsafeCopyN()
+    return true;
+}
+
+template <class T> bool CStrT<T>::DeleteLast(int nCharacters)
+{
+    if ( (m_nLength == 0) || (nCharacters <= 0) )
+        return false;
+
+    if ( m_nLength > nCharacters )
+        m_nLength -= nCharacters;
+    else
+        m_nLength = 0;
+
+    m_pData[m_nLength] = 0;
     return true;
 }
 

@@ -112,6 +112,7 @@ class CChildProcess
         enum eAnsiEscSeq {
             escKeepRaw = 0,  // keep the esc-sequence characters without processing
             escRemove,       // remove the esc-sequence characters
+            escProcess = escRemove, // = escRemove (the processing is not implemented yet)
 
             escTotalCount    // the last item here!
         };
@@ -139,7 +140,7 @@ class CChildProcess
         unsigned int GetEncoding() const;
         unsigned int GetAnsiEscSeq() const;
 
-        static void RemoveAnsiEscSequencesFromLine(tstr& Line);
+        static bool RemoveAnsiEscSequencesFromLine(tstr& Line);
 
     protected:
         static bool IsWindowsNT();

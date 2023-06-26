@@ -5317,6 +5317,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
             const tIntMapping escMappings[] = {
                 { CChildProcess::escKeepRaw, _T("raw") },
                 { CChildProcess::escRemove, _T("remove") },
+                { CChildProcess::escProcess, _T("process") },
                 { 0x00, NULL } // trailing element with .str=NULL
             };
             appendInt( m_pNppExec->GetCommandExecutor().GetChildProcessAnsiEscSeq(), S1, S2, escMappings );

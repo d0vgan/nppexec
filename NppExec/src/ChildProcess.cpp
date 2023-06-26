@@ -17,6 +17,9 @@
 
 PseudoConsoleHelper g_pseudoCon;
 
+const int nPseudoConWidth = 80;
+const int nPseudoConHeight = 1000;
+
 CChildProcess::CChildProcess(CScriptEngine* pScriptEngine)
 {
     m_strInstance = NppExecHelpers::GetInstanceAsString(this);
@@ -248,7 +251,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
 
     if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
     {
-        COORD conSize = { 80, 1000 };
+        COORD conSize = { nPseudoConWidth, nPseudoConHeight };
         HRESULT hr = g_pseudoCon.pfnCreatePseudoConsole(conSize, m_hStdInReadPipe, m_hStdOutWritePipe, 0, &m_hPseudoCon);
         if ( FAILED(hr) )
         {
@@ -1000,9 +1003,11 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                     
                                 if ( bOutput )
                                 {
+                                    bool bPrintThisLine = true;
+
                                     if ( nAnsiEscSeq == escRemove )
                                     {
-                                        RemoveAnsiEscSequencesFromLine(printLine);
+                                        bPrintThisLine = RemoveAnsiEscSequencesFromLine(printLine);
                                     }
 
                                     if ( nPrevState == 3 ) // '\r'
@@ -1013,20 +1018,23 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                     {
                                         m_pNppExec->GetConsole().ProcessSlashB( (nPrevState - 7) + 1 );
                                     }
-                                    
-                                    if ( bOutputVar )
-                                    {
-                                        m_strOutput += printLine;
-                                        if ( nIsNewLine == 1 )
-                                        {
-                                            m_strOutput += _T("\n");
-                                        }
-                                    }
 
-                                    UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg;
-                                    if ( nIsNewLine == 1 )
-                                        nPrintOutFlags |= CNppExecConsole::pfNewLine;
-                                    m_pNppExec->GetConsole().PrintOutput( printLine.c_str(), nPrintOutFlags );
+                                    if ( bPrintThisLine )
+                                    {
+                                        if ( bOutputVar )
+                                        {
+                                            m_strOutput += printLine;
+                                            if ( nIsNewLine == 1 )
+                                            {
+                                                m_strOutput += _T("\n");
+                                            }
+                                        }
+
+                                        UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg;
+                                        if ( nIsNewLine == 1 )
+                                            nPrintOutFlags |= CNppExecConsole::pfNewLine;
+                                        m_pNppExec->GetConsole().PrintOutput( printLine.c_str(), nPrintOutFlags );
+                                    }
                                 }
 
                                 // if the current line is not over, then the current filter 
@@ -1057,7 +1065,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
     return dwBytesRead;
 }
 
-void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
+bool CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
 {
     // ANSI escape codes, references:
     //   https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -1218,6 +1226,7 @@ void CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
     }
 
     Line.Swap(outputLine);
+    return (!Line.IsEmpty() || outputLine.IsEmpty());
 }
 
 void CChildProcess::MustBreak(unsigned int nBreakMethod)
@@ -1400,9 +1409,15 @@ unsigned int CChildProcess::GetEncoding() const
 
 unsigned int CChildProcess::GetAnsiEscSeq() const
 {
-    // TODO: PsequdoConsole requires _full_ support of ANSI Escape Sequences
-    // (NppExec does not support them, so the best it can do is to remove them)
-    return (m_hPseudoCon ? CChildProcess::escRemove : m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ));
+    int nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
+    if ( m_hPseudoCon )
+    {
+        // TODO: NppExec simply removes ANSI Escape Sequences
+        // (PsequdoConsole requires _full_ support of them)
+        if ( nAnsiEscSeq == escKeepRaw )
+            nAnsiEscSeq = escProcess;
+    }
+    return nAnsiEscSeq;
 }
 
 bool CChildProcess::IsWindowsNT()
@@ -1512,7 +1527,7 @@ bool CProcessKiller::KillByConsoleCtrlEvent(unsigned int nCtrlEvent, unsigned in
 
 bool CProcessKiller::IsProcessActive() const
 {
-    DWORD dwExitCode = (DWORD)(-1);;
+    DWORD dwExitCode = (DWORD)(-1);
     ::GetExitCodeProcess(m_ProcInfo.hProcess, &dwExitCode);
     return (dwExitCode == STILL_ACTIVE);
 }
