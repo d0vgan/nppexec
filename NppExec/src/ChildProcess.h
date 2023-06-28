@@ -106,13 +106,50 @@ struct PseudoConsoleHelper
     typeDeleteProcThreadAttributeList pfnDeleteProcThreadAttributeList = nullptr;
 };
 
+class CPseudoConsoleScreen
+{
+    public:
+        CPseudoConsoleScreen();
+
+        void InitScreen(int width, int height);
+        bool ProcessAnsiEscSequences(tstr& Line);
+
+        void AddCharacter(wchar_t ch);
+        void BackSpace();
+        void CarriageReturn();
+        void CursorBackward(int count);
+        void CursorForward(int count);
+        void CursorPosition(int x, int y);
+        void EraseCharacters(int count);
+        void EraseInDisplay(int mode);
+        void EraseInLine(int mode);
+        void InsertBlankCharacters(int count);
+        void LineFeed();
+
+        tstr ToString() const;
+
+    private:
+        int getCurrPos() const;
+        int getMaxPos() const;
+        void incCurrPos();
+        void resizeScreenIfNeeded(int y);
+
+    private:
+        int m_width;
+        int m_height;
+        int m_currX; // current X position
+        int m_currY; // current Y position
+        int m_maxY; // max Y position written
+        tstr m_screen;
+};
+
 class CChildProcess
 {
     public:
         enum eAnsiEscSeq {
             escKeepRaw = 0,  // keep the esc-sequence characters without processing
             escRemove,       // remove the esc-sequence characters
-            escProcess = escRemove, // = escRemove (the processing is not implemented yet)
+            escProcess,      // process esc-sequence characters (experimental)
 
             escTotalCount    // the last item here!
         };
@@ -178,6 +215,7 @@ class CChildProcess
         PseudoConsoleHelper::typeHPCON m_hPseudoCon;
         LPPROC_THREAD_ATTRIBUTE_LIST   m_pAttributeList;
         PROCESS_INFORMATION m_ProcessInfo;
+        CPseudoConsoleScreen m_PseudoConScreen;
 };
 
 //--------------------------------------------------------------------
