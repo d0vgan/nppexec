@@ -141,6 +141,7 @@ class CPseudoConsoleScreen
         int m_currY; // current Y position
         int m_maxY; // max Y position written
         tstr m_screen;
+        mutable tstr m_prevString;
 };
 
 class CChildProcess
