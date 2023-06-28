@@ -620,7 +620,7 @@ unsigned int CNppExecCommandExecutor::GetChildProcessAnsiEscSeq() const
         nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
         if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
         {
-            // TODO: NppExec simply removes ANSI Escape Sequences
+            // TODO: NppExec provides very limited support of ANSI Escape Sequences
             if ( nAnsiEscSeq == CChildProcess::escKeepRaw )
                 nAnsiEscSeq = CChildProcess::escProcess;
         }

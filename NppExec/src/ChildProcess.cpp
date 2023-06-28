@@ -6,6 +6,7 @@
 #include "cpp/StrSplitT.h"
 #include "c_base/MatchMask.h"
 #include "c_base/int2str.h"
+#include "c_base/str2int.h"
 
 PseudoConsoleHelper g_pseudoCon;
 
@@ -388,6 +389,8 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
         {
             ::CloseHandle(m_hStdOutWritePipe); m_hStdOutWritePipe = NULL;
             ::CloseHandle(m_hStdInReadPipe); m_hStdInReadPipe = NULL;
+
+            m_PseudoConScreen.InitScreen(nPseudoConWidth, nPseudoConHeight);
         }
 
         bool isConsoleProcessRunning = true;
@@ -843,6 +846,54 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                     bSomethingHasBeenReadFromThePipe = true;
                 }
 
+                if ( m_hPseudoCon != nullptr && nAnsiEscSeq == escProcess )
+                {
+                    if ( dwBytesRead > 0 )
+                    {
+                        tstr ws = NppExecHelpers::CStrToWStr(bufLine, CP_UTF8);
+
+                        FILE* f = fopen("C:\\temp\\ws.txt", "w");
+                        if (f)
+                        {
+                            fwrite(ws.c_str(), sizeof(TCHAR), ws.length(), f);
+                            fclose(f);
+                        }
+
+                        m_PseudoConScreen.ProcessAnsiEscSequences(ws);
+
+                        tstr ws2 = m_PseudoConScreen.ToString();
+                        tstr printLine;
+                        
+                        CStrSplitT<TCHAR> args;
+
+                        int n = args.Split(ws2, _T("\n"));
+                        for ( int i = 0; i < n; ++i )
+                        {
+                            tstr& ln = args.Arg(i);
+
+                            printLine = ln;
+                            NppExecHelpers::StrLower(ln);
+
+                            // >>> console output filters
+                            bool bOutput = applyOutputFilters(ln, true);
+                            // <<< console output filters
+
+                            // >>> console replace filters
+                            bOutput = applyReplaceFilters(ln, printLine, bOutput);
+                            // <<< console replace filters
+
+                            if ( bOutput )
+                            {
+                                UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg;
+                                if ( i != n - 1 )
+                                    nPrintOutFlags |= CNppExecConsole::pfNewLine;
+                                m_pNppExec->GetConsole().PrintOutput( printLine.c_str(), nPrintOutFlags );
+                            }
+                        }
+                    }
+                }
+                else
+
                 // The following lines are needed for filtered output only.
                 // I.e. you can replace all these lines by this one:
                 //     GetConsole().PrintOutput(Buf);
@@ -999,7 +1050,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                     bOutput = applyReplaceFilters(_line, printLine, bOutput);
                                     // <<< console replace filters
                                 }
-                                    
+
                                 if ( bOutput )
                                 {
                                     bool bPrintThisLine = true;
@@ -1412,7 +1463,7 @@ unsigned int CChildProcess::GetAnsiEscSeq() const
     int nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
     if ( m_hPseudoCon )
     {
-        // TODO: NppExec simply removes ANSI Escape Sequences
+        // TODO: NppExec provides very limited support of ANSI Escape Sequences
         // (PsequdoConsole requires _full_ support of them)
         if ( nAnsiEscSeq == escKeepRaw )
             nAnsiEscSeq = escProcess;
@@ -1530,4 +1581,472 @@ bool CProcessKiller::IsProcessActive() const
     DWORD dwExitCode = (DWORD)(-1);
     ::GetExitCodeProcess(m_ProcInfo.hProcess, &dwExitCode);
     return (dwExitCode == STILL_ACTIVE);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+CPseudoConsoleScreen::CPseudoConsoleScreen()
+  : m_width(0), m_height(0), m_currX(0), m_currY(0), m_maxY(0)
+{
+}
+
+void CPseudoConsoleScreen::InitScreen(int width, int height)
+{
+    m_width = width;
+    m_height = height;
+
+    int len = (width + 1)*height; // using (width + 1) for adding explicit '\n'
+    m_screen.Reserve(len);
+    ::ZeroMemory(m_screen.c_str(), len*sizeof(TCHAR));
+    m_screen.SetLengthValue(len);
+}
+
+bool CPseudoConsoleScreen::ProcessAnsiEscSequences(tstr& Line)
+{
+    // ANSI escape codes, references:
+    //   https://en.wikipedia.org/wiki/ANSI_escape_code
+    //   https://en.wikipedia.org/wiki/ISO/IEC_2022
+    //   https://man7.org/linux/man-pages/man4/console_codes.4.html
+    //   http://ascii-table.com/ansi-escape-sequences.php
+    //   http://ascii-table.com/ansi-escape-sequences-vt-100.php
+    //   https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+    //   https://stackoverflow.com/questions/4842424/list-of-ansi-color-escape-sequences
+
+    enum eEscState {
+        esNone = 0,
+        esEsc,    // ESC symbol found
+        esCsi,    // CSI sequence
+        esOsc,    // OSC sequence
+        esWaitSt, // wait for ST (ESC \)
+        esWait1,  // wait for 1 symbol
+        esWait2   // wait for 2 symbols
+    };
+
+    const TCHAR* p = Line.c_str();
+    eEscState state = esNone;
+    int n, x, y;
+    TCHAR curr_ch = 0;
+    TCHAR wait1_ch = 0;
+    TCHAR wait2_ch = 0;
+    tstr escSeq;
+
+    m_currX = 0;
+    m_currY = 0;
+    m_maxY = 0;
+
+    while ( (curr_ch = *p) != 0 )
+    {
+        switch ( state )
+        {
+        case esNone:
+            switch ( curr_ch )
+            {
+            case 0x1B:  // ESC
+                state = esEsc;
+                break;
+            case 0x0D:  // CR
+                CarriageReturn();
+                break;
+            case 0x0A:  // LF
+                LineFeed();
+                break;
+            case _T('\b'):
+                BackSpace();
+                break;
+            default:
+                AddCharacter(curr_ch);
+                break;
+            }
+            break;
+
+        case esEsc:
+            switch ( curr_ch )
+            {
+            case _T('['):  // CSI
+                state = esCsi;
+                break;
+            case _T(']'):  // OSC
+                state = esOsc;
+                break;
+            case _T('P'):  // DCS
+            case _T('X'):  // SOS
+            case _T('^'):  // PM
+            case _T('_'):  // APC
+                state = esWaitSt;
+                break;
+            case _T('$'):  // G?DM?
+                state = esWait2;
+                wait2_ch = curr_ch;
+                break;
+            case _T('!'):  // C0-designate
+            case _T('"'):  // C1-designate
+            case _T('#'):  // single control function
+            case _T('%'):  // DOCS
+            case _T('&'):  // IRR
+            case _T('('):  // G0 character set
+            case _T(')'):  // G1 character set
+            case _T('*'):  // G2 character set
+            case _T('+'):  // G3 character set
+            case _T('-'):  // G1 character set, VT300
+            case _T('.'):  // G2 character set, VT300
+            case _T('/'):  // G3 character set, VT300
+            case _T(' '):  // ACS
+                state = esWait1;
+                wait1_ch = curr_ch;
+                break;
+            default:       // RIS, IND, NEL, HTS, RI, ...
+                state = esNone;
+                break;
+            }
+            break;
+
+        case esCsi:
+            if ( (curr_ch >= _T('A') && curr_ch <= _T('Z')) ||
+                (curr_ch >= _T('a') && curr_ch <= _T('z')) ||
+                (curr_ch == _T('@'))  ||
+                (curr_ch == _T('['))  ||
+                (curr_ch == _T('\\')) ||
+                (curr_ch == _T(']'))  ||
+                (curr_ch == _T('^'))  ||
+                (curr_ch == _T('_'))  ||
+                (curr_ch == _T('`'))  ||
+                (curr_ch == _T('{'))  ||
+                (curr_ch == _T('|'))  ||
+                (curr_ch == _T('}'))  ||
+                (curr_ch == _T('~')) )
+            {
+                // the "final byte" of the CSI sequence
+                switch ( curr_ch )
+                {
+                case _T('@'): // CSI n @        ICH    Insert n Blank Characters
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    InsertBlankCharacters(n);
+                    break;
+
+                case _T('C'): // CSI n C        CUF    Cursor Forward
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    CursorForward(n);
+                    break;
+                case _T('D'): // CSI n D        CUB    Cursor Back
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    CursorBackward(n);
+                    break;
+                case _T('H'): // CSI n ; m H    CUP    Cursor Position
+                    y = c_base::_tstr2int(escSeq.c_str()); // row
+                    if ( y > 0 )
+                        --y; // 0-based
+                    n = escSeq.Find(_T(';'));
+                    if ( n != -1 )
+                    {
+                        x = c_base::_tstr2int(escSeq.c_str() + n + 1); // column
+                        if ( x > 0 )
+                            --x; // 0-based
+                    }
+                    else
+                        x = 0;
+                    CursorPosition(x, y);
+                    break;
+                case _T('J'): // CSI n J        ED     Erase in Display
+                    if ( escSeq.GetFirstChar() == _T('?') )
+                        n = c_base::_tstr2int(escSeq.c_str() + 1);
+                    else
+                        n = c_base::_tstr2int(escSeq.c_str());
+                    EraseInDisplay(n);
+                    break;
+                case _T('K'): // CSI n K        EL     Erase in Line
+                    if ( escSeq.GetFirstChar() == _T('?') )
+                        n = c_base::_tstr2int(escSeq.c_str() + 1);
+                    else
+                        n = c_base::_tstr2int(escSeq.c_str());
+                    EraseInLine(n);
+                    break;
+                case _T('X'): // CSI n X        RCH    Erase n Characters
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    EraseCharacters(n);
+                    break;
+                }
+
+                escSeq.Clear();
+                state = esNone;
+            }
+            else
+            {
+                // waiting for the CSI final character...
+                escSeq += curr_ch;
+            }
+            break;
+
+        case esOsc:
+        case esWaitSt:
+            if ( curr_ch == 0x1B )  // ESC
+            {
+                const TCHAR next_ch = *(p + 1);
+                if ( next_ch == _T('\\') )  // ST
+                {
+                    ++p; // skipping the next character as well
+
+                    escSeq.Clear();
+                    state = esNone;
+                }
+                else // ?
+                {
+                    escSeq.Clear();
+                    state = esEsc; // ?
+                }
+            }
+            else
+            {
+                // waiting for the ST...
+                escSeq += curr_ch;
+            }
+            break;
+
+        case esWait1:
+            state = esNone;
+            if ( wait1_ch == _T('%') )
+            {
+                switch ( curr_ch )
+                {
+                case _T('/'):  // ESC % / F
+                    state = esWait1;
+                    break;
+                }
+            }
+            wait1_ch = 0;
+            break;
+
+        case esWait2:
+            state = esWait1;
+            if ( wait2_ch == _T('$') )
+            {
+                switch ( curr_ch )
+                {
+                case _T('@'):  // ESC $ @
+                case _T('A'):  // ESC $ A
+                case _T('B'):  // ESC $ B
+                    state = esNone;
+                    break;
+                }
+            }
+            wait2_ch = 0;
+            break;
+        }
+
+        ++p;
+    }
+
+    return true;
+}
+
+int CPseudoConsoleScreen::getCurrPos() const
+{
+    return (m_currY*(m_width + 1) + m_currX);
+}
+
+int CPseudoConsoleScreen::getMaxPos() const
+{
+    return ((m_width + 1)*m_height);
+}
+
+void CPseudoConsoleScreen::incCurrPos()
+{
+    ++m_currX;
+    if ( m_currX >= m_width )
+    {
+        m_currX -= m_width;
+        ++m_currY;
+        if ( m_currY > m_maxY )
+        {
+            m_maxY = m_currY;
+            resizeScreenIfNeeded(m_currY);
+        }
+    }
+}
+
+void CPseudoConsoleScreen::resizeScreenIfNeeded(int y)
+{
+    if ( y >= m_height )
+    {
+        int len = (m_width + 1)*(y + 1);
+        m_screen.Reserve(len);
+        ::ZeroMemory(m_screen.c_str() + (m_width + 1)*m_height, (m_width + 1)*(y + 1 - m_height)*sizeof(TCHAR));
+        m_screen.SetLengthValue(len);
+        m_height = y;
+    }
+}
+
+void CPseudoConsoleScreen::AddCharacter(wchar_t ch)
+{
+    int pos = getCurrPos();
+    if ( pos >= getMaxPos() )
+    {
+        resizeScreenIfNeeded(m_currY);
+    }
+
+    m_screen[pos] = ch;
+    incCurrPos();
+}
+
+void CPseudoConsoleScreen::BackSpace()
+{
+    if ( m_currX != 0 )
+    {
+        --m_currX;
+
+        int pos = getCurrPos();
+        m_screen[pos] = 0;
+    }
+}
+
+void CPseudoConsoleScreen::CarriageReturn()
+{
+    //m_currX = 0;
+}
+
+void CPseudoConsoleScreen::CursorBackward(int count)
+{
+    if ( count <= 0 )
+        return;
+
+    if ( m_currX > count )
+        m_currX -= count;
+    else
+        m_currX = 0;
+}
+
+void CPseudoConsoleScreen::CursorForward(int count)
+{
+    if ( count <= 0 )
+        return;
+
+    m_currX += count;
+    if ( m_currX > m_width )
+        m_currX = m_width;
+}
+
+void CPseudoConsoleScreen::CursorPosition(int x, int y)
+{
+    m_currX = x;
+    if ( m_currX > m_width )
+        m_currX = m_width;
+
+    m_currY = y;
+    if ( m_currY > m_maxY )
+    {
+        m_maxY = m_currY;
+        resizeScreenIfNeeded(m_currY);
+    }
+}
+
+void CPseudoConsoleScreen::EraseCharacters(int count)
+{
+    if ( count <= 0 )
+        return;
+
+    if ( m_currX + count > m_width )
+        count = m_width + 1 - m_currX;
+
+    int pos = getCurrPos();
+    ::ZeroMemory(m_screen.c_str() + pos, count*sizeof(TCHAR));
+}
+
+void CPseudoConsoleScreen::EraseInDisplay(int mode)
+{
+    int pos;
+
+    switch ( mode )
+    {
+    case 0: // 0 - clear from cursor to end of screen
+        pos = getCurrPos();
+        ::ZeroMemory(m_screen.c_str() + pos, (m_screen.length() - pos)*sizeof(TCHAR));
+        m_maxY = m_currY;
+        break;
+    case 1: // 1 - clear from cursor to beginning of the screen
+        pos = getCurrPos();
+        ::ZeroMemory(m_screen.c_str(), pos*sizeof(TCHAR));
+        break;
+    case 2: // 2 - clear entire screen (and moves cursor to upper left on DOS ANSI.SYS)
+    case 3: // 3 - clear entire screen and delete all lines saved in the scrollback buffer
+        ::ZeroMemory(m_screen.c_str(), (m_width + 1)*m_height*sizeof(TCHAR));
+        m_currX = 0;
+        m_currY = 0;
+        m_maxY = 0;
+        break;
+    }
+}
+
+void CPseudoConsoleScreen::EraseInLine(int mode)
+{
+    int pos;
+
+    switch ( mode )
+    {
+    case 0: // 0 - clear from cursor to the end of the line
+        pos = getCurrPos();
+        ::ZeroMemory(m_screen.c_str() + pos, (m_width + 1 - m_currX)*sizeof(TCHAR));
+        break;
+    case 1: // 1 - clear from cursor to beginning of the line
+        ::ZeroMemory(m_screen.c_str() + m_currY*(m_width + 1), m_currX*sizeof(TCHAR));
+        break;
+    case 2: // 2 - clear entire line
+        ::ZeroMemory(m_screen.c_str() + m_currY*(m_width + 1), (m_width + 1)*sizeof(TCHAR));
+        break;
+    }
+}
+
+void CPseudoConsoleScreen::InsertBlankCharacters(int count)
+{
+    if ( count <= 0 )
+        return;
+
+    int pos = getCurrPos();
+    int maxPos = getMaxPos();
+
+    if ( pos + count >= maxPos )
+        count = maxPos - pos;
+
+    for ( ; count != 0; --count )
+    {
+        m_screen[pos] = _T(' ');
+        ++pos;
+        incCurrPos();
+    }
+}
+
+void CPseudoConsoleScreen::LineFeed()
+{
+    int pos = getCurrPos();
+    m_screen[pos] = _T('\n');
+
+    m_currX = 0;
+    ++m_currY;
+    if ( m_currY > m_maxY )
+    {
+        m_maxY = m_currY;
+        resizeScreenIfNeeded(m_currY);
+    }
+}
+
+tstr CPseudoConsoleScreen::ToString() const
+{
+    tstr S;
+    S.Reserve((m_width + 1)*4);
+
+    //int maxPos = (m_maxY + 1)*(m_width + 1);
+    int maxPos = getCurrPos();
+    for ( int pos = 0; pos < maxPos; ++pos )
+    {
+        if ( m_screen[pos] != 0 )
+            S += m_screen[pos];
+    }
+
+    return S;
 }
