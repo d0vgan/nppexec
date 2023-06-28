@@ -852,12 +852,14 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                     {
                         tstr ws = NppExecHelpers::CStrToWStr(bufLine, CP_UTF8);
 
+                        /*
                         FILE* f = fopen("C:\\temp\\ws.txt", "w");
                         if (f)
                         {
                             fwrite(ws.c_str(), sizeof(TCHAR), ws.length(), f);
                             fclose(f);
                         }
+                        */
 
                         m_PseudoConScreen.ProcessAnsiEscSequences(ws);
 
@@ -1633,6 +1635,7 @@ bool CPseudoConsoleScreen::ProcessAnsiEscSequences(tstr& Line)
     m_currX = 0;
     m_currY = 0;
     m_maxY = 0;
+    ::ZeroMemory(m_screen.c_str(), (m_width + 1)*m_height*sizeof(TCHAR));
 
     while ( (curr_ch = *p) != 0 )
     {
@@ -1702,18 +1705,18 @@ bool CPseudoConsoleScreen::ProcessAnsiEscSequences(tstr& Line)
 
         case esCsi:
             if ( (curr_ch >= _T('A') && curr_ch <= _T('Z')) ||
-                (curr_ch >= _T('a') && curr_ch <= _T('z')) ||
-                (curr_ch == _T('@'))  ||
-                (curr_ch == _T('['))  ||
-                (curr_ch == _T('\\')) ||
-                (curr_ch == _T(']'))  ||
-                (curr_ch == _T('^'))  ||
-                (curr_ch == _T('_'))  ||
-                (curr_ch == _T('`'))  ||
-                (curr_ch == _T('{'))  ||
-                (curr_ch == _T('|'))  ||
-                (curr_ch == _T('}'))  ||
-                (curr_ch == _T('~')) )
+                 (curr_ch >= _T('a') && curr_ch <= _T('z')) ||
+                 (curr_ch == _T('@'))  ||
+                 (curr_ch == _T('['))  ||
+                 (curr_ch == _T('\\')) ||
+                 (curr_ch == _T(']'))  ||
+                 (curr_ch == _T('^'))  ||
+                 (curr_ch == _T('_'))  ||
+                 (curr_ch == _T('`'))  ||
+                 (curr_ch == _T('{'))  ||
+                 (curr_ch == _T('|'))  ||
+                 (curr_ch == _T('}'))  ||
+                 (curr_ch == _T('~')) )
             {
                 // the "final byte" of the CSI sequence
                 switch ( curr_ch )
@@ -2046,6 +2049,21 @@ tstr CPseudoConsoleScreen::ToString() const
     {
         if ( m_screen[pos] != 0 )
             S += m_screen[pos];
+    }
+
+    int nCharsToDelete = 0;
+    if ( !m_prevString.IsEmpty() )
+    {
+        for ( ; nCharsToDelete < m_prevString.length(); ++nCharsToDelete )
+        {
+            if ( S[nCharsToDelete] != m_prevString[nCharsToDelete] )
+                break;
+        }
+    }
+    m_prevString = S;
+    if ( nCharsToDelete != 0 )
+    {
+        S.Delete(0, nCharsToDelete);
     }
 
     return S;
