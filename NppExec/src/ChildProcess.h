@@ -118,18 +118,26 @@ class CPseudoConsoleScreen
         void BackSpace();
         void CarriageReturn();
         void CursorBackward(int count);
+        void CursorDown(int count);
         void CursorForward(int count);
+        void CursorHorizontalPosition(int x);
         void CursorPosition(int x, int y);
+        void CursorUp(int count);
+        void CursorVerticalPosition(int y);
+        void DeleteCharacters(int count);
+        void DeleteLines(int count);
         void EraseCharacters(int count);
         void EraseInDisplay(int mode);
         void EraseInLine(int mode);
         void InsertBlankCharacters(int count);
+        void InsertLines(int count);
         void LineFeed();
 
         tstr ToString() const;
 
     private:
         int getCurrPos() const;
+        int getCurrLineBeginPos() const;
         int getMaxPos() const;
         void incCurrPos();
         void resizeScreenIfNeeded(int y);
