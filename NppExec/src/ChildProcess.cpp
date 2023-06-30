@@ -1727,7 +1727,20 @@ bool CPseudoConsoleScreen::ProcessAnsiEscSequences(tstr& Line)
                         n = 1;
                     InsertBlankCharacters(n);
                     break;
-
+                case _T('A'): // CSI n A        CUU    Cursor Up
+                case _T('F'): // CSI n F        CPL    Cursor Previous Line
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    CursorUp(n);
+                    break;
+                case _T('B'): // CSI n B        CUD    Cursor Down
+                case _T('E'): // CSI n E        CNL    Cursor Next Line
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    CursorDown(n);
+                    break;
                 case _T('C'): // CSI n C        CUF    Cursor Forward
                     n = c_base::_tstr2int(escSeq.c_str());
                     if ( n == 0 )
@@ -1740,7 +1753,20 @@ bool CPseudoConsoleScreen::ProcessAnsiEscSequences(tstr& Line)
                         n = 1;
                     CursorBackward(n);
                     break;
-                case _T('H'): // CSI n ; m H    CUP    Cursor Position
+                case _T('G'): // CSI n G        CHA    Cursor Horizontal Absolute
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    CursorHorizontalPosition(n);
+                    break;
+                case _T('d'): // CSI n d        VPA    Vertical Line Position Absolute
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    CursorVerticalPosition(n);
+                    break;
+                case _T('H'): // CSI y ; x H    CUP    Cursor Position
+                case _T('f'): // CSI y ; x f    HVP    Horizontal Vertical Position
                     y = c_base::_tstr2int(escSeq.c_str()); // row
                     if ( y > 0 )
                         --y; // 0-based
@@ -1768,6 +1794,24 @@ bool CPseudoConsoleScreen::ProcessAnsiEscSequences(tstr& Line)
                     else
                         n = c_base::_tstr2int(escSeq.c_str());
                     EraseInLine(n);
+                    break;
+                case _T('L'): // CSI n L        IL     Insert Line
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    InsertLines(n);
+                    break;
+                case _T('M'): // CSI n M        DL     Delete Line
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    DeleteLines(n);
+                    break;
+                case _T('P'): // CSI n P        DCH    Delete Character
+                    n = c_base::_tstr2int(escSeq.c_str());
+                    if ( n == 0 )
+                        n = 1;
+                    DeleteCharacters(n);
                     break;
                 case _T('X'): // CSI n X        RCH    Erase n Characters
                     n = c_base::_tstr2int(escSeq.c_str());
@@ -1854,6 +1898,11 @@ int CPseudoConsoleScreen::getCurrPos() const
     return (m_currY*(m_width + 1) + m_currX);
 }
 
+int CPseudoConsoleScreen::getCurrLineBeginPos() const
+{
+    return m_currY*(m_width + 1);
+}
+
 int CPseudoConsoleScreen::getMaxPos() const
 {
     return ((m_width + 1)*m_height);
@@ -1925,12 +1974,34 @@ void CPseudoConsoleScreen::CursorBackward(int count)
         m_currX = 0;
 }
 
+void CPseudoConsoleScreen::CursorDown(int count)
+{
+    if ( count <= 0 )
+        return;
+
+    int maxY = m_height - 1;
+    if ( m_currY + count < maxY )
+        m_currY = maxY;
+    else
+        m_currY = maxY;
+}
+
 void CPseudoConsoleScreen::CursorForward(int count)
 {
     if ( count <= 0 )
         return;
 
     m_currX += count;
+    if ( m_currX > m_width )
+        m_currX = m_width;
+}
+
+void CPseudoConsoleScreen::CursorHorizontalPosition(int x)
+{
+    if ( x <= 0 )
+        return;
+
+    m_currX = x;
     if ( m_currX > m_width )
         m_currX = m_width;
 }
@@ -1949,36 +2020,120 @@ void CPseudoConsoleScreen::CursorPosition(int x, int y)
     }
 }
 
+void CPseudoConsoleScreen::CursorUp(int count)
+{
+    if ( count <= 0 )
+        return;
+
+    if ( m_currY > count )
+        m_currY -= count;
+    else
+        m_currY = 0;
+}
+
+void CPseudoConsoleScreen::CursorVerticalPosition(int y)
+{
+    if ( y <= 0 )
+        return;
+
+    m_currY = y;
+    if ( m_currY > m_maxY )
+    {
+        m_maxY = m_currY;
+        resizeScreenIfNeeded(m_currY);
+    }
+}
+
+void CPseudoConsoleScreen::DeleteCharacters(int count)
+{
+    if ( count <= 0 )
+        return;
+
+    int pos = getCurrPos();
+    int maxPos = pos + m_width - m_currX;
+
+    if ( m_currX + count < m_width )
+    {
+        for ( int i = 0; i < m_width - m_currX - count; ++i )
+        {
+            m_screen[pos] = m_screen[pos + count];
+            ++pos;
+        }
+    }
+
+    for ( ; pos < maxPos; ++pos )
+    {
+        m_screen[pos] = 0;
+    }
+}
+
+void CPseudoConsoleScreen::DeleteLines(int count)
+{
+    if ( count <= 0 )
+        return;
+
+    if ( m_currY + count > m_height )
+        count = m_height - m_currY;
+
+    int n = count*(m_width + 1);
+    int pos = getCurrLineBeginPos();
+    m_screen.Delete(pos, n);
+
+    tstr S;
+    S.Reserve(n);
+    S.SetLengthValue(n);
+    ::ZeroMemory(S.c_str(), n*sizeof(TCHAR));
+
+    m_screen.Append(S);
+}
+
 void CPseudoConsoleScreen::EraseCharacters(int count)
 {
     if ( count <= 0 )
         return;
 
     if ( m_currX + count > m_width )
-        count = m_width + 1 - m_currX;
+        count = m_width - m_currX;
 
     int pos = getCurrPos();
-    ::ZeroMemory(m_screen.c_str() + pos, count*sizeof(TCHAR));
+    for ( ; count != 0; --count )
+    {
+        m_screen[pos] = 0;
+        ++pos;
+    }
 }
 
 void CPseudoConsoleScreen::EraseInDisplay(int mode)
 {
-    int pos;
+    int pos, maxPos;
 
     switch ( mode )
     {
     case 0: // 0 - clear from cursor to end of screen
         pos = getCurrPos();
-        ::ZeroMemory(m_screen.c_str() + pos, (m_screen.length() - pos)*sizeof(TCHAR));
+        maxPos = getMaxPos();
+        for ( ; pos < maxPos; ++pos )
+        {
+            m_screen[pos] = 0;
+        }
         m_maxY = m_currY;
         break;
     case 1: // 1 - clear from cursor to beginning of the screen
-        pos = getCurrPos();
-        ::ZeroMemory(m_screen.c_str(), pos*sizeof(TCHAR));
+        pos = 0;
+        maxPos = getCurrPos();
+        for ( ; pos < maxPos; ++pos )
+        {
+            m_screen[pos] = 0;
+        }
         break;
     case 2: // 2 - clear entire screen (and moves cursor to upper left on DOS ANSI.SYS)
     case 3: // 3 - clear entire screen and delete all lines saved in the scrollback buffer
-        ::ZeroMemory(m_screen.c_str(), (m_width + 1)*m_height*sizeof(TCHAR));
+        pos = 0;
+        maxPos = getMaxPos();
+        for ( ; pos < maxPos; ++pos )
+        {
+            m_screen[pos] = 0;
+        }
         m_currX = 0;
         m_currY = 0;
         m_maxY = 0;
@@ -1989,18 +2144,33 @@ void CPseudoConsoleScreen::EraseInDisplay(int mode)
 void CPseudoConsoleScreen::EraseInLine(int mode)
 {
     int pos;
+    int maxPos;
 
     switch ( mode )
     {
     case 0: // 0 - clear from cursor to the end of the line
         pos = getCurrPos();
-        ::ZeroMemory(m_screen.c_str() + pos, (m_width + 1 - m_currX)*sizeof(TCHAR));
+        maxPos = getCurrLineBeginPos() + m_width + 1;
+        for ( ; pos < maxPos; ++pos )
+        {
+            m_screen[pos] = 0;
+        }
         break;
     case 1: // 1 - clear from cursor to beginning of the line
-        ::ZeroMemory(m_screen.c_str() + m_currY*(m_width + 1), m_currX*sizeof(TCHAR));
+        pos = getCurrLineBeginPos();
+        maxPos = getCurrPos();
+        for ( ; pos < maxPos; ++pos )
+        {
+            m_screen[pos] = 0;
+        }
         break;
     case 2: // 2 - clear entire line
-        ::ZeroMemory(m_screen.c_str() + m_currY*(m_width + 1), (m_width + 1)*sizeof(TCHAR));
+        pos = getCurrLineBeginPos();
+        maxPos = pos + m_width + 1;
+        for ( ; pos < maxPos; ++pos )
+        {
+            m_screen[pos] = 0;
+        }
         break;
     }
 }
@@ -2011,17 +2181,39 @@ void CPseudoConsoleScreen::InsertBlankCharacters(int count)
         return;
 
     int pos = getCurrPos();
-    int maxPos = getMaxPos();
 
-    if ( pos + count >= maxPos )
-        count = maxPos - pos;
+    if ( m_currX + count < m_width )
+    {
+        for ( int i = 0; i < m_width - m_currX - count; ++i )
+        {
+            m_screen[pos + count + i] = m_screen[pos + i];
+        }
+    }
 
-    for ( ; count != 0; --count )
+    for ( int i = m_currX; i < m_width && count != 0; ++i )
     {
         m_screen[pos] = _T(' ');
         ++pos;
+        --count;
         incCurrPos();
     }
+}
+
+void CPseudoConsoleScreen::InsertLines(int count)
+{
+    if ( count <= 0 )
+        return;
+
+    int n = count*(m_width + 1);
+    m_screen.DeleteLast(n);
+
+    tstr S;
+    S.Reserve(n);
+    S.SetLengthValue(n);
+    ::ZeroMemory(S.c_str(), n*sizeof(TCHAR));
+
+    int pos = (m_currY + 1)*(m_width + 1);
+    m_screen.Insert(pos, S);
 }
 
 void CPseudoConsoleScreen::LineFeed()
@@ -2043,7 +2235,6 @@ tstr CPseudoConsoleScreen::ToString() const
     tstr S;
     S.Reserve((m_width + 1)*4);
 
-    //int maxPos = (m_maxY + 1)*(m_width + 1);
     int maxPos = getCurrPos();
     for ( int pos = 0; pos < maxPos; ++pos )
     {
