@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.5
- ------
+ v0.8.5 - July 2023
+ ------------------
  * Glory to Ukraine! Glory to the heroes!
  - fixed: several issues discovered by SonarCloud
  + added: improvements around the Color Pickers (see v0.8.4)
@@ -746,8 +746,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F4
-#define NPPEXEC_VER_STR   _T("0.8.4")
+#define NPPEXEC_VER_DWORD 0x08F5
+#define NPPEXEC_VER_STR   _T("0.8.5")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
