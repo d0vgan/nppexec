@@ -7,18 +7,17 @@
 #include "c_base/MatchMask.h"
 #include "c_base/int2str.h"
 
-//CChildProcess::CChildProcess()
-//{
-//    m_pNppExec = NULL;
-//    m_pScriptEngine = NULL;
-//    
-//    reset();
-//}
-
 PseudoConsoleHelper g_pseudoCon;
 
-const int nPseudoConWidth = 80;
+const int nPseudoConWidth = 192;
 const int nPseudoConHeight = 1000;
+
+enum eNewLine {
+    nlNone = 0,
+    nlLF = 1, // \n
+    nlCR = 3, // \r
+    nlBS = 7  // \b
+};
 
 CChildProcess::CChildProcess(CScriptEngine* pScriptEngine)
 {
@@ -409,7 +408,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
         CStrT<char>  bufLine;
         bool         bPrevLineEmpty = false;
         bool         bDoOutputNext = true;
-        int          nPrevState = 0;
+        int          nPrevState = nlNone;
         DWORD        dwRead = 0;
         unsigned int nEmptyCount = 0;
         const DWORD  dwCycleTimeOut = m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_CYCLETIMEOUT_MS);
@@ -508,7 +507,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
                     }
                     else
                     {
-                        if (nPrevState != 1 /* new line */ )
+                        if (nPrevState != nlLF /* new line */ )
                         {
                             const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                             m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
@@ -530,7 +529,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
                         }
                         else
                         {
-                            if (nPrevState != 1 /* new line */ )
+                            if (nPrevState != nlLF /* new line */ )
                             {
                                 const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                                 m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
@@ -569,7 +568,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
             }
             else
             {
-                if (nPrevState != 1 /* new line */ )
+                if (nPrevState != nlLF /* new line */ )
                 {
                     const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                     m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
@@ -858,10 +857,10 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
 
                     for ( int pos = 0; pos < bufLine.length(); pos++ )
                     {
-                        int nIsNewLine = 0;
+                        int nIsNewLine = nlNone;
                         if ( bufLine[pos] == '\n' )
                         {
-                            nIsNewLine = 1; // BIN: 00000001
+                            nIsNewLine = nlLF;
                         }
                         else if ( bufLine[pos] == '\r' )
                         {
@@ -872,13 +871,13 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                 {
                                     // not "\r\r\n" (stupid M$'s line ending)
                                     // just "\r"
-                                    nIsNewLine = 3; // BIN: 00000011
+                                    nIsNewLine = nlCR;
                                 }
                             }
                         }
                         else if ( bufLine[pos] == '\b' )
                         {
-                            nIsNewLine = 7; // BIN: 00000111
+                            nIsNewLine = nlBS;
                         }
                         
                         if ( nIsNewLine || (bOutputAll && (pos == bufLine.length()-1)) )
@@ -898,7 +897,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
 
                             outLine.Assign(bufLine.c_str(), copy_len);
 
-                            if ( nIsNewLine == 7 ) // '\b'
+                            if ( nIsNewLine == nlBS ) // '\b'
                             {
                                 // counting "\b\b..." and skip them
                                 while ( bufLine[pos+1] == '\b' )
@@ -1010,13 +1009,14 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                         bPrintThisLine = RemoveAnsiEscSequencesFromLine(printLine);
                                     }
 
-                                    if ( nPrevState == 3 ) // '\r'
+                                    if ( nPrevState == nlCR ) // '\r'
                                     {
-                                        m_pNppExec->GetConsole().ProcessSlashR();
+                                        if ( !(nIsNewLine == nlLF && pos == 0) )
+                                            m_pNppExec->GetConsole().ProcessSlashR();
                                     }
-                                    else if ( nPrevState >= 7 ) // '\b'...
+                                    else if ( nPrevState >= nlBS ) // '\b'...
                                     {
-                                        m_pNppExec->GetConsole().ProcessSlashB( (nPrevState - 7) + 1 );
+                                        m_pNppExec->GetConsole().ProcessSlashB( (nPrevState - nlBS) + 1 );
                                     }
 
                                     if ( bPrintThisLine )
@@ -1024,14 +1024,14 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                         if ( bOutputVar )
                                         {
                                             m_strOutput += printLine;
-                                            if ( nIsNewLine == 1 )
+                                            if ( nIsNewLine == nlLF )
                                             {
                                                 m_strOutput += _T("\n");
                                             }
                                         }
 
                                         UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg;
-                                        if ( nIsNewLine == 1 )
+                                        if ( nIsNewLine == nlLF )
                                             nPrintOutFlags |= CNppExecConsole::pfNewLine;
                                         m_pNppExec->GetConsole().PrintOutput( printLine.c_str(), nPrintOutFlags );
                                     }
@@ -1043,7 +1043,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                             }
                             bPrevLineEmpty = (copy_len > 0) ? false : true;
                             nPrevState = nIsNewLine;
-                            if ( nIsNewLine == 1 )
+                            if ( nIsNewLine == nlLF )
                             {
                                 // current line is over - abort current filter
                                 bDoOutputNext = true;
