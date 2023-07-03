@@ -1011,7 +1011,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
 
                                     if ( nPrevState == nlCR ) // '\r'
                                     {
-                                        if ( !(nIsNewLine == nlLF && pos == 0) )
+                                        if ( !(nIsNewLine == nlLF && pos <= 1 && copy_len == 0) )
                                             m_pNppExec->GetConsole().ProcessSlashR();
                                     }
                                     else if ( nPrevState >= nlBS ) // '\b'...
