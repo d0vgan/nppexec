@@ -1599,7 +1599,7 @@ void CPseudoConsoleScreen::InitScreen(int width, int height)
 
     int len = (width + 1)*height; // using (width + 1) for adding explicit '\n'
     m_screen.Reserve(len);
-    ::ZeroMemory(m_screen.c_str(), len*sizeof(TCHAR));
+    ::ZeroMemory(m_screen.data(), len*sizeof(TCHAR));
     m_screen.SetLengthValue(len);
 }
 
@@ -1635,7 +1635,7 @@ bool CPseudoConsoleScreen::ProcessAnsiEscSequences(tstr& Line)
     m_currX = 0;
     m_currY = 0;
     m_maxY = 0;
-    ::ZeroMemory(m_screen.c_str(), (m_width + 1)*m_height*sizeof(TCHAR));
+    ::ZeroMemory(m_screen.data(), (m_width + 1)*m_height*sizeof(TCHAR));
 
     while ( (curr_ch = *p) != 0 )
     {
@@ -1929,7 +1929,7 @@ void CPseudoConsoleScreen::resizeScreenIfNeeded(int y)
     {
         int len = (m_width + 1)*(y + 1);
         m_screen.Reserve(len);
-        ::ZeroMemory(m_screen.c_str() + (m_width + 1)*m_height, (m_width + 1)*(y + 1 - m_height)*sizeof(TCHAR));
+        ::ZeroMemory(m_screen.data() + (m_width + 1)*m_height, (m_width + 1)*(y + 1 - m_height)*sizeof(TCHAR));
         m_screen.SetLengthValue(len);
         m_height = y;
     }
@@ -2082,7 +2082,7 @@ void CPseudoConsoleScreen::DeleteLines(int count)
     tstr S;
     S.Reserve(n);
     S.SetLengthValue(n);
-    ::ZeroMemory(S.c_str(), n*sizeof(TCHAR));
+    ::ZeroMemory(S.data(), n*sizeof(TCHAR));
 
     m_screen.Append(S);
 }
@@ -2210,7 +2210,7 @@ void CPseudoConsoleScreen::InsertLines(int count)
     tstr S;
     S.Reserve(n);
     S.SetLengthValue(n);
-    ::ZeroMemory(S.c_str(), n*sizeof(TCHAR));
+    ::ZeroMemory(S.data(), n*sizeof(TCHAR));
 
     int pos = (m_currY + 1)*(m_width + 1);
     m_screen.Insert(pos, S);
