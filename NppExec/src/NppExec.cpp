@@ -3239,11 +3239,11 @@ void CNppExec::InitPluginName(HMODULE hDllModule)
         plug_name.Replace( i, 7, _T("NppExec") );
         if ( i > 1 )
         {
-          ::CharLowerBuff( (plug_name.c_str() + 1), i - 1 );
+          ::CharLowerBuff( (plug_name.data() + 1), i - 1 );
         }
         if ( i + 8 < plug_name.length() )
         {
-          ::CharLowerBuff( (plug_name.c_str() + i + 8), plug_name.length() - i - 8 );
+          ::CharLowerBuff( (plug_name.data() + i + 8), plug_name.length() - i - 8 );
         }
         lstrcpy( PLUGIN_NAME, plug_name.c_str() );
 

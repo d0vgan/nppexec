@@ -5376,7 +5376,7 @@ tstr ConsoleDlg::getInputText(CAnyRichEdit& Edit, bool* pisMultiline, int* pnTot
         {
             S.Reserve(nInputLength);
 
-            nInputLength = Edit.GetTextAt(nConsoleFirstUnlockedPos, nInputLength, S.c_str());
+            nInputLength = Edit.GetTextAt(nConsoleFirstUnlockedPos, nInputLength, S.data());
             S.SetLengthValue(nInputLength);
             S.Replace(_T_RE_EOL, Runtime::GetNppExec().GetCommandExecutor().GetChildProcessNewLine().c_str());
         }

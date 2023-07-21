@@ -7200,7 +7200,7 @@ CScriptEngine::eCmdResult CScriptEngine::doSciFindReplace(const tstr& params, eC
                         pText[nLenToShow] = 0;
                     }
                 }
-                nLen = _t_sprintf( S.c_str(), // now using S as a TCHAR* buffer
+                nLen = _t_sprintf( S.data(), // now using S as a TCHAR* buffer
                                  #ifdef _WIN64
                                    _T("(%I64d,%I64d)\t %s%s"), 
                                  #else
@@ -9369,7 +9369,7 @@ bool CNppExecMacroVars::StrCalc::calcStrToHex()
 
         m_varValue.Reserve(1 + Str.length() * sizeof(TCHAR) * 3);
         int nLen = c_base::_tbuf2hexstr((const c_base::byte_t *)(Str.c_str()), Str.length()*sizeof(TCHAR), 
-                                        m_varValue.c_str(), m_varValue.GetMemSize(),
+                                        m_varValue.data(), m_varValue.GetMemSize(),
                                        _T(" "));
         m_varValue.SetLengthValue(nLen);
 

@@ -363,7 +363,7 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
 
     if ( ::CreateProcess(
             NULL,
-            sCmdLine.c_str(),
+            sCmdLine.data(),
             NULL,                        // security
             NULL,                        // security
             TRUE,                        // inherits handles

@@ -1,8 +1,8 @@
 /***********************************************
  *  
- *  CStrT ver. 1.3.2
+ *  CStrT ver. 1.3.3
  *  --------------------------------  
- *  (C) DV, Nov 2006 - Jan 2022
+ *  (C) DV, Nov 2006 - Jul 2023
  *  --------------------------------
  *
  *  Template:
@@ -150,7 +150,8 @@ public:
   T*    Assign(const CStrT& Str);
   T*    Assign(CStrT&& Str);
   T*    Attach(T* pStr, int nLen, int nSize); // attaches to pStr without copying
-  T*    c_str() const  { return ( m_pData ? m_pData : (T*) "\x00\x00\x00\x00" ); }
+  const T* c_str() const { return (m_pData ? m_pData : (const T*) "\x00\x00\x00\x00"); }
+  T*    data() const { return m_pData; } // can return NULL
   int   CalculateLength();
   void  Clear();
   int   Compare(const T* pStr) const; 

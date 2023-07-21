@@ -188,7 +188,7 @@ namespace NppExecHelpers
         {
             if ( sValue.Reserve(nLen + 1) )
             {
-                nLen = ::GetEnvironmentVariable(szVarName, sValue.c_str(), nLen + 1);
+                nLen = ::GetEnvironmentVariable(szVarName, sValue.data(), nLen + 1);
                 if ( nLen > 0 )
                 {
                     sValue.SetLengthValue(nLen);
@@ -212,7 +212,7 @@ namespace NppExecHelpers
         {
             if ( sCurDir.Reserve(nLen + 1) )
             {
-                nLen = ::GetCurrentDirectory(nLen + 1, sCurDir.c_str());
+                nLen = ::GetCurrentDirectory(nLen + 1, sCurDir.data());
                 if ( nLen > 0 )
                 {
                     sCurDir.SetLengthValue(nLen);
@@ -536,7 +536,7 @@ namespace NppExecHelpers
     void StrLower(tstr& S)
     {
         if ( S.length() != 0 )
-            ::CharLower( S.c_str() );
+            ::CharLower( S.data() );
     }
 
     void StrLower(TCHAR* S)
@@ -547,7 +547,7 @@ namespace NppExecHelpers
     void StrUpper(tstr& S)
     {
         if ( S.length() != 0 )
-            ::CharUpper( S.c_str() );
+            ::CharUpper( S.data() );
     }
 
     void StrUpper(TCHAR* S)
