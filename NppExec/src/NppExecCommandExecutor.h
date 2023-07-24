@@ -197,7 +197,7 @@ public:
         void DoRunScript(const CListT<tstr>& CmdList, unsigned int nRunFlags);
         void DoCloseConsole(unsigned int nCloseConsoleFlags);
         void DoNppExit();
-        void TryExitChildProcess(bool bCloseConsoleOnExit = false, bool bNppIsClosing = false);
+        void TryExitChildProcess(unsigned int nFlags);
         
         bool CanStartScriptOrCommand();
 
@@ -288,9 +288,9 @@ public:
     {
     public:
         enum eFlags {
-            fCloseConsoleOnExit = 0x01,
-            fNppIsClosing       = 0x02,
-            fCmdNppConsole      = ConsoleDlg::ccfCmdNppConsole
+            fNppIsClosing       = ConsoleDlg::ccfNppIsClosing,
+            fCmdNppConsole      = ConsoleDlg::ccfCmdNppConsole,
+            fCloseConsoleOnExit = 0x10,
         };
 
     public:

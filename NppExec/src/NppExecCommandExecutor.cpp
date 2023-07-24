@@ -1433,12 +1433,13 @@ void CNppExecCommandExecutor::ScriptableCommand::DoNppExit()
     pNppExec->SendNppMsg(WM_CLOSE, 0, 0);
 }
 
-void CNppExecCommandExecutor::ScriptableCommand::TryExitChildProcess(bool bCloseConsoleOnExit, bool bNppIsClosing)
+void CNppExecCommandExecutor::ScriptableCommand::TryExitChildProcess(unsigned int nFlags)
 {
     if ( GetExecutor()->TryExitRunningChildProcess() )
     {
-        if ( bCloseConsoleOnExit )
-            DoCloseConsole(bNppIsClosing);
+        if ( (nFlags & TryExitChildProcessCommand::fCloseConsoleOnExit) ||
+             (nFlags & TryExitChildProcessCommand::fCmdNppConsole) )
+            DoCloseConsole(nFlags);
     }
     else
     {
@@ -1666,7 +1667,7 @@ CNppExecCommandExecutor::TryExitChildProcessCommand::TryExitChildProcessCommand(
 
 void CNppExecCommandExecutor::TryExitChildProcessCommand::subExecute()
 {
-    TryExitChildProcess((m_nFlags & fCloseConsoleOnExit) != 0, (m_nFlags & fNppIsClosing) != 0);
+    TryExitChildProcess(m_nFlags);
 }
 
 void CNppExecCommandExecutor::TryExitChildProcessCommand::Expire()
@@ -1675,8 +1676,7 @@ void CNppExecCommandExecutor::TryExitChildProcessCommand::Expire()
 
     Runtime::GetLogger().AddEx_WithoutOutput( _T("; %sCommand - expiring (instance = %s)"), GetTypeStr(), GetInstanceStr() );
 
-    bool bCloseConsoleOnExit = (((m_nFlags & fCloseConsoleOnExit) != 0) && ((m_nFlags & fCmdNppConsole) == 0));
-    TryExitChildProcess(bCloseConsoleOnExit, (m_nFlags & fNppIsClosing) != 0);
+    TryExitChildProcess(m_nFlags);
 }
 
 //-------------------------------------------------------------------------
