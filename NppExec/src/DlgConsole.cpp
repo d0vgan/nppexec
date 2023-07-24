@@ -269,6 +269,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(MSG_WPARAM)  :  wParam (output) of \'npp_sendmsg[ex]\' or \'sci_sendmsg\'") _T_RE_EOL \
   _T("$(MSG_LPARAM)  :  lParam (output) of \'npp_sendmsg[ex]\' or \'sci_sendmsg\'") _T_RE_EOL \
   _T("$(NPP_HWND)  :  Notepad++'s main window handle") _T_RE_EOL \
+  _T("$(NPP_PID)  :  Notepad++'s process id") _T_RE_EOL \
   _T("$(SCI_HWND)  :  current Scintilla's window handle") _T_RE_EOL \
   _T("$(SCI_HWND1)  :  primary Scintilla's window handle (main view)") _T_RE_EOL \
   _T("$(SCI_HWND2)  :  secondary Scintilla's window handle (second view)") _T_RE_EOL \
@@ -2574,8 +2575,9 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set @exit_cmd = exit // sets the child process'es exit command") _T_RE_EOL \
     _T("  set @exit_cmd_silent = exit // sets the child process'es silent exit command") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
-    _T("  When NppExec's Console is being closed while a child console process is running") _T_RE_EOL \
-    _T("  in it, the specified exit command is sent to the running process automatically.") _T_RE_EOL \
+    _T("  When NppExec's Console is being closed or another NppExec's script is about") _T_RE_EOL \
+    _T("  to start while a child console process is running in NppExec's Console, the") _T_RE_EOL \
+    _T("  specified exit command is sent to the running process automatically.") _T_RE_EOL \
     _T("  The exit command is expected to finish the process normally - otherwise, if the") _T_RE_EOL \
     _T("  process does not finish, the Console won't close.") _T_RE_EOL \
     _T("  In case of @exit_cmd, the exit command is printed in the Console.") _T_RE_EOL \
@@ -5203,6 +5205,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_OUTPUTL );                //  $(OUTPUTL)
   CmdVarsList.Add( MACRO_OUTPUT1 );                //  $(OUTPUT1)
   CmdVarsList.Add( MACRO_OUTPUT );                 //  $(OUTPUT)
+  CmdVarsList.Add( MACRO_NPP_PID );                //  $(NPP_PID)
   CmdVarsList.Add( MACRO_NPP_HWND );               //  $(NPP_HWND)
   CmdVarsList.Add( MACRO_NPP_FULL_FILE_PATH );     //  $(NPP_FULL_FILE_PATH)
   CmdVarsList.Add( MACRO_NPP_DIRECTORY );          //  $(NPP_DIRECTORY)

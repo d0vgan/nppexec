@@ -73,6 +73,7 @@ const TCHAR* const VariablesList[] = {
   MACRO_NPP_DIRECTORY,         //  $(NPP_DIRECTORY)
   MACRO_NPP_FULL_FILE_PATH,    //  $(NPP_FULL_FILE_PATH)
   MACRO_NPP_HWND,              //  $(NPP_HWND)
+  MACRO_NPP_PID,               //  $(NPP_PID)
   MACRO_OUTPUT,                //  $(OUTPUT)
   MACRO_OUTPUT1,               //  $(OUTPUT1)
   MACRO_OUTPUTL,               //  $(OUTPUTL)

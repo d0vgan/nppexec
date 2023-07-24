@@ -218,6 +218,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(MSG_WPARAM)         : wParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  *        $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  *        $(NPP_HWND)           : Notepad++'s main window handle
+ *        $(NPP_PID)            : Notepad++'s process id
  *        $(SCI_HWND)           : current Scintilla's window handle
  *        $(SCI_HWND1)          : primary Scintilla's window handle (main view)
  *        $(SCI_HWND2)          : secondary Scintilla's window handle (second view)

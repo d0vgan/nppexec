@@ -53,8 +53,8 @@ namespace ConsoleDlg
 
     enum eCloseConsoleFlags
     {
-        ccfNppIsClosing        = 0x01,
-        ccfCmdNppConsole       = 0x10  // see also: CNppExec::scfCmdNppConsole
+        ccfNppIsClosing  = 0x01,
+        ccfCmdNppConsole = 0x02  // see also: CNppExec::scfCmdNppConsole
     };
 
     void DockDialog();

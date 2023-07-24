@@ -99,6 +99,7 @@ const TCHAR MACRO_EXIT_CMD_SILENT[]     = _T("$(@EXIT_CMD_SILENT)");
 const TCHAR MACRO_LAST_CMD_RESULT[]     = _T("$(LAST_CMD_RESULT)");
 const TCHAR MACRO_CLIPBOARD_TEXT[]      = _T("$(CLIPBOARD_TEXT)");
 const TCHAR MACRO_NPP_HWND[]            = _T("$(NPP_HWND)");
+const TCHAR MACRO_NPP_PID[]             = _T("$(NPP_PID)");
 const TCHAR MACRO_SCI_HWND[]            = _T("$(SCI_HWND)");
 const TCHAR MACRO_SCI_HWND1[]           = _T("$(SCI_HWND1)");
 const TCHAR MACRO_SCI_HWND2[]           = _T("$(SCI_HWND2)");
@@ -1475,6 +1476,7 @@ static FParserWrapper g_fp;
  * $(MSG_WPARAM)         : wParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  * $(MSG_LPARAM)         : lParam (output) of 'npp_sendmsg[ex]' or 'sci_sendmsg'
  * $(NPP_HWND)           : Notepad++'s main window handle
+ * $(NPP_PID)            : Notepad++'s process id
  * $(SCI_HWND)           : current Scintilla's window handle
  * $(SCI_HWND1)          : primary Scintilla's window handle (main view)
  * $(SCI_HWND2)          : secondary Scintilla's window handle (second view)
@@ -8181,6 +8183,15 @@ static tstr uptr2tstr(UINT_PTR uptr)
   return S;
 };
 
+static tstr uint2tstr(UINT u)
+{
+  TCHAR szNum[16];
+
+  c_base::_tuint2str(u, szNum);
+
+  return tstr(szNum);
+};
+
 void CNppExecMacroVars::logInput(const TCHAR* funcName, const TCHAR* inputVar, int pos)
 {
   Runtime::GetLogger().Add( funcName );
@@ -8408,6 +8419,14 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            [](CNppExec* pNppExec)
            {
              return uptr2tstr((UINT_PTR)(pNppExec->m_nppData._nppHandle));
+           }
+         ) ||
+         substituteMacroVar(
+           Cmd, S, pos,
+           MACRO_NPP_PID,
+           [](CNppExec* pNppExec)
+           {
+             return uint2tstr(::GetCurrentProcessId());
            }
          ) ||
          substituteMacroVar(
