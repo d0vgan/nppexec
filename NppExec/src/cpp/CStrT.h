@@ -150,7 +150,7 @@ public:
   T*    Assign(const CStrT& Str);
   T*    Assign(CStrT&& Str);
   T*    Attach(T* pStr, int nLen, int nSize); // attaches to pStr without copying
-  const T* c_str() const { return (m_pData ? m_pData : (const T*) "\x00\x00\x00\x00"); }
+  const T* c_str() const { return ( m_pData ? m_pData : (const T*) "\x00\x00\x00\x00" ); }
   T*    data() const { return m_pData; } // can return NULL
   int   CalculateLength();
   void  Clear();

@@ -20,6 +20,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.6
+ ------
+ * Glory to Ukraine! Glory to the heroes!
+ - fixed: "nppexec:npp_console off" did not close the Console after a child
+   process has been finished by the @exit_cmd
+ + added: $(NPP_PID)
+ + added: "set +v ..." for delayed substitution of variables
+ + built-in help slightly updated
+ + NppExec Manual slightly updated
+
+
  v0.8.5 - July 2023
  ------------------
  * Glory to Ukraine! Glory to the heroes!

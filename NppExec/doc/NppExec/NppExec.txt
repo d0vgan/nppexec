@@ -56,6 +56,8 @@
  *        set local <var> - shows the value of user's local variable <var>
  *        set local <var> = ... - sets the value of user's local variable <var>
  *        set local <var> ~ ... - calculates the value of user's local variable
+ *        set +v <var> = ... - sets the value of <var> using delayed vars substitution
+ *        set +v local <var> = ... - sets the value of local <var> using delayed vars subst.
  *        unset <var> - removes user's variable <var>
  *        unset local <var> - removes user's local variable <var>
  *        env_set <var> - shows the value of environment variable <var>
@@ -217,6 +219,17 @@
  *************
  *  HISTORY  *
  *************
+
+ v0.8.6
+ ------
+ * Glory to Ukraine! Glory to the heroes!
+ - fixed: "nppexec:npp_console off" did not close the Console after a child
+   process has been finished by the @exit_cmd
+ + added: $(NPP_PID)
+ + added: "set +v ..." for delayed substitution of variables
+ + built-in help slightly updated
+ + NppExec Manual slightly updated
+
 
  v0.8.5 - July 2023
  ------------------
