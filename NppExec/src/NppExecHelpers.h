@@ -434,6 +434,7 @@ namespace NppExecHelpers
     int StrCmpNoCase(const tstr& S1, const TCHAR* S2); // comparing case-insensitively
     int StrCmpNoCase(const TCHAR* S1, const tstr& S2); // comparing case-insensitively
     int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2); // comparing case-insensitively
+    int StrCmpNoCase(const TCHAR* S1, int Len1, const TCHAR* S2, int Len2);
 
     inline bool IsTabSpaceChar(char ch)
     {

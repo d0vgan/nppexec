@@ -133,6 +133,8 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("set local <var>  -  shows the value of user\'s local variable <var>") _T_RE_EOL \
   _T("set local <var> = ...  -  sets the value of user\'s local variable <var>") _T_RE_EOL \
   _T("set local <var> ~ ...  -  calculates the value of user\'s local variable") _T_RE_EOL \
+  _T("set +v <var> = ...  -  sets the value of <var> using delayed vars substitution") _T_RE_EOL \
+  _T("set +v local <var> = ...  -  sets the value of local <var> using delayed vars subst.") _T_RE_EOL \
   _T("unset <var>  -  removes user\'s variable <var>") _T_RE_EOL \
   _T("unset <var> = <value>  -  removes user\'s variable <var>") _T_RE_EOL \
   _T("unset local <var>  -  removes user\'s local variable <var>") _T_RE_EOL \
@@ -780,14 +782,14 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("      no running child process then start a collateral script;") _T_RE_EOL \
     _T("  8:  (cp) if the first line of the text is \"!collateral\" and there is") _T_RE_EOL \
     _T("      a running child process then start a collateral script;") _T_RE_EOL \
-    _T("  16: (ne) lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
+    _T("  16: (ne) lines that start with the \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("\" prefix will be executed by") _T_RE_EOL \
     _T("      NppExec (as NppExec's script commands) and will not be sent to a") _T_RE_EOL \
     _T("      running child process;") _T_RE_EOL \
     _T("  64: (sv) share local variables: npp_exectext uses and updates the existing") _T_RE_EOL \
     _T("      local variables instead of its own local variables.") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  npp_exectext 0 $(CLIPBOARD_TEXT)") _T_RE_EOL \
-    _T("  npp_exectext 28 $(SELECTED_TEXT) // process \"!collateral\" and \"nppexec:\"") _T_RE_EOL \
+    _T("  npp_exectext 28 $(SELECTED_TEXT) // process \"!collateral\" and \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("\"") _T_RE_EOL \
     _T("  set local A = 123") _T_RE_EOL \
     _T("  npp_exectext 0 echo A is $(A)") _T_RE_EOL \
     _T("  set local cmds ~ strunescape !collateral\\nmessagebox Hello!!!") _T_RE_EOL \
@@ -1279,9 +1281,11 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("      set local <var>") _T_RE_EOL \
     _T("      set local <var> = ...") _T_RE_EOL \
     _T("      set local <var> ~ ...") _T_RE_EOL \
-    _T("  7.  unset <var>") _T_RE_EOL \
+    _T("  7.  set +v <var> = ...") _T_RE_EOL \
+    _T("      set +v local <var> = ...") _T_RE_EOL \
+    _T("  8.  unset <var>") _T_RE_EOL \
     _T("      unset <var> = <value>") _T_RE_EOL \
-    _T("  8.  unset local <var>") _T_RE_EOL \
+    _T("  9.  unset local <var>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  1.  Shows all user\'s variables (\"set\" without parameters)") _T_RE_EOL \
     _T("  2.  Shows the value of user\'s variable (\"set\" without \"=\")") _T_RE_EOL \
@@ -1311,8 +1315,9 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  5s. Returns a decimal character code of a character <c>") _T_RE_EOL \
     _T("  5t. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
     _T("  6.  Shows/sets the value of local variable (\"set local <var> ...\")") _T_RE_EOL \
-    _T("  7.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
-    _T("  8.  Removes the local variable <var> (\"unset local <var>\")") _T_RE_EOL \
+    _T("  7.  Sets a value using delayed substitution of variables (\"set +v ...\")") _T_RE_EOL \
+    _T("  8.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
+    _T("  9.  Removes the local variable <var> (\"unset local <var>\")") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  set p = C:\\Program Files") _T_RE_EOL \
     _T("  dir $(p)\\*  // the same as dir C:\\Program Files\\*") _T_RE_EOL \
@@ -1331,6 +1336,13 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  echo $($(b))           // prints 123 : $($(b)) = $(a) = 123") _T_RE_EOL \
     _T("  set local c = $($(b))  // $(c) = 123 : $($(b)) = $(a) = 123") _T_RE_EOL \
     _T("  unset local $($(b))    // deletes $(a)") _T_RE_EOL \
+    _T("  // delayed substitution of variables, modern way:") _T_RE_EOL \
+    _T("  set +v local fname = $(FILE_NAME)  // $(fname) = $(FILE_NAME)") _T_RE_EOL \
+    _T("  set local s ~ strexpand $(fname)  // the actual file name") _T_RE_EOL \
+    _T("  // delayed substitution of variables, old way:") _T_RE_EOL \
+    _T("  set local s = $") _T_RE_EOL \
+    _T("  set local cmd = echo $(s)(PID)  // $(cmd) = echo $(PID)") _T_RE_EOL \
+    _T("  ") DEFAULT_NPPEXEC_CMD_PREFIX _T("$(cmd)  // will print an actual process id") _T_RE_EOL \
     _T("  // calculations:") _T_RE_EOL \
     _T("  set ans ~ 1 + 2*(3 + 4) - 0x5  // calculates the expression") _T_RE_EOL \
     _T("  set ans ~ 0x001 | 0x010 | 0x100  // calculates the expression") _T_RE_EOL \
@@ -1771,7 +1783,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("             there is no running child process then start a collateral script;") _T_RE_EOL \
     _T("         8:  (cp) if the first line of the clipboard text is \"!collateral\" and") _T_RE_EOL \
     _T("             there is a running child process then start a collateral script;") _T_RE_EOL \
-    _T("         16: (ne) lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
+    _T("         16: (ne) lines that start with the \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("\" prefix will be executed by") _T_RE_EOL \
     _T("             NppExec (as NppExec's script commands) and will not be sent to") _T_RE_EOL \
     _T("             a running child process;") _T_RE_EOL \
     _T("         32: (ls) update the last executed script: Execute Clipboard Text updates") _T_RE_EOL \
@@ -1794,7 +1806,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("             there is no running child process then start a collateral script;") _T_RE_EOL \
     _T("         8:  (cp) if the first line of the selected text is \"!collateral\" and") _T_RE_EOL \
     _T("             there is a running child process then start a collateral script;") _T_RE_EOL \
-    _T("         16: (ne) lines that start with the \"nppexec:\" prefix will be executed by") _T_RE_EOL \
+    _T("         16: (ne) lines that start with the \"") DEFAULT_NPPEXEC_CMD_PREFIX _T("\" prefix will be executed by") _T_RE_EOL \
     _T("             NppExec (as NppExec's script commands) and will not be sent to") _T_RE_EOL \
     _T("             a running child process;") _T_RE_EOL \
     _T("         32: (ls) update the last executed script: Execute Selected Text updates the") _T_RE_EOL \
@@ -2578,8 +2590,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  When NppExec's Console is being closed or another NppExec's script is about") _T_RE_EOL \
     _T("  to start while a child console process is running in NppExec's Console, the") _T_RE_EOL \
     _T("  specified exit command is sent to the running process automatically.") _T_RE_EOL \
-    _T("  The exit command is expected to finish the process normally - otherwise, if the") _T_RE_EOL \
-    _T("  process does not finish, the Console won't close.") _T_RE_EOL \
+    _T("  The exit command is expected to finish the process normally - otherwise, if") _T_RE_EOL \
+    _T("  the process does not finish, the Console won't close.") _T_RE_EOL \
     _T("  In case of @exit_cmd, the exit command is printed in the Console.") _T_RE_EOL \
     _T("  In case of @exit_cmd_silent, the exit command is not printed in the Console.") _T_RE_EOL \
     _T("  Note: the Console can be closed either manually (by clicking the \"x\" button)") _T_RE_EOL \
@@ -2589,6 +2601,13 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  cmd // running the cmd.exe") _T_RE_EOL \
     _T("  // now close the Console - \"exit\" will be sent to the cmd.exe automatically") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
+    _T("  An exit command is specific to a running process. For example, it is \"exit\"") _T_RE_EOL \
+    _T("  for cmd, and it is \"exit()\" for python. A proper exit command is a recommended") _T_RE_EOL \
+    _T("  way to finish a process.") _T_RE_EOL \
+    _T("  It is also possible to specify an exit command that will kill the running") _T_RE_EOL \
+    _T("  process rather than finish it normally. This is not recommended! Anyway,") _T_RE_EOL \
+    _T("  here is an example. It also demonstrates a delayed substitution of $(PID):") _T_RE_EOL \
+    _T("    set +v local @exit_cmd = ") DEFAULT_NPPEXEC_CMD_PREFIX _T("taskkill /PID $(PID)") _T_RE_EOL \
     _T("  It is possible to close NppExec's Console by typing \"npp_console off\" in it.") _T_RE_EOL \
     _T("  Even when a child console process (such as \"cmd\" or \"python -u -i\") is running") _T_RE_EOL \
     _T("  and waiting for the input, the Console can be closed by typing:") _T_RE_EOL \

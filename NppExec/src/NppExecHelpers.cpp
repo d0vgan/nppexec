@@ -752,6 +752,21 @@ namespace NppExecHelpers
                                  S2 ? S2 : _T(""), GetStrSafeLength(S2) );
     }
 
+    int StrCmpNoCase(const TCHAR* S1, int Len1, const TCHAR* S2, int Len2)
+    {
+        if ( !S1 )
+        {
+            S1 = _T("");
+            Len1 = 0;
+        }
+        if ( !S2 )
+        {
+            S2 = _T("");
+            Len2 = 0;
+        }
+        return strCompareNoCase(S1, Len1, S2, Len2);
+    }
+
     void StrDelLeadingTabSpaces(CStrT<char>& S)
     {
         int i = 0;

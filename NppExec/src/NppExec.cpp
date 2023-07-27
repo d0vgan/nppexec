@@ -73,6 +73,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        set local <var> - shows the value of user's local variable <var>
  *        set local <var> = ... - sets the value of user's local variable <var>
  *        set local <var> ~ ... - calculates the value of user's local variable
+ *        set +v <var> = ... - sets the value of <var> using delayed vars substitution
+ *        set +v local <var> = ... - sets the value of local <var> using delayed vars subst.
  *        unset <var> - removes user's variable <var>
  *        unset local <var> - removes user's local variable <var>
  *        env_set <var> - shows the value of environment variable <var>

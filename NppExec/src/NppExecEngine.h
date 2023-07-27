@@ -841,6 +841,7 @@ class CScriptEngine : public IScriptEngine
         static bool     usesDelayedVarSubstitution(eCmdType cmdType);
         static eCmdType modifyCommandLine(CScriptEngine* pScriptEngine, tstr& Cmd, eIfState ifState);
         static bool     isLocalParam(tstr& param);
+        static bool     isDelayedSubstVar(tstr& param, bool& bKeywordPresent);
 
         enum eAddCmdFlags {
             acfKeepLineEndings = 0x01,

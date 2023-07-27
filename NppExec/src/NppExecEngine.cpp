@@ -1254,6 +1254,10 @@ static FParserWrapper g_fp;
  *   - sets the value of user's local variable <var>
  * set local <var> ~ ...
  *   - calculates the value of user's local variable <var>
+ * set +v <var> = ...
+ *   - sets the value of <var> using delayed vars substitution
+ * set +v local <var> = ...
+ *   - sets the value of local <var> using delayed vars subst.
  * unset <var>
  *   - removes user's variable <var>
  * unset local <var>
@@ -2409,9 +2413,7 @@ bool CScriptEngine::isLocalParam(tstr& param)
     }
     if ( n == 5 ) // length of "local"
     {
-        tstr Prefix( param.c_str(), n );
-        NppExecHelpers::StrLower(Prefix);
-        if ( Prefix == _T("local") )
+        if ( NppExecHelpers::StrCmpNoCase(param.c_str(), 5, _T("local"), 5) == 0 )
         {
             isLocal = true;
             param.Delete(0, n);
@@ -2419,6 +2421,37 @@ bool CScriptEngine::isLocalParam(tstr& param)
         }
     }
     return isLocal;
+}
+
+bool CScriptEngine::isDelayedSubstVar(tstr& param, bool& bKeywordPresent)
+{
+    bool isDelayed = false;
+    bool isKeyword = false;
+    int n = param.FindOneOf(_T(" \t\v\f"));
+    if ( n == 2 ) // length of "+v"
+    {
+        if ( NppExecHelpers::LatinCharLower(param[1]) == _T('v') )
+        {
+            switch ( param[0] )
+            {
+                case _T('+'): // "+v"
+                    isKeyword = true;
+                    isDelayed = true;
+                    break;
+                case _T('-'): // "-v"
+                    isKeyword = true;
+                    isDelayed = false;
+                    break;
+            }
+            if ( isKeyword )
+            {
+                param.Delete(0, n);
+                NppExecHelpers::StrDelLeadingAnySpaces(param);
+            }
+        }
+    }
+    bKeywordPresent = isKeyword;
+    return isDelayed;
 }
 
 int CScriptEngine::getOnOffParam(const tstr& param)
@@ -7628,6 +7661,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     bool isInternalMsg = false;
     bool bLocalVar = false;
+    bool bDelayedSubst = false;
+    bool bDelayedSubstKeyword = false;
     tstr varName;
 
     // sets the value of user's variable
@@ -7654,20 +7689,31 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
 
             CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
             MacroVars.CheckAllMacroVars(this, varName, true, CMDTYPE_SET);
-            MacroVars.CheckAllMacroVars(this, varValue, true);
 
-            if ( !bSep1 )
-            {
-                if ( !CNppExecMacroVars::StrCalc(varValue, m_pNppExec).Process() )
-                    nCmdResult = CMDRESULT_FAILED;
-            }
-
+            // Note: it is possible to have a variable named "+v" or "-v"
+            bDelayedSubst = isDelayedSubstVar(varName, bDelayedSubstKeyword); // checking for "+v" before "local"
             bLocalVar = CNppExecMacroVars::IsLocalMacroVar(varName);
             if ( bLocalVar && varName.IsEmpty() )
             {
                 // set local = ...
                 varName = _T("LOCAL");
                 bLocalVar = false;
+            }
+
+            if ( bLocalVar && !bDelayedSubstKeyword)
+            {
+                bDelayedSubst = isDelayedSubstVar(varName, bDelayedSubstKeyword); // checking for "+v" after "local"
+            }
+
+            if ( !bDelayedSubst )
+            {
+                MacroVars.CheckAllMacroVars(this, varValue, true);
+            }
+
+            if ( !bSep1 )
+            {
+                if ( !CNppExecMacroVars::StrCalc(varValue, m_pNppExec).Process() )
+                    nCmdResult = CMDRESULT_FAILED;
             }
 
             tstr S = bLocalVar ? _T("local ") : _T("");
@@ -7693,7 +7739,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
             varName = params; // let's check for "set local"
             NppExecHelpers::StrDelLeadingAnySpaces(varName);
             NppExecHelpers::StrDelTrailingAnySpaces(varName);
+
+            // Note: it is possible to have a variable named "+v" or "-v"
+            bDelayedSubst = isDelayedSubstVar(varName, bDelayedSubstKeyword); // checking for "+v" before "local"
             bLocalVar = CNppExecMacroVars::IsLocalMacroVar(varName);
+            if ( bLocalVar && !bDelayedSubstKeyword)
+            {
+                bDelayedSubst = isDelayedSubstVar(varName, bDelayedSubstKeyword); // checking for "+v" after "local"
+            }
+
+            CNppExecMacroVars::MakeCompleteVarName(varName);
+            NppExecHelpers::StrUpper(varName);
         }
     }
     else
