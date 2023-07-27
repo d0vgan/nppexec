@@ -35,7 +35,7 @@ ability to do it by itself. No magic here :)</pre>
   <li>The first thing is WHAT to compile or run (the source file itself).</li>
   <li>The second thing is WHO will do it (the interpreter or compiler).</li>
 </ul>
-<p>Let's name the WHAT thing as &lt;file&gt; (because it's your source file) and the WHO thing as &lt;tool&gt; (because it's the tool which will interpret or compile you file). According to this, you need to specify the following generic command to interpret/compile/run any source file: </p>
+<p>Let's name the WHAT thing as &lt;file&gt; (because it's your source file) and the WHO thing as &lt;tool&gt; (because it's the tool which will interpret or compile your file). According to this, you need to specify the following generic command to interpret/compile/run any source file: </p>
 <blockquote>
   <pre>&lt;tool&gt; &lt;file&gt; &lt;arguments&gt; </pre>
 </blockquote>
@@ -61,7 +61,7 @@ CreateProcess() failed with error code 2:
 The system cannot find the file specified.</pre>
 </blockquote>
 <p>What the hell happened? Help! </p>
-<p>Let's analyze. You tried to run &quot;something&quot;. What is &quot;something&quot;? It seems to be an executable file bacause you specified it without extension. And what do you have as result? You have &quot;The system cannot find the file specified&quot;. So, nothing magical: you tried to run a file which does not exist. </p>
+<p>Let's analyze. You tried to run &quot;something&quot;. What is &quot;something&quot;? It seems to be an executable file because you specified it without extension. And what do you have as result? You have &quot;The system cannot find the file specified&quot;. So, nothing magical: you tried to run a file which does not exist. </p>
 <p>Let me write some comments here. When you type &quot;something&quot; and press Enter, it means the following: run an executable file &quot;something&quot; (&quot;something.exe&quot;) from current directory or a directory mentioned in %PATH%. This is what the system tries to do. And if you do have &quot;something.exe&quot; in the current directory or somewhere in %PATH%, this file (&quot;something.exe&quot;) will be executed and you will not have the error code 2. </p>
 <p>You can have the very same error when the name of an executable was specified incorrectly. For example: </p>
 <blockquote>
