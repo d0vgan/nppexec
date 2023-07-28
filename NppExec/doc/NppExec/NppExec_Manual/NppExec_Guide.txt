@@ -242,6 +242,63 @@ For example:
     messagebox "Unknown file type!"
   endif
 
+Such a single script includes everything in one place. On the one hand, it's
+nice to have everything in one place. On the other hand, it will create issues
+with maintenance and performance in the future.
+_Maintenance_. As time goes by, more and more file types (languages) will be
+added to this single script. The script will grow - and it will be harder and
+harder to find some exact things within the script. Moreover, if different
+parts of the script will share some common functionality (or, at least, some
+common variables) and you'll decide to make changes to the common functionality
+at some point, it will most likely lead to unexpected effects in different
+places. (For example, you may want some change to affect only certain languages,
+but in fact it will affect more of them). So, the bigger the script will become,
+the more accurate you'll need to be with each single change within the script.
+_Performance_. The bigger the script will become, the more time NppExec will
+need to process the entire script. The good thing is: NppExec's engine is
+internally fast enough to handle very big scripts without a noticeable delay.
+The bad thing is: NppExec's user interface (the NppExec Console) is very slow
+when there are a lot of messages to be printed. Here are the good news: it's
+easy to reduce the number of messages to be printed in NppExec's Console - and
+thus to enhance the overall performance. The presense of "NPE_CONSOLE local m-"
+in the beginning of the script already reduces the number of messages NppExec
+prints to its Console. Going further, you can explicitly specify when to
+disable and enable NppExec's output, thus having a complete manual control of
+when NppExec prints something to its Console and when it does not. Just notice
+that you'll need to update _each_ IF-ELSE block to achieve that:
+
+  // disabling any output to NppExec's Console
+  NPP_CONSOLE local -
+  // setting internal messages off, error highlight filter on
+  NPE_CONSOLE local m- x+ --
+  // saving current file
+  NPP_SAVE
+  // file extension in lower case
+  set local ext ~ strlower $(EXT_PART)
+  // compiling/running...
+  if $(ext) == .c
+    NPP_CONSOLE local +  // enabling output to NppExec's Console
+    "C:\tools\tcc\tcc.exe" -run "$(FULL_CURRENT_PATH)"
+  else if $(ext) == .cpp
+    env_set local PATH = $(path);C:\mingw32\bin;
+    set local obj = $(CURRENT_DIRECTORY)\$(NAME_PART)
+    cmd /C del "$(obj).o" 2>nul & del "$(obj).exe" 2>nul
+    NPP_CONSOLE local +  // enabling output to NppExec's Console
+    echo Compiling...
+    "g++" -c "$(FULL_CURRENT_PATH)"
+    if $(EXITCODE) == 0
+      "g++" "$(obj).o" -o "$(obj).exe"
+      echo Running...
+      NPP_RUN cmd /C if exist "$(obj).exe" "$(obj).exe" && echo. && pause
+    endif
+  else if $(ext) == .awk
+    NPP_CONSOLE local +  // enabling output to NppExec's Console
+    "C:\tools\gawk\gawk.exe" -f "$(FULL_CURRENT_PATH)"
+  else
+    NPP_CONSOLE local +  // enabling output to NppExec's Console
+    messagebox "Unknown file type!"
+  endif
+
 
 One more thing regarding NppExec usage. Compiler/interpreter's output is shown
 in NppExec's Console and can be parsed by NppExec. It means that different

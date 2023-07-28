@@ -296,6 +296,44 @@ else
 endif</pre>
 </blockquote>
 
+<p>Such a single script includes everything in one place. On the one hand, it's nice to have everything in one place. On the other hand, it will create issues with maintenance and performance in the future.</p>
+<p><i>Maintenance.</i> As time goes by, more and more file types (languages) will be added to this single script. The script will grow - and it will be harder and harder to find some exact things within the script. Moreover, if different parts of the script will share some common functionality (or, at least, some common variables) and you'll decide to make changes to the common functionality at some point, it will most likely lead to unexpected effects in different places. (For example, you may want some change to affect only certain languages, but in fact it will affect more of them). So, the bigger the script will become, the more accurate you'll need to be with each single change within the script.</p>
+<p><i>Performance.</i> The bigger the script will become, the more time NppExec will need to process the entire script. The good thing is: NppExec's engine is internally fast enough to handle very big scripts without a noticeable delay. The bad thing is: NppExec's user interface (the NppExec Console) is very slow when there are a lot of messages to be printed. Here are the good news: it's easy to reduce the number of messages to be printed in NppExec's Console - and thus to enhance the overall performance. The presense of &quot;<i>NPE_CONSOLE local m-</i>&quot; in the beginning of the script already reduces the number of messages NppExec prints to its Console. Going further, you can explicitly specify when to disable and enable NppExec's output, thus having a complete manual control of when NppExec prints something to its Console and when it does not. Just notice that you'll need to update <i>each</i> IF-ELSE block to achieve that:</p>
+
+<blockquote>
+  <pre>// disabling any output to NppExec's Console
+NPP_CONSOLE local -
+// setting internal messages off, error highlight filter on
+NPE_CONSOLE local m- x+ --
+// saving current file
+NPP_SAVE
+// file extension in lower case
+set local ext ~ strlower $(EXT_PART)
+// compiling/running...
+if $(ext) == .c
+  NPP_CONSOLE local +  // enabling output to NppExec's Console
+  &quot;C:\tools\tcc\tcc.exe&quot; -run &quot;$(FULL_CURRENT_PATH)&quot;
+else if $(ext) == .cpp
+  env_set local PATH = $(path);C:\mingw32\bin;
+  set local obj = $(CURRENT_DIRECTORY)\$(NAME_PART)
+  cmd /C del &quot;$(obj).o&quot; 2>nul & del &quot;$(obj).exe&quot; 2>nul
+  NPP_CONSOLE local +  // enabling output to NppExec's Console
+  echo Compiling...
+  &quot;g++&quot; -c &quot;$(FULL_CURRENT_PATH)&quot;
+  if $(EXITCODE) == 0
+    &quot;g++&quot; &quot;$(obj).o&quot; -o &quot;$(obj).exe&quot;
+    echo Running...
+    NPP_RUN cmd /C if exist &quot;$(obj).exe&quot; &quot;$(obj).exe&quot; && echo. && pause
+  endif
+else if $(ext) == .awk
+  NPP_CONSOLE local +  // enabling output to NppExec's Console
+  &quot;C:\tools\gawk\gawk.exe&quot; -f &quot;$(FULL_CURRENT_PATH)&quot;
+else
+  NPP_CONSOLE local +  // enabling output to NppExec's Console
+  messagebox &quot;Unknown file type!&quot;
+endif</pre>
+</blockquote>
+
 <br>
 
 <p>One more thing regarding NppExec usage.</p>
