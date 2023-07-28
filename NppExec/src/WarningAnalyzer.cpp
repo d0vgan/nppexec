@@ -49,7 +49,7 @@ CWarningAnalyzer::CWarningAnalyzer() : m_nLine(0)
     m_FileName[0] = 0;
 
     lstrcpy(m_BuiltInErrorFilter.Mask, _T("<built-in error filter>"));
-    m_BuiltInErrorFilter.Effect.rgb = COLOR_CON_TEXTERR; //Only color if found file name and line number
+    m_BuiltInErrorFilter.Effect.SetRGB(COLOR_CON_TEXTERR); //Only color if found file name and line number
     m_BuiltInErrorFilter.Effect.Bold = true;
     m_BuiltInErrorFilter.Effect.Enable = true;
 }
@@ -500,7 +500,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             if ( filename.size() > 4 && lstrcmpi( filename.c_str() + (filename.size() - 4), _T(".exe")) == 0 )
                 return false;
             pszMask = m_BuiltInErrorFilter.Mask;
-            m_BuiltInErrorFilter.Effect.rgb = Runtime::GetNppExec().GetConsole().GetCurrentColorTextErr();
+            m_BuiltInErrorFilter.Effect.SetRGB(Runtime::GetNppExec().GetConsole().GetCurrentColorTextErr());
         }
         else
         {
@@ -557,15 +557,11 @@ int CWarningAnalyzer::GetCharNumber() const
     return m_nChar;
 }
 
-long CWarningAnalyzer::GetColor() const
+COLORREF CWarningAnalyzer::GetColor() const
 {
     const TFilter& filter = (m_nLastFoundIndex == WARN_BUILTIN_ERROR_FILTER) ? m_BuiltInErrorFilter : m_Filter[m_nLastFoundIndex];
     const TEffect& effect = filter.Effect;
-    return ( RGB( effect.Red
-                , effect.Green
-                , effect.Blue
-                )
-           );
+    return effect.GetRGB();
 }
 
 int CWarningAnalyzer::GetStyle() const

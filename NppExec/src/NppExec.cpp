@@ -5551,7 +5551,7 @@ void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessag
         return;
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
-    long color = _getCurrentColorTextNorm();
+    COLORREF color = _getCurrentColorTextNorm();
     int  style = 0;
 
     CWarningAnalyzer& WarningAnalyzer = Runtime::GetNppExec().GetWarningAnalyzer();

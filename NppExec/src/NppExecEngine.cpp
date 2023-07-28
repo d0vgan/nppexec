@@ -1726,7 +1726,9 @@ void CScriptEngine::Run(unsigned int nRunFlags)
 
                                 if ( m_nCmdType == CMDTYPE_NPPCONSOLE )
                                 {
-                                    int param = getOnOffParam(S);
+                                    tstr Sp(S);
+                                    isLocalParam(Sp); // removes "local" from Sp
+                                    int param = getOnOffParam(Sp);
                                     if ( param == PARAM_ENABLE || param == PARAM_DISABLE )
                                     {
                                         if ( !m_pNppExec->isConsoleDialogVisible() )
@@ -2454,11 +2456,12 @@ bool CScriptEngine::isDelayedSubstVar(tstr& param, bool& bKeywordPresent)
     return isDelayed;
 }
 
+// Note: be sure to call isLocalParam() prior to getOnOffParam()!
 int CScriptEngine::getOnOffParam(const tstr& param)
 {
     if ( param.IsEmpty() )
         return PARAM_EMPTY; // no param
-    
+
     if ( param == _T("1") )
         return PARAM_ON;
 
@@ -8438,9 +8441,8 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
          substituteMacroVar(
            Cmd, S, pos,
            MACRO_CURRENT_WORKING_DIR,
-           [](CNppExec* pNppExec)
+           [](CNppExec* )
            {
-             (pNppExec);
              return NppExecHelpers::GetCurrentDir();
            }
          ) ||
@@ -8455,9 +8457,8 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
          substituteMacroVar(
            Cmd, S, pos,
            MACRO_CLIPBOARD_TEXT,
-           [](CNppExec* pNppExec)
+           [](CNppExec* )
            {
-             (pNppExec);
              return NppExecHelpers::GetClipboardText();
            }
          ) ||
@@ -8480,7 +8481,7 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
          substituteMacroVar(
            Cmd, S, pos,
            MACRO_NPP_PID,
-           [](CNppExec* pNppExec)
+           [](CNppExec* )
            {
              return uint2tstr(::GetCurrentProcessId());
            }
@@ -8520,9 +8521,8 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
          substituteMacroVar(
            Cmd, S, pos,
            MACRO_FOCUSED_HWND,
-           [](CNppExec* pNppExec)
+           [](CNppExec* )
            {
-             (pNppExec);
              return uptr2tstr((UINT_PTR)(NppExecHelpers::GetFocusedWnd()));
            }
          ) ||

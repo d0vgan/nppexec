@@ -225,6 +225,8 @@
  * Glory to Ukraine! Glory to the heroes!
  - fixed: "nppexec:npp_console off" did not close the Console after a child
    process has been finished by the @exit_cmd
+ - fixed: the Console was not automatically shown when the first command of
+   a script was "npp_console local -" or "npp_console local +"
  + added: $(NPP_PID)
  + added: "set +v ..." for delayed substitution of variables
  + built-in help slightly updated

@@ -49,22 +49,26 @@ public:
         bool Italic;
         bool Bold;
         bool Underlined;
-        union
-        {
-            struct
-            {
-                unsigned char Red;
-                unsigned char Green;
-                unsigned char Blue;
-            };
-            COLORREF rgb;
-        };
+        unsigned char Red;
+        unsigned char Green;
+        unsigned char Blue;
 
         TEffect() : Enable(false)
                   , Italic(false), Bold(false), Underlined(false)
                   , Red(0), Green(0), Blue(0)
         {
-            rgb = 0;
+        }
+
+        COLORREF GetRGB() const
+        {
+            return RGB(Red, Green, Blue);
+        }
+
+        void SetRGB(COLORREF rgb)
+        {
+            Red = GetRValue(rgb);
+            Green = GetGValue(rgb);
+            Blue = GetBValue(rgb);
         }
     };
 
@@ -98,7 +102,7 @@ public:
     const TCHAR* GetFileName() const;
     int          GetLineNumber() const;
     int          GetCharNumber() const;
-    long         GetColor() const;
+    COLORREF     GetColor() const;
     int          GetStyle() const;
     bool         IsEffectEnabled( int FilterNumber ) const;
     void         EnableEffect( int FilterNumber, bool Enable );

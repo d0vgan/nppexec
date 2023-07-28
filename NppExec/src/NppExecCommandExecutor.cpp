@@ -1184,10 +1184,7 @@ DWORD CNppExecCommandExecutor::ScriptableCommand::RunConsoleScript(Command* pCom
         const int nLastCmdType = pScriptEngine->GetLastCmdType();
         if ( nLastCmdType != CScriptEngine::CMDTYPE_CLS )
         {
-            if ( /*(nLastCmdType != CScriptEngine::CMDTYPE_NPPCONSOLE) ||
-                 (CScriptEngine::getOnOffParam(pScriptEngine->GetLastCmdParams()) != CScriptEngine::PARAM_DISABLE) || 
-                 (pNppExec->GetConsole().IsOutputEnabledN() > 1)*/ 
-                 pNppExec->GetConsole().IsOutputEnabledN() != 0 )
+            if ( pNppExec->GetConsole().IsOutputEnabledN() != 0 )
             {
                 if ( pScriptEngine->IsPrintingMsgReady() &&
                      !pNppExec->GetCommandExecutor().GetRunningScriptEngine() )

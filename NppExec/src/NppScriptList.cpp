@@ -26,10 +26,8 @@ CNppScriptFileChangeListener::CNppScriptFileChangeListener(CNppScriptList* pNppS
 {
 }
 
-void CNppScriptFileChangeListener::HandleFileChange(const FileInfoStruct* pFile)
+void CNppScriptFileChangeListener::HandleFileChange(const FileInfoStruct* )
 {
-    (pFile);
-
     int nFileState = m_pNppScriptList->GetFileState();
     if ( nFileState & CNppScriptList::fsfIsSaving )
     {

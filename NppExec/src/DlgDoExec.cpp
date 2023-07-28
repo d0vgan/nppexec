@@ -312,10 +312,8 @@ void CDoExecDlg::OnCbnSelChange()
   ShowScriptText(g_szPrevScriptName);
 }
 
-INT_PTR CDoExecDlg::OnCtlColorEdit(WPARAM wParam, LPARAM lParam)
+INT_PTR CDoExecDlg::OnCtlColorEdit(WPARAM wParam, LPARAM)
 {
-  (lParam);
-
   HBRUSH hBkBrush;
   COLORREF crBkColor;
   COLORREF crTextColor;
@@ -339,10 +337,8 @@ INT_PTR CDoExecDlg::OnCtlColorEdit(WPARAM wParam, LPARAM lParam)
   return (INT_PTR) hBkBrush;
 }
 
-INT_PTR CDoExecDlg::OnCtlColorListBox(WPARAM wParam, LPARAM lParam)
+INT_PTR CDoExecDlg::OnCtlColorListBox(WPARAM wParam, LPARAM)
 {
-  (lParam);
-
   HBRUSH hBkBrush;
   COLORREF crBkColor;
   COLORREF crTextColor;

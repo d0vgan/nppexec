@@ -278,9 +278,7 @@ void CConsoleOutputFilterDlg::OnBtOK()
             Effect.Underlined = m_ch_Recognition_Style[i][FILTER_REC_UNDERLINED].IsChecked() ? true : false;
 
             COLORREF color = PickColorBtn_GetColor(GetDlgItem(hDlgHglt, HL_FIRSTCOLORID + i));
-            Effect.Red = GetRValue(color);
-            Effect.Green = GetGValue(color);
-            Effect.Blue = GetBValue(color);
+            Effect.SetRGB(color);
 
             m_cb_Recognition[i].GetWindowText(str, OUTPUTFILTER_BUFSIZE - 1);
             WarningAnalyzer.SetMask( i, str );
@@ -760,7 +758,7 @@ void CConsoleOutputFilterDlg::OnInitDlgHglt(HWND hDlgHglt)
             m_ch_Recognition_Style[i][FILTER_REC_BOLD      ].SetCheck( Effect.Bold       );
             m_ch_Recognition_Style[i][FILTER_REC_UNDERLINED].SetCheck( Effect.Underlined );
 
-            COLORREF color = RGB(Effect.Red, Effect.Green, Effect.Blue);
+            COLORREF color = Effect.GetRGB();
             PickColorBtn_SetColor(GetDlgItem(hDlgHglt, HL_FIRSTCOLORID + i), color);
         }
     }
