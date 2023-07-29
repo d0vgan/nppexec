@@ -1342,7 +1342,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  // delayed substitution of variables, old way:") _T_RE_EOL \
     _T("  set local s = $") _T_RE_EOL \
     _T("  set local cmd = echo $(s)(PID)  // $(cmd) = echo $(PID)") _T_RE_EOL \
-    _T("  ") DEFAULT_NPPEXEC_CMD_PREFIX _T("$(cmd)  // will print an actual process id") _T_RE_EOL \
+    _T("  ") DEFAULT_NPPEXEC_CMD_PREFIX _T("$(cmd)  // will print a running process'es id") _T_RE_EOL \
     _T("  // calculations:") _T_RE_EOL \
     _T("  set ans ~ 1 + 2*(3 + 4) - 0x5  // calculates the expression") _T_RE_EOL \
     _T("  set ans ~ 0x001 | 0x010 | 0x100  // calculates the expression") _T_RE_EOL \
