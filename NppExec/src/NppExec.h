@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: $(NPP_PID)
  + added: "set +v ..." for delayed substitution of variables
  + built-in help slightly updated
- + NppExec Manual slightly updated
+ + NppExec Manual updated
 
 
  v0.8.5 - July 2023

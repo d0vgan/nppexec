@@ -1,0 +1,217 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.8.3. Console child process workflow</title>
+</HEAD>
+<BODY>
+<h3>4.8.3. Console child process workflow</h3>
+
+<p>Well, let's follow all the steps of a child console process'es execution.</p>
+
+<p>(1) In the beginning, there was an NppExec's script. The script's commands (which will be executed) are located inside `g_nppExec.m_ScriptCmdList` - bidirectional list of strings. Each string is a separate command.</p>
+
+<p>(2) The CmdList (list of commands) is passed to the CNppExecCommandExecutor:</p>
+
+<blockquote>
+  <pre>...
+CNppExecCommandExecutor::ScriptableCommand * pCommand =
+  new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, nRunFlags);
+GetCommandExecutor().ExecuteCommand(pCommand);
+...</pre>
+</blockquote>
+
+<p>and the method ExecuteCommand() simply adds the given Command to the queue:</p>
+
+<blockquote>
+  <pre>m_ExecuteQueue.push_back( std::shared_ptr&lt;Command&gt;(cmd) );
+...
+m_ExecuteCmdEvent.Set();</pre>
+</blockquote>
+
+<p>(3) The thread BackgroundExecuteThreadFunc monitors the m_ExecuteQueue and executes the given command in this thread (thus, not in the main thread):</p>
+
+<blockquote>
+  <pre>...
+auto& ExecuteQueue = pCommandExecutor-&gt;m_ExecuteQueue;
+isExecuteQueueEmpty = ExecuteQueue.empty();
+if ( !isExecuteQueueEmpty )
+    pCommand = ExecuteQueue.front();
+...
+if ( !isExecuteQueueEmpty )
+{
+    if ( pCommand )
+    {
+        if ( !pCommand-&gt;IsExpired() )
+            pCommand-&gt;Execute(); // pCommand contains the CmdList
+    }
+    ...
+}</pre>
+</blockquote>
+
+<p>(4) The pCommand-&gt;Execute() eventually calls CScriptEngine::Run() where all the commands from the CmdList are finally executed. You can ensure it by looking at the brief code of this method:</p>
+
+<blockquote>
+  <pre>...
+CListItemT&lt;tstr&gt;* p = m_CmdList.GetFirst(); // first list item
+while ( p && ContinueExecution() )
+{
+    ...
+    S = p-&gt;GetItem(); // extract a string
+    if (S.length() &gt; 0)
+    {
+        ...
+        nCmdType = ModifyCommandLine(this, S, ifState);
+        ...
+    }
+    p = (m_execState.pScriptLineNext == INVALID_TSTR_LIST_ITEM) ?
+      p-&gt;GetNext() : m_execState.pScriptLineNext; // next list item
+}
+...</pre>
+</blockquote>
+
+<p>The following line:</p>
+
+<blockquote>
+  <pre>nCmdType = ModifyCommandLine(this, S, ifState);</pre>
+</blockquote>
+
+<p>returns an identifier of an internal command such as NPP_EXEC, NPP_RUN and so on. Also, it expands (substitutes the corresponding values) the variables such as $(FILE_NAME), $(NPP_DIRECTORY) and so on. And here is how the command `S` is executed:</p>
+
+<blockquote>
+  <pre>m_nCmdType = nCmdType;
+...
+m_sCmdParams = S;
+EXECFUNC pCmdExecFunc = m_CommandRegistry.GetCmdExecFunc(m_nCmdType);
+nCmdResult = pCmdExecFunc(this, S);</pre>
+</blockquote>
+
+<p>(5) When the `nCmdType` is 0 (i.e. CMDTYPE_UNKNOWN), it means the following: the current string does not contain any internal NppExec's command, so it is interpreted as an external command - i.e. as a path to some executable file. Let's look at the corresponding method to which pCmdExecFunc points to in this case:</p>
+
+<blockquote>
+  <pre>CScriptEngine::eCmdResult CScriptEngine::Do(const tstr& params)
+{
+    ...
+    std::shared_ptr&lt;CChildProcess&gt; proc(new CChildProcess(this));
+    ...
+    proc-&gt;Create(m_pNppExec-&gt;GetConsole().GetDialogWnd(), params.c_str())
+    ...
+}</pre>
+</blockquote>
+
+<p>As you can see, it calls the method CChildProcess::Create, where the `params` parameter is the passed value of `S` mentioned above. So, let's refer to CChildProcess::Create.</p>
+
+<p>(6) The first intelligible thing inside CChildProcess::Create is a creation of the input/output pipes (m_hStd Input/Output Read/Write Pipe). These pipes are &quot;information channels&quot; between the NppExec plugin and a child process which will be created soon. Don't forget about the pipes - we'll return to them later. The second intelligible thing is actually the creation of a child process. Here is the corresponding code:</p>
+
+<blockquote>
+  <pre>// initialize STARTUPINFO struct
+ZeroMemory(&si, sizeof(STARTUPINFO));
+si.cb = sizeof(STARTUPINFO);
+si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
+si.wShowWindow = SW_HIDE;
+si.hStdInput = m_hStdInReadPipe;    // pipe for user's input (stdin)
+si.hStdOutput = m_hStdOutWritePipe; // pipe for process'es stdout
+si.hStdError = m_hStdOutWritePipe;  // pipe for process'es stderr
+
+...
+tstr sCmdLine = cszCommandLine;
+...
+if ( ::CreateProcess(NULL, sCmdLine.c_str(), ...) )
+{
+    ...
+}</pre>
+</blockquote>
+
+<p>The second parameter of CChildProcess::Create (this parameter corresponds to `params` and `S` mentioned above) is passed to the system's function CreateProcess. This parameter is a path to an executable which will be run as a child process of the plugin.</p>
+
+<p>(7) Now the child process is created. Let's assume it is a console process. As you remember, the whole CScriptEngine::Run() method is running in another thread, so this child process is running in that thread also. You can use the plugin's ConsoleDlg as the child console process'es input while this process is running. I.e. when you type some string in the ConsoleDlg's RichEdit control and press Enter, this string will be passed to the child process. You can find the corresponding code inside the &quot;ConsoleDlg::OnNotify&quot; function inside &quot;DlgConsole.cpp&quot;. Search for &quot;GetCommandExecutor().ExecuteChildProcessCommand&quot;. But let's return to the capturing of the child process'es output.</p>
+
+<p>(8) This is the code of the capturing:</p>
+
+<blockquote>
+  <pre>CStrT&lt;char&gt;  bufLine;  // a buffer for child process'es output
+bool         bPrevLineEmpty = false;
+bool         bDoOutputNext = true;
+int          nPrevState = 0;
+DWORD        dwRead = 0;
+...
+do
+{
+    dwRead = readPipesAndOutput(bufLine, bPrevLineEmpty, nPrevState, false, bDoOutputNext);
+    ...
+}
+while ( (isConsoleProcessRunning = (::WaitForSingleObject(m_ProcessInfo.hProcess, dwCycleTimeOut) == WAIT_TIMEOUT))
+         && m_pScriptEngine-&gt;ContinueExecution() && !isBreaking() );
+    // NOTE: time-out inside WaitForSingleObject() prevents from 100% CPU usage!
+
+if ( m_pScriptEngine-&gt;ContinueExecution() && (!isBreaking()) && !m_pScriptEngine-&gt;GetTriedExitCmd() )
+{
+    // maybe the child process is exited but not all its data is read
+    readPipesAndOutput(bufLine, bPrevLineEmpty, nPrevState, true, bDoOutputNext);
+}</pre>
+</blockquote>
+
+<p>We try to read data from the console process (by means of pipes) while the process is not finished and while the plugin's ConsoleDlg is visible. The &quot;readPipesAndOutput&quot; method actually does all the work about the capturing of the child console process'es output and showing this output in the ConsoleDlg.</p>
+
+<p>(9) The whole &quot;readPipesAndOutput&quot; method can drive you crazy (I wrote this method by parts ;-)) but, in brief, it's very simple:</p>
+
+<blockquote>
+  <pre>...
+do
+{
+    Sleep(10);  // it prevents from 100% CPU usage while reading!
+    dwBytesRead = 0;
+    if ( !::PeekNamedPipe(m_hStdOutReadPipe, NULL, 0, NULL, &dwBytesRead, NULL) )
+    {
+        dwBytesRead = 0;
+    }
+    ...
+    if ( (dwBytesRead &gt; 0) || bOutputAll )
+    {
+        // some data is in the Pipe or bOutputAll==true
+
+        bool bContainsData = (dwBytesRead &gt; 0) ? true : false;
+        // without bContainsData==true the ReadFile operation will never return
+
+        if ( bContainsData )
+            ::ZeroMemory(Buf, CONSOLEPIPE_BUFSIZE);
+        dwBytesRead = 0;
+        if ( (bContainsData
+              && ::ReadFile(m_hStdOutReadPipe, Buf, (CONSOLEPIPE_BUFSIZE-1)*sizeof(char), &dwBytesRead, NULL)
+              && (dwBytesRead &gt; 0)) || bOutputAll )
+        {
+            // some data has been read from the Pipe or bOutputAll==true
+            ...
+        }
+    }
+}
+while ( (dwBytesRead &gt; 0) && m_pScriptEngine-&gt;ContinueExecution() && !isBreaking() );</pre>
+</blockquote>
+
+<p>As you can see, at first we verify if there is something in the pipe:</p>
+
+<blockquote>
+  <pre>::PeekNamedPipe(..., &dwBytesRead, ...)
+...
+bool bContainsData = (dwBytesRead &gt; 0) ? true : false;</pre>
+</blockquote>
+
+<p>then we read the data:</p>
+
+<blockquote>
+  <pre>ReadFile(...)</pre>
+</blockquote>
+
+<p>And here is the problem. Sometimes PeekNamedPipe returns FALSE or returns dwBytesRead == 0 though some data must be in the output pipe already.</p>
+<p>As of July 2023, this issue with PeekNamedPipe is still relevant. PeekNamedPipe still sometimes returns FALSE or returns dwBytesRead == 0 when some data has already been written by the console child process to its output - and thus this data is expected to be present in the output pipe. But no, PeekNamedPipe returns FALSE or dwBytesRead == 0. And if we call ReadFile at that point, it just does not return until the pipe internally &quot;decides&quot; to give its data away.</p>
+<p>This is relevant for Windows 2000, XP, Vista, 7, 8, 8.1, 10 and 11. Microsoft even introduced so-called PseudoConsole in Windows 10, but still has not fixed this buggy implementation of PeekNamedPipe.</p>
+<p>This is the only reason of why sometimes you don't see any output in NppExec's Console while some output is expected. The data is inside the pipe's internal buffer and there is no way to get it from there. Sad but true.</p>
+
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>

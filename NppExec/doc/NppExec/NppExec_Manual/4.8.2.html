@@ -210,7 +210,7 @@ CheckCmdAliases() { ... }
   <li>Once NPEM_EXECUTE_COLLATERAL or NPEM_EXECUTE_QUEUED is received through NppExec's Plugin Interface, a thread for BackgroundExecAsyncCmdThreadFunc is created.</li>
 </ul>
 <p>Too many threads, you might say. Probably, but the last 3 spend most of their time in WaitForMultipleObjects(2, waitEvents, FALSE, INFINITE) - i.e. in sleeping.</p>
-<p>The BackgroundExecuteThreadFunc is the most active one, it is the place where Command->Execute() is called. Consequently, this is where a CScriptEngine instance is running for regular NppExec's scripts. And, as it was mentioned before, collateral NppExec's scripts are running in their own, separate, threads.</p>
+<p>The BackgroundExecuteThreadFunc is the most active one, it is the place where Command-&gt;Execute() is called. Consequently, this is where a CScriptEngine instance is running for regular NppExec's scripts. And, as it was mentioned before, collateral NppExec's scripts are running in their own, separate, threads.</p>
 <p>I think that's basically all about the collateral and regular scripts in NppExec.</p>
 
 <blockquote>

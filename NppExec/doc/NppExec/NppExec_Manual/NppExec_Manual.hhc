@@ -231,6 +231,10 @@
 				<param name="Name" value="4.8.2. Collateral scripts">
 				<param name="Local" value="4.8.2.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.8.3. Console child process workflow">
+				<param name="Local" value="4.8.3.html">
+				</OBJECT>
 		</UL>
 	</UL>
 	<LI> <OBJECT type="text/sitemap">
