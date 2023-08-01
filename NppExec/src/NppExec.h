@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.6
- ------
+ v0.8.6 - August 2023
+ --------------------
  * Glory to Ukraine! Glory to the heroes!
  - fixed: "nppexec:npp_console off" did not close the Console after a child
    process has been finished by the @exit_cmd
@@ -759,8 +759,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F5
-#define NPPEXEC_VER_STR   _T("0.8.5")
+#define NPPEXEC_VER_DWORD 0x08F6
+#define NPPEXEC_VER_STR   _T("0.8.6")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.8.5 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - July 2023
+ * NppExec plugin ver. 0.8.6 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - August 2023
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
@@ -220,8 +220,8 @@
  *  HISTORY  *
  *************
 
- v0.8.6
- ------
+ v0.8.6 - August 2023
+ --------------------
  * Glory to Ukraine! Glory to the heroes!
  - fixed: "nppexec:npp_console off" did not close the Console after a child
    process has been finished by the @exit_cmd
