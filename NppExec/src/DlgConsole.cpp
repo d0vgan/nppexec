@@ -123,18 +123,20 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("set <var> ~ strescape <s>  -  simple character escaping (e.g. <TAB> to '\\t')") _T_RE_EOL \
   _T("set <var> ~ strunescape <s>  -  simple character unescaping (e.g. '\\n' to <LF>)") _T_RE_EOL \
   _T("set <var> ~ strexpand <s>  -  expands all $(sub) values within <s>") _T_RE_EOL \
-  _T("set <var> ~ normpath <path>  -  returns a normalized path") _T_RE_EOL \
   _T("set <var> ~ strfromhex <hs>  -  returns a string from the hex-string") _T_RE_EOL \
   _T("set <var> ~ strtohex <s>  -  returns a hex-string from the string") _T_RE_EOL \
   _T("set <var> ~ chr <n>  -  returns a character from a character code <n>") _T_RE_EOL \
   _T("set <var> ~ ord <c>  -  returns a decimal character code of a character <c>") _T_RE_EOL \
   _T("set <var> ~ ordx <c>  -  returns a hexadecimal character code of a character <c>") _T_RE_EOL \
+  _T("set <var> ~ normpath <path>  -  returns a normalized path") _T_RE_EOL \
+  _T("set <var> ~ fileexists <path>  -  checks if a given file exists") _T_RE_EOL \
+  _T("set <var> ~ direxists <path>  -  checks if a given directory exists") _T_RE_EOL \
   _T("set local  -  shows all user\'s local variables") _T_RE_EOL \
   _T("set local <var>  -  shows the value of user\'s local variable <var>") _T_RE_EOL \
   _T("set local <var> = ...  -  sets the value of user\'s local variable <var>") _T_RE_EOL \
   _T("set local <var> ~ ...  -  calculates the value of user\'s local variable") _T_RE_EOL \
   _T("set +v <var> = ...  -  sets the value of <var> using delayed vars substitution") _T_RE_EOL \
-  _T("set +v local <var> = ...  -  sets the value of local <var> using delayed vars subst.") _T_RE_EOL \
+  _T("set +v local <var> = ...  -  sets the local <var> using delayed vars substitution") _T_RE_EOL \
   _T("unset <var>  -  removes user\'s variable <var>") _T_RE_EOL \
   _T("unset <var> = <value>  -  removes user\'s variable <var>") _T_RE_EOL \
   _T("unset local <var>  -  removes user\'s local variable <var>") _T_RE_EOL \
@@ -1271,12 +1273,14 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  5l. set <var> ~ strescape <string>") _T_RE_EOL \
     _T("  5m. set <var> ~ strunescape <string>") _T_RE_EOL \
     _T("  5n. set <var> ~ strexpand <string>") _T_RE_EOL \
-    _T("  5o. set <var> ~ normpath <path>") _T_RE_EOL \
-    _T("  5p. set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
-    _T("  5q. set <var> ~ strtohex <string>") _T_RE_EOL \
-    _T("  5r. set <var> ~ chr <n>") _T_RE_EOL \
-    _T("  5s. set <var> ~ ord <c>") _T_RE_EOL \
-    _T("  5t. set <var> ~ ordx <c>") _T_RE_EOL \
+    _T("  5o. set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
+    _T("  5p. set <var> ~ strtohex <string>") _T_RE_EOL \
+    _T("  5q. set <var> ~ chr <n>") _T_RE_EOL \
+    _T("  5r. set <var> ~ ord <c>") _T_RE_EOL \
+    _T("  5s. set <var> ~ ordx <c>") _T_RE_EOL \
+    _T("  5t. set <var> ~ normpath <path>") _T_RE_EOL \
+    _T("  5u. set <var> ~ fileexists <path>") _T_RE_EOL \
+    _T("  5v. set <var> ~ direxists <path>") _T_RE_EOL \
     _T("  6.  set local") _T_RE_EOL \
     _T("      set local <var>") _T_RE_EOL \
     _T("      set local <var> = ...") _T_RE_EOL \
@@ -1308,12 +1312,14 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  5m. Simple character unescaping: '\\\\' -> '\\', '\\t' -> '<TAB>',") _T_RE_EOL \
     _T("      '\\r' -> '<CR>', '\\n' -> '<LF>', '\\?' -> '?'") _T_RE_EOL \
     _T("  5n. Expands all $(sub) values within the <string>") _T_RE_EOL \
-    _T("  5o. Returns a normalized path") _T_RE_EOL \
-    _T("  5p. Returns a string from the <hexstring>") _T_RE_EOL \
-    _T("  5q. Returns a hex-string from the <string>") _T_RE_EOL \
-    _T("  5r. Returns a character from a character code <n>") _T_RE_EOL \
-    _T("  5s. Returns a decimal character code of a character <c>") _T_RE_EOL \
-    _T("  5t. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
+    _T("  5o. Returns a string from the <hexstring>") _T_RE_EOL \
+    _T("  5p. Returns a hex-string from the <string>") _T_RE_EOL \
+    _T("  5q. Returns a character from a character code <n>") _T_RE_EOL \
+    _T("  5r. Returns a decimal character code of a character <c>") _T_RE_EOL \
+    _T("  5s. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
+    _T("  5t. Returns a normalized path") _T_RE_EOL \
+    _T("  5u. Returns 1 if a given file exists, 0 otherwise") _T_RE_EOL \
+    _T("  5v. Returns 1 if a given directory exists, 0 otherwise") _T_RE_EOL \
     _T("  6.  Shows/sets the value of local variable (\"set local <var> ...\")") _T_RE_EOL \
     _T("  7.  Sets a value using delayed substitution of variables (\"set +v ...\")") _T_RE_EOL \
     _T("  8.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
@@ -1403,11 +1409,17 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set local z ~ strexpand $(y)(x) // $(y)(x) -> $(x) -> 123") _T_RE_EOL \
     _T("  clip_settext $(y)(x) // now the clipboard contains \"$(x)\"") _T_RE_EOL \
     _T("  set local c ~ strexpand $(CLIPBOARD_TEXT) // $(x) -> 123") _T_RE_EOL \
+    _T_HELP_STRTOHEX_STRFROMHEX \
+    _T_HELP_CHR_ORD_ORDX \
     _T("  // normpath") _T_RE_EOL \
     _T("  set s ~ normpath C:\\A\\.\\B\\X\\..\\C  // C:\\A\\B\\C") _T_RE_EOL \
     _T("  set s ~ normpath \"\\\\A\\B\\..\\..\\C\"  // \"\\\\C\"") _T_RE_EOL \
-    _T_HELP_STRTOHEX_STRFROMHEX \
-    _T_HELP_CHR_ORD_ORDX \
+    _T("  // fileexists") _T_RE_EOL \
+    _T("  set local f ~ fileexists $(NPP_DIRECTORY)\\notepad++.exe") _T_RE_EOL \
+    _T("  set local f ~ fileexists $(PLUGINS_CONFIG_DIR)\\NppExec.ini") _T_RE_EOL \
+    _T("  // direxists") _T_RE_EOL \
+    _T("  set local d ~ direxists C:\\Program Files") _T_RE_EOL \
+    _T("  set local d ~ direxists $(SYS.ProgramFiles)") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  User\'s variables have the lowest priority, so they can\'t override") _T_RE_EOL \
     _T("  other (predefined) variables. Thus, you can set your own variables") _T_RE_EOL \
@@ -5148,10 +5160,11 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S, bool bCalledFromScriptEngin
                      S1 == _T("STRQUOTE")   || S1 == _T("STRUNQUOTE")  ||
                      S1 == _T("STRESCAPE")  || S1 == _T("STRUNESCAPE") ||
                      S1 == _T("STREXPAND")  ||
-                     S1 == _T("NORMPATH")   ||
                      S1 == _T("STRFROMHEX") || S1 == _T("STRTOHEX")    ||
                      S1 == _T("CHR")        ||
-                     S1 == _T("ORD")        || S1 == _T("ORDX"))
+                     S1 == _T("ORD")        || S1 == _T("ORDX") ||
+                     S1 == _T("NORMPATH")   ||
+                     S1 == _T("FILEEXISTS") || S1 == _T("DIREXISTS"))
               S1 = CScriptEngine::DoSetCommand::Name();
             else if (S1.GetAt(0) == DEFAULT_ALIAS_CMD_LABEL && S1.GetAt(1) == 0)
               S1 = CScriptEngine::DoLabelCommand::Name();

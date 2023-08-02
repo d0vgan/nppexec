@@ -29,6 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    a script was "npp_console local -" or "npp_console local +"
  + added: $(NPP_PID)
  + added: "set +v ..." for delayed substitution of variables
+ + added: "set <var> ~ fileexists <path>", "set <var> ~ direxists <path>"
  + built-in help slightly updated
  + NppExec Manual updated
 
@@ -1474,12 +1475,14 @@ public:
             CT_STRESCAPE,
             CT_STRUNESCAPE,
             CT_STREXPAND,
-            CT_NORMPATH,
             CT_STRFROMHEX,
             CT_STRTOHEX,
             CT_CHR,
             CT_ORD,
-            CT_ORDX
+            CT_ORDX,
+            CT_NORMPATH,
+            CT_FILEEXISTS,
+            CT_DIREXISTS
         };
 
     public:
@@ -1504,6 +1507,7 @@ public:
         bool calcStrEscape();
         bool calcStrExpand();
         bool calcNormPath();
+        bool calcFileExists();
 
     protected:
         tstr& m_varValue;

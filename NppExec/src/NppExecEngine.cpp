@@ -1234,8 +1234,6 @@ static FParserWrapper g_fp;
  *   - simple character unescaping (e.g. '\n' to <LF>)
  * set <var> ~ strexpand <s>
  *   - expands all $(sub) values within <s>
- * set <var> ~ normpath <path>
- *   - returns a normalized path
  * set <var> ~ strfromhex <hs>
  *   - returns a string from the hex-string
  * set <var> ~ strtohex <s>
@@ -1246,6 +1244,12 @@ static FParserWrapper g_fp;
  *   - returns a decimal character code of a character <c>
  * set <var> ~ ordx <c>
  *   - returns a hexadecimal character code of a character <c>
+ * set <var> ~ normpath <path>
+ *   - returns a normalized path
+ * set <var> ~ fileexists <path>
+ *   - checks if a given file exists
+ * set <var> ~ direxists <path>
+ *   - checks if a given directory exists
  * set local
  *   - shows all user's local variables
  * set local <var>
@@ -1257,7 +1261,7 @@ static FParserWrapper g_fp;
  * set +v <var> = ...
  *   - sets the value of <var> using delayed vars substitution
  * set +v local <var> = ...
- *   - sets the value of local <var> using delayed vars subst.
+ *   - sets the local <var> using delayed vars substitution
  * unset <var>
  *   - removes user's variable <var>
  * unset local <var>
@@ -8978,12 +8982,14 @@ bool CNppExecMacroVars::StrCalc::Process()
             { _T("STRESCAPE"),   CT_STRESCAPE   },
             { _T("STRUNESCAPE"), CT_STRUNESCAPE },
             { _T("STREXPAND"),   CT_STREXPAND   },
-            { _T("NORMPATH"),    CT_NORMPATH    },
             { _T("STRFROMHEX"),  CT_STRFROMHEX  },
             { _T("STRTOHEX"),    CT_STRTOHEX    },
             { _T("CHR"),         CT_CHR         },
             { _T("ORD"),         CT_ORD         },
-            { _T("ORDX"),        CT_ORDX        }
+            { _T("ORDX"),        CT_ORDX        },
+            { _T("NORMPATH"),    CT_NORMPATH    },
+            { _T("FILEEXISTS"),  CT_FILEEXISTS  },
+            { _T("DIREXISTS"),   CT_DIREXISTS   }
         };
 
         NppExecHelpers::StrUpper(m_param);
@@ -9035,9 +9041,6 @@ bool CNppExecMacroVars::StrCalc::Process()
         case CT_STREXPAND:
             bSucceded = calcStrExpand();
             break;
-        case CT_NORMPATH:
-            bSucceded = calcNormPath();
-            break;
         case CT_STRFROMHEX:
             bSucceded = calcStrFromHex();
             break;
@@ -9050,6 +9053,13 @@ bool CNppExecMacroVars::StrCalc::Process()
         case CT_ORD:
         case CT_ORDX:
             bSucceded = calcOrd();
+            break;
+        case CT_NORMPATH:
+            bSucceded = calcNormPath();
+            break;
+        case CT_FILEEXISTS:
+        case CT_DIREXISTS:
+            bSucceded = calcFileExists();
             break;
     }
 
@@ -9372,36 +9382,6 @@ bool CNppExecMacroVars::StrCalc::calcStrExpand()
     return true;
 }
 
-bool CNppExecMacroVars::StrCalc::calcNormPath()
-{
-    if ( *m_pVar )
-    {
-        tstr path(m_pVar);
-        const bool isQuoted = NppExecHelpers::IsStrQuoted(path);
-        if ( isQuoted )
-        {
-            NppExecHelpers::StrUnquote(path);
-        }
-        path = NppExecHelpers::NormalizePath(path);
-        if ( isQuoted )
-        {
-            NppExecHelpers::StrQuote(path);
-        }
-        m_varValue.Swap(path);
-    }
-    else
-    {
-        m_varValue.Clear();
-    }
-
-    Runtime::GetLogger().AddEx( 
-      _T("; normpath: %s"), 
-      m_varValue.c_str() 
-    );
-
-    return true;
-}
-
 bool CNppExecMacroVars::StrCalc::calcStrFromHex()
 {
     bool bSucceded = false;
@@ -9534,6 +9514,62 @@ bool CNppExecMacroVars::StrCalc::calcOrd()
     }
 
     return bSucceded;
+}
+
+bool CNppExecMacroVars::StrCalc::calcNormPath()
+{
+    if ( *m_pVar )
+    {
+        tstr path(m_pVar);
+        const bool isQuoted = NppExecHelpers::IsStrQuoted(path);
+        if ( isQuoted )
+        {
+            NppExecHelpers::StrUnquote(path);
+        }
+        path = NppExecHelpers::NormalizePath(path);
+        if ( isQuoted )
+        {
+            NppExecHelpers::StrQuote(path);
+        }
+        m_varValue.Swap(path);
+    }
+    else
+    {
+        m_varValue.Clear();
+    }
+
+    Runtime::GetLogger().AddEx( 
+      _T("; normpath: %s"), 
+      m_varValue.c_str() 
+    );
+
+    return true;
+}
+
+bool CNppExecMacroVars::StrCalc::calcFileExists()
+{
+    bool exists = false;
+
+    if ( *m_pVar )
+    {
+        tstr Path = m_pVar;
+        NppExecHelpers::StrUnquote(Path);
+
+        if ( m_calcType == CT_FILEEXISTS )
+            exists = NppExecHelpers::CheckFileExists(Path);
+        else
+            exists = NppExecHelpers::CheckDirectoryExists(Path);
+    }
+
+    m_varValue = exists ? _T("1") : _T("0");
+
+    Runtime::GetLogger().AddEx(
+      _T("; %s: %s"),
+      (m_calcType == CT_FILEEXISTS) ? _T("fileexists") : _T("direxists"),
+      m_varValue.c_str()
+    );
+
+    return true;
 }
 
 //////////////////////////////////////////////////////////////////////////////

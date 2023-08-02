@@ -63,18 +63,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        set <var> ~ strescape <s> - simple character escaping (e.g. <TAB> to '\t')
  *        set <var> ~ strunescape <s> - simple character unescaping (e.g. '\n' to <LF>)
  *        set <var> ~ strexpand <s> - expands all $(sub) values within <s>
- *        set <var> ~ normpath <path> - returns a normalized path
  *        set <var> ~ strfromhex <hs> - returns a string from the hex-string
  *        set <var> ~ strtohex <s> - returns a hex-string from the string
  *        set <var> ~ chr <n> - returns a character from a character code <n>
  *        set <var> ~ ord <c> - returns a decimal character code of a character <c>
  *        set <var> ~ ordx <c> - returns a hexadecimal character code of a character <c>
+ *        set <var> ~ normpath <path> - returns a normalized path
+ *        set <var> ~ fileexists <path> - checks if a given file exists
+ *        set <var> ~ direxists <path> - checks if a given directory exists
  *        set local - shows all user's local variables
  *        set local <var> - shows the value of user's local variable <var>
  *        set local <var> = ... - sets the value of user's local variable <var>
  *        set local <var> ~ ... - calculates the value of user's local variable
  *        set +v <var> = ... - sets the value of <var> using delayed vars substitution
- *        set +v local <var> = ... - sets the value of local <var> using delayed vars subst.
+ *        set +v local <var> = ... - sets the local <var> using delayed vars substitution
  *        unset <var> - removes user's variable <var>
  *        unset local <var> - removes user's local variable <var>
  *        env_set <var> - shows the value of environment variable <var>
