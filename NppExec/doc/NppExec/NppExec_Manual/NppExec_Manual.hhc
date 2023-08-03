@@ -197,6 +197,10 @@
 				<param name="Name" value="4.6.14. Notepad++ as a Clipboard Monitor">
 				<param name="Local" value="4.6.14.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.15. Triggering certain actions while saving a file">
+				<param name="Local" value="4.6.15.html">
+				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="4.7. Compiling">

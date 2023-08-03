@@ -62,10 +62,18 @@ npp_menucommand View|Monitoring (tail -f)</pre>
 <blockquote>
   <pre>npp_menucommand View|Monitoring (tail -f)</pre>
 </blockquote>
-<p>to the one corresponding to your Notepad++'s localization.</p>
+<p>to the one corresponding to your Notepad++'s localization. Alternatively, you can use</p>
+<blockquote>
+  <pre>npp_sendmsg NPPM_SETMENUITEMCHECK IDM_VIEW_MONITORING 1</pre>
+</blockquote>
+<p>to enable the monitoring, and</p>
+<blockquote>
+  <pre>npp_sendmsg NPPM_SETMENUITEMCHECK IDM_VIEW_MONITORING 0</pre>
+</blockquote>
+<p>to disable the monitoring.</p>
 
 <p>Let's save the NppExec's script above as &quot;clipboard monitor&quot;. To do it, press the &quot;Save...&quot; button, type &quot;clipboard monitor&quot; (without the quotes) and press &quot;Save&quot;.</p>
-<p>Now you may want to assign a shortcut key to this NppExec's script. To do that, select Plugins -&gt; NppExec -&gt; Advanced Options... and click the &quot;Associated script:&quot; combo-box in the bottom part of the opened dialog. Select the &quot;clipboard monitor&quot; item in the drop-down list and press &quot;Add/Modify&quot;. When you finally press &quot;OK&quot;, there will be a message &quot;Notepad++ must be restarted to apply some of the options&quot;. This is required to add a new menu item &quot;clipboard monitor&quot; to Notepad++.</p>
+<p>Now you may want to assign a shortcut key to this NppExec's script. To do that, select Plugins -&gt; NppExec -&gt; Advanced Options... and click the &quot;Associated script:&quot; combo-box in the bottom part of the opened dialog. Select the &quot;clipboard monitor&quot; item in the drop-down list and press &quot;Add/Modify&quot;. A new item &quot;clipboard monitor :: clipboard monitor&quot; will be added to the &quot;Menu items&quot; list. When you finally press &quot;OK&quot;, there will be a message &quot;Notepad++ must be restarted to apply some of the options&quot;. This is required to add a new menu item &quot;clipboard monitor&quot; to Notepad++.</p>
 <p>When Notepad++ is restarted, a shortcut key can be assigned to the new menu item &quot;clipboard monitor&quot;. In Notepad++, select Settings -&gt; Shortcut Mapper... and click &quot;Plugin commands&quot;. Find the &quot;clipboard monitor&quot; command that corresponds to &quot;NppExec.dll&quot; and assign a desired shortcut key to it.</p>
 <p>Everything is ready!</p>
 <p>Now either press the shortcut key assigned to the &quot;clipboard monitor&quot; menu item or select Plugins -&gt; NppExec -&gt; Execute NppExec Script... and then select &quot;clipboard monitor&quot; in the combo-box at the bottom of the opened dialog and finally press &quot;OK&quot;. You'll see an empty file &quot;clpbrd.txt&quot; opened in Notepad++.</p>

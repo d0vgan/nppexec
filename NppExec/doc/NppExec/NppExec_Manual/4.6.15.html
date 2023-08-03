@@ -1,0 +1,158 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.15. Triggering certain actions while saving a file</title>
+</HEAD>
+<BODY>
+<h3>4.6.15. Triggering certain actions while saving a file</h3>
+
+<p>Probably you already thought of that: how useful it would be if NppExec allowed to trigger certain actions each time a file is saved. For example, you might want an external spell-checker to be run for text files; a code-formatting tool to be run for certain source files; also, you might want to do backups for some other files; and so on.</p>
+<p>Some applications provide callback mechanisms or triggers for similar purpose. For example, there could be an &quot;OnSave&quot; callback/trigger that is invoked/triggered each time a file is saved. NppExec does not provide that, mostly because I don't see a good way to avoid deadlocks and/or infinite recursion. Here is an example of the latter: let's imagine we have a certain &quot;OnSave&quot; script triggered each time a file is saved. Now, let's imagine this &quot;OnSave&quot; script contains a command NPP_SAVE or NPP_SAVEALL. This embedded command will trigger another &quot;OnSave&quot; script, which, in its turn, will execute another NPP_SAVE or NPP_SAVEALL, and so on and so forth. Here is a different example: let's imagine the &quot;OnSave&quot; script starts a long-running external process, such as &quot;cmd.exe&quot; without arguments. By its nature, NppExec will wait until this process is finished - and it will be happening while saving the file. So, I'm not saying I don't want to implement this - all I'm saying there are certain problems for which I don't see a good solution yet.</p>
+<p>Anyway, let's look at what we can do right now. As always, NppExec allows to do much more than can be expected, but it does not come out-of-the-box - we rather have to do everything manually. Well, let's do it! :-)</p>
+<p>At first, let's see what is the alternative to a callback/trigger. It may not look obvious - but let's concentrate on what we usually do to save a file manually. We basically have two options for that: either press the &quot;Save&quot; button on the Toolbar or press Ctrl+S. The latter, Ctrl+S, is the one we are going to use. (Well, I'm aware of the auto-saving feature - and if you rely on it, I'm encouraging you to use Ctrl+S because, well, because it is required for all the further steps of this instruction :-) ).</p>
+<p>The basic idea is this: what if we assign Ctrl+S to a certain NppExec's script rather than to the internal Notepad++'s &quot;Save File&quot; command? And once we have thought about that, the solution is immediately seen! Step one: create an NppExec's script that will be handling the file saving operation. Step two: create a menu item for this NppExec's script. Step three: assign a shortcut Ctrl+S to that menu item. Voila!</p>
+<p>So, let's implement that step by step.</p>
+<p>Let's start from a very simple NppExec's script, such as this one:</p>
+
+<blockquote>
+  <pre>// npp_console ?
+npp_console local -
+npe_console local m- --
+npp_console local +
+
+echo Before saving a file &quot;$(FULL_CURRENT_PATH)&quot;
+
+npp_save // saving a file
+
+echo After saving a file &quot;$(FULL_CURRENT_PATH)&quot;</pre>
+</blockquote>
+
+<p>We intentionally use &quot;npe_console local m- --&quot; in the beginning of the script to make it less verbose. As the script may grow with time, it's a pretty good idea to abridge the output.</p>
+<p>This simple script prints one message before a file is saved and another message after a file is saved. As the purpose of this script is to be executed on Ctrl+S, let's consider what would happen if we removed the &quot;npp_save&quot; command. Right, the file would have never be saved! Let's keep that in mind.</p>
+<p>OK, let's save this script with a name &quot;file_save&quot;. (I assume you are already familiar with the &quot;Execute NppExec Script...&quot; dialog <a href="3.6.html">[3.6]</a> and NppExec's script  <a href="3.7.html">[3.7]</a>).</p>
+<p>The step one (mentioned above) is done: the script has been created! Let's proceed to the step two.</p>
+<p>From Notepad++'s main menu, select Plugins -&gt; NppExec -&gt; Advanced options... Now, in the Advanced Options dialog, click the &quot;Associated script&quot; combo-box, select &quot;file_save&quot; there and click the &quot;Add/Modify&quot; button. You'll see a new item &quot;file_save :: file_save&quot; in the &quot;Menu items&quot; list. Now press &quot;OK&quot; - and you'll see a message &quot;Notepad++ must be restarted to apply some of the options&quot;. This is required to add a new menu item &quot;file_save&quot; to Notepad++. So, let's restart Notepad++. This will be the finish of the step two.</p>
+<p>After Notepad++ is restarted, a shortcut key can be assigned to the new menu item &quot;file_save&quot;. This is the step three. In Notepad++, select Settings -&gt; Shortcut Mapper... and click &quot;Plugin commands&quot;. Find the &quot;file_save&quot; command that corresponds to &quot;NppExec.dll&quot; and try to assign Ctrl+S to it. You will see: &quot;CONFLICT FOUND! Main menu | Save ( Ctrl + S )&quot;. Oops! Looks like we need to disable this shortcut for the standard command first. OK, let's click the &quot;Main menu&quot; tab, find &quot;Save | Ctrl+S&quot; there, select it and press &quot;Modify&quot;. Let's assign some non-used shortcut to it: for example, Ctrl+Alt+Shift+S or whatever you like unless it conflicts with any existing shortcut. After this is done, let's return to the &quot;find_save&quot; command in the &quot;Plugin commands&quot; tab and assign Ctrl+S to it. The step three is done!</p>
+<p>Now let's test what we accomplished. Once you press Ctrl+S for any file, you should see these two messages in NppExec's Console: &quot;Before saving a file&quot; and &quot;After saving a file&quot;.</p>
+
+<p>Very good so far. Let's make our &quot;file_save&quot; script to do something more usefull. For example, let's backup a file if it is an XML file. Our updated NppExec's script may look like the following:</p>
+
+<blockquote>
+  <pre>// npp_console ?
+npp_console local -
+npe_console local m- --
+npp_console local +
+
+echo Before saving a file &quot;$(FULL_CURRENT_PATH)&quot;
+if &quot;$(EXT_PART)&quot; ~= &quot;.xml&quot; then
+  set local f ~ fileexists $(FULL_CURRENT_PATH)
+  if $(f) != 0 then
+    set local bakfile = $(FULL_CURRENT_PATH).bak
+    cmd /C (if exist &quot;$(bakfile)&quot; del /F &quot;$(bakfile)&quot;) & copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;$(bakfile)&quot;
+  endif
+endif // &quot;.xml&quot;
+
+npp_save // saving a file
+
+echo After saving a file &quot;$(FULL_CURRENT_PATH)&quot;</pre>
+</blockquote>
+
+<p>Now let's assume we want to run XmlLint against the saved XML file and see the results in Notepad++. Also, let's comment out the unneeded messages:</p>
+
+<blockquote>
+  <pre>// npp_console ?
+npp_console local -
+npe_console local m- --
+npp_console local +
+
+// echo Before saving a file &quot;$(FULL_CURRENT_PATH)&quot;
+if &quot;$(EXT_PART)&quot; ~= &quot;.xml&quot; then
+  set local f ~ fileexists $(FULL_CURRENT_PATH)
+  if $(f) != 0 then
+    set local bakfile = $(FULL_CURRENT_PATH).bak
+    cmd /C (if exist &quot;$(bakfile)&quot; del /F &quot;$(bakfile)&quot;) & copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;$(bakfile)&quot;
+  endif
+endif // &quot;.xml&quot;
+
+npp_save // saving a file
+
+// echo After saving a file &quot;$(FULL_CURRENT_PATH)&quot;
+if &quot;$(EXT_PART)&quot; ~= &quot;.xml&quot; then
+  &quot;xmllint.exe&quot; &quot;$(FULL_CURRENT_PATH)&quot; --output &quot;$(FULL_CURRENT_PATH)&quot;
+  npp_sendmsg NPPM_RELOADFILE 0 &quot;$(FULL_CURRENT_PATH)&quot;
+endif</pre>
+</blockquote>
+
+<p>This is almost perfect. Each time we press Ctrl+S, a backup copy of the previously saved XML file is created, the updated content is saved to the file and XmlLint is run against the saved file. You may need to specify a full path to &quot;xmllint.exe&quot; to make it work. Or, if you are not interested in XML, maybe you are doing something similar for e.g. C++ using the Artistic Style formatter - in such case you may need to specify a full path to &quot;astyle.exe&quot;.</p>
+<p>Let's actually add an example for C++ files as well. This requires additional modifications to the script:</p>
+
+<blockquote>
+  <pre>// npp_console ?
+npp_console local -
+npe_console local m- --
+npp_console local +
+
+// echo Before saving a file &quot;$(FULL_CURRENT_PATH)&quot;
+set local isXml = 0
+set local isCpp = 0
+
+if &quot;$(EXT_PART)&quot; ~= &quot;.xml&quot; then
+  set local isXml = 1
+else if &quot;$(EXT_PART)&quot; ~= &quot;.cpp&quot; then
+  set local isCpp = 1
+else if &quot;$(EXT_PART)&quot; ~= &quot;.cxx&quot; then
+  set local isCpp = 1
+else if &quot;$(EXT_PART)&quot; ~= &quot;.cc&quot; then
+  set local isCpp = 1
+else if &quot;$(EXT_PART)&quot; ~= &quot;.c&quot; then
+  set local isCpp = 1
+else if &quot;$(EXT_PART)&quot; ~= &quot;.hpp&quot; then
+  set local isCpp = 1
+else if &quot;$(EXT_PART)&quot; ~= &quot;.hxx&quot; then
+  set local isCpp = 1
+else if &quot;$(EXT_PART)&quot; ~= &quot;.hh&quot; then
+  set local isCpp = 1
+else if &quot;$(EXT_PART)&quot; ~= &quot;.h&quot; then
+  set local isCpp = 1
+endif
+
+set local doBackup = 0
+if &quot;$(isXml)&quot; == &quot;1&quot; then
+  set local doBackup = 1
+else if &quot;$(isCpp)&quot; == &quot;1&quot; then
+  set local doBackup = 1
+endif
+
+if &quot;$(doBackup)&quot; == &quot;1&quot; then
+  set local f ~ fileexists $(FULL_CURRENT_PATH)
+  if $(f) != 0 then
+    set local bakfile = $(FULL_CURRENT_PATH).bak
+    cmd /C (if exist &quot;$(bakfile)&quot; del /F &quot;$(bakfile)&quot;) & copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;$(bakfile)&quot;
+  endif
+endif
+
+npp_save // saving a file
+
+// echo After saving a file &quot;$(FULL_CURRENT_PATH)&quot;
+if &quot;$(isXml)&quot; == &quot;1&quot; then
+  &quot;xmllint.exe&quot; &quot;$(FULL_CURRENT_PATH)&quot; --output &quot;$(FULL_CURRENT_PATH)&quot;
+  npp_sendmsg NPPM_RELOADFILE 0 &quot;$(FULL_CURRENT_PATH)&quot;
+else if &quot;$(isCpp)&quot; == &quot;1&quot; then
+  &quot;astyle.exe&quot; &quot;$(FULL_CURRENT_PATH)&quot;
+  npp_sendmsg NPPM_RELOADFILE 0 &quot;$(FULL_CURRENT_PATH)&quot;
+endif</pre>
+</blockquote>
+
+<p>After doing it, you can safely call yourself a guru of NppExec's scripting :-) What was started as a small draft is now a full-functional script that does a lot!</p>
+<p>The only remaining thing is the message &quot;This file has been modified by another program&quot; shown each time the XML file is modified by XmlLint (or, in case of a C++ file, each time it is modified by AStyle). To deal with it, we need to modify one Notepad++'s option manually. Go to Settings -&gt; Preferences... -&gt; MISC. -&gt; File Status Auto-Detection. Check the &quot;Update silently&quot; check-box. This will disable the message &quot;This file has been modified by another program&quot;. (Ideally, I would prefer a programmatic way to disable and enable this message, but Notepad++ does not currently allow that. (There is an internal message NPPM_INTERNAL_ENABLECHECKDOCOPT, though).</p>
+<p>Finally, after this NppExec's script is debugged and adjusted enough to do exactly what you want, you can uncomment the very first line &quot;// npp_console ?&quot;. After that, the NppExec's Console will not be automatically shown each time you press Ctrl+S.</p>
+<p>Well done and good luck!</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>
