@@ -86,5 +86,36 @@ python my_program.py</pre>
 <blockquote>
   <p>Just one thing. For more details regarding runtime errors parsing (keyword: Highlight filters), refer to <a href="4.7.4.html">[4.7.4]</a> and &quot;help con_filter&quot;. </p>
 </blockquote>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p>4. Running Pygame Code</p>
+<p><em>[the text below has been originally posted by Ahmed A. in Notepad++'s forum]</em></p>
+<p>I have NppExec set up with this script:</p>
+<blockquote>
+  <pre>npp_save
+cd $(CURRENT_DIRECTORY)
+python -u $(FILE_NAME)</pre>
+</blockquote>
+<p>It runs most python code perfectly fine, I even tested out some of the example code that comes with python. Files using the turtle module work perfectly with opening windows etc.</p>
+<p>However, when I run code using the Pygame module, everything works fine <i>except that no window is opened</i>. I see that the code is executing and I can print statements in the game loop and they show up in the console, but that is all.</p>
+<p>Eventually I was able to get it to work. The issue was that NppExec was somehow blocking window creation in the case of Pygame. Using &quot;cmd /c python&quot; fixed the issue with the window:</p>
+<blockquote>
+  <pre>npp_save
+cd "$(CURRENT_DIRECTORY)"
+cmd /c python -u "$(FILE_NAME)"</pre>
+</blockquote>
+<p>Here is the related comment from superuser.com ( https://superuser.com/questions/381942/stop-nppexec-from-trapping-console-output-until-program-finishes ) where I found the solution to this problem:</p>
+<p><i>To prevent your python script's own windows being suppressed (not sure exactly what is going on here), run the call to Python as an argument to cmd by preprending &quot;cmd /c&quot;. For example, I'm using</i></p>
+<blockquote>
+  <pre>cmd /c python -u &quot$(FULL_CURRENT_PATH)&quot</pre>
+</blockquote>
+<p><i>so my Cocos2D window shows up.</i></p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
 </BODY>
 </HTML>
