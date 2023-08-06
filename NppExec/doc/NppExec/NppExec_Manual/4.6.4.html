@@ -11,10 +11,10 @@
 <p>1. Interactive Python inside NppExec</p>
 <p>Running &quot;python -?&quot; gives the following help information, in particular:</p>
 <ul>
-  <li>-i : inspect interactively after running script, (also PYTHONINSPECT=x) and force prompts, <I>even if stdin does not appear to be a terminal</I></li>
-  <li>-u : <I>unbuffered binary stdout and stderr</I> (also PYTHONUNBUFFERED=x) see man page for details on internal buffering relating to '-u'</li>
+  <li>-i : inspect interactively after running script, (also PYTHONINSPECT=x) and force prompts, <em>even if stdin does not appear to be a terminal</em></li>
+  <li>-u : <em>unbuffered binary stdout and stderr</em> (also PYTHONUNBUFFERED=x), see man page for details on internal buffering relating to '-u'</li>
 </ul>
-<p>The text in italic <I>exactly</I> refers to what is stated in NppExec's Manual, sections 1.3 and 3.1 by &quot;NppExec is not a console emulator&quot;.</p>
+<p>The text in italic <em>exactly</em> refers to what is stated in NppExec's Manual, sections 1.3 and 3.1 by &quot;NppExec is not a console emulator&quot;.</p>
 <p>So, by running &quot;python -i -u&quot; in NppExec's Console, you get the interactive Python inside Notepad++.</p>
 <p>Here is an advanced example of NppExec's script to be used to test a Python's program interactively:</p>
 <blockquote>
@@ -99,7 +99,7 @@ cd $(CURRENT_DIRECTORY)
 python -u $(FILE_NAME)</pre>
 </blockquote>
 <p>It runs most python code perfectly fine, I even tested out some of the example code that comes with python. Files using the turtle module work perfectly with opening windows etc.</p>
-<p>However, when I run code using the Pygame module, everything works fine <i>except that no window is opened</i>. I see that the code is executing and I can print statements in the game loop and they show up in the console, but that is all.</p>
+<p>However, when I run code using the Pygame module, everything works fine <em>except that no window is opened</em>. I see that the code is executing and I can print statements in the game loop and they show up in the console, but that is all.</p>
 <p>Eventually I was able to get it to work. The issue was that NppExec was somehow blocking window creation in the case of Pygame. Using &quot;cmd /c python&quot; fixed the issue with the window:</p>
 <blockquote>
   <pre>npp_save
