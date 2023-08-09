@@ -8,7 +8,7 @@
 <BODY>
 <h3>4.6.4. Running Python & wxPython</h3>
 
-<p>1. Interactive Python inside NppExec</p>
+<p><b>1. Interactive Python inside NppExec</b></p>
 <p>Running &quot;python -?&quot; gives the following help information, in particular:</p>
 <ul>
   <li>-i : inspect interactively after running script, (also PYTHONINSPECT=x) and force prompts, <em>even if stdin does not appear to be a terminal</em></li>
@@ -32,8 +32,11 @@ python -i -u "$(FILE_NAME)"  // run Python's program interactively
   <pre> </pre>
 </blockquote>
 
-<p>2. Python and UTF-8</p>
-<p>If your python's program contains some non-ASCII characters, you can get the following error from Python: &quot;SyntaxError: Non-ASCII character&quot;.</p>
+<p><b>2. Python and UTF-8</b></p>
+<p>If your python's program contains some non-ASCII characters, you can get the following error from Python:</p>
+<blockquote>
+  <pre>SyntaxError: Non-ASCII character</pre>
+</blockquote>
 <p>To be able to represent such non-ASCII characters correctly on any system, 
 such source file should be saved as UTF-8 (either without BOM or with BOM). 
 Though the error mentioned above still remains. 
@@ -47,19 +50,22 @@ you just need to specify</p>
   <pre># -*- coding: utf-8 -*-</pre>
 </blockquote>
 <p>at the beginning of your python's program.</p>
-<p>Another thing is to output something to console as UTF-8.</p>
-<p>In this case, you can get something similar from Python: &quot;UnicodeEncodeError: 'charmap' codec can't encode characters in position 0-2: character maps to &lt;undefined&gt;&quot;.</p>
+<p>Another thing is to output something to console as UTF-8. In this case, you can get something similar from Python:</p>
+<blockquote>
+  <pre>UnicodeEncodeError: 'charmap' codec can't encode characters in position 0-2: character maps to &lt;undefined&gt;</pre>
+</blockquote>
 <p>To fix this last one, it's enough to specify the environment variable PYTHONIOENCODING by setting it to &quot;utf-8&quot;. I.e.</p>
 <blockquote>
   <pre>// within NppExec
-env_set PYTHONIOENCODING=utf-8
+env_set local PYTHONIOENCODING=utf-8  // UTF-8 output for Python
+npe_console local -- o2 i2            // UTF-8 output/input for NppExec's Console
 python my_program.py</pre>
 </blockquote>
 <blockquote>
   <pre> </pre>
 </blockquote>
 
-<p>3. Running Python scripts using wxPython</p>
+<p><b>3. Running Python scripts using wxPython</b></p>
 <p><em>[the text below has been originally posted by cioma in NppExec's forum]</em></p>
 <p>[ cioma: ]</p>
 <blockquote>
@@ -90,7 +96,7 @@ python my_program.py</pre>
   <pre> </pre>
 </blockquote>
 
-<p>4. Running Pygame Code</p>
+<p><b>4. Running Pygame Code</b></p>
 <p><em>[the text below has been originally posted by Ahmed A. in Notepad++'s forum]</em></p>
 <p>I have NppExec set up with this script:</p>
 <blockquote>

@@ -14,5 +14,24 @@
 NppExec's scripts are shared between several copies of NppExec.</p>
 <p>To have several copies of &quot;NppExec.dll&quot;, just copy it with different name(s), for example, &quot;NppExec2.dll&quot;, &quot;NppExecCpp.dll&quot;, &quot;NppExecWeb.dll&quot; and so on. This will give you additional NppExec's Console windows with the corresponding titles: &quot;Console2&quot;, &quot;ConsoleCpp&quot;, &quot;ConsoleWeb&quot; and
 so on.</p>
+<p>Note: in modern versions of Notepad++, each instance of NppExec.dll should be located in its own folder. Thus, to have e.g. &quot;NppExecCpp.dll&quot;, make a copy of the entire folder &quot;plugins\NppExec&quot; as &quot;plugins\NppExecCpp&quot; and then rename &quot;plugins\NppExecCpp\NppExec.dll&quot; to &quot;plugins\NppExecCpp\NppExecCpp.dll&quot;. (Be sure that the .dll name matches the folder name!) Also, be sure to have the inner subfolder &quot;NppExecCpp\NppExec&quot; (that contains &quot;BaseDef.h&quot;, &quot;menuCmdID.h&quot; and so on) because each instance of NppExec.dll needs it near itself. (This inner &quot;NppExec&quot; subfolder should preserve its initial name). To sum up, the following files/folders tree is expected in case of &quot;NppExec.dll&quot; and &quot;NppExecCpp.dll&quot;:</p>
+<blockquote>
+  <pre>plugins\
+    NppExec\
+        NppExec\
+            BaseDef.h
+            menuCmdID.h
+            Notepad_plus_msgs.h
+            Scintilla.h
+        NppExec.dll
+    NppExecCpp\
+        NppExec\
+            BaseDef.h
+            menuCmdID.h
+            Notepad_plus_msgs.h
+            Scintilla.h
+        NppExecCpp.dll</pre>
+</blockquote>
+
 </BODY>
 </HTML>

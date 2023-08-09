@@ -9,7 +9,7 @@
 <BODY>
 <h3>4.7.3. Using Visual Studio's compiler (cl.exe)</h3>
 <p>If you want to run 'cl.exe' from NppExec, it requires some additional environment. Such environment can be set using a batch file or using NppExec's command ENV_SET <a href="4.2.html">[4.2]</a>.</p>
-<p>1. Using a batch file (simple)</p>
+<p><b>1. Using a batch file (simple)</b></p>
 <p>To use a simple batch file, create a file 'cl.cmd' with similar text: </p>
 
 <blockquote>
@@ -28,7 +28,7 @@ cl.cmd &quot;$(FULL_CURRENT_PATH)&quot;
 </pre>
 </blockquote>
 <p>to compile your source file(s). </p>
-<p>2. Using a batch file (advanced)</p>
+<p><b>2. Using a batch file (advanced)</b></p>
 <p>To use an advanced batch file, create a file 'cl.cmd' with similar text: </p>
 
 <blockquote>
@@ -53,7 +53,17 @@ cl.cmd &quot;$(FULL_CURRENT_PATH)&quot;
 </blockquote>
 <p>to compile your source file(s). </p>
 <p>As you can see, the VC's environment is handled inside the 'cl.cmd' in this case. I.e. it is handled by the system (well, by cmd.exe) and not by NppExec.</p>
-<p>3. Using ENV_SET</p>
+<p><b>3. Using a running (interactive) VS Developer Command Prompt</b></p>
+<p>The following NppExec's script can be used to run the Developer Command Prompt for VS 2022 in NppExec's Console:</p>
+<blockquote>
+<pre>set local @exit_cmd = exit  // sends "exit" when NppExec's Console is closed
+cmd /K "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x86</pre>
+</blockquote>
+<p>Now, while the VS Developer Command Prompt is running in NppExec's Console, it is possible to e.g. compile the current file via the following command in NppExec's Console:</p>
+<blockquote>
+<pre>cd /D "$(CURRENT_DIRECTORY)" && cl "$(FILE_NAME)"</pre>
+</blockquote>
+<p><b>4. Using ENV_SET</b></p>
 <p>The initialization of environment variables for VC will look similar to the following:</p>
 <blockquote>
 <pre>// setting NppExec's internal (user) variables
@@ -79,7 +89,7 @@ cl.exe &quot;$(FULL_CURRENT_PATH)&quot;
 <p>Don't forget that ENV_SET does not understand
 such form of existing environment variables as &quot;%PATH%&quot; because NppExec does not accept such declaration. &quot;$(SYS.PATH)&quot; should be used instead of &quot;%PATH%&quot;.</p>
 <p>In general, it's not a good idea to set and then restore the environment every time it is needed by some tool. Instead, you can set all the required environment in NppExec's start-up script <a href="4.2.html">[4.2]</a>. Such approach would allow you to use any of your tools without further specifying of full paths or additional environment variables.</p>
-<p>4. Using ENV_SET, VS 10 + clang</p>
+<p><b>5. Using ENV_SET, VS 10 + clang</b></p>
 <p><em>[The text below was originally posted by Suman Kar in NppExec's forum.]</em></p>
 <p>I have spent a good couple of hours getting this to work. Finally, I was able to coax NppExec, clang and Visual Studio to work together and let me compile my C snippets. The following script (along with &quot;compile_or_run&quot; described in the documentation <a href="4.7.4.html">[4.7.4]</a>) worked for me:</p>
 <blockquote>
