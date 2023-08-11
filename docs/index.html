@@ -10,12 +10,17 @@
   var protocol = location.protocol;
   var hostname = location.hostname;
   var pathname = location.pathname;
+  var protocol = location.protocol
   var port     = window.location.port
-  var baseHref = protocol + '//' + hostname + ":" + port + pathname;
-  console.log(baseHref);
+  var baseHref = new URL('http://github.com'); 
+  baseHref.host = hostname
+  baseHref.port = port.length>0 ? port : null
+  baseHref.pathname = pathname
+  baseHref.protocol = protocol
+  console.log(baseHref.href);
   var head = document.getElementsByTagName('head')[0];
   var base = document.createElement('base');
-  base.href = baseHref;
+  base.href = baseHref.href;
   head.appendChild(base);
 </script>
 <FRAMESET cols="30%, 70%">
