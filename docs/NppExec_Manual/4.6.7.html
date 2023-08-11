@@ -1,0 +1,128 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.7. Run and terminate PowerShell process</title>
+</HEAD>
+<BODY>
+<h3>4.6.7. Run and terminate PowerShell process</h3>
+
+<p><em>[Part 1: the following text is based on nppexec/issues/23 by LorneCash]</em></p>
+<p>The problem #1: If you execute a PowerShell's script in NppExec's Console, the PowerShell process is not ended when the script is finished.</p>
+<p>The solution #1: Use &quot;cmd /c echo. | powershell&quot; instead of &quot;powershell&quot; to emulate sending of the Enter key to PowerShell process.</p>
+<p>The problem #2: PowerShell says: "File ... cannot be loaded because running scripts is disabled on this system".</p>
+<p>The solution #2: Either use the command-line option &quot;-ExecutionPolicy Unrestricted&quot; (see the examples below) or set PowerShell's global ExecutionPolicy (see the second part of this article).</p>
+<p>The problem #3: If a quoted file path is passed to the second instance of PowerShell, this second instance receives the file path without quotes.</p>
+<p>The solution #3: Use escaped quotes \&quot; \&quot; instead of just &quot; &quot;.</p>
+<p>Here is an example that illustrates this approach. Also it demonstrates how PowerShell's ExecutionPolicy can be applied to a single script. It is assumed that a .ps1 file is currently opened in Notepad++:</p>
+<blockquote>
+  <pre>cmd /c echo. | PowerShell -ExecutionPolicy Unrestricted start-process PowerShell -ArgumentList '-ExecutionPolicy Unrestricted -File \&quot;$(FULL_CURRENT_PATH)\&quot;'</pre>
+</blockquote>
+
+<p>And here is an example of PowerShell's command executed in NppExec's Console:</p>
+<blockquote>
+  <pre>cmd /c echo. | PowerShell -Command Write-Host 'Hello, World!'</pre>
+</blockquote>
+
+<p>Now let's consider the following scenario. When you are debugging PowerShell or batch scripts you usually run them a lot with pauses in them, so you end up with a lot of console windows that have to be closed manually. This can be automated by saving the PID (process id) of the last running process and then using this saved PID to close that process gracefully. Here is the corresponding NppExec's script that runs a PowerShell script file (.ps1) opened in Notepad++:</p>
+<blockquote>
+  <pre>if &quot;$(PS_ID)&quot; != &quot;&quot; then
+  // closing the previous running process by its id...
+  cmd /C echo. | PowerShell -Command &quot;get-process -Id $(PS_ID) -ErrorAction SilentlyContinue | ForEach-Object {$null = $_.CloseMainWindow()};&quot;
+  unset PS_ID
+endif
+// running a new process and saving its id...
+npe_console local v+ --
+cmd /C echo. | PowerShell -ExecutionPolicy Unrestricted -Command &quot;(start-process -PassThru PowerShell -ArgumentList '-File &quot;&quot;$(FULL_CURRENT_PATH)&quot;&quot;').Id&quot;
+set PS_ID = $(OUTPUT)
+</pre>
+</blockquote>
+<p>In case of a batch script file (.bat or .cmd), the NppExec's script will be slightly different:</p>
+<blockquote>
+  <pre>if &quot;$(PS_ID)&quot; != &quot;&quot; then
+  // closing the previous running process by its id...
+  cmd /C echo. | PowerShell -Command &quot;get-process -Id $(PS_ID) -ErrorAction SilentlyContinue | ForEach-Object {$null = $_.CloseMainWindow()};&quot;
+  unset PS_ID
+endif
+// running a new process and saving its id...
+npe_console local v+ --
+cmd /C echo. | PowerShell -Command &quot;(start-process -PassThru cmd -ArgumentList '/c &quot;&quot;$(FULL_CURRENT_PATH)&quot;&quot;').Id&quot;
+set PS_ID = $(OUTPUT)
+</pre>
+</blockquote>
+<p>Finally, we can merge these two NppExec's scripts into a new NppExec's script that will take care of both PowerShell and batch script files:</p>
+<blockquote>
+  <pre>npp_console ?  // don't show the Console if it's hidden
+npp_save       // save the current file
+if &quot;$(PS_ID)&quot; != &quot;&quot; then
+  // closing the previous running process by its id...
+  cmd /C echo. | PowerShell -Command &quot;get-process -Id $(PS_ID) -ErrorAction SilentlyContinue | ForEach-Object {$null = $_.CloseMainWindow()};&quot;
+  unset PS_ID
+endif
+// is it a batch file?..
+set local IS_BATCH_FILE = false
+if &quot;$(EXT_PART)&quot; ~= &quot;.bat&quot; then
+  set local IS_BATCH_FILE = true
+else if &quot;$(EXT_PART)&quot; ~= &quot;.cmd&quot; then
+  set local IS_BATCH_FILE = true
+endif
+// running a new process and saving its id...
+npe_console local v+ --
+if &quot;$(IS_BATCH_FILE)&quot; == &quot;true&quot; then
+  cmd /C echo. | PowerShell -Command &quot;(start-process -PassThru cmd -ArgumentList '/c &quot;&quot;$(FULL_CURRENT_PATH)&quot;&quot;').Id&quot;
+  set PS_ID = $(OUTPUT)
+else if &quot;$(EXT_PART)&quot; ~= &quot;.ps1&quot; then
+  cmd /C echo. | PowerShell -ExecutionPolicy Unrestricted -Command &quot;(start-process -PassThru PowerShell -ArgumentList '-File &quot;&quot;$(FULL_CURRENT_PATH)&quot;&quot;').Id&quot;
+  set PS_ID = $(OUTPUT)
+else
+  messagebox &quot;File type has not been configured in NppExec's 'Run' script&quot; : &quot;NppExec: Run - Unknown File Type&quot; : warn
+endif
+</pre>
+</blockquote>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p><em>[Part 2: the text below was originally posted in NppExec's forum]</em></p>
+<p>The problem: if you execute a PowerShell's script in NppExec's Console, the PowerShell process is not ended when the script is finished.</p>
+<p>The solution: use &quot;cmd /c echo. | powershell&quot; instead of &quot;powershell&quot; to emulate sending of the Enter key to PowerShell process.</p>
+<p>Here is an example of the full NppExec's script that uses the currently selected text as a PowerShell's program:</p>
+
+<blockquote>
+  <pre>// path to PowerShell.exe
+set local PS_EXE = C:\WINDOWS\system32\windowspowershell\v1.0\powershell.exe
+// temporary file
+set local TEMP_FILE = $(SYS.TEMP)\ps_sel.ps1
+// save selected text from current file to a temporary ANSI file
+SEL_SAVETO $(TEMP_FILE) :a
+// execute the temporary file in PowerShell and exit
+cmd /c echo. | &quot;$(PS_EXE)&quot; -nologo &quot;$(TEMP_FILE)&quot;</pre>
+</blockquote>
+
+<p>Note:</p>
+<p>If PowerShell unexpectedly says something like</p>
+<blockquote>
+  <pre>File &quot;test.ps1&quot; cannot be loaded because running scripts is disabled on this system</pre>
+</blockquote>
+<p>it could be related to the fact that there are 32-bit and 64-bit instances on 64-bit systems, and they can have different settings. According to https://stackoverflow.com/questions/4037939/powershell-says-execution-of-scripts-is-disabled-on-this-system , the following should help:</p>
+<blockquote>
+  <pre>x86 (32 bit)
+Open &quot;C:\Windows\SysWOW64\cmd.exe&quot;
+Run the command: &quot;powershell Set-ExecutionPolicy RemoteSigned&quot;
+
+x64 (64 bit)
+Open &quot;C:\Windows\system32\cmd.exe&quot;
+Run the command: &quot;powershell Set-ExecutionPolicy RemoteSigned&quot;
+
+You can check the bitness using
+- In CMD: echo %PROCESSOR_ARCHITECTURE%
+- In Powershell: [Environment]::Is64BitProcess
+</pre>
+</blockquote>
+
+<p>See also: Using cmd.exe <a href="4.4.html">[4.4]</a>.</p>
+
+</BODY>
+</HTML>

@@ -1,0 +1,270 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.8.2. Collateral scripts</title>
+</HEAD>
+<BODY>
+<h3>4.8.2. Collateral scripts</h3>
+
+<p>I think, the subject of collateral scripts in NppExec (introduced in NppExec v0.6) deserves a separate article. So let's do it. We'll start with simple examples, explain their background and then proceed to technical details of how it is implemented in NppExec.</p>
+<p>Let's start from something easy. Type the following in NppExec's Console:</p>
+<blockquote>
+  <pre>cmd</pre>
+</blockquote>
+
+<p>and press Enter.</p>
+<p>The cmd.exe is now running in NppExec's Console.</p>
+<p>If now you type &quot;cmd&quot; once again, you'll have the first cmd.exe executing the second cmd.exe. But let's try something different. Now, with cmd.exe running, type the following in NppExec's Console:</p>
+<blockquote>
+  <pre>nppexec:cmd</pre>
+</blockquote>
+
+<p>The &quot;nppexec:&quot; prefix instructs NppExec to not pass this command to the running process (to cmd.exe in our case), but to execute it as NppExec's own command instead. Thus &quot;nppexec:cmd&quot; (executed from within an already running cmd.exe) differs from just &quot;cmd&quot; in the following way:</p>
+<ul>
+  <li>just &quot;cmd&quot; is executed by means of the running process (i.e. by cmd.exe in our example);</li>
+  <li>&quot;nppexec:cmd&quot; is executed by NppExec itself;</li>
+  <li>just &quot;cmd&quot; makes the running instance of cmd.exe to start a new instance of cmd.exe and wait until this second instance is finished;</li>
+  <li>&quot;nppexec:cmd&quot; runs a _parallel_ instance of cmd.exe, while the previous instance of cmd.exe is still active in the background. This is what is called &quot;collateral&quot; in NppExec.</li>
+</ul>
+
+<p>Let's look at another, more advanced, example.</p>
+<p>Consider the following Python program:</p>
+<blockquote>
+  <pre>import time
+
+def run():
+    for i in xrange(5):
+        time.sleep(3)
+        print i
+
+run()</pre>
+</blockquote>
+
+<p>This program is basically a cycle where integers from 0 to 4 are printed with an interval of 3 seconds.</p>
+<p>Here is an equivalent program in C:</p>
+<blockquote>
+  <pre>#include &lt;stdio.h&gt;
+#include &lt;windows.h&gt;
+
+void run()
+{
+    int i;
+    for (i = 0; i &lt; 5; ++i)
+    {
+        Sleep(3000);
+        printf(&quot;%d\n&quot;, i);
+        fflush(stdout); // important! otherwise the output may be buffered inside a pipe
+    }
+}
+
+int main()
+{
+    run();
+    return 0;
+}</pre>
+</blockquote>
+
+<p>The comment about a possible buffering inside a pipe relates to NppExec - because NppExec uses pipes to redirect the console process'es output and input. As I stated before, and I am still stating now, this &quot;feature&quot; of buffering in pipes is not something infused by or incorrectly handled by NppExec - it is a core &quot;feature&quot; of pipes as they were implemented by Microsoft. This is known for years - and still it has not been fixed. So do use fflush() whenever a program is expected to be run without a real console window (e.g. when it is run in NppExec).</p>
+<p>Surely you need either Python or a C compiler installed on you machine to proceed. Or just create a similar program using any other language you prefer.</p>
+<p>In case of Python, please be sure that the path to python.exe has been added to the PATH environment variable. In case of C, please ensure the path to a C compiler (such as Tiny C Compiler or GCC) has been added to the PATH environment variable. If you are not sure how to deal with the PATH environment variable, please search internet for this and ensure you do understand it prior to any further reading of this article. Here are a few links related to %PATH%, just in case:</p>
+<blockquote>
+  <pre>https://en.wikipedia.org/wiki/PATH_(variable)
+https://ss64.com/nt/path.html</pre>
+</blockquote>
+<p>Also, be sure to check &quot;Follow $(CURRENT_DIRECTORY)&quot; in NppExec: select &quot;Plugins&quot; in Notepad++'s main menu, then &quot;NppExec&quot;, then check &quot;Follow $(CURRENT_DIRECTORY)&quot;.</p>
+
+<p>Now, in case of Python, type:</p>
+<blockquote>
+  <pre>nppexec:python -u &quot;$(FILE_NAME)&quot;</pre>
+</blockquote>
+
+<p>in NppExec's Console to run the Python program mentioned above. (I assume the Python program has been saved into a file, e.g. &quot;test.py&quot;, and this file is currently opened in Notepad++.)</p>
+
+<p>In case of Tiny C Compiler, type:</p>
+<blockquote>
+  <pre>nppexec:tcc -run &quot;$(FILE_NAME)&quot;</pre>
+</blockquote>
+
+<p>In case of GCC, type:</p>
+<blockquote>
+  <pre>nppexec:cmd /c gcc &quot;$(FILE_NAME)&quot; -o &quot;$(NAME_PART).exe&quot; && &quot;$(NAME_PART).exe&quot;</pre>
+</blockquote>
+
+<p>And again, I assumed the C program has been saved into a file, e.g. &quot;test.c&quot;, and this file is currently opened in Notepad++.</p>
+<p>The &quot;nppexec:&quot; prefix here does not have any special meaning while nothing is currently running in NppExec's Console. But we'll need this prefix a little bit later. For the moment, though, you can just imagine this prefix is not present - or just do not type it actually.</p>
+<p>Once you type one of the previously mentioned commands (or any other command applicable to another programming language you are using) and press Enter in NppExec's Console, here is the expected output:</p>
+
+<blockquote>
+  <pre>0
+1
+2
+3
+4
+================ READY ================</pre>
+</blockquote>
+
+<p>Now, let's think about the following. There is an interval of 3 seconds between each output - and what if you want to run another NppExec's command during that time? This is where NppExec's collateral scripts come in handy.</p>
+<p>Remember the initial command with the &quot;nppexec:&quot; prefix? Now here is the meaning of it: when there is an already running process in NppExec, and you want NppExec to execute NppExec's command _while working with this running process_, the &quot;nppexec:&quot; prefix tells NppExec to pass (give) this command to NppExec itself rather than to the running process. As this command will be executed at the same time as the running process is executing, it is a collateral command.</p>
+<p>Let's do it in practice. Follow these steps:</p>
+<ol>
+  <li>Copy the command to the clipboard (e.g. the 'nppexec:python -u &quot;$(FILE_NAME)&quot;' command in case of Python);</li>
+  <li>Paste this command to NppExec's Console (via Ctrl+V) and press Enter;</li>
+  <li>Wait until &quot;0&quot; and &quot;1&quot; have been printed;</li>
+  <li>Now paste the same command again (via Ctrl+V) and press Enter.</li>
+</ol>
+
+<p>As the interval between the output of the integers is 3 seconds, you need to be hurry with these last Ctrl+V and Enter.</p>
+<p>Basically, this was the reason why I mentioned the &quot;nppexec:&quot; prefix before: to be able to copy the command to the clipboard in advance, and then just paste it from the clipboard.</p>
+<p>The expected output will be similar to (in case of Python):</p>
+<blockquote>
+  <pre>nppexec:python -u &quot;$(FILE_NAME)&quot;
+python -u &quot;test.py&quot;
+Process started (PID=1620) &gt;&gt;&gt;
+0
+1
+nppexec:python -u &quot;$(FILE_NAME)&quot;
+python -u &quot;test.py&quot;
+Process started (PID=1776) &gt;&gt;&gt;
+0
+1
+2
+3
+4
+&lt;&lt;&lt; Process finished (PID=1776). (Exit code 0)
+2
+3
+4
+&lt;&lt;&lt; Process finished (PID=1620). (Exit code 0)
+================ READY ================</pre>
+</blockquote>
+
+<p>This is the output with &quot;No internal messages&quot; unchecked - in such way it's more clear where each process'es output is.</p>
+<p>We can notice the following things here:</p>
+<ol>
+  <li>The first process'es output was not available in NppExec's Console while the second (collateral) process was running.</li>
+  <li>Once the second process has finished, the rest of the first process'es output was printed. This is what I call a &quot;postponed output&quot; - the output of a process that was running in the background.</li>
+</ol>
+
+<p>You can run as many embedded collateral commands (with the &quot;nppexec:&quot; prefix) as you need. In terms of the example above, just press Ctrl+V and Enter while the second process is running, then press Ctrl+V and Enter while the third process is running, and so on. NppExec has no limitation in this.</p>
+<p>NppExec's built-in help provides some other examples with the &quot;nppexec:&quot; prefix. Type one of the following in NppExec's Console:</p>
+
+<blockquote>
+  <pre>help npe_queue
+help proc_signal
+help @exit_cmd</pre>
+</blockquote>
+
+<p>Now here is an interesting hint. In case of two running processes (as in the last example with Python above), it's clear that once the second process has printed &quot;2&quot;, the first process in the background had already printed &quot;4&quot; and finished. And if you call the &quot;Execute NppExec Script...&quot; (F6 by default) now, NppExec allows you to do that even though the second process is still running in NppExec's Console! It's because only the first process was a &quot;regular&quot; command in terms of NppExec, whereas the second process was &quot;collateral&quot;. And after the &quot;regular&quot; process has finished, the &quot;Execute NppExec Script...&quot; becomes available, disregarding the running &quot;collateral&quot; process. (Though, it may be changed in the future :))</p>
+<p>So now let's discuss how it can be possible and how collateral commands are implemented in NppExec.</p>
+<p>From NppExec v0.6, the core of NppExec is the CommandExecutor (the CNppExecCommandExecutor class). The CommandExecutor is responsible for execution of any CommandExecutor's Command (sounds logical, isn't it? ;)). In terms of the CommandExecutor, a Command is anything that can be initiated from the UI (user interface) and from NppExec's Plugin Interface. For example, an attempt to run any command in NppExec's Console is a CommandExecutor's Command; an attempt to run the &quot;Execute NppExec Script...&quot; (F6 by default) is also CommandExecutor's Command; an attempt to close NppExec's Console or to exit Notepad++ is also a CommandExecutor's Command. I'm writing &quot;Command&quot; from the capital letter to not confuse it with a command that can be entered in NppExec's Console or be a part of NppExec's script (by this &quot;command&quot; from the small letter I mean anything like &quot;cmd&quot;, &quot;help&quot;, &quot;npp_console off&quot; and so on).</p>
+<p>Any CommandExecutor's Command has two methods: Execute() and Expire(). The method Expire() is called when the Command can not be started during ChildScript_SyncTimeout_ms time interval (it is 200 ms by default, refer to &quot;NppExec_TechInfo.txt&quot;). This can happen when another script or command is already running in NppExec's Console. The method Expire() invokes the method CanStartScriptOrCommand() that checks whether a running process (if any) can be exited. If it's possible, the method Execute() will be called. Otherwise the Command is marked as &quot;expired&quot; and will not be executed.</p>
+<p>Here is how NppExec's log file looks like in case of a regular (non-collateral) command:</p>
+
+<blockquote>
+  <pre>; @Input Command: cmd
+; RunScriptCommand - create (instance = 0x320CBA8 @ 20:21:20.588)
+; RunScriptCommand - executing (instance = 0x320CBA8 @ 20:21:20.588)
+; CScriptEngine - create (instance = 0x32589B8 @ 20:21:20.589)
+; CScriptEngine::Run - start (instance = 0x32589B8 @ 20:21:20.589)</pre>
+</blockquote>
+
+<p>Let's explain this. The RunScriptCommand is the CommandExecutor's Command responsible for running (executing) anything (any command) from NppExec's Console. This RunScriptCommand creates a CScriptEngine instance and delegates the actual execution of the command to it. It's because NppExec operates with NppExec's scripts, and even a single command is a NppExec's script (that consists of this single command). Another source of NppExec's scripts is the &quot;Execute NppExec Script...&quot; (F6 by default) that leads to the following in NppExec's log file:</p>
+
+<blockquote>
+  <pre>; Hot-key: executing function [0], &quot;Execute NppExec Script...&quot;
+; ExecDlgCommand - create (instance = 0xA53D50 @ 20:27:45.520)
+; ExecDlgCommand - executing (instance = 0xA53D50 @ 20:27:45.520)
+GetCmdType() { ... }
+; CScriptEngine - create (instance = 0xA59AC0 @ 20:27:51.815)
+; CScriptEngine::Run - start (instance = 0xA59AC0 @ 20:27:51.815)</pre>
+</blockquote>
+
+<p>In this case we have the ExecDlgCommand responsible for the &quot;Execute NppExec Script...&quot; dialog. Also we have several extra lines related to &quot;GetCmdType()&quot; that pre-processes the NppExec's script obtained from the &quot;Execute&quot; dialog. But anyway, we do have a Command instance and a CScriptEngine instance.</p>
+<p>CScriptEngine is responsible for the actual execution of the given NppExec's script (remember, NppExec's script can contain either several commands or a single command). So, what CScriptEngine does is it recognizes the command itself (via its getCmdType method), preprocesses the command arguments (via its modifyCommandLine method) and invokes one of its specific methods to finally execute the command of a known type.</p>
+<p>So, let's repeat: in case of a regular (non-collateral) Command, the corresponding Command instance is created first (to initiate the execution of something), and then a CScriptEngine instance is created to execute the NppExec's script. Surely, we do not have a CScriptEngine instance in case of CloseConsoleCommand or NppExitCommand since these Commands are not associated with NppExec's script to be executed, but let's concentrate on the Commands that do.</p>
+<p>By the way, as we already mentioned NppExec's log files here, let's say how to get them. Please refer to &quot;NppExec_TechInfo.txt&quot; and <a href="4.8.1.html">[4.8.1]</a> for details.</p>
+<p>Now, returning to our Commands and NppExec's scripts, let's see how NppExec's log file looks like in case of a collateral (non-regular) command:</p>
+
+<blockquote>
+  <pre>; @Child Process'es Input: nppexec:cmd
+CheckCmdAliases() { ... }
+; Executing a collateral script...
+; CScriptEngine - create (instance = 0xA59AC0 @ 20:50:10.710)
+; CScriptEngine::Run - start (instance = 0xA59AC0 @ 20:50:10.710)</pre>
+</blockquote>
+
+<p>Did you notice that? Only an instance of a CScriptEngine is created, without any Command! It's because the collateral commands and scripts do not wait for the previous command/script to be finished - they are executed in parallel. To allow this, the CommandExecutor's method ExecuteCollateralScript() does the following:</p>
+<ol>
+  <li>creates a CScriptEngine instance (to execute NppExec's script);</li>
+  <li>executes this CScriptEngine instance in a separate thread.</li>
+</ol>
+
+<p>Thus, the more collateral scripts, the more separate threads are running in NppExec, with its own instance of CScriptEngine in each thread.</p>
+<p>Talking about threads, they are created in NppExec on demand. If no script/command was executed in NppExec yet, no thread is created.</p>
+<ul>
+  <li>Once any Command needs to be executed, a thread for CNppExecCommandExecutor::BackgroundExecuteThreadFunc is created.</li>
+  <li>Once any Command is about to expire, a thread for CNppExecCommandExecutor::BackgroundExpiredThreadFunc is created.</li>
+  <li>Once any NppExec's script needs to send a notification via NppExec's Plugin Interface, a thread for BackgroundSendMsgThreadFunc is created.</li>
+  <li>Once NPEM_EXECUTE_COLLATERAL or NPEM_EXECUTE_QUEUED is received through NppExec's Plugin Interface, a thread for BackgroundExecAsyncCmdThreadFunc is created.</li>
+</ul>
+<p>Too many threads, you might say. Probably, but the last 3 spend most of their time in WaitForMultipleObjects(2, waitEvents, FALSE, INFINITE) - i.e. in sleeping.</p>
+<p>The BackgroundExecuteThreadFunc is the most active one, it is the place where Command-&gt;Execute() is called. Consequently, this is where a CScriptEngine instance is running for regular NppExec's scripts. And, as it was mentioned before, collateral NppExec's scripts are running in their own, separate, threads.</p>
+<p>I think that's basically all about the collateral and regular scripts in NppExec.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p>Part 2. The prefixes &quot;nppexec:&quot; and &quot;nppexec::&quot;.</p>
+
+<p>Now let's compare the prefixes &quot;nppexec:&quot; and &quot;nppexec::&quot; and highlight the differences between them.</p>
+
+<p>The prefix &quot;nppexec:&quot;</p>
+<ol>
+  <li>executes NppExec's scripts either normally (when nothing is currently running by NppExec) or in parallel (creating a new thread, when e.g. a child process is currently running by NppExec);</li>
+  <li>shares local variables with its parent NppExec's script.</li>
+</ol>
+<p>Thus, it's possible to do e.g.</p>
+<blockquote>
+  <pre>nppexec:set local x = 10</pre>
+</blockquote>
+<p>from within a running instance of cmd.exe (in NppExec's Console), and then</p>
+<blockquote>
+  <pre>nppexec:set local x</pre>
+</blockquote>
+<p>prints &quot;local $(X) = 10&quot;. So such local variable is actually local for the parent NppExec's script, not for the collateral one.</p>
+<p>And these are the main 2 differences between collateral scripts created via the &quot;nppexec:&quot; prefix and 
+via the NPEM_EXECUTE_COLLATERAL message (from NppExec's plugin interface):</p>
+<ol>
+  <li>NPEM_EXECUTE_COLLATERAL always executes NppExec's scripts in parallel (creating a new thread);</li>
+  <li>NPEM_EXECUTE_COLLATERAL never shares its local variables.</li>
+</ol>
+<p>And this is the exact description of what the &quot;nppexec::&quot; prefix (with double &quot;::&quot;) does. The &quot;nppexec::&quot; prefix</p>
+<ol>
+  <li>always executes NppExec's scripts in parallel (creating a new thread);</li>
+  <li>never shares its local variables.</li>
+</ol>
+<p>In other words, the &quot;nppexec::&quot; prefix mirrors the behavior of the NPEM_EXECUTE_COLLATERAL message.</p>
+<p>Thus, typing</p>
+<blockquote>
+  <pre>nppexec::set local x = 10</pre>
+</blockquote>
+<p>and then</p>
+<blockquote>
+  <pre>nppexec::set local x</pre>
+</blockquote>
+<p>prints &quot;no user-defined local variables&quot;, and</p>
+<blockquote>
+  <pre>set local x</pre>
+</blockquote>
+<p>prints &quot;no such user's local variable: $(X)&quot;.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+
+</BODY>
+</HTML>

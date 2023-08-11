@@ -1,0 +1,27 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.6. Grab Console output to new editor pane</title>
+</HEAD>
+<BODY>
+<h3>4.6.6. Grab Console output to new editor pane</h3>
+
+<p>To open new editor pane, use &quot;NPP_SENDMSG WM_COMMAND IDM_FILE_NEW&quot;.</p>
+<p>To get the Console output, notice the usage of &quot;NPE_CONSOLE v+&quot; and &quot;SEL_SETTEXT $(OUTPUT)&quot; <a href="4.6.3.html">[4.6.3]</a>.</p>
+<p>To sum up, the following NppExec script should be used:</p>
+
+<blockquote>
+  <pre>// enable the $(OUTPUT) variable for the current NppExec's script
+NPE_CONSOLE local v+
+// your command here... for example, let it be &quot;cmd /?&quot;
+cmd /?
+// open new editor pane
+NPP_SENDMSG WM_COMMAND IDM_FILE_NEW
+// set the text in the new editor pane
+SEL_SETTEXT $(OUTPUT)</pre>
+</blockquote>
+
+</BODY>
+</HTML>

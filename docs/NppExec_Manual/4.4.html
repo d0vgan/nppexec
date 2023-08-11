@@ -1,0 +1,68 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.4. Using cmd.exe</title>
+</HEAD>
+<BODY>
+<h3>4.4. Using cmd.exe</h3>
+<p>NppExec by itself does not support
+    standard console commands such as &quot;copy&quot;, &quot;move&quot;, &quot;mkdir&quot;, &quot;for&quot; etc. <em>(*)</em> Actually,
+    these commands are part of system's command interpreter (cmd.exe). So, you
+    can
+    use cmd.exe to perform such commands. For example, you can type the following
+commands in NppExec's Console or inside NppExec's script:</p>
+<blockquote>
+  <pre>// create a directory C:\Backup
+cmd /c mkdir C:\Backup
+// save current Notepad++'es file
+NPP_SAVE
+// copy current file to C:\Backup
+cmd /c copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;C:\Backup\$(FILE_NAME)&quot; /Y 
+// change current directory
+cd C:\Backup
+// list all .txt files in C:\Backup
+cmd /c for %f in (*.txt) do @echo %f</pre>
+</blockquote>
+<p>NppExec by itself can not redirect console program's output into a text file. <em>(*)</em> And, again, you can do it via cmd.exe:</p>
+<blockquote>
+  <pre>cmd /c program.exe &gt;program.txt</pre>
+</blockquote>
+<p>or even</p>
+<blockquote>
+  <pre>cmd /c for /? &gt;for.txt</pre>
+</blockquote>
+<p>By the way, cmd.exe allows to execute several commands one after another while each previous command is completed successfully. For example:</p>
+<blockquote>
+  <pre>cmd /c for /? &gt;for.txt &amp;&amp; type for.txt
+cmd /c C: &amp;&amp; cd C:\Backup &amp;&amp; for %f in (*.txt) do @echo %f</pre>
+</blockquote>
+<p>You can always type</p>
+<blockquote>
+  <pre>cmd /?</pre>
+</blockquote>
+<p>for more details about cmd.exe and its commands. You'll be surprised how powerful it is :)</p>
+<p>Don't forget you can execute .bat and .cmd files in the same way as executable files <a href="3.3.html">[3.3]</a> - but the file extension (.bat or .cmd) can not be omitted in this case. <em>(*)</em> The batch files (.bat or .cmd) allow to implement sequences of commands with simple algorithms, so you can use them when single cmd's commands are not enough.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p><em>(*)</em> Starting from NppExec ver. 0.6 RC3, it is possible to execute batch files (such as .bat and .cmd) without specifying their extension, as well as it is possible to avoid explicit usage of &quot;cmd /C&quot; to execute the command interpreter's commands. A new advanced option <em>&quot;ChildProcess_RunPolicy&quot;</em> was introduced for this. Set its value to <em>1</em> or <em>2</em> according to the desired behavior. Refer to &quot;doc\NppExec\NppExec_TechInfo.txt&quot; for further details.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p>Finally, a few words about the Delayed Expansion ( https://ss64.com/nt/delayedexpansion.html ). According to cmd's help, this option can be turned on by specifying</p>
+<blockquote>
+  <pre>cmd /V:ON</pre>
+</blockquote>
+<p>Here is an example of running a batch file that relies on the Delayed Expansion (thus using /V:ON). This example assumes that the current document is a batch file (thus using &quot;$(FULL_CURRENT_PATH)&quot;) and you want to run it in its own separate console window (thus using NPP_RUN):</p>
+<blockquote>
+  <pre>NPP_RUN cmd /V:ON /C &quot;$(FULL_CURRENT_PATH)&quot;</pre>
+</blockquote>
+<p>See also: Do something (how-to) <a href="3.3.html">[3.3]</a>; Console output redirection <a href="4.5.html">[4.5]</a>; Grab date &amp; time to NppExec variable <a href="4.6.5.html">[4.6.5]</a>; Run and terminate PowerShell process <a href="4.6.7.html">[4.6.7]</a>; Send several commands to external tool <a href="4.6.9.html">[4.6.9]</a>.</p>
+</BODY>
+</HTML>
