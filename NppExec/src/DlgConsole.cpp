@@ -213,6 +213,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("npe_cmdalias <alias>  -  shows the value of command alias") _T_RE_EOL \
   _T("npe_cmdalias <alias> =  -  removes the command alias") _T_RE_EOL \
   _T("npe_cmdalias <alias> = <command>  -  sets the command alias") _T_RE_EOL \
+  _T("npe_cmdalias local ...  -  local command alias (within the current script)") _T_RE_EOL \
   _T("npe_console <options>  -  set/modify Console options/mode") _T_RE_EOL \
   _T("npe_console local ...  -  sets Console's mode locally (within the current script)") _T_RE_EOL \
   _T("npe_debuglog <on/off>  -  enable/disable Debug Log") _T_RE_EOL \
@@ -1613,6 +1614,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  npe_cmdalias <alias> = <command>") _T_RE_EOL \
     _T("  npe_cmdalias +v <alias> = <command>") _T_RE_EOL \
     _T("  npe_cmdalias -v <alias> = <command>") _T_RE_EOL \
+    _T("  npe_cmdalias local ...") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
     _T("  1. Shows all command aliases (\"npe_cmdalias\" without parameters)") _T_RE_EOL \
     _T("  2. Shows the value of command alias (\"npe_cmdalias\" without \"=\")") _T_RE_EOL \
@@ -1620,6 +1622,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  4. Sets the value of command alias (\"npe_cmdalias <alias> = <command>\")") _T_RE_EOL \
     _T("  5.1. +v uses delayed vars substitution (default), e.g. $(x) remains $(x)") _T_RE_EOL \
     _T("  5.2. -v uses instant vars substitution, e.g. $(x) is replaced with its value") _T_RE_EOL \
+    _T("  6. local within the current NppExec's script") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  // basic examples:") _T_RE_EOL \
     _T("  npe_cmdalias = = calc            // type just \"=\" instead of \"calc\"") _T_RE_EOL \
@@ -1645,6 +1648,10 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  fp // always uses the actual file path") _T_RE_EOL \
     _T("  // now open or switch to another file in Notepad++") _T_RE_EOL \
     _T("  fp // always uses the actual file path") _T_RE_EOL \
+    _T("  // local cmd alias (within the current script):") _T_RE_EOL \
+    _T("  npe_cmdalias local copy = cmd /c copy  // set") _T_RE_EOL \
+    _T("  npe_cmdalias local copy                // show") _T_RE_EOL \
+    _T("  npe_cmdalias local copy =              // remove") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  To use a command alias, type it in the beginning of the input string") _T_RE_EOL \
     _T("  (e.g. \"/c copy /?\" for the command alias \"/c -> cmd /c\"), otherwise") _T_RE_EOL \
