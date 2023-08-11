@@ -1429,13 +1429,15 @@ public:
     tMacroVars& GetUserConsoleMacroVars(); // use with GetCsUserMacroVars()
     tMacroVars& GetUserMacroVars(); // use with GetCsUserMacroVars()
     tMacroVars& GetCmdAliases(); // use with GetCsCmdAliases()
+    tMacroVars& GetLocalCmdAliases(CScriptEngine* pScriptEngine); // use with GetCsCmdAliases()
+    tMacroVars& GetConsoleCmdAliases(); // use with GetCsCmdAliases()
 
     CCriticalSection& GetCsUserMacroVars();
     CCriticalSection& GetCsCmdAliases();
 
     // check macro vars...
     static bool CheckCmdArgs(tstr& Cmd, int& pos, const CStrSplitT<TCHAR>& args);
-    void        CheckCmdAliases(tstr& S, bool useLogging);
+    void        CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, bool useLogging);
     bool        CheckNppMacroVars(tstr& S, int& pos);
     bool        CheckPluginMacroVars(tstr& S, int& pos);
     bool        CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S, int& pos);
@@ -1527,6 +1529,8 @@ protected:
     tMacroVars m_UserConsoleMacroVars; // local user macro vars in NppExec's Console (Console only, not scripts!)
     tMacroVars m_UserMacroVars; // shared user macro vars (shared by all NppExec's scripts)
     tMacroVars m_CmdAliases;
+    tMacroVars m_LocalCmdAliases0; // <-- just in case, actually the aliases are inside ScriptContext
+    tMacroVars m_ConsoleCmdAliases; // local cmd aliases in NppExec's Console (Console only, not scripts!)
 };
 
 class CNppExec

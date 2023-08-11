@@ -652,7 +652,10 @@ void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd, bool bSubsti
 
     bool bScriptThreadRunning = false;
 
-    int cmdPrefix = CScriptEngine::isCmdNppExecPrefixed(m_pNppExec, cmd, true, bSubstituteMacroVars);
+    unsigned int npFlags = CScriptEngine::npfRemovePrefix;
+    if ( bSubstituteMacroVars )
+        npFlags |= CScriptEngine::npfSubstituteMacroVars;
+    int cmdPrefix = CScriptEngine::isCmdNppExecPrefixed(m_pNppExec, nullptr, cmd, npFlags);
 
     if ( cmd.FindOneOf(_T("\r\n")) != -1 ) // multi-line command
     {

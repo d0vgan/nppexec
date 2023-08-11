@@ -4480,7 +4480,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                                     nCmdType = 0;
                                     break;
                                 default:
-                                    nCmdType = CScriptEngine::getCmdType(&Runtime::GetNppExec(), cmdLine);
+                                    nCmdType = CScriptEngine::getCmdType(&Runtime::GetNppExec(), nullptr, cmdLine);
                                     break;
                             }
                             */
@@ -4488,7 +4488,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                             // disable logging (no output while processing TAB pressed)
                             Runtime::GetLogger().Activate(false);
                             
-                            nCmdType = CScriptEngine::getCmdType(&Runtime::GetNppExec(), cmdLine, CScriptEngine::ctfIgnorePrefix);
+                            nCmdType = CScriptEngine::getCmdType(&Runtime::GetNppExec(), nullptr, cmdLine, CScriptEngine::ctfIgnorePrefix);
 
                             switch ( nCmdType )
                             {
