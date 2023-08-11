@@ -1413,6 +1413,8 @@ static FParserWrapper g_fp;
  *   - removes the command alias
  * npe_cmdalias <alias> = <command>
  *   - sets the command alias
+ * npe_cmdalias local ...
+ *   - local command alias (within the current script)
  * npe_console <options>
  *   - set/modify Console options/mode
  * npe_console local ...

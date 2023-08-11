@@ -150,6 +150,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        npe_cmdalias <alias> - shows the value of command alias
  *        npe_cmdalias <alias> = - removes the command alias
  *        npe_cmdalias <alias> = <command> - sets the command alias
+ *        npe_cmdalias local ... - local command alias                     (**)
  *        npe_console <options> - set/modify Console options/mode
  *        npe_console local ... - sets Console's mode locally              (**)
  *        npe_debuglog <on/off> - enable/disable Debug Log
