@@ -4993,7 +4993,7 @@ bool CNppExec::checkCmdListAndPrepareConsole(const CListT<tstr>& CmdList, bool b
      
     if ( bExecute )
     {
-        const CScriptEngine::eCmdType cmdType = CScriptEngine::getCmdType(this, S, CScriptEngine::ctfUseLogging | CScriptEngine::ctfIgnorePrefix);
+        const CScriptEngine::eCmdType cmdType = CScriptEngine::getCmdType(this, nullptr, S, CScriptEngine::ctfUseLogging | CScriptEngine::ctfIgnorePrefix);
         if ( (cmdType == CScriptEngine::CMDTYPE_NPPCONSOLE) ||
              (cmdType == CScriptEngine::CMDTYPE_NPPEXEC) )
         {

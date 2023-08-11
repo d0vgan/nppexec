@@ -1584,9 +1584,17 @@ void CScriptEngine::Run(unsigned int nRunFlags)
         {
             if ( m_pParentScriptEngine )
             {
+                ScriptContext& parentScript = m_pParentScriptEngine->GetExecState().GetCurrentScriptContext();
+
                 // inheriting parent script's local variables
-                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-                currentScript.LocalMacroVars = m_pParentScriptEngine->GetExecState().GetCurrentScriptContext().LocalMacroVars;
+                {
+                    CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                    currentScript.LocalMacroVars = parentScript.LocalMacroVars;
+                }
+                {
+                    CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
+                    currentScript.LocalCmdAliases = parentScript.LocalCmdAliases;
+                }
                 // We could use swap() instead of copying here, but if something
                 // goes wrong in that case we risk to end with empty local vars
                 // in the parent script. So copying is safer.
@@ -1594,15 +1602,27 @@ void CScriptEngine::Run(unsigned int nRunFlags)
             else if ( m_nRunFlags & rfShareConsoleLocalVars )
             {
                 // inheriting Console's local variables
-                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-                currentScript.LocalMacroVars = m_pNppExec->GetMacroVars().GetUserConsoleMacroVars();
+                {
+                    CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                    currentScript.LocalMacroVars = m_pNppExec->GetMacroVars().GetUserConsoleMacroVars();
+                }
+                {
+                    CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
+                    currentScript.LocalCmdAliases = m_pNppExec->GetMacroVars().GetConsoleCmdAliases();
+                }
             }
         }
         else if ( m_nRunFlags & rfConsoleLocalVarsRead )
         {
             // inheriting Console's local variables
-            CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-            currentScript.LocalMacroVars = m_pNppExec->GetMacroVars().GetUserConsoleMacroVars();
+            {
+                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                currentScript.LocalMacroVars = m_pNppExec->GetMacroVars().GetUserConsoleMacroVars();
+            }
+            {
+                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
+                currentScript.LocalCmdAliases = m_pNppExec->GetMacroVars().GetConsoleCmdAliases();
+            }
         }
         if ( ((m_nRunFlags & rfShareConsoleState) != 0) || 
              (!m_pParentScriptEngine) || (!m_pParentScriptEngine->IsCollateral()) )
@@ -1802,10 +1822,18 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                 // Instead, we are saving the values of currentScript.IsSharingLocalVars
                 // and currentScript.LocalMacroVars here.
                 tMacroVars localMacroVars;
+                tMacroVars localCmdAliases;
                 bool isSharingLocalVars = currentScript.IsSharingLocalVars;
                 if ( isSharingLocalVars )
                 {
-                    localMacroVars.swap(currentScript.LocalMacroVars);
+                    {
+                        CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                        localMacroVars.swap(currentScript.LocalMacroVars);
+                    }
+                    {
+                        CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
+                        localCmdAliases.swap(currentScript.LocalCmdAliases);
+                    }
                 }
 
                 // There can be several npp_exec-ed scripts with the same CmdRange.pEnd
@@ -1837,8 +1865,14 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                     {
                         if ( isSharingLocalVars )
                         {
-                            CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-                            currScript.LocalMacroVars.swap(localMacroVars);
+                            {
+                                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                                currScript.LocalMacroVars.swap(localMacroVars);
+                            }
+                            {
+                                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
+                                currScript.LocalCmdAliases.swap(localCmdAliases);
+                            }
                         }
 
                         break;
@@ -1872,25 +1906,41 @@ void CScriptEngine::Run(unsigned int nRunFlags)
         if ( m_pParentScriptEngine )
         {
             ScriptContext& currentScriptContext = m_execState.GetCurrentScriptContext();
-            CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
             ScriptContext& parentScriptContext = m_pParentScriptEngine->GetExecState().GetCurrentScriptContext();
-            parentScriptContext.LocalMacroVars.swap(currentScriptContext.LocalMacroVars);
+            {
+                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                parentScriptContext.LocalMacroVars.swap(currentScriptContext.LocalMacroVars);
+            }
+            {
+                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
+                parentScriptContext.LocalCmdAliases.swap(currentScriptContext.LocalCmdAliases);
+            }
             parentScriptContext.IsPrintingMsgReady = currentScriptContext.IsPrintingMsgReady;
         }
         else if ( m_nRunFlags & rfShareConsoleLocalVars )
         {
             ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-            CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-            //m_pNppExec->GetMacroVars().GetUserConsoleMacroVars().swap(currentScript.LocalMacroVars);
-            m_pNppExec->GetMacroVars().GetUserConsoleMacroVars() = currentScript.LocalMacroVars; // copying
+            {
+                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                m_pNppExec->GetMacroVars().GetUserConsoleMacroVars() = currentScript.LocalMacroVars; // copying
+            }
+            {
+                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
+                m_pNppExec->GetMacroVars().GetConsoleCmdAliases() = currentScript.LocalCmdAliases; // copying
+            }
         }
     }
     else if ( m_nRunFlags & rfConsoleLocalVarsWrite )
     {
         ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-        CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-        //m_pNppExec->GetMacroVars().GetUserConsoleMacroVars().swap(currentScript.LocalMacroVars);
-        m_pNppExec->GetMacroVars().GetUserConsoleMacroVars() = currentScript.LocalMacroVars; // copying
+        {
+            CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+            m_pNppExec->GetMacroVars().GetUserConsoleMacroVars() = currentScript.LocalMacroVars; // copying
+        }
+        {
+            CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
+            m_pNppExec->GetMacroVars().GetConsoleCmdAliases() = currentScript.LocalCmdAliases; // copying
+        }
     }
     if ( m_nRunFlags & rfShareConsoleState ) // <-- another script can enable the output, but usually that does not affect the parent's state
     {
@@ -2055,7 +2105,7 @@ CScriptEngine::eNppExecCmdPrefix CScriptEngine::checkNppExecCmdPrefix(const CNpp
     return ret;
 }
 
-CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd, unsigned int nFlags)
+CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, CScriptEngine* pScriptEngine, tstr& Cmd, unsigned int nFlags)
 {
     const bool useLogging = ((nFlags & ctfUseLogging) != 0);
     const bool ignorePrefix = ((nFlags & ctfIgnorePrefix) != 0);
@@ -2120,7 +2170,7 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, tstr& Cmd,
         }
     }
 
-    pNppExec->GetMacroVars().CheckCmdAliases(Cmd, useLogging);
+    pNppExec->GetMacroVars().CheckCmdAliases(pScriptEngine, Cmd, useLogging);
 
     if ( Cmd.GetAt(0) == _T(':') && Cmd.GetAt(1) == _T(':') )
     {
@@ -2260,7 +2310,7 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
   
     // ... checking commands ...
 
-    eCmdType nCmdType = getCmdType(pNppExec, Cmd);
+    eCmdType nCmdType = getCmdType(pNppExec, pScriptEngine, Cmd);
     
     if ( nCmdType == CMDTYPE_COMMENT_OR_EMPTY )
     {
@@ -2305,7 +2355,7 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
         if ( bCmdStartsWithMacroVar && (nCmdType == CMDTYPE_UNKNOWN) )
         {
             // re-check nCmdType after macro-var substitution
-            nCmdType = getCmdType(pNppExec, Cmd);
+            nCmdType = getCmdType(pNppExec, pScriptEngine, Cmd);
             if ( nCmdType == CMDTYPE_COLLATERAL_FORCED )
             {
                 Runtime::GetLogger().Add(   _T("; it\'s a forced collateral command") );
@@ -2540,8 +2590,11 @@ bool CScriptEngine::isCmdDirective(const CNppExec* , tstr& Cmd)
     return false;
 }
 
-int CScriptEngine::isCmdNppExecPrefixed(CNppExec* pNppExec, tstr& cmd, bool bRemovePrefix, bool bSubstituteMacroVars)
+int CScriptEngine::isCmdNppExecPrefixed(CNppExec* pNppExec, CScriptEngine* pScriptEngine, tstr& cmd, unsigned int nFlags)
 {
+    bool bRemovePrefix = ((nFlags & npfRemovePrefix) != 0);
+    bool bSubstituteMacroVars = ((nFlags & npfSubstituteMacroVars) != 0);
+
     // We don't call StrDelLeadingAnySpaces for 'cmd' as the leading space(s)
     // can be a meaningful part of a command given to the child process 
     // (example: Python, where indentation is important).
@@ -2551,20 +2604,20 @@ int CScriptEngine::isCmdNppExecPrefixed(CNppExec* pNppExec, tstr& cmd, bool bRem
     if ( cmdPrefix != CmdPrefixNone )
     {
         cmd = s;
-        const eCmdType cmdType = getCmdType(pNppExec, s, ctfIgnorePrefix);
+        const eCmdType cmdType = getCmdType(pNppExec, pScriptEngine, s, ctfIgnorePrefix);
 
         if ( bSubstituteMacroVars && !usesDelayedVarSubstitution(cmdType) )
         {
             CNppExecMacroVars& MacroVars = pNppExec->GetMacroVars();
-            MacroVars.CheckCmdAliases(cmd, true);
-            MacroVars.CheckAllMacroVars(nullptr, cmd, true);
+            MacroVars.CheckCmdAliases(pScriptEngine, cmd, true);
+            MacroVars.CheckAllMacroVars(pScriptEngine, cmd, true);
         }
     }
     else if ( bSubstituteMacroVars )
     {
         CNppExecMacroVars& MacroVars = pNppExec->GetMacroVars();
-        MacroVars.CheckCmdAliases(cmd, true);
-        MacroVars.CheckAllMacroVars(nullptr, cmd, true);
+        MacroVars.CheckCmdAliases(pScriptEngine, cmd, true);
+        MacroVars.CheckAllMacroVars(pScriptEngine, cmd, true);
 
         s = cmd;
         NppExecHelpers::StrDelLeadingAnySpaces(s);
@@ -2695,7 +2748,7 @@ tCmdList CScriptEngine::getCollateralCmdListForChildProcess(CNppExec* pNppExec, 
     for ( auto pItem = CmdList.GetFirst(); pItem != NULL; pItem = pItem->GetNext() )
     {
         Cmd = pItem->GetItem();
-        int cmdPrefix = isCmdNppExecPrefixed(pNppExec, Cmd, true, false);
+        int cmdPrefix = isCmdNppExecPrefixed(pNppExec, nullptr, Cmd, npfRemovePrefix);
         if ( cmdPrefix != CmdPrefixNone )
         {
             removeLineEnding(Cmd);
@@ -3910,7 +3963,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
         while ( p && (p != currentScript.CmdRange.pEnd) )
         {
             Cmd = p->GetItem();
-            if ( getCmdType(m_pNppExec, Cmd, ctfUseLogging) == CMDTYPE_LABEL )
+            if ( getCmdType(m_pNppExec, this, Cmd, ctfUseLogging) == CMDTYPE_LABEL )
             {
                 getLabelName(Cmd);
                 if ( Labels.find(Cmd) == Labels.end() )
@@ -4666,11 +4719,16 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
     tstr aliasName;
     tstr aliasValue;
     tstr S;
+    tstr sParams(params);
+
+    bool isLocal = isLocalParam(sParams);
 
     CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
-    CNppExecMacroVars::tMacroVars& cmdAliases = m_pNppExec->GetMacroVars().GetCmdAliases();
 
-    if ( params.IsEmpty() )
+    CNppExecMacroVars::tMacroVars* cmdAliases = isLocal ?
+        &m_execState.GetCurrentScriptContext().LocalCmdAliases : &m_pNppExec->GetMacroVars().GetCmdAliases();
+
+    if ( sParams.IsEmpty() )
     {
 
         Runtime::GetLogger().Add(   _T("; no arguments given - showing all command aliases") );
@@ -4679,7 +4737,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
     else
     {
         CStrSplitT<TCHAR> args;
-        if ( args.Split( substituteMacroVarsIfNotDelayed(this, params, true), _T("="), 2) == 2 )
+        if ( args.Split( substituteMacroVarsIfNotDelayed(this, sParams, true), _T("="), 2) == 2 )
         {
             // set the value
             aliasName = args.Arg(0);
@@ -4692,7 +4750,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
 
             if ( aliasName.IsEmpty() )
             {
-                // in case of 'params' is a string which starts with "="
+                // in case of 'sParams' is a string which starts with "="
                 if ( args.Split(aliasValue, _T("="), 2) == 2 )
                 {
                     aliasName = _T("=");
@@ -4702,30 +4760,37 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                     NppExecHelpers::StrDelTrailingAnySpaces(aliasName);
                     NppExecHelpers::StrDelLeadingAnySpaces(aliasValue);
                 }
+                else if ( isLocal && !aliasValue.IsEmpty() )
+                {
+                    isLocal = false;
+                    cmdAliases = &m_pNppExec->GetMacroVars().GetCmdAliases();
+                    aliasName = _T("local");
+                }
             }
-            
+
             if ( aliasName.length() > 0 )
             {
                 NppExecHelpers::StrUpper(aliasName);
 
-                CNppExecMacroVars::tMacroVars::iterator itrAlias = cmdAliases.find(aliasName);
-                if ( itrAlias != cmdAliases.end() )
+                CNppExecMacroVars::tMacroVars::iterator itrAlias = cmdAliases->find(aliasName);
+                if ( itrAlias != cmdAliases->end() )
                 {
                     if ( aliasValue.length() > 0 )
                     {
                         // update
                         itrAlias->second = aliasValue;
-                        
-                        S = aliasName;
+
+                        S = isLocal ? _T("local ") : _T("");
+                        S += aliasName;
                         S += _T(" -> ");
                         S += aliasValue;
                     }
                     else
                     {
                         // remove
-                        cmdAliases.erase(itrAlias);
+                        cmdAliases->erase(itrAlias);
 
-                        S = _T("- command alias has been removed: ");
+                        S = isLocal ? _T("- local command alias has been removed: ") : _T("- command alias has been removed: ");
                         S += aliasName;
                     }
 
@@ -4737,9 +4802,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                     if ( aliasValue.length() > 0 )
                     {
                         // add
-                        cmdAliases[aliasName] = aliasValue;
+                        (*cmdAliases)[aliasName] = aliasValue;
 
-                        S = aliasName;
+                        S = isLocal ? _T("local ") : _T("");
+                        S += aliasName;
                         S += _T(" -> ");
                         S += aliasValue;
                         const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
@@ -4748,7 +4814,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                     else
                     {
                         // tried to remove non-existent command alias
-                        S = _T("- no such command alias: ");
+                        S = isLocal ? _T("- no such local command alias: ") : _T("- no such command alias: ");
                         S += aliasName;
                         const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                         m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
@@ -4772,7 +4838,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
             {
                 if ( aliasValue.length() > 0 )
                 {
-                    ScriptError( ET_REPORT, _T("- no command alias name specified") );
+                    ScriptError( ET_REPORT, isLocal ? _T("- no local command alias name specified") : _T("- no command alias name specified") );
                     return CMDRESULT_INVALIDPARAM;
                 }
                 else
@@ -4792,19 +4858,20 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
         
     }
 
-    if ( cmdAliases.empty() )
+    if ( cmdAliases->empty() )
     {
         const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-        m_pNppExec->GetConsole().PrintMessage( _T("- no command aliases"), nMsgFlags );
+        m_pNppExec->GetConsole().PrintMessage( isLocal ? _T("- no local command aliases") : _T("- no command aliases"), nMsgFlags );
     }
     else
     {
         if ( aliasName.IsEmpty() )
         {
-            CNppExecMacroVars::tMacroVars::const_iterator itrAlias = cmdAliases.begin();
-            for ( ; itrAlias != cmdAliases.end(); ++itrAlias )
+            CNppExecMacroVars::tMacroVars::const_iterator itrAlias = cmdAliases->begin();
+            for ( ; itrAlias != cmdAliases->end(); ++itrAlias )
             {
-                S = itrAlias->first;
+                S = isLocal ? _T("local ") : _T("");
+                S += itrAlias->first;
                 S += _T(" -> ");
                 S += itrAlias->second;
                 const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
@@ -4815,10 +4882,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
         {
             bool bFound = false;
 
-            CNppExecMacroVars::tMacroVars::const_iterator itrAlias = cmdAliases.find(aliasName);
-            if ( itrAlias != cmdAliases.end() )
+            CNppExecMacroVars::tMacroVars::const_iterator itrAlias = cmdAliases->find(aliasName);
+            if ( itrAlias != cmdAliases->end() )
             {
-                S = itrAlias->first;
+                S = isLocal ? _T("local ") : _T("");
+                S += itrAlias->first;
                 S += _T(" -> ");
                 S += itrAlias->second;
                 const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
@@ -4828,10 +4896,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
 
             if ( !bFound )
             {
-                tstr t = _T("- no such command alias: ");
-                t += aliasName;
+                S = isLocal ? _T("- no such local command alias: ") : _T("- no such command alias: ");
+                S += aliasName;
                 const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-                m_pNppExec->GetConsole().PrintMessage( t.c_str(), nMsgFlags );
+                m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                 nCmdResult = CMDRESULT_FAILED;
             }
         }
@@ -6105,8 +6173,14 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
             if ( nRunFlags & rfShareLocalVars )
             {
                 scriptContext.IsSharingLocalVars = true;
-                CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
-                scriptContext.LocalMacroVars = m_execState.GetCurrentScriptContext().LocalMacroVars;
+                {
+                    CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsUserMacroVars());
+                    scriptContext.LocalMacroVars = m_execState.GetCurrentScriptContext().LocalMacroVars;
+                }
+                {
+                    CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
+                    scriptContext.LocalCmdAliases = m_execState.GetCurrentScriptContext().LocalCmdAliases;
+                }
             }
 
             int nLines = 0;
@@ -7926,7 +8000,7 @@ bool CNppExecMacroVars::ContainsMacroVar(const tstr& S)
     return ( (S.Find(_T("$(")) >= 0) ? true : false );
 }
 
-CNppExecMacroVars::tMacroVars& CNppExecMacroVars::GetUserLocalMacroVars(CScriptEngine* pScriptEngine)
+static CListItemT<CScriptEngine::ScriptContext>* getScriptContextItemPtr(CNppExec* pNppExec, CScriptEngine* pScriptEngine)
 {
     CListItemT<CScriptEngine::ScriptContext>* pScriptContextItemPtr = NULL;
 
@@ -7937,13 +8011,20 @@ CNppExecMacroVars::tMacroVars& CNppExecMacroVars::GetUserLocalMacroVars(CScriptE
     }
     else
     {
-        std::shared_ptr<CScriptEngine> pRunningScriptEngine = m_pNppExec->GetCommandExecutor().GetRunningScriptEngine();
+        std::shared_ptr<CScriptEngine> pRunningScriptEngine = pNppExec->GetCommandExecutor().GetRunningScriptEngine();
         if ( pRunningScriptEngine )
         {
             CScriptEngine::ExecState& execState = pRunningScriptEngine->GetExecState();
             pScriptContextItemPtr = execState.ScriptContextList.GetLast();
         }
     }
+
+    return pScriptContextItemPtr;
+}
+
+CNppExecMacroVars::tMacroVars& CNppExecMacroVars::GetUserLocalMacroVars(CScriptEngine* pScriptEngine)
+{
+    auto pScriptContextItemPtr = getScriptContextItemPtr(m_pNppExec, pScriptEngine);
     
     if ( pScriptContextItemPtr != NULL )
     {
@@ -7954,9 +8035,27 @@ CNppExecMacroVars::tMacroVars& CNppExecMacroVars::GetUserLocalMacroVars(CScriptE
     return m_UserLocalMacroVars0;
 }
 
+CNppExecMacroVars::tMacroVars& CNppExecMacroVars::GetLocalCmdAliases(CScriptEngine* pScriptEngine)
+{
+    auto pScriptContextItemPtr = getScriptContextItemPtr(m_pNppExec, pScriptEngine);
+
+    if ( pScriptContextItemPtr != NULL )
+    {
+        CScriptEngine::ScriptContext& scriptContext = pScriptContextItemPtr->GetItem();
+        return scriptContext.LocalCmdAliases;
+    }
+
+    return m_LocalCmdAliases0;
+}
+
 CNppExecMacroVars::tMacroVars& CNppExecMacroVars::GetUserConsoleMacroVars()
 {
     return m_UserConsoleMacroVars;
+}
+
+CNppExecMacroVars::tMacroVars& CNppExecMacroVars::GetConsoleCmdAliases()
+{
+    return m_ConsoleCmdAliases;
 }
 
 CNppExecMacroVars::tMacroVars& CNppExecMacroVars::GetUserMacroVars()
@@ -8074,7 +8173,7 @@ bool CNppExecMacroVars::CheckCmdArgs(tstr& Cmd, int& pos, const CStrSplitT<TCHAR
   return false;
 }
 
-void CNppExecMacroVars::CheckCmdAliases(tstr& S, bool useLogging)
+void CNppExecMacroVars::CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, bool useLogging)
 {
     if ( useLogging )
     {
@@ -8102,20 +8201,29 @@ void CNppExecMacroVars::CheckCmdAliases(tstr& S, bool useLogging)
                 NppExecHelpers::StrUpper(t);
 
                 CCriticalSectionLockGuard lock(GetCsCmdAliases());
-                tMacroVars::const_iterator itrAlias = GetCmdAliases().begin();
-                for ( ; itrAlias != GetCmdAliases().end(); ++itrAlias )
+
+                bool bSubstituted = false;
+                for ( int n = 0; n < 2 && !bSubstituted; ++n )
                 {
-                    const tstr& aliasName = itrAlias->first;
-                    const int len = aliasName.length();
-                    if ( (len > 0) &&
-                         (c_base::_tstr_unsafe_cmpn(aliasName.c_str(), t.c_str(), len) == 0) )
+                    bool isLocal = (n == 0);
+                    tMacroVars& cmdAliases = isLocal ? GetLocalCmdAliases(pScriptEngine) : GetCmdAliases();
+                    tMacroVars::const_iterator itrAlias = cmdAliases.begin();
+
+                    for ( ; itrAlias != cmdAliases.end(); ++itrAlias )
                     {
-                        const TCHAR ch = t.GetAt(len);
-                        if ( IsAnySpaceOrEmptyChar(ch) )
+                        const tstr& aliasName = itrAlias->first;
+                        const int len = aliasName.length();
+                        if ( (len > 0) &&
+                             (c_base::_tstr_unsafe_cmpn(aliasName.c_str(), t.c_str(), len) == 0) )
                         {
-                            const tstr& aliasValue = itrAlias->second;
-                            S.Replace( 0, len, aliasValue.c_str(), aliasValue.length() );
-                            break;
+                            const TCHAR ch = t.GetAt(len);
+                            if ( IsAnySpaceOrEmptyChar(ch) )
+                            {
+                                const tstr& aliasValue = itrAlias->second;
+                                S.Replace( 0, len, aliasValue.c_str(), aliasValue.length() );
+                                bSubstituted = true;
+                                break;
+                            }
                         }
                     }
                 }

@@ -139,6 +139,11 @@ class CScriptEngine : public IScriptEngine
             CmdPrefixCollateralForced
         };
 
+        enum eIsNppExecPrefixedFlags {
+            npfRemovePrefix        = 0x01,
+            npfSubstituteMacroVars = 0x02
+        };
+
         enum eGetCmdTypeFlags {
             ctfUseLogging   = 0x01,
             ctfIgnorePrefix = 0x02,
@@ -831,11 +836,11 @@ class CScriptEngine : public IScriptEngine
         const tstr& GetLastCmdParams() const  { return m_sCmdParams; }
 
         static eNppExecCmdPrefix checkNppExecCmdPrefix(const CNppExec* pNppExec, tstr& Cmd, bool bRemovePrefix = true);
-        static eCmdType getCmdType(CNppExec* pNppExec, tstr& Cmd, unsigned int nFlags = ctfUseLogging|ctfReportError);
+        static eCmdType getCmdType(CNppExec* pNppExec, CScriptEngine* pScriptEngine, tstr& Cmd, unsigned int nFlags = ctfUseLogging|ctfReportError);
         static int      getOnOffParam(const tstr& param);
         static bool     isCmdCommentOrEmpty(const CNppExec* pNppExec, tstr& Cmd);
         static bool     isCmdDirective(const CNppExec* pNppExec, tstr& Cmd);
-        static int      isCmdNppExecPrefixed(CNppExec* pNppExec, tstr& cmd, bool bRemovePrefix, bool bSubstituteMacroVars);
+        static int      isCmdNppExecPrefixed(CNppExec* pNppExec, CScriptEngine* pScriptEngine, tstr& cmd, unsigned int nFlags = npfRemovePrefix);
         static bool     isScriptCollateral(const CNppExec* pNppExec, const CListT<tstr>& CmdList);
         static bool     isSkippingThisCommandDueToIfState(eCmdType cmdType, eIfState ifState);
         static bool     usesDelayedVarSubstitution(eCmdType cmdType);
@@ -1548,6 +1553,7 @@ class CScriptEngine : public IScriptEngine
                 tCmdRange          CmdRange;
                 tLabels            Labels;
                 tMacroVars         LocalMacroVars; // use with GetMacroVars().GetCsUserMacroVars()
+                tMacroVars         LocalCmdAliases; // use with GetMacroVars().GetCsCmdAliases()
                 SavedConfiguration SavedConf;
                 CStrSplitT<TCHAR>  Args;
                 bool               IsNppExeced;
