@@ -3,10 +3,21 @@
 <HTML lang="en">
 <HEAD>
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
-<base href="./NppExec_Manual/">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>NppExec Manual: Index</title>
 </HEAD>
+<script>
+  var protocol = location.protocol;
+  var hostname = location.hostname;
+  var pathname = location.pathname;
+  var port     = window.location.port
+  var baseHref = protocol + '//' + hostname + ":" + port + pathname;
+  console.log(baseHref);
+  var head = document.getElementsByTagName('head')[0];
+  var base = document.createElement('base');
+  base.href = baseHref;
+  head.appendChild(base);
+</script>
 <FRAMESET cols="30%, 70%">
   <FRAME name="toc" src="./NppExec_Manual/toc.html">
   <FRAME name="content" src="./NppExec_Manual/0. Title Page.html">
