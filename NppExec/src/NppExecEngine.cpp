@@ -174,26 +174,23 @@ static CScriptEngine::eCmdResult runMessageBox(CScriptEngine* pScriptEngine, con
 class PrintMacroVarFunc
 {
     public:
-        typedef const CMacroVars container_type;
-        typedef container_type::const_iterator iterator_type;
-
         PrintMacroVarFunc(CNppExec* pNppExec) : m_pNppExec(pNppExec)
         {
         }
 
-        bool operator()(iterator_type itrVar, bool isLocalVar)
+        bool operator()(const CMacroVars::item_type& v, bool isLocalVar)
         {
             tstr S = isLocalVar ? _T("local ") : _T("");
-            S += itrVar->name;
+            S += v.name;
             S += _T(" = ");
-            if ( itrVar->value.length() > MAX_VAR_LENGTH2SHOW )
+            if ( v.value.length() > MAX_VAR_LENGTH2SHOW )
             {
-                S.Append( itrVar->value.c_str(), MAX_VAR_LENGTH2SHOW - 5 );
+                S.Append( v.value.c_str(), MAX_VAR_LENGTH2SHOW - 5 );
                 S += _T("(...)");
             }
             else
             {
-                S += itrVar->value;
+                S += v.value;
             }
             const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
             m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
@@ -208,9 +205,6 @@ class PrintMacroVarFunc
 class SubstituteMacroVarFunc
 {
     public:
-        typedef const CMacroVars container_type;
-        typedef container_type::const_iterator iterator_type;
-
         SubstituteMacroVarFunc(tstr& Value, int& pos) : m_Value(Value), m_Pos(pos)
         {
             m_ValueUpper = Value;
@@ -219,14 +213,12 @@ class SubstituteMacroVarFunc
 
         SubstituteMacroVarFunc& operator=(const SubstituteMacroVarFunc&) = delete;
 
-        bool operator()(iterator_type itrVar, bool /*isLocalVar*/)
+        bool operator()(const CMacroVars::item_type& v, bool /*isLocalVar*/)
         {
-            const tstr& varName = itrVar->name;
-            if ( StrUnsafeSubCmp(m_ValueUpper.c_str() + m_Pos, varName.c_str()) == 0 )
+            if ( StrUnsafeSubCmp(m_ValueUpper.c_str() + m_Pos, v.name.c_str()) == 0 )
             {
-                const tstr& varValue = itrVar->value;
-                m_Value.Replace( m_Pos, varName.length(), varValue.c_str(), varValue.length() );
-                m_Pos += varValue.length();
+                m_Value.Replace( m_Pos, v.name.length(), v.value.c_str(), v.value.length() );
+                m_Pos += v.value.length();
                 return true; // substituted; stop!
             }
 
@@ -240,35 +232,24 @@ class SubstituteMacroVarFunc
 };
 
 template<class MacroVarFunc> bool IterateUserMacroVars(
-    typename MacroVarFunc::container_type& userMacroVars,
-    typename MacroVarFunc::container_type& userLocalMacroVars,
+    const CMacroVars& userMacroVars,
+    const CMacroVars& userLocalMacroVars,
     MacroVarFunc func)
 {
-    bool isLocalVars = true;
-    typename MacroVarFunc::iterator_type itrVar = userLocalMacroVars.begin();
-    for ( ; ; ++itrVar )
+    // checking local vars first
+    for ( auto& v : userLocalMacroVars )
     {
-        if ( isLocalVars )
-        {
-            if ( itrVar == userLocalMacroVars.end() )
-            {
-                itrVar = userMacroVars.begin();
-                if ( itrVar != userMacroVars.end() )
-                    isLocalVars = false;
-                else
-                    break;
-            }
-        }
-        else
-        {
-            if ( itrVar == userMacroVars.end() )
-                break;
-        }
+        if ( func(v, true) )
+            return true;
+    }
 
-        if ( isLocalVars ||
-             (userLocalMacroVars.find(itrVar->name) == userLocalMacroVars.end()) )
+    // then checking global vars not overridden by local ones
+    auto localVarsEnd = userLocalMacroVars.cend();
+    for ( auto& v : userMacroVars )
+    {
+        if ( userLocalMacroVars.find(v.name) == localVarsEnd )
         {
-            if ( func(itrVar, isLocalVars) )
+            if ( func(v, false) )
                 return true;
         }
     }
@@ -4872,25 +4853,22 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
     {
         if ( aliasName.IsEmpty() )
         {
-            CMacroVars::const_iterator localAliasesEnd = localCmdAliases.cend();
-            CMacroVars::const_iterator itrAlias = localCmdAliases.begin();
-            for ( ; itrAlias != localAliasesEnd; ++itrAlias )
+            for ( auto& v : localCmdAliases )
             {
-                buildAliasString(S, itrAlias->name, itrAlias->value, true);
+                buildAliasString(S, v.name, v.value, true);
                 const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                 m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
             }
 
             if ( !isLocal )
             {
-                // printing global cmd aliases not overriden by local ones
-                CMacroVars::const_iterator globalAliasesEnd = globalCmdAliases.cend();
-                itrAlias = globalCmdAliases.begin();
-                for ( ; itrAlias != globalAliasesEnd; ++itrAlias )
+                // printing global cmd aliases not overridden by local ones
+                CMacroVars::const_iterator localAliasesEnd = localCmdAliases.cend();
+                for ( auto& v : globalCmdAliases )
                 {
-                    if ( localCmdAliases.find(itrAlias->name) == localAliasesEnd )
+                    if ( localCmdAliases.find(v.name) == localAliasesEnd )
                     {
-                        buildAliasString(S, itrAlias->name, itrAlias->value, false);
+                        buildAliasString(S, v.name, v.value, false);
                         const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                         m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                     }
@@ -7874,14 +7852,13 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
                 if ( bLocalVar )
                 {
                     PrintMacroVarFunc func(m_pNppExec);
-                    CMacroVars::const_iterator itrVar = userLocalMacroVars.begin();
-                    for ( ; itrVar != userLocalMacroVars.end(); ++itrVar )
+                    for ( auto& v : userLocalMacroVars )
                     {
-                        func(itrVar, true);
+                        func(v, true);
                     }
                 }
                 else
-                    IterateUserMacroVars<PrintMacroVarFunc>(userMacroVars, userLocalMacroVars, PrintMacroVarFunc(m_pNppExec));
+                    IterateUserMacroVars(userMacroVars, userLocalMacroVars, PrintMacroVarFunc(m_pNppExec));
             }
             else
             {
@@ -8316,20 +8293,17 @@ void CNppExecMacroVars::CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, b
                 {
                     bool isLocal = (n == 0);
                     CMacroVars& cmdAliases = isLocal ? GetLocalCmdAliases(pScriptEngine) : GetCmdAliases();
-                    CMacroVars::const_iterator itrAlias = cmdAliases.begin();
 
-                    for ( ; itrAlias != cmdAliases.end(); ++itrAlias )
+                    for ( auto& v : cmdAliases )
                     {
-                        const tstr& aliasName = itrAlias->name;
-                        const int len = aliasName.length();
+                        const int len = v.name.length();
                         if ( (len > 0) &&
-                             (c_base::_tstr_unsafe_cmpn(aliasName.c_str(), t.c_str(), len) == 0) )
+                             (c_base::_tstr_unsafe_cmpn(v.name.c_str(), t.c_str(), len) == 0) )
                         {
                             const TCHAR ch = t.GetAt(len);
                             if ( IsAnySpaceOrEmptyChar(ch) )
                             {
-                                const tstr& aliasValue = itrAlias->value;
-                                S.Replace( 0, len, aliasValue.c_str(), aliasValue.length() );
+                                S.Replace( 0, len, v.value.c_str(), v.value.length() );
                                 bSubstituted = true;
                                 break;
                             }
@@ -8834,7 +8808,7 @@ bool CNppExecMacroVars::CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S
       CCriticalSectionLockGuard lock(GetCsUserMacroVars());
       const CMacroVars& userLocalMacroVars = GetUserLocalMacroVars(pScriptEngine);
       const CMacroVars& userMacroVars = GetUserMacroVars();
-      bResult = IterateUserMacroVars<SubstituteMacroVarFunc>(userMacroVars, userLocalMacroVars, SubstituteMacroVarFunc(S, pos));
+      bResult = IterateUserMacroVars(userMacroVars, userLocalMacroVars, SubstituteMacroVarFunc(S, pos));
     }
 
     if ( bResult )

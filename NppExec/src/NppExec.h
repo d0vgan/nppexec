@@ -20,6 +20,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.7
+ ------
+ * Glory to Ukraine! Glory to the heroes!
+ + added: "npe_cmdalias local ..." for local command aliases, similarly to
+   local variables
+ + added: now npe_queue supports command aliases
+ + internal optimization: now MacroVars are based on std::vector instead of
+   std::map for much faster iteration
+ + NppExec Manual updated
+ + web-version of the NppExec Manual (thanks to Joseph Samuel and others)
+
+
  v0.8.6 - August 2023
  --------------------
  * Glory to Ukraine! Glory to the heroes!

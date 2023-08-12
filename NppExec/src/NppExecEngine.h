@@ -1398,14 +1398,9 @@ class CScriptEngine : public IScriptEngine
 
                 void restoreEnvVars()
                 {
-                    const auto itrEnd = mEnvVars.cend();
-                    auto itr = mEnvVars.cbegin();
-                    while ( itr != itrEnd )
+                    for ( auto& v : mEnvVars )
                     {
-                        const tstr& varName = itr->name;
-                        const tstr& varValue = itr->value;
-                        SetEnvironmentVariable( varName.c_str(), (varValue.GetMemSize() != 0) ? varValue.c_str() : NULL );
-                        ++itr;
+                        SetEnvironmentVariable( v.name.c_str(), (v.value.GetMemSize() != 0) ? v.value.c_str() : NULL );
                     }
                 }
 
