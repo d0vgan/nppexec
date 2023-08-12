@@ -791,7 +791,7 @@ bool CNppExecCommandExecutor::SendChildProcessExitCommand()
         CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
         CCriticalSectionLockGuard lock(MacroVars.GetCsUserMacroVars());
         const int nMacroVarsLists = 2;
-        const CNppExecMacroVars::tMacroVars* pMacroVarsLists[nMacroVarsLists] = {
+        const CMacroVars* pMacroVarsLists[nMacroVarsLists] = {
             &MacroVars.GetUserLocalMacroVars(nullptr), // try local first
             &MacroVars.GetUserMacroVars()
         };
@@ -807,11 +807,11 @@ bool CNppExecCommandExecutor::SendChildProcessExitCommand()
 
         for ( int nList = 0; (nList < nMacroVarsLists) && (!bSend); nList++ )
         {
-            const CNppExecMacroVars::tMacroVars* pVarsList = pMacroVarsLists[nList];
+            const CMacroVars* pVarsList = pMacroVarsLists[nList];
             for ( int nVar = 0; (nVar < nExitMacroVars) && (!bSend); nVar++ )
             {
                 macro_name = cszExitMacroVars[nVar];
-                CNppExecMacroVars::tMacroVars::const_iterator itr = pVarsList->find(macro_name);
+                CMacroVars::const_iterator itr = pVarsList->find(macro_name);
                 if ( itr != pVarsList->end() )
                 {
                     exit_cmd = itr->value;
