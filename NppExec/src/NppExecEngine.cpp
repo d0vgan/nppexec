@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <shellapi.h>
 #include <limits>
+#include <algorithm>
 
 #ifdef _DEBUG
   #include <cassert>
@@ -184,16 +185,16 @@ class PrintMacroVarFunc
         bool operator()(iterator_type itrVar, bool isLocalVar)
         {
             tstr S = isLocalVar ? _T("local ") : _T("");
-            S += itrVar->first;
+            S += itrVar->name;
             S += _T(" = ");
-            if ( itrVar->second.length() > MAX_VAR_LENGTH2SHOW )
+            if ( itrVar->value.length() > MAX_VAR_LENGTH2SHOW )
             {
-                S.Append( itrVar->second.c_str(), MAX_VAR_LENGTH2SHOW - 5 );
+                S.Append( itrVar->value.c_str(), MAX_VAR_LENGTH2SHOW - 5 );
                 S += _T("(...)");
             }
             else
             {
-                S += itrVar->second;
+                S += itrVar->value;
             }
             const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
             m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
@@ -221,10 +222,10 @@ class SubstituteMacroVarFunc
 
         bool operator()(iterator_type itrVar, bool /*isLocalVar*/)
         {
-            const tstr& varName = itrVar->first;
+            const tstr& varName = itrVar->name;
             if ( StrUnsafeSubCmp(m_ValueUpper.c_str() + m_Pos, varName.c_str()) == 0 )
             {
-                const tstr& varValue = itrVar->second;
+                const tstr& varValue = itrVar->value;
                 m_Value.Replace( m_Pos, varName.length(), varValue.c_str(), varValue.length() );
                 m_Pos += varValue.length();
                 return true; // substituted; stop!
@@ -266,7 +267,7 @@ template<class MacroVarFunc> bool IterateUserMacroVars(
         }
 
         if ( isLocalVars ||
-             (userLocalMacroVars.find(itrVar->first) == userLocalMacroVars.end()) )
+             (userLocalMacroVars.find(itrVar->name) == userLocalMacroVars.end()) )
         {
             if ( func(itrVar, isLocalVars) )
                 return true;
@@ -4780,7 +4781,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                     if ( aliasValue.length() > 0 )
                     {
                         // update
-                        itrAlias->second = aliasValue;
+                        itrAlias->value = aliasValue;
 
                         S = isLocal ? _T("local ") : _T("");
                         S += aliasName;
@@ -4873,9 +4874,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
             for ( ; itrAlias != cmdAliases->end(); ++itrAlias )
             {
                 S = isLocal ? _T("local ") : _T("");
-                S += itrAlias->first;
+                S += itrAlias->name;
                 S += _T(" -> ");
-                S += itrAlias->second;
+                S += itrAlias->value;
                 const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                 m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
             }
@@ -4888,9 +4889,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
             if ( itrAlias != cmdAliases->end() )
             {
                 S = isLocal ? _T("local ") : _T("");
-                S += itrAlias->first;
+                S += itrAlias->name;
                 S += _T(" -> ");
-                S += itrAlias->second;
+                S += itrAlias->value;
                 const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                 m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                 bFound = true;
@@ -7880,16 +7881,16 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
                 if ( itrVar != macroVars.end() )
                 {
                     tstr S = bLocalVar ? _T("local ") : _T("");
-                    S += itrVar->first;
+                    S += itrVar->name;
                     S += _T(" = ");
-                    if ( itrVar->second.length() > MAX_VAR_LENGTH2SHOW )
+                    if ( itrVar->value.length() > MAX_VAR_LENGTH2SHOW )
                     {
-                        S.Append( itrVar->second.c_str(), MAX_VAR_LENGTH2SHOW - 5 );
+                        S.Append( itrVar->value.c_str(), MAX_VAR_LENGTH2SHOW - 5 );
                         S += _T("(...)");
                     }
                     else
                     {
-                        S += itrVar->second;
+                        S += itrVar->value;
                     }
                     UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                     if ( isInternalMsg )
@@ -7976,6 +7977,93 @@ CScriptEngine::eCmdResult CScriptEngine::DoUnset(const tstr& params)
 }
 
 //////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////
+
+CNppExecMacroVars::tMacroVars::const_iterator CNppExecMacroVars::tMacroVars::begin() const
+{
+    return m_MacroVars.begin();
+}
+
+CNppExecMacroVars::tMacroVars::iterator CNppExecMacroVars::tMacroVars::begin()
+{
+    return m_MacroVars.begin();
+}
+
+CNppExecMacroVars::tMacroVars::const_iterator CNppExecMacroVars::tMacroVars::end() const
+{
+    return m_MacroVars.end();
+}
+
+CNppExecMacroVars::tMacroVars::iterator CNppExecMacroVars::tMacroVars::end()
+{
+    return m_MacroVars.end();
+}
+
+bool CNppExecMacroVars::tMacroVars::empty() const
+{
+    return m_MacroVars.empty();
+}
+
+CNppExecMacroVars::tMacroVars::iterator CNppExecMacroVars::tMacroVars::erase(const_iterator position)
+{
+    return m_MacroVars.erase(position);
+}
+
+CNppExecMacroVars::tMacroVars::const_iterator CNppExecMacroVars::tMacroVars::find(const tstr& varName) const
+{
+    auto end = m_MacroVars.end();
+    auto itr = std::lower_bound( m_MacroVars.begin(), end, varName,
+        [](const item_type& v, const tstr& name) { return v.name < name; } );
+    return (itr != end && itr->name == varName) ? itr : end;
+}
+
+CNppExecMacroVars::tMacroVars::iterator CNppExecMacroVars::tMacroVars::find(const tstr& varName)
+{
+    auto end = m_MacroVars.end();
+    auto itr = std::lower_bound( m_MacroVars.begin(), end, varName,
+        [](const item_type& v, const tstr& name) { return v.name < name; } );
+    return (itr != end && itr->name == varName) ? itr : end;
+}
+
+void CNppExecMacroVars::tMacroVars::swap(tMacroVars& other)
+{
+    m_MacroVars.swap(other.m_MacroVars);
+}
+
+tstr& CNppExecMacroVars::tMacroVars::operator[](const tstr& varName)
+{
+    auto end = m_MacroVars.end();
+    auto itr = std::lower_bound( m_MacroVars.begin(), end, varName,
+        [](const item_type& v, const tstr& name) { return v.name < name; } );
+    if ( itr == end || itr->name != varName )
+    {
+        if ( m_MacroVars.empty() )
+        {
+            m_MacroVars.reserve(8);
+            itr = end = m_MacroVars.end();
+        }
+        itr = m_MacroVars.insert(itr, item_type{varName, tstr()});
+    }
+    return itr->value;
+}
+
+tstr& CNppExecMacroVars::tMacroVars::operator[](tstr&& varName)
+{
+    auto end = m_MacroVars.end();
+    auto itr = std::lower_bound( m_MacroVars.begin(), end, varName,
+        [](const item_type& v, const tstr& name) { return v.name < name; } );
+    if ( itr == end || itr->name != varName )
+    {
+        if ( m_MacroVars.empty() )
+        {
+            m_MacroVars.reserve(8);
+            itr = end = m_MacroVars.end();
+        }
+        itr = m_MacroVars.insert(itr, item_type{varName, tstr()});
+    }
+    return itr->value;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 
 CNppExecMacroVars::CNppExecMacroVars() : m_pNppExec(0)
@@ -8213,7 +8301,7 @@ void CNppExecMacroVars::CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, b
 
                     for ( ; itrAlias != cmdAliases.end(); ++itrAlias )
                     {
-                        const tstr& aliasName = itrAlias->first;
+                        const tstr& aliasName = itrAlias->name;
                         const int len = aliasName.length();
                         if ( (len > 0) &&
                              (c_base::_tstr_unsafe_cmpn(aliasName.c_str(), t.c_str(), len) == 0) )
@@ -8221,7 +8309,7 @@ void CNppExecMacroVars::CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, b
                             const TCHAR ch = t.GetAt(len);
                             if ( IsAnySpaceOrEmptyChar(ch) )
                             {
-                                const tstr& aliasValue = itrAlias->second;
+                                const tstr& aliasValue = itrAlias->value;
                                 S.Replace( 0, len, aliasValue.c_str(), aliasValue.length() );
                                 bSubstituted = true;
                                 break;
@@ -8969,7 +9057,7 @@ bool CNppExecMacroVars::SetUserMacroVar(CScriptEngine* pScriptEngine, tstr& varN
       {
         // existing variable
         if ( (nFlags & svRemoveVar) == 0 )
-          itrVar->second = varValue;
+          itrVar->value = varValue;
         else
           macroVars.erase(itrVar);
         bSuccess = true;
