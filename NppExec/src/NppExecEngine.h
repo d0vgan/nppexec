@@ -908,7 +908,6 @@ class CScriptEngine : public IScriptEngine
 
     public:
         typedef std::map< tstr, CListItemT<tstr>* > tLabels;
-        typedef CNppExecMacroVars::tMacroVars tMacroVars;
 
         typedef struct sCmdRange {
             CListItemT<tstr>* pBegin; // points to first cmd
@@ -1403,8 +1402,8 @@ class CScriptEngine : public IScriptEngine
                     auto itr = mEnvVars.cbegin();
                     while ( itr != itrEnd )
                     {
-                        const tstr& varName = itr->first;
-                        const tstr& varValue = itr->second;
+                        const tstr& varName = itr->name;
+                        const tstr& varValue = itr->value;
                         SetEnvironmentVariable( varName.c_str(), (varValue.GetMemSize() != 0) ? varValue.c_str() : NULL );
                         ++itr;
                     }
@@ -1544,7 +1543,7 @@ class CScriptEngine : public IScriptEngine
                 bool mConsoleIsOutputEnabled{};
 
                 // DoEnvSet:
-                std::map<tstr, tstr> mEnvVars;
+                CMacroVars mEnvVars;
         };
 
         class ScriptContext {
@@ -1552,8 +1551,8 @@ class CScriptEngine : public IScriptEngine
                 tstr               ScriptName;
                 tCmdRange          CmdRange;
                 tLabels            Labels;
-                tMacroVars         LocalMacroVars; // use with GetMacroVars().GetCsUserMacroVars()
-                tMacroVars         LocalCmdAliases; // use with GetMacroVars().GetCsCmdAliases()
+                CMacroVars         LocalMacroVars; // use with GetMacroVars().GetCsUserMacroVars()
+                CMacroVars         LocalCmdAliases; // use with GetMacroVars().GetCsCmdAliases()
                 SavedConfiguration SavedConf;
                 CStrSplitT<TCHAR>  Args;
                 bool               IsNppExeced;

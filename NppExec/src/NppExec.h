@@ -1403,6 +1403,38 @@ protected:
     void _processSlashB(ScriptEngineId scrptEngnId, int nCount);
 };
 
+class CMacroVars
+{
+public:
+    typedef struct tVarItem {
+        tstr name;
+        tstr value;
+    } item_type;
+    typedef std::vector<item_type> container_type;
+    typedef container_type::const_iterator const_iterator;
+    typedef container_type::iterator iterator;
+
+public:
+    const_iterator begin() const;
+    iterator       begin();
+    const_iterator cbegin() const;
+    const_iterator cend() const;
+    const_iterator end() const;
+    iterator       end();
+
+    bool           empty() const;
+    iterator       erase(const_iterator position);
+    const_iterator find(const tstr& varName) const;
+    iterator       find(const tstr& varName);
+    void           swap(CMacroVars& other);
+
+    tstr&          operator[](const tstr& varName);
+    tstr&          operator[](tstr&& varName);
+
+private:
+    container_type m_MacroVars;
+};
+
 class CNppExecMacroVars
 {
 public:
@@ -1410,37 +1442,6 @@ public:
     {
         svRemoveVar = 0x01,
         svLocalVar  = 0x02
-    };
-
-public:
-    class tMacroVars
-    {
-    public:
-        typedef struct tVarItem {
-            tstr name;
-            tstr value;
-        } item_type;
-        typedef std::vector<item_type> container_type;
-        typedef container_type::const_iterator const_iterator;
-        typedef container_type::iterator iterator;
-
-    public:
-        const_iterator begin() const;
-        iterator       begin();
-        const_iterator end() const;
-        iterator       end();
-
-        bool           empty() const;
-        iterator       erase(const_iterator position);
-        const_iterator find(const tstr& varName) const;
-        iterator       find(const tstr& varName);
-        void           swap(tMacroVars& other);
-
-        tstr&          operator[](const tstr& varName);
-        tstr&          operator[](tstr&& varName);
-
-    private:
-        container_type m_MacroVars;
     };
 
 public:
@@ -1453,12 +1454,12 @@ public:
     // helpers...
     static bool IsLocalMacroVar(tstr& varName);
     static bool ContainsMacroVar(const tstr& S);
-    tMacroVars& GetUserLocalMacroVars(CScriptEngine* pScriptEngine); // use with GetCsUserMacroVars()
-    tMacroVars& GetUserConsoleMacroVars(); // use with GetCsUserMacroVars()
-    tMacroVars& GetUserMacroVars(); // use with GetCsUserMacroVars()
-    tMacroVars& GetCmdAliases(); // use with GetCsCmdAliases()
-    tMacroVars& GetLocalCmdAliases(CScriptEngine* pScriptEngine); // use with GetCsCmdAliases()
-    tMacroVars& GetConsoleCmdAliases(); // use with GetCsCmdAliases()
+    CMacroVars& GetUserLocalMacroVars(CScriptEngine* pScriptEngine); // use with GetCsUserMacroVars()
+    CMacroVars& GetUserConsoleMacroVars(); // use with GetCsUserMacroVars()
+    CMacroVars& GetUserMacroVars(); // use with GetCsUserMacroVars()
+    CMacroVars& GetCmdAliases(); // use with GetCsCmdAliases()
+    CMacroVars& GetLocalCmdAliases(CScriptEngine* pScriptEngine); // use with GetCsCmdAliases()
+    CMacroVars& GetConsoleCmdAliases(); // use with GetCsCmdAliases()
 
     CCriticalSection& GetCsUserMacroVars();
     CCriticalSection& GetCsCmdAliases();
@@ -1553,12 +1554,12 @@ protected:
     CCriticalSection m_csCmdAliases;
     // data...
     CNppExec*  m_pNppExec;
-    tMacroVars m_UserLocalMacroVars0; // <-- just in case, actually the vars are inside ScriptContext
-    tMacroVars m_UserConsoleMacroVars; // local user macro vars in NppExec's Console (Console only, not scripts!)
-    tMacroVars m_UserMacroVars; // shared user macro vars (shared by all NppExec's scripts)
-    tMacroVars m_CmdAliases;
-    tMacroVars m_LocalCmdAliases0; // <-- just in case, actually the aliases are inside ScriptContext
-    tMacroVars m_ConsoleCmdAliases; // local cmd aliases in NppExec's Console (Console only, not scripts!)
+    CMacroVars m_UserLocalMacroVars0; // <-- just in case, actually the vars are inside ScriptContext
+    CMacroVars m_UserConsoleMacroVars; // local user macro vars in NppExec's Console (Console only, not scripts!)
+    CMacroVars m_UserMacroVars; // shared user macro vars (shared by all NppExec's scripts)
+    CMacroVars m_CmdAliases;
+    CMacroVars m_LocalCmdAliases0; // <-- just in case, actually the aliases are inside ScriptContext
+    CMacroVars m_ConsoleCmdAliases; // local cmd aliases in NppExec's Console (Console only, not scripts!)
 };
 
 class CNppExec
