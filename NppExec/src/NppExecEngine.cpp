@@ -4727,8 +4727,17 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
 
     CCriticalSectionLockGuard lock(m_pNppExec->GetMacroVars().GetCsCmdAliases());
 
-    CMacroVars* cmdAliases = isLocal ?
-        &m_execState.GetCurrentScriptContext().LocalCmdAliases : &m_pNppExec->GetMacroVars().GetCmdAliases();
+    CMacroVars& localCmdAliases = m_execState.GetCurrentScriptContext().LocalCmdAliases;
+    CMacroVars& globalCmdAliases = m_pNppExec->GetMacroVars().GetCmdAliases();
+    CMacroVars* cmdAliases = isLocal ? &localCmdAliases : &globalCmdAliases;
+
+    auto buildAliasString = [](tstr& S, const tstr& name, const tstr& value, bool isLocal)
+    {
+        S = isLocal ? _T("local ") : _T("");
+        S += name;
+        S += _T(" -> ");
+        S += value;
+    };
 
     if ( sParams.IsEmpty() )
     {
@@ -4765,7 +4774,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                 else if ( isLocal && !aliasValue.IsEmpty() )
                 {
                     isLocal = false;
-                    cmdAliases = &m_pNppExec->GetMacroVars().GetCmdAliases();
+                    cmdAliases = &globalCmdAliases;
                     aliasName = _T("local");
                 }
             }
@@ -4782,10 +4791,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                         // update
                         itrAlias->value = aliasValue;
 
-                        S = isLocal ? _T("local ") : _T("");
-                        S += aliasName;
-                        S += _T(" -> ");
-                        S += aliasValue;
+                        buildAliasString(S, aliasName, aliasValue, isLocal);
                     }
                     else
                     {
@@ -4806,10 +4812,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                         // add
                         (*cmdAliases)[aliasName] = aliasValue;
 
-                        S = isLocal ? _T("local ") : _T("");
-                        S += aliasName;
-                        S += _T(" -> ");
-                        S += aliasValue;
+                        buildAliasString(S, aliasName, aliasValue, isLocal);
                         const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
                         m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                     }
@@ -4869,41 +4872,47 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
     {
         if ( aliasName.IsEmpty() )
         {
-            CMacroVars::const_iterator itrAlias = cmdAliases->begin();
-            for ( ; itrAlias != cmdAliases->end(); ++itrAlias )
+            CMacroVars::const_iterator localAliasesEnd = localCmdAliases.cend();
+            CMacroVars::const_iterator itrAlias = localCmdAliases.begin();
+            for ( ; itrAlias != localAliasesEnd; ++itrAlias )
             {
-                S = isLocal ? _T("local ") : _T("");
-                S += itrAlias->name;
-                S += _T(" -> ");
-                S += itrAlias->value;
+                buildAliasString(S, itrAlias->name, itrAlias->value, true);
                 const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                 m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
+            }
+
+            if ( !isLocal )
+            {
+                // printing global cmd aliases not overriden by local ones
+                CMacroVars::const_iterator globalAliasesEnd = globalCmdAliases.cend();
+                itrAlias = globalCmdAliases.begin();
+                for ( ; itrAlias != globalAliasesEnd; ++itrAlias )
+                {
+                    if ( localCmdAliases.find(itrAlias->name) == localAliasesEnd )
+                    {
+                        buildAliasString(S, itrAlias->name, itrAlias->value, false);
+                        const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                        m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
+                    }
+                }
             }
         }
         else
         {
-            bool bFound = false;
-
             CMacroVars::const_iterator itrAlias = cmdAliases->find(aliasName);
             if ( itrAlias != cmdAliases->end() )
             {
-                S = isLocal ? _T("local ") : _T("");
-                S += itrAlias->name;
-                S += _T(" -> ");
-                S += itrAlias->value;
-                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-                m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
-                bFound = true;
+                buildAliasString(S, itrAlias->name, itrAlias->value, isLocal);
             }
-
-            if ( !bFound )
+            else
             {
                 S = isLocal ? _T("- no such local command alias: ") : _T("- no such command alias: ");
                 S += aliasName;
-                const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-                m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
                 nCmdResult = CMDRESULT_FAILED;
             }
+
+            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+            m_pNppExec->GetConsole().PrintMessage( S.c_str(), nMsgFlags );
         }
     }
 
