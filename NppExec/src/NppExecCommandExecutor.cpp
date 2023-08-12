@@ -814,7 +814,7 @@ bool CNppExecCommandExecutor::SendChildProcessExitCommand()
                 CNppExecMacroVars::tMacroVars::const_iterator itr = pVarsList->find(macro_name);
                 if ( itr != pVarsList->end() )
                 {
-                    exit_cmd = itr->second;
+                    exit_cmd = itr->value;
                     bSend = true;
                 }
             }

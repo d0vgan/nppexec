@@ -1413,7 +1413,35 @@ public:
     };
 
 public:
-    typedef std::map<tstr, tstr> tMacroVars;
+    class tMacroVars
+    {
+    public:
+        typedef struct tVarItem {
+            tstr name;
+            tstr value;
+        } item_type;
+        typedef std::vector<item_type> container_type;
+        typedef container_type::const_iterator const_iterator;
+        typedef container_type::iterator iterator;
+
+    public:
+        const_iterator begin() const;
+        iterator       begin();
+        const_iterator end() const;
+        iterator       end();
+
+        bool           empty() const;
+        iterator       erase(const_iterator position);
+        const_iterator find(const tstr& varName) const;
+        iterator       find(const tstr& varName);
+        void           swap(tMacroVars& other);
+
+        tstr&          operator[](const tstr& varName);
+        tstr&          operator[](tstr&& varName);
+
+    private:
+        container_type m_MacroVars;
+    };
 
 public:
     CNppExecMacroVars();
