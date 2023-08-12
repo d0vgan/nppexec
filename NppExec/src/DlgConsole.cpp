@@ -1622,7 +1622,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  4. Sets the value of command alias (\"npe_cmdalias <alias> = <command>\")") _T_RE_EOL \
     _T("  5.1. +v uses delayed vars substitution (default), e.g. $(x) remains $(x)") _T_RE_EOL \
     _T("  5.2. -v uses instant vars substitution, e.g. $(x) is replaced with its value") _T_RE_EOL \
-    _T("  6. local within the current NppExec's script") _T_RE_EOL \
+    _T("  6. local command aliases (within the current NppExec's script)") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  // basic examples:") _T_RE_EOL \
     _T("  npe_cmdalias = = calc            // type just \"=\" instead of \"calc\"") _T_RE_EOL \
@@ -1658,6 +1658,9 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  it will NOT be treated as a command alias. For example, \"/c\" inside") _T_RE_EOL \
     _T("  \"cmd /c move /?\" is not treated as a command alias because it is located") _T_RE_EOL \
     _T("  in the middle of the string, so this string remains unmodified.") _T_RE_EOL \
+    _T("  Note: npe_queue supports command aliases, so it is possible to do e.g.") _T_RE_EOL \
+    _T("    npe_cmdalias local et = echo $(SYS.TEMP)") _T_RE_EOL \
+    _T("    npe_queue et  // will print the up-to-date value of %TEMP%") _T_RE_EOL \
     _T("  To use -v or +v as the alias name, just specify the desired mode prior") _T_RE_EOL \
     _T("  to the alias name:") _T_RE_EOL \
     _T("    npe_cmdalias -v -v = ... // alias name is \"-v\", instant substitution") _T_RE_EOL \

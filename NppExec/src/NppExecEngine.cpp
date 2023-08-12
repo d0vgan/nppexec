@@ -5609,6 +5609,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeQueue(const tstr& params)
     // command to be queued
     bool bUseSeparateScript = true;
     tstr Cmd = getQueuedCommand(params, bUseSeparateScript);
+    m_pNppExec->GetMacroVars().CheckCmdAliases(this, Cmd, true);
     Cmd = substituteMacroVarsIfNotDelayed(this, Cmd, true);
 
     if ( bUseSeparateScript && (m_nRunFlags & rfExitScript) == 0 )
