@@ -1649,9 +1649,10 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  // now open or switch to another file in Notepad++") _T_RE_EOL \
     _T("  fp // always uses the actual file path") _T_RE_EOL \
     _T("  // local cmd alias (within the current script):") _T_RE_EOL \
-    _T("  npe_cmdalias local copy = cmd /c copy  // set") _T_RE_EOL \
-    _T("  npe_cmdalias local copy                // show") _T_RE_EOL \
-    _T("  npe_cmdalias local copy =              // remove") _T_RE_EOL \
+    _T("  npe_cmdalias local copy = cmd /c copy  // set a local alias") _T_RE_EOL \
+    _T("  npe_cmdalias local copy                // show the local alias") _T_RE_EOL \
+    _T("  npe_cmdalias local                     // show all local aliases") _T_RE_EOL \
+    _T("  npe_cmdalias local copy =              // remove the local alias") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  To use a command alias, type it in the beginning of the input string") _T_RE_EOL \
     _T("  (e.g. \"/c copy /?\" for the command alias \"/c -> cmd /c\"), otherwise") _T_RE_EOL \
