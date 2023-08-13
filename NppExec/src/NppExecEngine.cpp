@@ -8296,14 +8296,12 @@ void CNppExecMacroVars::CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, b
 
                     for ( auto& v : cmdAliases )
                     {
-                        const int len = v.name.length();
-                        if ( (len > 0) &&
-                             (c_base::_tstr_unsafe_cmpn(v.name.c_str(), t.c_str(), len) == 0) )
+                        if ( t.StartsWith(v.name) )
                         {
-                            const TCHAR ch = t.GetAt(len);
+                            const TCHAR ch = t.GetAt(v.name.length());
                             if ( IsAnySpaceOrEmptyChar(ch) )
                             {
-                                S.Replace( 0, len, v.value.c_str(), v.value.length() );
+                                S.Replace( 0, v.name.length(), v.value.c_str(), v.value.length() );
                                 bSubstituted = true;
                                 break;
                             }
