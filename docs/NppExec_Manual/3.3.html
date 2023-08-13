@@ -1,0 +1,63 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>3.3. Do something (how-to)</title>
+</HEAD>
+<BODY>
+<h3>3.3. Do something (how-to)</h3>
+<p>To run some program (optionally, with parameters) as a child process of NppExec,
+      just type the (path)name of this program (optionally, with parameters)
+    in NppExec's Console <a href="3.5.html">[3.5]</a> or in the &quot;Execute NppExec Script...&quot; dialog <a href="3.6.html">[3.6]</a>. This
+makes NppExec to:</p>
+<ol>
+  <li>run the program (optionally, with parameters) </li>
+  <li>show its output in NppExec's Console (if it is a console program)</li>
+  <li>wait until the program exits</li>
+</ol>
+<p>For example, type</p>
+<blockquote>
+  <pre>cmd</pre>
+</blockquote>
+<p>to start the &quot;cmd.exe&quot;. You will see the cmd's output in NppExec's Console. You can type some cmd's commands in order to cmd to execute them and, finally, type &quot;exit&quot; in
+order to exit cmd.</p>
+<p>Also you can type</p>
+<blockquote>
+  <pre>calc</pre>
+</blockquote>
+<p>in order to start the &quot;calc.exe&quot;.
+    NppExec
+will wait until you close the calc's window.</p>
+<p>Finally, here is an example with parameters:</p>
+<blockquote>
+  <pre>cmd /c time /t</pre>
+</blockquote>
+<p>The last example shows the output
+    of cmd's
+command &quot;time /t&quot; in NppExec's Console - i.e. it shows current time.</p>
+<p>The same approach can be used to execute .bat and .cmd files - but the file extension (.bat or .cmd) can not be omitted in this case.
+(Note: NppExec ver. 0.6 RC3 introduces a new advanced option <em>&quot;ChildProcess_RunPolicy&quot;</em> that allows to modify this behavior. Refer to <a href="4.4.html">[4.4]</a> for more details.)</p>
+<p>To run some program (optionally,
+    with parameters) as an external process (with respect to NppExec), type &quot;npp_run &quot; and the (path)name of this program (optionally, with parameters) in NppExec's Console <a href="3.5.html">[3.5]</a> or in the &quot;Execute NppExec Script...&quot; dialog
+<a href="3.6.html">[3.6]</a>. This makes NppExec to:</p>
+<ol>
+  <li>run the program (optionally, with parameters)</li>
+  <li>a console program is shown in its own console window</li>
+  <li>NppExec does not wait until the program exits</li>
+</ol>
+<p>For example, type</p>
+<blockquote>
+  <pre>npp_run cmd</pre>
+</blockquote>
+<p>to start the &quot;cmd.exe&quot; in its own
+window.</p>
+<p>(Note: it's possible to start an application in its own window and make NppExec to wait until the application has been executed. To do that, type:</p>
+<blockquote>
+  <pre>cmd /c start /wait application.exe</pre>
+</blockquote>
+<p>In this case, NppExec waits for 'cmd' to be executed, while 'cmd' itself starts the 'application.exe' in its own separate window and waits until it has been executed. So &quot;npp_run &quot; is not needed here.)</p>
+<p>Also you can use &quot;npp_run &quot; to open specified file in its associated program. For example, &quot;npp_run index.htm&quot; opens the .htm file in your default internet browser.</p>
+<p>See also: Using cmd.exe <a href="4.4.html">[4.4]</a>.</p>
+</BODY>
+</HTML>

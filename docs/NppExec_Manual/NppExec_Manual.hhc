@@ -1,0 +1,266 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML>
+<HEAD>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<!-- Sitemap 1.0 -->
+</HEAD><BODY>
+<UL>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="Title">
+		<param name="Local" value="0. Title Page.html">
+		</OBJECT>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="1. What is NppExec">
+		</OBJECT>
+	<UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="1.1. Introduction">
+			<param name="Local" value="1.1.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="1.2. NppExec is...">
+			<param name="Local" value="1.2.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="1.3. NppExec is not...">
+			<param name="Local" value="1.3.html">
+			</OBJECT>
+	</UL>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="2. Installation">
+		</OBJECT>
+	<UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="2.1. What? Installation?">
+			<param name="Local" value="2.1.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="2.2. The NppExec plugin (NppExec.dll)">
+			<param name="Local" value="2.2.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="2.3. Installing the latest version">
+			<param name="Local" value="2.3.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="2.4. Using several copies of NppExec">
+			<param name="Local" value="2.4.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="2.5. Unicode and ANSI, 32-bit and 64-bit version">
+			<param name="Local" value="2.5.html">
+			</OBJECT>
+	</UL>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="3. Basic usage">
+		</OBJECT>
+	<UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="3.1. Getting help">
+			<param name="Local" value="3.1.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="3.2. Do something (intro)">
+			<param name="Local" value="3.2.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="3.3. Do something (how-to)">
+			<param name="Local" value="3.3.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="3.4. NppExec's submenu">
+			<param name="Local" value="3.4.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="3.5. NppExec's Console">
+			<param name="Local" value="3.5.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="3.6. Execute NppExec Script...">
+			<param name="Local" value="3.6.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="3.7. NppExec's script">
+			<param name="Local" value="3.7.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="3.8. Environment variables">
+			</OBJECT>
+		<UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="3.8.1. Predefined (read-only) variables">
+				<param name="Local" value="3.8.1.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="3.8.2. User (internal) variables">
+				<param name="Local" value="3.8.2.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="3.8.3. Environment (heritable) variables">
+				<param name="Local" value="3.8.3.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="3.8.4. Calculations, strlen and so on">
+				<param name="Local" value="3.8.4.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="3.8.5. Passing enquoted strings and special characters">
+				<param name="Local" value="3.8.5.html">
+				</OBJECT>
+		</UL>
+	</UL>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="4. Advanced usage">
+		</OBJECT>
+	<UL>
+	    <LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.0. Introduction to compiling/interpreting/etc.">
+			<param name="Local" value="4.0.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.1. NppExec's Console behaviour">
+			<param name="Local" value="4.1.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.2. Environment">
+			<param name="Local" value="4.2.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.3. Run-time parameters">
+			<param name="Local" value="4.3.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.4. Using cmd.exe">
+			<param name="Local" value="4.4.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.5. Console output redirection">
+			<param name="Local" value="4.5.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.6. Using external tools">
+			</OBJECT>
+		<UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.1. Applying external tool to selected text">
+				<param name="Local" value="4.6.1.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.2. Calculating">
+				<param name="Local" value="4.6.2.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.3. Processing &amp; replacing the selection">
+				<param name="Local" value="4.6.3.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.4. Running Python & wxPython">
+				<param name="Local" value="4.6.4.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.5. Grab date &amp; time to NppExec variable">
+				<param name="Local" value="4.6.5.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.6. Grab Console output to new editor pane">
+				<param name="Local" value="4.6.6.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.7. Run and terminate PowerShell process">
+				<param name="Local" value="4.6.7.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.8. Clipboard, keystrokes and much more">
+				<param name="Local" value="4.6.8.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.9. Send several commands to external tool">
+				<param name="Local" value="4.6.9.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.10. Running Lua">
+				<param name="Local" value="4.6.10.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.11. Clone current document to new editor pane">
+				<param name="Local" value="4.6.11.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.12. Passing multiple files to external tool">
+				<param name="Local" value="4.6.12.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.13. Working with the Notepad++ 'Replace' dialog">
+				<param name="Local" value="4.6.13.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.14. Notepad++ as a Clipboard Monitor">
+				<param name="Local" value="4.6.14.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.15. Triggering certain actions while saving a file">
+				<param name="Local" value="4.6.15.html">
+				</OBJECT>
+		</UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.7. Compiling">
+			</OBJECT>
+		<UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.7.1. Compiling simple C and Pas-programs">
+				<param name="Local" value="4.7.1.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.7.2. Compiling Java">
+				<param name="Local" value="4.7.2.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.7.3. Using Visual Studio's compiler (cl.exe)">
+				<param name="Local" value="4.7.3.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.7.4. Compiling ANY source file">
+				<param name="Local" value="4.7.4.html">
+				</OBJECT>
+		</UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="4.8. Advanced details">
+			</OBJECT>
+		<UL>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.8.1. Logging">
+				<param name="Local" value="4.8.1.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.8.2. Collateral scripts">
+				<param name="Local" value="4.8.2.html">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.8.3. Console child process workflow">
+				<param name="Local" value="4.8.3.html">
+				</OBJECT>
+		</UL>
+	</UL>
+	<LI> <OBJECT type="text/sitemap">
+		<param name="Name" value="5. Other">
+		</OBJECT>
+	<UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="About">
+			<param name="Local" value="About.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Questions/suggestions?">
+			<param name="Local" value="Questions_suggestions.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="Acknowledgments">
+			<param name="Local" value="Acknowledgment.html">
+			</OBJECT>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="NppExec_Guide">
+			<param name="Local" value="NppExec_Guide.html">
+			</OBJECT>
+	</UL>
+</UL>
+</BODY></HTML>

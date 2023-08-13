@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.5. Grab date &amp; time to NppExec variable</title>
+</HEAD>
+<BODY>
+<h3>4.6.5. Grab date &amp; time to NppExec variable</h3>
+
+<p>1. To grab current date to NppExec variable, you can create the following simple auxiliary script:</p>
+<blockquote>
+  <pre>NPE_CONSOLE local v+
+cmd /c date /t
+set DATE = $(OUTPUTL)</pre>
+</blockquote>
+<p>and give it a name &quot;date&quot;, for example.</p>
+<p>Then you can use &quot;NPP_EXEC date&quot; or just &quot;\date&quot; to call this script which sets an internal environment variable $(DATE).</p>
+<p>The same approach can be used for time: just replace &quot;date /t&quot; with &quot;time /t&quot;.</p>
+
+<p>2. To grab date or time in user-specified format, some additional actions are needed.
+First, go to Notepad++'s folder (where notepad++.exe is located) and create a file named &quot;date.bat&quot; with the following content:</p>
+<blockquote>
+  <pre>@echo off
+for /f &quot;tokens=1-3 delims=/.- &quot; %%a in ('DATE /T') do set CUR_DATE=%%c%%b%%a
+echo %CUR_DATE%</pre>
+</blockquote>
+<p>Then create the following NppExec's script which will use this bat-file:</p>
+<blockquote>
+  <pre>NPE_CONSOLE local v+
+&quot;$(NPP_DIRECTORY)\date.bat&quot;
+set DATE = $(OUTPUTL) // the bat-file's output</pre>
+</blockquote>
+<p>Now your date format is definitely determined by this line:</p>
+<blockquote>
+  <pre>for /f &quot;tokens=1-3 delims=/.- &quot; %%a in ('DATE /T') do set CUR_DATE=%%c%%b%%a</pre>
+</blockquote>
+<p>and you can change it as you want, e.g.</p>
+<blockquote>
+  <pre>for /f &quot;tokens=1-3 delims=/.- &quot; %%a in ('DATE /T') do set CUR_DATE=%%c-%%b-%%a</pre>
+</blockquote>
+<p>or</p>
+<blockquote>
+  <pre>for /f &quot;tokens=1-3 delims=/.- &quot; %%a in ('DATE /T') do set CUR_DATE=%%c%%a%%b</pre>
+</blockquote>
+<p>or whatever you want.</p>
+
+<p>3. Finally, you can use the following bat-file which returns both date and time as one string:</p>
+<blockquote>
+  <pre>@echo off
+for /f &quot;tokens=1-3 delims=/.- &quot; %%a in ('DATE /T') do set CUR_DATE=%%c%%b%%a
+for /f &quot;tokens=1-2 delims=: &quot; %%a in ('TIME /T') do set CUR_TIME=%%a%%b
+echo %CUR_DATE%_%CUR_TIME%</pre>
+</blockquote>
+
+<p>4. Here is another version of the previous bat-file, now using cmd's environment variables %DATE% and %TIME% which supports also milliseconds:</p>
+<blockquote>
+  <pre>@echo off
+for /f &quot;tokens=1-3 delims=/.- &quot; %%a in (&quot;%DATE%&quot;) do set CUR_DATE=%%c%%b%%a
+for /f &quot;tokens=1-4 delims=:., &quot; %%a in (&quot;%TIME%&quot;) do set CUR_TIME=%%a%%b%%c%%d
+echo %CUR_DATE%_%CUR_TIME%</pre>
+</blockquote>
+
+<p>See also: Using cmd.exe <a href="4.4.html">[4.4]</a>.</p>
+
+</BODY>
+</HTML>

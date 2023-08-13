@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.12. Passing multiple files to external tool</title>
+</HEAD>
+<BODY>
+<h3>4.6.12. Passing multiple files to external tool</h3>
+
+<p>Sometimes you may want to pass multiple files to an external tool, especially when these multiple files are part of some project and the external tool is a compiler that compiles this project.</p>
+<p>Usually some makefile is created for these purposes, and the path to the makefile is passed to the compiler.</p>
+<p>But let's imagine we don't want to use a makefile and want to use NppExec's script for this. Let's say we want NppExec's script to look through the files opened in Notepad++ and create a list of files with a given file extension.</p>
+<p>For example, the following NppExec's scripts collects all the opened files with .cpp extension and outputs them to NppExec's Console:</p>
+
+<blockquote>
+  <pre>npp_console local -        // disable output to the Console
+set local MatchExt = .cpp  // file extension to match
+set local FileList =       // output file list
+set local i = 1
+
+// iterating through all opened files...
+:NextOpenedFile
+set local file = $(#$(i))  // full path name
+if "$(file)" == "" goto OutOfOpenedFiles
+set local n ~ strrfind "$(file)" \
+if n == -1 then
+  set local n ~ strrfind "$(file)" /
+endif
+if n != -1 then
+  set local n ~ $(n) + 1
+  set local file ~ substr $(n) - $(file)  // file name (without path)
+endif
+set local n ~ strrfind "$(file)" .
+if n != -1 then
+  set local e ~ substr $(n) - $(file)  // file extension
+  if "$(e)" ~= "$(MatchExt)" then      // compare case-insensitively
+    set local FileList = $(FileList) "$(file)"
+  endif
+endif
+set local i ~ $(i) + 1
+goto NextOpenedFile
+
+:OutOfOpenedFiles
+npp_console local +  // enable output to the Console
+echo $(FileList)</pre>
+</blockquote>
+
+<p>If your project consists of a lot of files, including files in subfolders, we may form a list of all these files using some additional tool such as Swiss File Knife ( https://sourceforge.net/projects/swissfileknife/files/ ).</p>
+<p>Here is how Swiss File Knife (sfk) creates a list of all .cpp files starting from the current directory:</p>
+
+<blockquote>
+  <pre>sfk list -quot -dir . -file .cpp +xed "/[xwhite]/ /"</pre>
+</blockquote>
+
+<p>Then, using sfk, the NppExec's script will look like the following:</p>
+
+<blockquote>
+  <pre>npp_console local -        // disable output to the Console
+set local MatchExt = .cpp  // file extension to match
+
+npe_console local v+
+sfk list -quot -dir . -file $(MatchExt) +xed "/[xwhite]/ /"
+set local FileList = $(OUTPUTL)
+
+npp_console local +  // enable output to the Console
+echo $(FileList)</pre>
+</blockquote>
+
+<p>The only thing remaining is to call your compiler passing the $(FileList) to it. For example:</p>
+
+<blockquote>
+  <pre>g++ -c $(FileList)</pre>
+</blockquote>
+
+<p>See also: Compiling <a href="4.7.1.html">[4.7]</a>.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>

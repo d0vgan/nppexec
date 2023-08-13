@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.3. Processing &amp; replacing the selection</title>
+</HEAD>
+<BODY>
+<h3>4.6.3. Processing &amp; replacing the selection</h3>
+<p>There are two ways (or forms) to get the text selected in Notepad++: </p>
+<ol>
+  <li>Using pre-defined <a href="3.8.1.html">[3.8.1]</a> variable $(CURRENT_WORD) which can store limited number of selected characters; </li>
+  <li>Using pre-defined <a href="3.8.1.html">[3.8.1]</a> variable $(SELECTED_TEXT) which can store any number of selected characters; </li>
+  <li>Using SEL_SAVETO &quot;FilePathName&quot; to save the entire selected text into a text file specified. </li>
+</ol>
+<p>Then the selected text can be processed by some external tool as shown in <a href="4.6.1.html">[4.6.1]</a>. </p>
+<p>There are two ways (or forms) to replace the selected text with the text you want: </p>
+<ol>
+  <li>Using SEL_SETTEXT &quot;TextToReplaceWith&quot; which can also use some variable as its argument e.g. SEL_SETTEXT $(FILE_NAME); </li>
+  <li>Using SEL_LOADFROM &quot;FilePathName&quot; to load the text from a text file specified. </li>
+</ol>
+<p>NppExec allows you to use both ways to process the selected text with some external tool and then to replace the text with the tool's output. Several steps are required: </p>
+<p>1) Pass the selected text to the external tool. The selected text is the external tool's input: </p>
+<blockquote>
+  <blockquote>
+    <pre>// input: command line, output: command line
+tool.exe &lt;args&gt; &quot;$(CURRENT_WORD)&quot;</pre>
+  </blockquote>
+  <p>or </p>
+  <blockquote>
+    <pre>// input: command line, output: file
+cmd /c tool.exe &lt;args&gt; &quot;$(CURRENT_WORD)&quot; &gt;$(SYS.TEMP)\out.txt</pre>
+  </blockquote>
+  <p>or </p>
+  <blockquote>
+    <pre>// input: file, output: command line
+SEL_SAVETO $(SYS.TEMP)\npp_sel.txt
+tool.exe &lt;args&gt; $(SYS.TEMP)\npp_sel.txt</pre>
+  </blockquote>
+  <p>or </p>
+  <blockquote>
+    <pre>// input: file, output: file
+SEL_SAVETO $(SYS.TEMP)\npp_sel.txt
+cmd /c tool.exe &lt;args&gt; C:\npp_sel.txt &gt;$(SYS.TEMP)\out.txt</pre>
+  </blockquote>
+</blockquote>
+<p>2) Replace the selected text with the tool's output: </p>
+<blockquote>
+  <blockquote>
+    <pre>// replace the selected text with the output file's content
+SEL_LOADFROM $(SYS.TEMP)\out.txt</pre>
+  </blockquote>
+  <p>or </p>
+  <blockquote>
+    <pre>// replace the selected text with the command line's output:
+SEL_SETTEXT $(OUTPUT)</pre>
+  </blockquote>
+</blockquote>
+<p>The very last approach needs several additional steps. The $(OUTPUT) variable stores the entire external tool's output while NPE_CONSOLE V+ has been set. Let's see an example of such approach. </p>
+<p>Let's assume you select a word such as &quot;copy&quot;, &quot;dir&quot;, &quot;cd&quot; etc. and want to replace this word with its description from cmd's help. You can use $(CURRENT_WORD) variable to pass the selected word to cmd.exe. Also you want to replace the selected word with cmd's output. You can use $(OUTPUT) variable to do it. Here is the full NppExec's script which allows you to get the desired result: </p>
+<blockquote>
+  <pre>// enable $(OUTPUT) variable within the current NppExec's script
+NPE_CONSOLE local v+
+// run cmd.exe with the selected word as parameter
+cmd.exe /c $(CURRENT_WORD) /?
+// (optional) replace the selected text: previously selected word
+SEL_SETTEXT $(CURRENT_WORD)
+// (optional) replace the selected text: new line
+SEL_SETTEXT+ \n
+// replace the selected text: cmd's output
+SEL_SETTEXT $(OUTPUT)
+</pre>
+</blockquote>
+<p>That's all. Now try the following: </p>
+<ol>
+  <li>Create new file in Notepad++ (don't even save it yet) </li>
+  <li>Type, for example, &quot;dir&quot; (without quotes) </li>
+  <li>Select the word &quot;dir&quot; (without quotes) </li>
+  <li>Open NppExec's Execute window, select &quot;&lt;temporary script&gt;&quot; </li>
+  <li>Copy the script shown above to the Execute window's edit-box </li>
+  <li>Press OK </li>
+  <li>Enjoy the result :-) </li>
+</ol>
+<p>The $(OUTPUT) variable is disabled by default to minimize the memory usage as this variable stores the entire external process'es output when enabled. </p>
+<p>You can clear this variable by assigning an empty value to it: </p>
+<blockquote>
+  <pre>SET $(OUTPUT) =</pre>
+</blockquote>
+<p>To free the memory allocated for this variable, use the following: </p>
+<blockquote>
+  <pre>UNSET $(OUTPUT)</pre>
+</blockquote>
+<p>See also: Applying external tool to selected text <a href="4.6.1.html">[4.6.1]</a>.</p>
+</BODY>
+</HTML>
