@@ -1,8 +1,8 @@
 /***********************************************
  *  
- *  CBufT ver. 1.3.1
+ *  CBufT ver. 1.3.4
  *  --------------------------------  
- *  (C) DV, Nov 2006 - Jun 2021
+ *  (C) DV, Nov 2006 - Aug 2023
  *  --------------------------------
  *
  *  Template:
@@ -28,7 +28,7 @@ typedef  void*  PTR;
 //----------------------------------------------------------------------------
 
 // CONDITION: buf1 != 0 && buf2 != 0 && count > 0
-template <class T> int BufUnsafeCmpn( const T* buf1, const T* buf2, unsigned int count )
+template <class T> int BufUnsafeCmpn( const T* buf1, const T* buf2, unsigned int count ) noexcept
 {
     while ( (--count) && (*buf1 == *buf2) )
     {
@@ -39,7 +39,7 @@ template <class T> int BufUnsafeCmpn( const T* buf1, const T* buf2, unsigned int
 }
 
 // CONDITION: dst != 0 && src != 0
-template <class T> void BufUnsafeCopyn(T* dst, const T* src, unsigned int count)
+template <class T> void BufUnsafeCopyn(T* dst, const T* src, unsigned int count) noexcept
 {
     if ( (dst > src) && (dst < src + count) )
     {
@@ -69,74 +69,74 @@ private:
 public:
   typedef T value_type;
   
-  CBufT();
+  CBufT() noexcept;
   CBufT(const CBufT& Buf);
-  CBufT(CBufT&& Buf);
-  ~CBufT();
+  CBufT(CBufT&& Buf) noexcept;
+  ~CBufT() noexcept;
   T*       Append(const T* pData, int nCount);
   T*       Append(const CBufT& Buf);
   T*       Append(const T& item);
   T*       Assign(const T* pData, int nCount);
   T*       Assign(const CBufT& Buf);
-  T*       Assign(CBufT&& Buf);
-  void     Clear();
-  int      Compare(const T* pData, int nCount) const; 
+  T*       Assign(CBufT&& Buf) noexcept;
+  void     Clear() noexcept;
+  int      Compare(const T* pData, int nCount) const noexcept;
              // -1 if GetData() < pData
-  int      Compare(const CBufT& Buf) const;       
+  int      Compare(const CBufT& Buf) const noexcept;       
              // 1 if GetData() > pData;  0 if identical; 
              // 2 if nCount items are identical and nCount < m_nCount
-  bool     Delete(int nPos, int nCount = -1);  
+  bool     Delete(int nPos, int nCount = -1) noexcept;
              // -1 means all items from nPos 
-  int      Find(const T& item, int nStartPos = 0) const;
-  int      Find(const T* pData, int nCount, int nStartPos = 0) const;
-  int      Find(const CBufT& Buf, int nStartPos = 0) const;
-  void     FreeMemory();
-  T        GetAt(int nPos) const;
-  int      GetCount() const  { return m_nCount; }
-  T*       GetData() const  { return m_pData; }  
-  int      GetMemSize() const  { return m_nMemSize; }
+  int      Find(const T& item, int nStartPos = 0) const noexcept;
+  int      Find(const T* pData, int nCount, int nStartPos = 0) const noexcept;
+  int      Find(const CBufT& Buf, int nStartPos = 0) const noexcept;
+  void     FreeMemory() noexcept;
+  T        GetAt(int nPos) const noexcept;
+  int      GetCount() const noexcept  { return m_nCount; }
+  T*       GetData() const noexcept  { return m_pData; }  
+  int      GetMemSize() const noexcept  { return m_nMemSize; }
   T*       Insert(int nPos, const T* pData, int nCount);
   T*       Insert(int nPos, const CBufT& Buf);
   T*       Insert(int nPos, const T& item);
-  bool     IsEmpty() const  { return (m_nCount == 0); }
-  bool     IsEqual(const T* pData, int nCount) const  { 
+  bool     IsEmpty() const noexcept  { return (m_nCount == 0); }
+  bool     IsEqual(const T* pData, int nCount) const noexcept  { 
                return ( Compare(pData, nCount) == 0 ); 
            }
-  bool     IsEqual(const CBufT& Buf) const  {
+  bool     IsEqual(const CBufT& Buf) const noexcept  {
                return ( Compare(Buf.GetData(), Buf.GetCount()) == 0 ); 
            }
   bool     Reserve(int nCount)  { 
                return ( (nCount > m_nCount) ? SetSize(nCount) : true );
            } // like in STL
-  bool     SetAt(int nPos, const T& item);
-  bool     SetCountValue(int nCount);
+  bool     SetAt(int nPos, const T& item) noexcept;
+  bool     SetCountValue(int nCount) noexcept;
   bool     SetSize(int nCount); // previous buffer content is kept
-  void     Swap(CBufT& Buf); // swap buf's data
-  int      capacity() const  { return m_nMemSize; }
-  T*       data() const  { return m_pData; }
-  int      size() const  { return m_nCount; }
-  const T& operator[](int nPos) const  { return m_pData[nPos]; }
-  T&       operator[](int nPos)  { return m_pData[nPos]; }
+  void     Swap(CBufT& Buf) noexcept; // swap buf's data
+  int      capacity() const noexcept  { return m_nMemSize; }
+  T*       data() const noexcept  { return m_pData; }
+  int      size() const noexcept  { return m_nCount; }
+  const T& operator[](int nPos) const noexcept  { return m_pData[nPos]; }
+  T&       operator[](int nPos) noexcept  { return m_pData[nPos]; }
   T*       operator=(const CBufT& Buf)  { return Assign(Buf); }
-  T*       operator=(CBufT&& Buf)  { return Assign(std::forward<CBufT>(Buf)); }
+  T*       operator=(CBufT&& Buf) noexcept  { return Assign(std::forward<CBufT>(Buf)); }
   T*       operator+=(const CBufT& Buf)  { return Append(Buf); }
   T*       operator+=(const T& item)  { return Append(item); }
-  bool     operator==(const CBufT& Buf) const {
+  bool     operator==(const CBufT& Buf) const noexcept {
                return ( Compare(Buf.GetData(), Buf.GetCount()) == 0 ); 
            }
-  bool     operator!=(const CBufT& Buf) const {
+  bool     operator!=(const CBufT& Buf) const noexcept {
                return ( Compare(Buf.GetData(), Buf.GetCount()) != 0 ); 
            }
-  bool     operator>(const CBufT& Buf) const {
+  bool     operator>(const CBufT& Buf) const noexcept {
                return ( Compare(Buf.GetData(), Buf.GetCount()) > 0 ); 
            }
-  bool     operator>=(const CBufT& Buf) const {
+  bool     operator>=(const CBufT& Buf) const noexcept {
                return ( Compare(Buf.GetData(), Buf.GetCount()) >= 0 ); 
            }
-  bool     operator<(const CBufT& Buf) const {
+  bool     operator<(const CBufT& Buf) const noexcept {
                return ( Compare(Buf.GetData(), Buf.GetCount()) < 0 ); 
            }
-  bool     operator<=(const CBufT& Buf) const {
+  bool     operator<=(const CBufT& Buf) const noexcept {
                return ( Compare(Buf.GetData(), Buf.GetCount()) <= 0 ); 
            }
 
@@ -151,7 +151,7 @@ typedef  CBufT<PTR>             CPtrBuf;
 
 //----------------------------------------------------------------------------
 
-static inline int getAlignedMemSizeBuf(int nCount)
+static inline int getAlignedMemSizeBuf(int nCount) noexcept
 {
     int nShift;
 
@@ -171,7 +171,7 @@ static inline int getAlignedMemSizeBuf(int nCount)
 
 //----------------------------------------------------------------------------
 
-template <class T> CBufT<T>::CBufT() : 
+template <class T> CBufT<T>::CBufT() noexcept : 
   m_pData(NULL), 
   m_nCount(0), 
   m_nMemSize(0)
@@ -186,7 +186,7 @@ template <class T> CBufT<T>::CBufT(const CBufT& Buf) :
     Append(Buf);
 }
 
-template <class T> CBufT<T>::CBufT(CBufT&& Buf) :
+template <class T> CBufT<T>::CBufT(CBufT&& Buf) noexcept :
   m_pData(NULL), 
   m_nCount(0), 
   m_nMemSize(0)
@@ -194,7 +194,7 @@ template <class T> CBufT<T>::CBufT(CBufT&& Buf) :
     Swap(Buf);
 }
 
-template <class T> CBufT<T>::~CBufT()
+template <class T> CBufT<T>::~CBufT() noexcept
 {
     FreeMemory();
 }
@@ -266,7 +266,7 @@ template <class T> T* CBufT<T>::Assign(const CBufT& Buf)
         return m_pData;
 }
 
-template <class T> T* CBufT<T>::Assign(CBufT&& Buf)
+template <class T> T* CBufT<T>::Assign(CBufT&& Buf) noexcept
 {
     if ( Buf.GetData() != m_pData )
     {
@@ -276,7 +276,7 @@ template <class T> T* CBufT<T>::Assign(CBufT&& Buf)
     return m_pData;
 }
 
-template <class T> void CBufT<T>::Clear()
+template <class T> void CBufT<T>::Clear() noexcept
 {
     if ( m_pData )
     {
@@ -285,7 +285,7 @@ template <class T> void CBufT<T>::Clear()
     m_nCount = 0; // must be AFTER SetSize(0)!!!
 }
 
-template <class T> int CBufT<T>::Compare(const T* pData, int nCount) const
+template <class T> int CBufT<T>::Compare(const T* pData, int nCount) const noexcept
 {
     if ( m_pData == pData )
     {
@@ -316,12 +316,12 @@ template <class T> int CBufT<T>::Compare(const T* pData, int nCount) const
     return nResult;
 }
 
-template <class T> int CBufT<T>::Compare(const CBufT& Buf) const
+template <class T> int CBufT<T>::Compare(const CBufT& Buf) const noexcept
 {
     return Compare( Buf.GetData(), Buf.GetCount() );
 }
 
-template <class T> bool CBufT<T>::Delete(int nPos, int nCount )
+template <class T> bool CBufT<T>::Delete(int nPos, int nCount ) noexcept
 {
     if ( (m_nCount == 0) || (nPos < 0) || (nCount == 0) )
         return false;
@@ -340,7 +340,7 @@ template <class T> bool CBufT<T>::Delete(int nPos, int nCount )
     return true;
 }
 
-template <class T> int CBufT<T>::Find(const T& item, int nStartPos ) const
+template <class T> int CBufT<T>::Find(const T& item, int nStartPos ) const noexcept
 {
     if ( nStartPos >= 0 )
     {
@@ -357,7 +357,7 @@ template <class T> int CBufT<T>::Find(const T& item, int nStartPos ) const
 }
 
 template <class T> int CBufT<T>::Find(const T* pData, int nCount, 
-                                      int nStartPos ) const
+                                      int nStartPos ) const noexcept
 {
     if ( (!pData) || (nCount <= 0) || (nStartPos < 0) )
         return -1;
@@ -373,12 +373,12 @@ template <class T> int CBufT<T>::Find(const T* pData, int nCount,
 }
 
 template <class T> int CBufT<T>::Find(const CBufT& Buf, 
-                                      int nStartPos ) const
+                                      int nStartPos ) const noexcept
 {
     return Find( Buf.GetData(), Buf.GetCount(), nStartPos );
 }
 
-template <class T> void CBufT<T>::FreeMemory()
+template <class T> void CBufT<T>::FreeMemory() noexcept
 {
     if ( m_pData )
         delete [] m_pData;
@@ -387,7 +387,7 @@ template <class T> void CBufT<T>::FreeMemory()
     m_nMemSize = 0;
 }
 
-template <class T> T CBufT<T>::GetAt(int nPos) const
+template <class T> T CBufT<T>::GetAt(int nPos) const noexcept
 {
     if ( (nPos >= 0) && (nPos < m_nCount) )
         return m_pData[nPos];
@@ -463,7 +463,7 @@ template <class T> T* CBufT<T>::Insert(int nPos, const T& item)
     return m_pData;
 }
 
-template <class T> bool CBufT<T>::SetAt(int nPos, const T& item)
+template <class T> bool CBufT<T>::SetAt(int nPos, const T& item) noexcept
 {
     if ( (nPos >= 0) && (nPos < m_nCount) )
     {
@@ -473,7 +473,7 @@ template <class T> bool CBufT<T>::SetAt(int nPos, const T& item)
     return false;
 }
 
-template <class T> bool CBufT<T>::SetCountValue(int nCount)
+template <class T> bool CBufT<T>::SetCountValue(int nCount) noexcept
 {
     if ( (nCount >= 0) && (nCount <= m_nMemSize) )
     {
@@ -514,7 +514,7 @@ template <class T> bool CBufT<T>::SetSize(int nCount)
     return true;
 }
 
-template <class T> void CBufT<T>::Swap(CBufT& Buf)
+template <class T> void CBufT<T>::Swap(CBufT& Buf) noexcept
 {
     T*  bufData = Buf.m_pData;
     int bufCount = Buf.m_nCount;

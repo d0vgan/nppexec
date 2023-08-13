@@ -28,6 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + added: now npe_queue supports command aliases
  + internal optimization: now MacroVars are based on std::vector instead of
    std::map for much faster iteration
+ + internal optimization: non-throwing methods of CStrT, CBufT and CListT
+   declared as "noexcept"
  + NppExec Manual updated
  + web-version of the NppExec Manual (thanks to Joseph Samuel and others)
 
@@ -1427,18 +1429,18 @@ public:
     typedef container_type::iterator iterator;
 
 public:
-    const_iterator begin() const;
-    iterator       begin();
-    const_iterator cbegin() const;
-    const_iterator cend() const;
-    const_iterator end() const;
-    iterator       end();
+    const_iterator begin() const noexcept;
+    iterator       begin() noexcept;
+    const_iterator cbegin() const noexcept;
+    const_iterator cend() const noexcept;
+    const_iterator end() const noexcept;
+    iterator       end() noexcept;
 
-    bool           empty() const;
+    bool           empty() const noexcept;
     iterator       erase(const_iterator position);
     const_iterator find(const tstr& varName) const;
     iterator       find(const tstr& varName);
-    void           swap(CMacroVars& other);
+    void           swap(CMacroVars& other) noexcept;
 
     tstr&          operator[](const tstr& varName);
     tstr&          operator[](tstr&& varName);

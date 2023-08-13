@@ -1,8 +1,8 @@
 /***********************************************
  *  
- *  CStrT ver. 1.3.3
+ *  CStrT ver. 1.3.4
  *  --------------------------------  
- *  (C) DV, Nov 2006 - Jul 2023
+ *  (C) DV, Nov 2006 - Aug 2023
  *  --------------------------------
  *
  *  Template:
@@ -32,20 +32,20 @@
 #include <utility>
 
 // CONDITION: str != 0
-template <class T> int GetStrUnsafeLength(const T* str)
+template <class T> int GetStrUnsafeLength(const T* str) noexcept
 {
     const T* str0 = str;
     while ( *str )  ++str;
     return ( (int) (str - str0) );
 }
 
-template <class T> int GetStrSafeLength(const T* str)
+template <class T> int GetStrSafeLength(const T* str) noexcept
 {
     return ( str ? GetStrUnsafeLength(str) : 0 );
 }
 
 // CONDITION: str1 != 0 && str2 != 0
-template <class T> int StrUnsafeCmp(const T* str1, const T* str2)
+template <class T> int StrUnsafeCmp(const T* str1, const T* str2) noexcept
 {
     while ( (*str1) && (*str1 == *str2) )
     {
@@ -56,7 +56,7 @@ template <class T> int StrUnsafeCmp(const T* str1, const T* str2)
 }
 
 // CONDITION: str1 != 0 && str2 != 0 && n > 0
-template <class T> int StrUnsafeCmpN(const T* str1, const T* str2, unsigned int n)
+template <class T> int StrUnsafeCmpN(const T* str1, const T* str2, unsigned int n) noexcept
 {
     while ( (*str1) && (*str1 == *str2) && (n != 0) )
     {
@@ -68,7 +68,7 @@ template <class T> int StrUnsafeCmpN(const T* str1, const T* str2, unsigned int 
 }
 
 // CONDITION: str != 0 && substr != 0
-template <class T> int StrUnsafeSubCmp(const T* str, const T* substr)
+template <class T> int StrUnsafeSubCmp(const T* str, const T* substr) noexcept
 {
     while ( (*str) && (*str == *substr) )
     {
@@ -83,7 +83,7 @@ template <class T> int StrUnsafeSubCmp(const T* str, const T* substr)
 }
 
 // CONDITION: str != 0 && substr != 0 && n > 0
-template <class T> int StrUnsafeSubCmpN(const T* str, const T* substr, unsigned int n)
+template <class T> int StrUnsafeSubCmpN(const T* str, const T* substr, unsigned int n) noexcept
 {
     while ( (*str) && (*str == *substr) && (n != 0) )
     {
@@ -100,7 +100,7 @@ template <class T> int StrUnsafeSubCmpN(const T* str, const T* substr, unsigned 
 
 // CONDITION: dst != 0 && src != 0 && len > 0
 template <class T> void StrUnsafeCopyN(T* dst, const T* src, 
-        unsigned int len, bool bFinalNull )
+        unsigned int len, bool bFinalNull ) noexcept
 {
     if ( (dst > src) && (dst < src + len) )
     {
@@ -131,128 +131,128 @@ private:
   
   bool  replaceStr(int pos, int count, const T* str_new, int str_len);
 
-  CStrT(T* pStr, int nLen, int nSize); // for CStrT::Wrap, CStrT::Attach
+  CStrT(T* pStr, int nLen, int nSize) noexcept; // for CStrT::Wrap, CStrT::Attach
 
 public:
   typedef T value_type;
 
-  CStrT();
+  CStrT() noexcept;
   CStrT(const T* pStr);
   CStrT(const T* pStr, int nLength);
   CStrT(const T ch);
   CStrT(const CStrT& Str);
-  CStrT(CStrT&& Str);
-  ~CStrT();
+  CStrT(CStrT&& Str) noexcept;
+  ~CStrT() noexcept;
   T*    Append(const T* pStr, int nLength = -1); // -1 means all characters
   T*    Append(const CStrT& Str);
   T*    Append(const T ch);
   T*    Assign(const T* pStr, int nLength = -1); // -1 means all characters
   T*    Assign(const CStrT& Str);
-  T*    Assign(CStrT&& Str);
-  T*    Attach(T* pStr, int nLen, int nSize); // attaches to pStr without copying
-  const T* c_str() const { return ( m_pData ? m_pData : (const T*) "\x00\x00\x00\x00" ); }
-  T*    data() const { return m_pData; } // can return NULL
-  int   CalculateLength();
-  void  Clear();
-  int   Compare(const T* pStr) const; 
+  T*    Assign(CStrT&& Str) noexcept;
+  T*    Attach(T* pStr, int nLen, int nSize) noexcept; // attaches to pStr without copying
+  const T* c_str() const noexcept { return ( m_pData ? m_pData : (const T*) "\x00\x00\x00\x00" ); }
+  T*    data() const noexcept { return m_pData; } // can return NULL
+  int   CalculateLength() noexcept;
+  void  Clear() noexcept;
+  int   Compare(const T* pStr) const noexcept; 
           // returns -1 if c_str() < pStr
-  int   Compare(const CStrT& Str) const;     
+  int   Compare(const CStrT& Str) const noexcept;     
           // returns 1 if c_str() > pStr;  0 if identical; 
           // 2 if nLength characters are identical and nLength < m_nLength
-  int   Count(const T ch);
-  bool  Delete(int nPos, int nCharacters = -1); 
+  int   Count(const T ch) noexcept;
+  bool  Delete(int nPos, int nCharacters = -1) noexcept; 
           // -1 means all characters from nPos
-  bool  DeleteFirstChar()  { return Delete(0, 1); }
-  bool  DeleteLastChar()  { return Delete(m_nLength - 1, 1); }
-  bool  DeleteLast(int nCharacters);
-  T*    Detach(int* pnLen = NULL, int* pnSize = NULL);
-  bool  EndsWith(const T ch) const;
-  bool  EndsWith(const T* pStr) const;
-  bool  EndsWith(const CStrT& Str) const;
-  int   Find(const T ch, int nStartPos = 0) const;
-  int   Find(const T* pStr, int nStartPos = 0) const;
-  int   Find(const CStrT& Str, int nStartPos = 0) const;
-  int   FindOneOf(const T* pChars, int nStartPos = 0) const;
-  int   FindOneOf(const CStrT& Chars, int nStartPos = 0) const;
+  bool  DeleteFirstChar() noexcept  { return Delete(0, 1); }
+  bool  DeleteLastChar() noexcept  { return Delete(m_nLength - 1, 1); }
+  bool  DeleteLast(int nCharacters) noexcept;
+  T*    Detach(int* pnLen = NULL, int* pnSize = NULL) noexcept;
+  bool  EndsWith(const T ch) const noexcept;
+  bool  EndsWith(const T* pStr) const noexcept;
+  bool  EndsWith(const CStrT& Str) const noexcept;
+  int   Find(const T ch, int nStartPos = 0) const noexcept;
+  int   Find(const T* pStr, int nStartPos = 0) const noexcept;
+  int   Find(const CStrT& Str, int nStartPos = 0) const noexcept;
+  int   FindOneOf(const T* pChars, int nStartPos = 0) const noexcept;
+  int   FindOneOf(const CStrT& Chars, int nStartPos = 0) const noexcept;
   T*    Format(int nMaxLength, const T* pFmt, ...);
-  void  FreeMemory();
-  T     GetAt(int nPos) const;
-  T     GetFirstChar() const;
-  T     GetLastChar() const;
-  int   GetLength() const  { return m_nLength; }
-  T*    GetData() const  { return ( m_pData ? m_pData : (T*) "\x00\x00\x00\x00" ); }  
-  int   GetMemSize() const  { return m_nMemSize; }
+  void  FreeMemory() noexcept;
+  T     GetAt(int nPos) const noexcept;
+  T     GetFirstChar() const noexcept;
+  T     GetLastChar() const noexcept;
+  int   GetLength() const noexcept  { return m_nLength; }
+  T*    GetData() const noexcept  { return ( m_pData ? m_pData : (T*) "\x00\x00\x00\x00" ); }  
+  int   GetMemSize() const noexcept  { return m_nMemSize; }
   T*    Insert(int nPos, const T* pStr, int nLength = -1); 
           // -1 means all characters
   T*    Insert(int nPos, const CStrT& Str);
   T*    Insert(int nPos, const T ch);
-  bool  IsEmpty() const  { return (m_nLength == 0); }
-  bool  IsEqual(const T* pStr) const  { return ( Compare(pStr) == 0 ); }
-  bool  IsEqual(const CStrT& Str) const  { return ( Compare(Str.c_str()) == 0 ); }
-  int   length() const  { return m_nLength; }
-  int   Replace(const T chOld, const T chNew);
+  bool  IsEmpty() const noexcept  { return (m_nLength == 0); }
+  bool  IsEqual(const T* pStr) const noexcept  { return ( Compare(pStr) == 0 ); }
+  bool  IsEqual(const CStrT& Str) const noexcept  { return ( Compare(Str.c_str()) == 0 ); }
+  int   length() const noexcept  { return m_nLength; }
+  int   Replace(const T chOld, const T chNew) noexcept;
   int   Replace(const T* pSubStrOld, const T* pSubStrNew);
   int   Replace(int nPos, int nCharacters, const T* pSubStrNew, int nLength = -1);
           // nCharacters = -1 means all characters till '\0'
   int   Replace(int nPos, int nCharacters, const CStrT& SubStrNew);
-  int   RFind(const T ch, int nStartPos = -1) const;
-  int   RFind(const T* pStr, int nStartPos = -1) const;
-  int   RFind(const CStrT& Str, int nStartPos = -1) const;
-  int   RFindOneOf(const T* pChars, int nStartPos = -1) const;
-  int   RFindOneOf(const CStrT& Chars, int nStartPos = -1) const;
+  int   RFind(const T ch, int nStartPos = -1) const noexcept;
+  int   RFind(const T* pStr, int nStartPos = -1) const noexcept;
+  int   RFind(const CStrT& Str, int nStartPos = -1) const noexcept;
+  int   RFindOneOf(const T* pChars, int nStartPos = -1) const noexcept;
+  int   RFindOneOf(const CStrT& Chars, int nStartPos = -1) const noexcept;
   bool  Reserve(int nLength)  { 
             return ( (nLength > m_nLength) ? SetSize(nLength) : true ); 
         } // like in STL
-  bool  SetAt(int nPos, const T ch);
-  bool  SetLengthValue(int nLength);
+  bool  SetAt(int nPos, const T ch) noexcept;
+  bool  SetLengthValue(int nLength) noexcept;
   bool  SetSize(int nLength); // previous string content is kept
-  bool  StartsWith(const T ch) const;
-  bool  StartsWith(const T* pStr) const;
-  bool  StartsWith(const CStrT& Str) const;
-  void  Swap(CStrT& Str); // swap str's data
-  static CStrT<T> Wrap(T* pStr, int nLen, int nSize) { return CStrT<T>(pStr, nLen, nSize); }
-  T     operator[](int nPos) const  { return m_pData[nPos]; }
-  T&    operator[](int nPos)  { return m_pData[nPos]; }
+  bool  StartsWith(const T ch) const noexcept;
+  bool  StartsWith(const T* pStr) const noexcept;
+  bool  StartsWith(const CStrT& Str) const noexcept;
+  void  Swap(CStrT& Str) noexcept; // swap str's data
+  static CStrT<T> Wrap(T* pStr, int nLen, int nSize) noexcept { return CStrT<T>(pStr, nLen, nSize); }
+  T     operator[](int nPos) const noexcept  { return m_pData[nPos]; }
+  T&    operator[](int nPos) noexcept  { return m_pData[nPos]; }
   T*    operator=(const T* pStr)  { return Assign(pStr); }
   T*    operator=(const CStrT& Str)  { return Assign(Str); }
-  T*    operator=(CStrT&& Str)  { return Assign(std::forward<CStrT>(Str)); }
+  T*    operator=(CStrT&& Str) noexcept  { return Assign(std::forward<CStrT>(Str)); }
   T*    operator+=(const T* pStr)  { return Append(pStr); }
   T*    operator+=(const CStrT& Str)  { return Append(Str); }
   T*    operator+=(const T ch)  { return Append(ch); }
-  bool  operator==(const T* pStr) const  { 
+  bool  operator==(const T* pStr) const noexcept  { 
             return ( Compare(pStr) == 0 ); 
         }
-  bool  operator==(const CStrT& Str) const  { 
+  bool  operator==(const CStrT& Str) const noexcept  { 
             return ( Compare(Str.c_str()) == 0 ); 
         }
-  bool  operator!=(const T* pStr) const  {
+  bool  operator!=(const T* pStr) const noexcept  {
             return ( Compare(pStr) != 0 ); 
         }
-  bool  operator!=(const CStrT& Str) const  {
+  bool  operator!=(const CStrT& Str) const noexcept  {
             return ( Compare(Str.c_str()) != 0 );
         }
-  bool  operator>(const T* pStr) const  {
+  bool  operator>(const T* pStr) const noexcept  {
             return ( Compare(pStr) > 0 );
         }
-  bool  operator>(const CStrT& Str) const  {
+  bool  operator>(const CStrT& Str) const noexcept  {
             return ( Compare(Str.c_str()) > 0 );
         }
-  bool  operator>=(const T* pStr) const  {
+  bool  operator>=(const T* pStr) const noexcept  {
             return ( Compare(pStr) >= 0 ); 
         }
-  bool  operator>=(const CStrT& Str) const  {
+  bool  operator>=(const CStrT& Str) const noexcept  {
             return ( Compare(Str.c_str()) >= 0 ); 
         }
-  bool  operator<(const T* pStr) const  {
+  bool  operator<(const T* pStr) const noexcept  {
             return ( Compare(pStr) < 0 ); 
         }
-  bool  operator<(const CStrT& Str) const  {
+  bool  operator<(const CStrT& Str) const noexcept  {
             return ( Compare(Str.c_str()) < 0 ); 
         }
-  bool  operator<=(const T* pStr) const  {
+  bool  operator<=(const T* pStr) const noexcept  {
             return ( Compare(pStr) <= 0 ); 
         }
-  bool  operator<=(const CStrT& Str) const  {
+  bool  operator<=(const CStrT& Str) const noexcept  {
             return ( Compare(Str.c_str()) <= 0 ); 
         }
 
@@ -266,7 +266,7 @@ typedef  CStrT<TCHAR>    tstr;
 
 //----------------------------------------------------------------------------
 
-static inline int getAlignedMemSizeStr(int nCount)
+static inline int getAlignedMemSizeStr(int nCount) noexcept
 {
   int nShift;
 
@@ -286,7 +286,7 @@ static inline int getAlignedMemSizeStr(int nCount)
 
 //----------------------------------------------------------------------------
 
-template <class T> CStrT<T>::CStrT() : 
+template <class T> CStrT<T>::CStrT() noexcept : 
   m_pData(NULL), 
   m_nLength(0), 
   m_nMemSize(0)
@@ -325,7 +325,7 @@ template <class T> CStrT<T>::CStrT(const CStrT& Str) :
     Append(Str);
 }
 
-template <class T> CStrT<T>::CStrT(CStrT&& Str) :
+template <class T> CStrT<T>::CStrT(CStrT&& Str) noexcept :
   m_pData(NULL), 
   m_nLength(0), 
   m_nMemSize(0)
@@ -334,7 +334,7 @@ template <class T> CStrT<T>::CStrT(CStrT&& Str) :
 }
 
 // for CStrT::Wrap, CStrT::Attach
-template <class T> CStrT<T>::CStrT(T* pStr, int nLen, int nSize) :
+template <class T> CStrT<T>::CStrT(T* pStr, int nLen, int nSize) noexcept :
   m_pData(NULL), m_nLength(0), m_nMemSize(0)
 {
     if ( pStr )
@@ -358,7 +358,7 @@ template <class T> CStrT<T>::CStrT(T* pStr, int nLen, int nSize) :
     }
 }
 
-template <class T> CStrT<T>::~CStrT()
+template <class T> CStrT<T>::~CStrT() noexcept
 {
     FreeMemory();
 }
@@ -437,7 +437,7 @@ template <class T> T* CStrT<T>::Assign(const CStrT& Str)
         return m_pData; // can be NULL
 }
 
-template <class T> T* CStrT<T>::Assign(CStrT&& Str) 
+template <class T> T* CStrT<T>::Assign(CStrT&& Str) noexcept 
 { 
     if ( Str.c_str() != m_pData )
     {
@@ -447,7 +447,7 @@ template <class T> T* CStrT<T>::Assign(CStrT&& Str)
     return m_pData; // can be NULL
 }
 
-template <class T> T* CStrT<T>::Attach(T* pStr, int nLen, int nSize)
+template <class T> T* CStrT<T>::Attach(T* pStr, int nLen, int nSize) noexcept
 {
     if ( pStr != m_pData )
     {
@@ -457,13 +457,13 @@ template <class T> T* CStrT<T>::Attach(T* pStr, int nLen, int nSize)
     return m_pData; // can be NULL
 }
 
-template <class T> int CStrT<T>::CalculateLength()
+template <class T> int CStrT<T>::CalculateLength() noexcept
 {
     m_nLength = GetStrSafeLength<T>(m_pData);
     return m_nLength;
 }
 
-template <class T> void CStrT<T>::Clear()
+template <class T> void CStrT<T>::Clear() noexcept
 {
     if ( m_pData )
     {
@@ -472,7 +472,7 @@ template <class T> void CStrT<T>::Clear()
     m_nLength = 0;  // must be AFTER SetSize(0)!!!
 }
 
-template <class T> int CStrT<T>::Compare(const T* pStr) const
+template <class T> int CStrT<T>::Compare(const T* pStr) const noexcept
 {
     if ( m_pData == pStr )
         return 0;
@@ -486,12 +486,12 @@ template <class T> int CStrT<T>::Compare(const T* pStr) const
     return StrUnsafeCmp<T>(m_pData, pStr);
 }
 
-template <class T> int CStrT<T>::Compare(const CStrT& Str) const
+template <class T> int CStrT<T>::Compare(const CStrT& Str) const noexcept
 {
     return Compare( Str.c_str() );
 }
 
-template <class T> int CStrT<T>::Count(const T ch)
+template <class T> int CStrT<T>::Count(const T ch) noexcept
 {
     int n = 0;
     for ( int i = 0; i < m_nLength; i++ )
@@ -502,7 +502,7 @@ template <class T> int CStrT<T>::Count(const T ch)
     return n;
 }
 
-template <class T> bool CStrT<T>::Delete(int nPos, int nCharacters )
+template <class T> bool CStrT<T>::Delete(int nPos, int nCharacters ) noexcept
 {
     if ( (m_nLength == 0) || (nPos < 0) || (nCharacters == 0) )
         return false;
@@ -521,7 +521,7 @@ template <class T> bool CStrT<T>::Delete(int nPos, int nCharacters )
     return true;
 }
 
-template <class T> bool CStrT<T>::DeleteLast(int nCharacters)
+template <class T> bool CStrT<T>::DeleteLast(int nCharacters) noexcept
 {
     if ( (m_nLength == 0) || (nCharacters <= 0) )
         return false;
@@ -535,7 +535,7 @@ template <class T> bool CStrT<T>::DeleteLast(int nCharacters)
     return true;
 }
 
-template <class T> T* CStrT<T>::Detach(int* pnLen, int* pnSize)
+template <class T> T* CStrT<T>::Detach(int* pnLen, int* pnSize) noexcept
 {
     T* pStr = m_pData;
     if ( pnLen )  *pnLen = m_nLength;
@@ -548,7 +548,7 @@ template <class T> T* CStrT<T>::Detach(int* pnLen, int* pnSize)
     return pStr;
 }
 
-template <class T> bool CStrT<T>::EndsWith(const T ch) const
+template <class T> bool CStrT<T>::EndsWith(const T ch) const noexcept
 {
     if ( (ch != 0) && (ch == GetLastChar()) )
         return true;
@@ -556,7 +556,7 @@ template <class T> bool CStrT<T>::EndsWith(const T ch) const
         return false;
 }
 
-template <class T> bool CStrT<T>::EndsWith(const T* pStr) const
+template <class T> bool CStrT<T>::EndsWith(const T* pStr) const noexcept
 {
     if ( pStr && (m_nLength > 0) )
     {
@@ -574,7 +574,7 @@ template <class T> bool CStrT<T>::EndsWith(const T* pStr) const
     return false;
 }
 
-template <class T> bool CStrT<T>::EndsWith(const CStrT& Str) const
+template <class T> bool CStrT<T>::EndsWith(const CStrT& Str) const noexcept
 {
     if ( Str.m_nLength > 0 )
     {
@@ -588,7 +588,7 @@ template <class T> bool CStrT<T>::EndsWith(const CStrT& Str) const
     return false;
 }
 
-template <class T> int CStrT<T>::Find(const T ch, int nStartPos ) const
+template <class T> int CStrT<T>::Find(const T ch, int nStartPos ) const noexcept
 {
     if ( nStartPos >= 0 )
     { 
@@ -604,7 +604,7 @@ template <class T> int CStrT<T>::Find(const T ch, int nStartPos ) const
     return -1;
 }
 
-template <class T> int CStrT<T>::Find(const T* pStr, int nStartPos ) const
+template <class T> int CStrT<T>::Find(const T* pStr, int nStartPos ) const noexcept
 {
     if ( (nStartPos >= 0) && pStr && pStr[0] )
     {
@@ -619,12 +619,12 @@ template <class T> int CStrT<T>::Find(const T* pStr, int nStartPos ) const
     return -1;
 }
 
-template <class T> int CStrT<T>::Find(const CStrT& Str, int nStartPos ) const
+template <class T> int CStrT<T>::Find(const CStrT& Str, int nStartPos ) const noexcept
 {
     return Find( Str.c_str(), nStartPos );
 }
 
-template <class T> int CStrT<T>::FindOneOf(const T* pChars, int nStartPos ) const
+template <class T> int CStrT<T>::FindOneOf(const T* pChars, int nStartPos ) const noexcept
 {
     if ( (nStartPos >= 0) && pChars && pChars[0] )
     {
@@ -646,7 +646,7 @@ template <class T> int CStrT<T>::FindOneOf(const T* pChars, int nStartPos ) cons
     return -1;
 }
 
-template <class T> int CStrT<T>::FindOneOf(const CStrT& Chars, int nStartPos ) const
+template <class T> int CStrT<T>::FindOneOf(const CStrT& Chars, int nStartPos ) const noexcept
 {
     return FindOneOf( Chars.c_str(), nStartPos );
 }
@@ -681,7 +681,7 @@ template <> inline char* CStrT<char>::Format(int nMaxLength, const char* pFmt, .
     return m_pData; // can be NULL
 }
 
-template <class T> void CStrT<T>::FreeMemory()
+template <class T> void CStrT<T>::FreeMemory() noexcept
 {
     if ( m_pData )
         delete [] m_pData;
@@ -690,17 +690,17 @@ template <class T> void CStrT<T>::FreeMemory()
     m_nMemSize = 0;
 }
 
-template <class T> T CStrT<T>::GetAt(int nPos) const
+template <class T> T CStrT<T>::GetAt(int nPos) const noexcept
 {
     return ((nPos >= 0) && (nPos < m_nLength)) ? m_pData[nPos] : 0;
 }
 
-template <class T> T CStrT<T>::GetFirstChar() const
+template <class T> T CStrT<T>::GetFirstChar() const noexcept
 {
     return (m_nLength > 0) ? m_pData[0] : 0;
 }
 
-template <class T> T CStrT<T>::GetLastChar() const
+template <class T> T CStrT<T>::GetLastChar() const noexcept
 {
     return (m_nLength > 0) ? m_pData[m_nLength - 1] : 0;
 }
@@ -812,7 +812,7 @@ template <class T> bool CStrT<T>::replaceStr(int pos, int count,
     return true;
 }
 
-template <class T> int CStrT<T>::Replace(const T chOld, const T chNew)
+template <class T> int CStrT<T>::Replace(const T chOld, const T chNew) noexcept
 {
     int nReplaces = 0;
 
@@ -904,7 +904,7 @@ template <class T> int CStrT<T>::Replace(int nPos, int nCharacters,
     return Replace(nPos, nCharacters, SubStrNew.c_str(), SubStrNew.length());
 }
 
-template <class T> int CStrT<T>::RFind(const T ch, int nStartPos ) const
+template <class T> int CStrT<T>::RFind(const T ch, int nStartPos ) const noexcept
 {
     if ( nStartPos < m_nLength )
     {
@@ -924,7 +924,7 @@ template <class T> int CStrT<T>::RFind(const T ch, int nStartPos ) const
     return -1;
 }
 
-template <class T> int CStrT<T>::RFind(const T* pStr, int nStartPos ) const
+template <class T> int CStrT<T>::RFind(const T* pStr, int nStartPos ) const noexcept
 {
     if ( nStartPos < m_nLength )
     {
@@ -947,12 +947,12 @@ template <class T> int CStrT<T>::RFind(const T* pStr, int nStartPos ) const
     return -1;
 }
 
-template <class T> int CStrT<T>::RFind(const CStrT& Str, int nStartPos ) const
+template <class T> int CStrT<T>::RFind(const CStrT& Str, int nStartPos ) const noexcept
 {
     return RFind( Str.c_str(), nStartPos );
 }
 
-template <class T> int CStrT<T>::RFindOneOf(const T* pChars, int nStartPos ) const
+template <class T> int CStrT<T>::RFindOneOf(const T* pChars, int nStartPos ) const noexcept
 {
     if ( nStartPos < m_nLength )
     {
@@ -978,12 +978,12 @@ template <class T> int CStrT<T>::RFindOneOf(const T* pChars, int nStartPos ) con
     return -1;
 }
 
-template <class T> int CStrT<T>::RFindOneOf(const CStrT& Chars, int nStartPos ) const
+template <class T> int CStrT<T>::RFindOneOf(const CStrT& Chars, int nStartPos ) const noexcept
 {
     return RFindOneOf( Chars.c_str(), nStartPos );
 }
 
-template <class T> bool CStrT<T>::SetAt(int nPos, const T ch)
+template <class T> bool CStrT<T>::SetAt(int nPos, const T ch) noexcept
 {
     if ( (nPos >= 0) && (nPos < m_nLength) )
     {
@@ -993,7 +993,7 @@ template <class T> bool CStrT<T>::SetAt(int nPos, const T ch)
     return false;
 }
 
-template <class T> bool CStrT<T>::SetLengthValue(int nLength)
+template <class T> bool CStrT<T>::SetLengthValue(int nLength) noexcept
 {
     if ( (nLength >= 0) && (nLength < m_nMemSize) )
     {
@@ -1037,7 +1037,7 @@ template <class T> bool CStrT<T>::SetSize(int nLength)
     return true;
 }
 
-template <class T> bool CStrT<T>::StartsWith(const T ch) const
+template <class T> bool CStrT<T>::StartsWith(const T ch) const noexcept
 {
     if ( (ch != 0) && (ch == GetFirstChar()) )
         return true;
@@ -1045,7 +1045,7 @@ template <class T> bool CStrT<T>::StartsWith(const T ch) const
         return false;
 }
 
-template <class T> bool CStrT<T>::StartsWith(const T* pStr) const
+template <class T> bool CStrT<T>::StartsWith(const T* pStr) const noexcept
 {
     if ( pStr && pStr[0] && (m_nLength > 0) )
     {
@@ -1055,7 +1055,7 @@ template <class T> bool CStrT<T>::StartsWith(const T* pStr) const
     return false;
 }
 
-template <class T> bool CStrT<T>::StartsWith(const CStrT& Str) const
+template <class T> bool CStrT<T>::StartsWith(const CStrT& Str) const noexcept
 {
     if ( (Str.m_nLength > 0) && (m_nLength >= Str.m_nLength) )
     {
@@ -1065,7 +1065,7 @@ template <class T> bool CStrT<T>::StartsWith(const CStrT& Str) const
     return false;
 }
 
-template <class T> void CStrT<T>::Swap(CStrT& Str)
+template <class T> void CStrT<T>::Swap(CStrT& Str) noexcept
 {
     T*  strData = Str.m_pData;
     int strLength = Str.m_nLength;

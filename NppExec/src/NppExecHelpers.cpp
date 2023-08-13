@@ -6,18 +6,18 @@ namespace
 {
     // Compares two strings case-insensitively.
     // Returns 0 when equal; 1 when S1 > S2; -1 when S1 < S2.
-    inline int strCompareNoCase(const TCHAR* s1, int len1, const TCHAR* s2, int len2)
+    inline int strCompareNoCase(const TCHAR* s1, int len1, const TCHAR* s2, int len2) noexcept
     {
         int ret = ::CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, s1, len1, s2, len2);
         return (ret - CSTR_EQUAL);
     }
 
-    inline bool isPathSep(const TCHAR ch)
+    inline bool isPathSep(const TCHAR ch) noexcept
     {
         return (ch == _T('\\') || ch == _T('/'));
     }
 
-    bool isPathRoot(const tstr& part)
+    bool isPathRoot(const tstr& part) noexcept
     {
         // returns true for "\" or "\\" or "C:\"
         const TCHAR* p = part.c_str();
@@ -26,22 +26,22 @@ namespace
                  part.EndsWith(_T(":\\")) );
     };
 
-    inline bool isNullOrPathSep(const TCHAR ch)
+    inline bool isNullOrPathSep(const TCHAR ch) noexcept
     {
         return (ch == 0 || ch == _T('\\') || ch == _T('/'));
     }
 
-    inline int findPathSep(const tstr& path, int nStartPos = 0)
+    inline int findPathSep(const tstr& path, int nStartPos = 0) noexcept
     {
         return path.FindOneOf(_T("\\/"), nStartPos);
     }
 
-    inline int rfindPathSep(const tstr& path, int nStartPos = -1)
+    inline int rfindPathSep(const tstr& path, int nStartPos = -1) noexcept
     {
         return path.RFindOneOf(_T("\\/"), nStartPos);
     }
 
-    bool impl_createDir(const TCHAR* dir)
+    bool impl_createDir(const TCHAR* dir) noexcept
     {
         if ( !::CreateDirectory(dir, NULL) )
         {
@@ -51,7 +51,7 @@ namespace
         return true;
     }
 
-    bool impl_createDirectoryTree(const tstr& dir)
+    bool impl_createDirectoryTree(const tstr& dir) noexcept
     {
         tstr inter_dir = dir;
         inter_dir.Replace( _T('/'), _T('\\') );
@@ -71,7 +71,7 @@ namespace
 
 namespace NppExecHelpers
 {
-    bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread /* = NULL */)
+    bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread /* = NULL */) noexcept
     {
         DWORD  dwThreadID;
         HANDLE hThread;
@@ -99,20 +99,20 @@ namespace NppExecHelpers
         return true;
     }
 
-    HWND GetFocusedWnd()
+    HWND GetFocusedWnd() noexcept
     {
         HWND hFocusedWnd = NULL;
         HWND hForegroundWnd = ::GetForegroundWindow();
-        if (hForegroundWnd)
+        if ( hForegroundWnd )
         {
             DWORD dwProcessId = 0;
             DWORD dwThreadId = ::GetWindowThreadProcessId(hForegroundWnd, &dwProcessId);
-            if (dwThreadId != 0)
+            if ( dwThreadId != 0 )
             {
                 GUITHREADINFO gti;
                 ::ZeroMemory(&gti, sizeof(GUITHREADINFO));
                 gti.cbSize = sizeof(GUITHREADINFO);
-                if (GetGUIThreadInfo(dwThreadId, &gti))
+                if ( ::GetGUIThreadInfo(dwThreadId, &gti) )
                 {
                     hFocusedWnd = gti.hwndFocus;
                 }
@@ -223,12 +223,12 @@ namespace NppExecHelpers
         return sCurDir;
     }
 
-    bool IsFullPath(const tstr& path)
+    bool IsFullPath(const tstr& path) noexcept
     {
         return IsFullPath( path.c_str() );
     }
 
-    bool IsFullPath(const TCHAR* path)
+    bool IsFullPath(const TCHAR* path) noexcept
     {
         if ( path[0] )  // not empty
         {
@@ -403,44 +403,44 @@ namespace NppExecHelpers
         return GetFileNamePart(path.c_str(), whichPart);
     }
 
-    bool CreateDirectoryTree(const tstr& dir)
+    bool CreateDirectoryTree(const tstr& dir) noexcept
     {
         return impl_createDirectoryTree(dir);
     }
 
-    bool CreateDirectoryTree(const TCHAR* dir)
+    bool CreateDirectoryTree(const TCHAR* dir) noexcept
     {
         return impl_createDirectoryTree(dir);
     }
 
-    bool CheckDirectoryExists(const tstr& dir)
+    bool CheckDirectoryExists(const tstr& dir) noexcept
     {
         return CheckDirectoryExists(dir.c_str());
     }
 
-    bool CheckDirectoryExists(const TCHAR* dir)
+    bool CheckDirectoryExists(const TCHAR* dir) noexcept
     {
         DWORD dwAttr = ::GetFileAttributes(dir);
         return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) != 0));
     }
 
-    bool CheckFileExists(const tstr& filename)
+    bool CheckFileExists(const tstr& filename) noexcept
     {
         return CheckFileExists(filename.c_str());
     }
 
-    bool CheckFileExists(const TCHAR* filename)
+    bool CheckFileExists(const TCHAR* filename) noexcept
     {
         DWORD dwAttr = ::GetFileAttributes(filename);
         return ((dwAttr != INVALID_FILE_ATTRIBUTES) && ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == 0));
     }
 
-    bool IsValidTextFile(const tstr& filename)
+    bool IsValidTextFile(const tstr& filename) noexcept
     {
         return IsValidTextFile(filename.c_str());
     }
 
-    bool IsValidTextFile(const TCHAR* filename)
+    bool IsValidTextFile(const TCHAR* filename) noexcept
     {
         bool bResult = false;
         HANDLE hFile = ::CreateFile( filename, GENERIC_READ, 
@@ -491,7 +491,7 @@ namespace NppExecHelpers
         return bResult;
     }
 
-    bool GetFileWriteTime(const TCHAR* filename, FILETIME* pLastWriteTime)
+    bool GetFileWriteTime(const TCHAR* filename, FILETIME* pLastWriteTime) noexcept
     {
         bool bResult = false;
         HANDLE hFile = ::CreateFile(filename, GENERIC_READ,
@@ -507,7 +507,7 @@ namespace NppExecHelpers
         return bResult;
     }
 
-    bool SetFileWriteTime(const TCHAR* filename, const FILETIME* pLastWriteTime)
+    bool SetFileWriteTime(const TCHAR* filename, const FILETIME* pLastWriteTime) noexcept
     {
         bool bResult = false;
         HANDLE hFile = ::CreateFile(filename, GENERIC_WRITE, 
@@ -533,29 +533,29 @@ namespace NppExecHelpers
         return S;
     }
 
-    void StrLower(tstr& S)
+    void StrLower(tstr& S) noexcept
     {
         if ( S.length() != 0 )
             ::CharLower( S.data() );
     }
 
-    void StrLower(TCHAR* S)
+    void StrLower(TCHAR* S) noexcept
     {
         ::CharLower( S );
     }
 
-    void StrUpper(tstr& S)
+    void StrUpper(tstr& S) noexcept
     {
         if ( S.length() != 0 )
             ::CharUpper( S.data() );
     }
 
-    void StrUpper(TCHAR* S)
+    void StrUpper(TCHAR* S) noexcept
     {
         ::CharUpper( S );
     }
 
-    TCHAR LatinCharUpper(TCHAR ch)
+    TCHAR LatinCharUpper(TCHAR ch) noexcept
     {
         if ( ch >= _T('a') && ch <= _T('z') )
         {
@@ -565,7 +565,7 @@ namespace NppExecHelpers
         return ch;
     }
 
-    TCHAR LatinCharLower(TCHAR ch)
+    TCHAR LatinCharLower(TCHAR ch) noexcept
     {
         if ( ch >= _T('A') && ch <= _T('Z') )
         {
@@ -602,12 +602,12 @@ namespace NppExecHelpers
         }
     }
 
-    bool IsStrQuoted(const tstr& S)
+    bool IsStrQuoted(const tstr& S) noexcept
     {
         return ( (S.length() > 1) && (S.GetFirstChar() == _T('\"')) && (S.GetLastChar() == _T('\"')) );
     }
 
-    bool IsStrQuotedEx(const tstr& S)
+    bool IsStrQuotedEx(const tstr& S) noexcept
     {
         if ( S.length() > 1 )
         {
@@ -618,12 +618,12 @@ namespace NppExecHelpers
         return false;
     }
 
-    bool IsStrNotQuoted(const tstr& S)
+    bool IsStrNotQuoted(const tstr& S) noexcept
     {
         return ( S.GetFirstChar() != _T('\"') && S.GetLastChar() != _T('\"') );
     }
 
-    bool IsStrNotQuotedEx(const tstr& S)
+    bool IsStrNotQuotedEx(const tstr& S) noexcept
     {
         const tstr::value_type firstChar = S.GetFirstChar();
         const tstr::value_type lastChar = S.GetLastChar();
@@ -728,31 +728,31 @@ namespace NppExecHelpers
         }
     }
 
-    int StrCmpNoCase(const tstr& S1, const tstr& S2)
+    int StrCmpNoCase(const tstr& S1, const tstr& S2) noexcept
     {
         return strCompareNoCase( S1.c_str(), S1.length(), 
                                  S2.c_str(), S2.length() );
     }
 
-    int StrCmpNoCase(const tstr& S1, const TCHAR* S2)
+    int StrCmpNoCase(const tstr& S1, const TCHAR* S2) noexcept
     {
         return strCompareNoCase( S1.c_str(), S1.length(), 
                                  S2 ? S2 : _T(""), GetStrSafeLength(S2) );
     }
 
-    int StrCmpNoCase(const TCHAR* S1, const tstr& S2)
+    int StrCmpNoCase(const TCHAR* S1, const tstr& S2) noexcept
     {
         return strCompareNoCase( S1 ? S1 : _T(""), GetStrSafeLength(S1), 
                                  S2.c_str(), S2.length() );
     }
 
-    int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2)
+    int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2) noexcept
     {
         return strCompareNoCase( S1 ? S1 : _T(""), GetStrSafeLength(S1), 
                                  S2 ? S2 : _T(""), GetStrSafeLength(S2) );
     }
 
-    int StrCmpNoCase(const TCHAR* S1, int Len1, const TCHAR* S2, int Len2)
+    int StrCmpNoCase(const TCHAR* S1, int Len1, const TCHAR* S2, int Len2) noexcept
     {
         if ( !S1 )
         {
