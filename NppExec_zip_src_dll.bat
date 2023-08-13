@@ -13,21 +13,23 @@ REM 1. NppExec src archive...
 
 REM 2. NppExec dll archives...
 
-if not exist doc\NppExec mkdir doc\NppExec
+if not exist NppExec\doc mkdir NppExec\doc
+if not exist NppExec\doc\NppExec mkdir NppExec\doc\NppExec
 
-sfk copy README.md doc\NppExec\README.txt -yes
-sfk replace doc\NppExec\README.txt /\*/*/ -yes
+sfk copy README.md NppExec\doc\NppExec\README.txt -yes
+sfk replace NppExec\doc\NppExec\README.txt /\*/*/ -yes
 
-copy /Y doc\NppExec*.txt doc\NppExec\
-copy /Y doc\NppExec_Manual.chm doc\NppExec\
-copy /Y doc\fparser.html doc\NppExec\
-copy /Y doc\*.css doc\NppExec\
+copy /Y docs\NppExec*.txt NppExec\doc\NppExec\
+copy /Y docs\NppExec_Manual.chm NppExec\doc\NppExec\
+copy /Y docs\fparser.html NppExec\doc\NppExec\
+copy /Y docs\*.css NppExec\doc\NppExec\
 
 if not exist NppExec\Release\NppExec.dll goto no_dll_file_exit
 cd NppExec\Release
 %ARC_EXE% u -tzip ..\..\%ARC_DLL_NAME%.zip NppExec.dll NppExec\*.h -mx5
-cd ..\..
-%ARC_EXE% u -tzip %ARC_DLL_NAME%.zip doc\NppExec\README.txt doc\NppExec\NppExec*.txt doc\NppExec\NppExec*.chm doc\NppExec\*.html doc\NppExec\*.css -mx5
+cd ..
+%ARC_EXE% u -tzip ..\%ARC_DLL_NAME%.zip doc\NppExec\README.txt doc\NppExec\NppExec*.txt doc\NppExec\NppExec*.chm doc\NppExec\*.html doc\NppExec\*.css -mx5
+cd ..
 %ARC_EXE% t %ARC_DLL_NAME%.zip
 
 :no_dll_file_exit
@@ -37,10 +39,11 @@ cd NppExec\x64\Release
 %ARC_EXE% u -tzip ..\..\..\%ARC_DLL_NAME_64%.zip NppExec.dll -mx5
 cd ..\..\Release
 %ARC_EXE% u -tzip ..\..\%ARC_DLL_NAME_64%.zip NppExec\*.h -mx5
-cd ..\..
-%ARC_EXE% u -tzip %ARC_DLL_NAME_64%.zip doc\NppExec\README.txt doc\NppExec\NppExec*.txt doc\NppExec\NppExec*.chm doc\NppExec\*.html doc\NppExec\*.css -mx5
+cd ..
+%ARC_EXE% u -tzip ..\%ARC_DLL_NAME_64%.zip doc\NppExec\README.txt doc\NppExec\NppExec*.txt doc\NppExec\NppExec*.chm doc\NppExec\*.html doc\NppExec\*.css -mx5
+cd ..
 %ARC_EXE% t %ARC_DLL_NAME_64%.zip
 
 :no_dll_file_x64_exit
 
-sfk deltree doc\NppExec -yes
+sfk deltree NppExec\doc -yes
