@@ -16,13 +16,12 @@ mkdir %TMP_DIR%\NppExec\NppExec
 copy README.md %TMP_DIR%\doc\NppExec\README.txt
 sfk replace %TMP_DIR%\doc\NppExec\README.txt /\*/*/ -yes
 
-cd NppExec
+copy doc\NppExec*.txt %TMP_DIR%\doc\NppExec\
+copy doc\NppExec_Manual.chm %TMP_DIR%\doc\NppExec\
+copy doc\fparser.html %TMP_DIR%\doc\NppExec\
+copy doc\*.css %TMP_DIR%\doc\NppExec\
 
-copy doc\NppExec\NppExec*.txt %TMP_DIR%\doc\NppExec\
-copy doc\NppExec\NppExec_Manual\NppExec_Manual.chm %TMP_DIR%\doc\NppExec\
-copy doc\NppExec\*.html %TMP_DIR%\doc\NppExec\
-copy doc\NppExec\*.css %TMP_DIR%\doc\NppExec\
-copy doc\NppExec\*.png %TMP_DIR%\doc\NppExec\
+cd NppExec
 
 copy Release\NppExec\*.h %TMP_DIR%\NppExec\NppExec\
 
