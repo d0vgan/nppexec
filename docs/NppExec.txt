@@ -223,6 +223,21 @@
  *  HISTORY  *
  *************
 
+ v0.8.7
+ ------
+ * Glory to Ukraine! Glory to the heroes!
+ + added: "npe_cmdalias local ..." for local command aliases, similarly to
+   local variables
+ + added: now npe_queue supports command aliases
+ + internal optimization: now MacroVars are based on std::vector instead of
+   std::map for much faster iteration
+ + other internal optimizations (such as "noexcept" move-constructors for
+   CStrT, CBufT and CListT to satisfy STL's strong exception guarantee -
+   thus e.g. std::vector performs moves on reallocations)
+ + NppExec Manual updated
+ + web-version of the NppExec Manual (thanks to Joseph Samuel and others)
+
+
  v0.8.6 - August 2023
  --------------------
  * Glory to Ukraine! Glory to the heroes!

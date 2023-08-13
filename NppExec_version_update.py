@@ -5,8 +5,8 @@ DATE_TO_SET = "August 2023"
 
 
 def run():
-    update_version_and_date("NppExec/doc/NppExec/NppExec.txt", True)
-    update_version_and_date("NppExec/doc/NppExec/NppExec_TechInfo.txt", False)
+    update_version_and_date("docs/NppExec.txt", True)
+    update_version_and_date("docs/NppExec_TechInfo.txt", False)
     update_version_and_date("NppExec/src/NppExec.cpp", False)
     update_h_file("NppExec/src/NppExec.h")
     update_rc_file("NppExec/src/NppExec.rc")
