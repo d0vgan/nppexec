@@ -20,7 +20,7 @@ If you see just blank pages inside the NppExec Manual or see messages similar to
 * And also: https://stackoverflow.com/questions/11438634/opening-a-chm-file-produces-navigation-to-the-webpage-was-canceled
 
 Alternatively, a web version of the NppExec Manual can be used:  
-https://htmlpreview.github.io/?https://github.com/d0vgan/nppexec/blob/develop/NppExec/doc/NppExec/NppExec_Manual/index.html
+https://d0vgan.github.io/nppexec/
 
 To support NppExec development:
 
