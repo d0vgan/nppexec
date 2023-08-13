@@ -1,8 +1,8 @@
 /***********************************************
  *  
- *  CListT ver. 1.3.1
+ *  CListT ver. 1.3.4
  *  --------------------------------  
- *  (C) DV, Nov 2006 - Jun 2021
+ *  (C) DV, Nov 2006 - Aug 2023
  *  --------------------------------
  *
  *  Template:
@@ -30,22 +30,22 @@ private:
   T              _item;
 
 public:
-  CListItemT(CListT<T>* pListOwner) : _pPrevItem(NULL), _pNextItem(NULL), _pListOwner(pListOwner), _item() { }
+  CListItemT(CListT<T>* pListOwner) noexcept : _pPrevItem(NULL), _pNextItem(NULL), _pListOwner(pListOwner), _item() { }
   CListItemT(CListT<T>* pListOwner, const T& item) : _pPrevItem(NULL), _pNextItem(NULL), _pListOwner(pListOwner), _item(item) { }
-  CListItemT(CListT<T>* pListOwner, T&& item) : _pPrevItem(NULL), _pNextItem(NULL), _pListOwner(pListOwner), _item(std::forward<T>(item)) { }
+  CListItemT(CListT<T>* pListOwner, T&& item) noexcept : _pPrevItem(NULL), _pNextItem(NULL), _pListOwner(pListOwner), _item(std::forward<T>(item)) { }
 
-  inline const T&       GetItem() const  { return _item; }
-  inline T&             GetItem()  { return _item; }
-  inline CListItemT<T>* GetNext() const  { return _pNextItem; }
-  inline CListItemT<T>* GetPrev() const  { return _pPrevItem; }
-  inline CListT<T>*     GetOwner() const  { return _pListOwner; }
+  inline const T&       GetItem() const noexcept  { return _item; }
+  inline T&             GetItem() noexcept  { return _item; }
+  inline CListItemT<T>* GetNext() const noexcept  { return _pNextItem; }
+  inline CListItemT<T>* GetPrev() const noexcept  { return _pPrevItem; }
+  inline CListT<T>*     GetOwner() const noexcept  { return _pListOwner; }
   inline void           SetItem(const T& item)  { _item = item; }
-  inline void           SetItem(T&& item)  { _item = std::forward<T>(item); }
+  inline void           SetItem(T&& item) noexcept  { _item = std::forward<T>(item); }
 
 protected:
   friend class CListT<T>;
-  inline void           SetNext(CListItemT<T>* pNextItem)  { _pNextItem = pNextItem; }
-  inline void           SetPrev(CListItemT<T>* pPrevItem)  { _pPrevItem = pPrevItem; }
+  inline void           SetNext(CListItemT<T>* pNextItem) noexcept  { _pNextItem = pNextItem; }
+  inline void           SetPrev(CListItemT<T>* pPrevItem) noexcept  { _pPrevItem = pPrevItem; }
 
 };
 
@@ -61,58 +61,58 @@ private:
   CListItemT<T>* m_pLastItem;
   int            m_nCount;
 
-  CListItemT<T>* itemAdd(CListItemT<T>* pNewItem);
-  CListItemT<T>* itemInsert(CListItemT<T>* pListItemPtr, bool bAfterListItem, CListItemT<T>* pNewItem);
+  CListItemT<T>* itemAdd(CListItemT<T>* pNewItem) noexcept;
+  CListItemT<T>* itemInsert(CListItemT<T>* pListItemPtr, bool bAfterListItem, CListItemT<T>* pNewItem) noexcept;
   CListItemT<T>* itemCreate(const T& item);
   CListItemT<T>* itemCreate(T&& item);
-  void           itemDestroy(CListItemT<T>* pItemPtr);
-  void           itemQuickSort(CListItemPtr* pListItems, int lower, int upper);
-  void           itemSwap(CListItemT<T>* p1, CListItemT<T>* p2);
+  void           itemDestroy(CListItemT<T>* pItemPtr) noexcept;
+  void           itemQuickSort(CListItemPtr* pListItems, int lower, int upper) noexcept;
+  void           itemSwap(CListItemT<T>* p1, CListItemT<T>* p2) noexcept;
 
-  bool           areItemsEqual(const CListT<T>& List) const;
+  bool           areItemsEqual(const CListT<T>& List) const noexcept;
 
 public:
-  CListT();
+  CListT() noexcept;
   CListT(const CListT& List);
-  CListT(CListT&& List);
+  CListT(CListT&& List) noexcept;
   explicit CListT(const T& item);
   explicit CListT(T&& item);
-  ~CListT();
+  ~CListT() noexcept;
   CListItemT<T>* Add(const T& item);
   CListItemT<T>* Add(T&& item);
   int            AddItems(const CListT<T>& List);  // returns items count
   int            Assign(const CListT<T>& List);    // returns items count
-  int            Assign(CListT<T>&& List);         // returns items count
-  void           Clear()  { DeleteAll(); }
-  bool           Delete(CListItemT<T>* pItemPtr);
-  void           DeleteAll();
-  bool           DeleteFirst();
-  bool           DeleteLast();
-  CListItemT<T>* FindExact(const T& item, const CListItemT<T>* pStartItemPtr = NULL) const;
+  int            Assign(CListT<T>&& List) noexcept; // returns items count
+  void           Clear() noexcept  { DeleteAll(); }
+  bool           Delete(CListItemT<T>* pItemPtr) noexcept;
+  void           DeleteAll() noexcept;
+  bool           DeleteFirst() noexcept;
+  bool           DeleteLast() noexcept;
+  CListItemT<T>* FindExact(const T& item, const CListItemT<T>* pStartItemPtr = NULL) const noexcept;
   template<class Pred> CListItemT<T>* Find(Pred pred) const;
-  int            GetCount() const  { return m_nCount; }
-  CListItemT<T>* GetFirst() const  { return m_pFirstItem; }
-  CListItemT<T>* GetLast() const  { return m_pLastItem; }
+  int            GetCount() const noexcept  { return m_nCount; }
+  CListItemT<T>* GetFirst() const noexcept  { return m_pFirstItem; }
+  CListItemT<T>* GetLast() const noexcept  { return m_pLastItem; }
   CListItemT<T>* Insert(CListItemT<T>* pListItemPtr, bool bAfterListItem, const T& item);
   CListItemT<T>* Insert(CListItemT<T>* pListItemPtr, bool bAfterListItem, T&& item);
   CListItemT<T>* InsertFirst(const T& item);
   CListItemT<T>* InsertFirst(T&& item);
-  bool           IsEmpty() const  { return (m_nCount == 0); }
+  bool           IsEmpty() const noexcept  { return (m_nCount == 0); }
   bool           Sort();
-  bool           Swap(CListItemT<T>* pItemPtr1, CListItemT<T>* pItemPtr2);
-  void           Swap(CListT<T>& List);
+  bool           Swap(CListItemT<T>* pItemPtr1, CListItemT<T>* pItemPtr2) noexcept;
+  void           Swap(CListT<T>& List) noexcept;
 
   CListT&        operator=(const CListT<T>& List)  { Assign(List); return *this; }
-  CListT&        operator=(CListT<T>&& List)       { Assign(std::forward<CListT>(List)); return *this; }
+  CListT&        operator=(CListT<T>&& List) noexcept  { Assign(std::forward<CListT>(List)); return *this; }
 
-  bool           operator==(const CListT<T>& List) const { return areItemsEqual(List); }
-  bool           operator!=(const CListT<T>& List) const { return !areItemsEqual(List); }
+  bool           operator==(const CListT<T>& List) const noexcept { return areItemsEqual(List); }
+  bool           operator!=(const CListT<T>& List) const noexcept { return !areItemsEqual(List); }
 
 };
 
 //----------------------------------------------------------------------------
 
-template <class T> CListT<T>::CListT() : m_pFirstItem(NULL), m_pLastItem(NULL), m_nCount(0)
+template <class T> CListT<T>::CListT() noexcept : m_pFirstItem(NULL), m_pLastItem(NULL), m_nCount(0)
 {
 }
 
@@ -121,7 +121,7 @@ template <class T> CListT<T>::CListT(const CListT& List) : m_pFirstItem(NULL), m
     AddItems(List);
 }
 
-template <class T> CListT<T>::CListT(CListT&& List) : m_pFirstItem(NULL), m_pLastItem(NULL), m_nCount(0)
+template <class T> CListT<T>::CListT(CListT&& List) noexcept : m_pFirstItem(NULL), m_pLastItem(NULL), m_nCount(0)
 {
     Swap(List);
 }
@@ -136,12 +136,12 @@ template <class T> CListT<T>::CListT(T&& item) : m_pFirstItem(NULL), m_pLastItem
     Add(std::forward<T>(item));
 }
 
-template <class T> CListT<T>::~CListT()
+template <class T> CListT<T>::~CListT() noexcept
 {
     DeleteAll();
 }
 
-template <class T> CListItemT<T>* CListT<T>::itemAdd(CListItemT<T>* pNewItem)
+template <class T> CListItemT<T>* CListT<T>::itemAdd(CListItemT<T>* pNewItem) noexcept
 {
     if ( pNewItem )
     {
@@ -163,7 +163,7 @@ template <class T> CListItemT<T>* CListT<T>::itemAdd(CListItemT<T>* pNewItem)
 template <class T> CListItemT<T>* CListT<T>::itemInsert(
   CListItemT<T>* pListItemPtr, 
   bool           bAfterListItem,
-  CListItemT<T>* pNewItem)
+  CListItemT<T>* pNewItem) noexcept
 {
     if ( pNewItem )
     {
@@ -207,7 +207,7 @@ template <class T> CListItemT<T>* CListT<T>::itemCreate(T&& item)
     return pNewItem;
 }
 
-template <class T> void CListT<T>::itemDestroy(CListItemT<T>* pItemPtr)
+template <class T> void CListT<T>::itemDestroy(CListItemT<T>* pItemPtr) noexcept
 {
     delete pItemPtr;
 }
@@ -215,7 +215,7 @@ template <class T> void CListT<T>::itemDestroy(CListItemT<T>* pItemPtr)
 template <class T> void CListT<T>::itemQuickSort(
   CListItemPtr* pListItems, 
   int           lower, 
-  int           upper)
+  int           upper) noexcept
 {
     if ( lower < upper ) 
     {
@@ -238,7 +238,7 @@ template <class T> void CListT<T>::itemQuickSort(
     }
 }
 
-template <class T> void CListT<T>::itemSwap(CListItemT<T>* p1, CListItemT<T>* p2)
+template <class T> void CListT<T>::itemSwap(CListItemT<T>* p1, CListItemT<T>* p2) noexcept
 {
     if ( p1 != p2 )
     {
@@ -277,14 +277,14 @@ template <class T> int CListT<T>::Assign(const CListT<T>& List)
     return AddItems(List);
 }
 
-template <class T> int CListT<T>::Assign(CListT<T>&& List)
+template <class T> int CListT<T>::Assign(CListT<T>&& List) noexcept
 {
     DeleteAll();
     Swap(List);
     return m_nCount;
 }
 
-template <class T> bool CListT<T>::Delete(CListItemT<T>* pItemPtr)
+template <class T> bool CListT<T>::Delete(CListItemT<T>* pItemPtr) noexcept
 {
     if ( !pItemPtr )
         return false;
@@ -311,7 +311,7 @@ template <class T> bool CListT<T>::Delete(CListItemT<T>* pItemPtr)
     return true;  
 }
 
-template <class T> void CListT<T>::DeleteAll()
+template <class T> void CListT<T>::DeleteAll() noexcept
 {
     CListItemT<T>* pNext;
     CListItemT<T>* pItem = m_pFirstItem;
@@ -326,19 +326,19 @@ template <class T> void CListT<T>::DeleteAll()
     m_nCount = 0;
 }
 
-template <class T> bool CListT<T>::DeleteFirst()
+template <class T> bool CListT<T>::DeleteFirst() noexcept
 {
     return Delete(m_pFirstItem);
 }
 
-template <class T> bool CListT<T>::DeleteLast()
+template <class T> bool CListT<T>::DeleteLast() noexcept
 {
     return Delete(m_pLastItem);
 }
 
 template <class T> CListItemT<T>* CListT<T>::FindExact(
   const T&             item, 
-  const CListItemT<T>* pStartItemPtr ) const
+  const CListItemT<T>* pStartItemPtr ) const noexcept
 {
     if ( m_pFirstItem )
     {
@@ -435,7 +435,7 @@ template <class T> bool CListT<T>::Sort()
 
 template <class T> bool CListT<T>::Swap(
   CListItemT<T>* pItemPtr1, 
-  CListItemT<T>* pItemPtr2)
+  CListItemT<T>* pItemPtr2) noexcept
 {
     if ( (!pItemPtr1) || (!pItemPtr2) )
         return false;
@@ -450,7 +450,7 @@ template <class T> bool CListT<T>::Swap(
     return true;
 }
 
-template <class T> void CListT<T>::Swap(CListT<T>& List)
+template <class T> void CListT<T>::Swap(CListT<T>& List) noexcept
 {
     CListItemT<T>* listFirstItem = List.m_pFirstItem;
     CListItemT<T>* listLastItem  = List.m_pLastItem;
@@ -465,7 +465,7 @@ template <class T> void CListT<T>::Swap(CListT<T>& List)
     m_nCount     = listCount;
 }
 
-template <class T> bool CListT<T>::areItemsEqual(const CListT<T>& List) const
+template <class T> bool CListT<T>::areItemsEqual(const CListT<T>& List) const noexcept
 {
     if ( m_nCount != List.m_nCount )
         return false;

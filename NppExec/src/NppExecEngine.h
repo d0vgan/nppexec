@@ -689,11 +689,11 @@ class CScriptEngine : public IScriptEngine
 
                       #ifdef _DEBUG
                         // there must be no nullptr items after initialize() !!!
-                        for ( auto& p : m_CommandExecFunc )
+                        for ( const auto& p : m_CommandExecFunc )
                         {
                             assert( p != nullptr );
                         }
-                        for ( auto& n : m_CommandNameByType )
+                        for ( const auto& n : m_CommandNameByType )
                         {
                             assert( n != nullptr );
                         }
@@ -1398,7 +1398,7 @@ class CScriptEngine : public IScriptEngine
 
                 void restoreEnvVars()
                 {
-                    for ( auto& v : mEnvVars )
+                    for ( const auto& v : mEnvVars )
                     {
                         SetEnvironmentVariable( v.name.c_str(), (v.value.GetMemSize() != 0) ? v.value.c_str() : NULL );
                     }

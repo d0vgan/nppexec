@@ -31,26 +31,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 class CCriticalSection // <-- inspired by CCriticalSection from Win32++ (C) David Nash
 {
 public:
-    CCriticalSection()
+    CCriticalSection() noexcept
     {
         ::InitializeCriticalSection(&m_cs);
         m_isValid = true;
     }
 
-    CCriticalSection(CCriticalSection&& other)
+    CCriticalSection(CCriticalSection&& other) noexcept
     {
         other.m_isValid = false;
         m_cs = other.m_cs;
         m_isValid = true;
     }
 
-    ~CCriticalSection()
+    ~CCriticalSection() noexcept
     {
         if ( m_isValid )
             ::DeleteCriticalSection(&m_cs);
     }
 
-    CCriticalSection& operator=(CCriticalSection&& other)
+    CCriticalSection& operator=(CCriticalSection&& other) noexcept
     {
         other.m_isValid = false;
         m_cs = other.m_cs;
@@ -61,13 +61,13 @@ public:
     CCriticalSection(const CCriticalSection&) = delete;
     CCriticalSection& operator=(const CCriticalSection&) = delete;
 
-    void Lock()
+    void Lock() noexcept
     {
         if ( m_isValid )
             ::EnterCriticalSection(&m_cs);
     }
 
-    void Unlock()
+    void Unlock() noexcept
     {
         if ( m_isValid )
             ::LeaveCriticalSection(&m_cs);
@@ -81,12 +81,12 @@ private:
 class CCriticalSectionLockGuard // <-- inspired by std::lock_guard
 {
 public:
-    CCriticalSectionLockGuard(CCriticalSection& lock) : m_lock(lock)
+    CCriticalSectionLockGuard(CCriticalSection& lock) noexcept : m_lock(lock)
     {
         m_lock.Lock();
     }
 
-    ~CCriticalSectionLockGuard()
+    ~CCriticalSectionLockGuard() noexcept
     {
         m_lock.Unlock();
     }
@@ -101,11 +101,11 @@ private:
 class CEvent // <-- inspired by common sense :)
 {
 public:
-    CEvent() : m_hEvent(NULL)
+    CEvent() noexcept : m_hEvent(NULL)
     {
     }
 
-    ~CEvent()
+    ~CEvent() noexcept
     {
         Destroy();
     }
@@ -113,39 +113,39 @@ public:
     CEvent(const CEvent&) = delete;
     CEvent& operator=(const CEvent&) = delete;
 
-    bool IsNull() const
+    bool IsNull() const noexcept
     {
         return (m_hEvent == NULL);
     }
 
-    HANDLE GetHandle() const
+    HANDLE GetHandle() const noexcept
     {
         return m_hEvent;
     }
 
-    HANDLE Create(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, LPCTSTR lpName)
+    HANDLE Create(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, LPCTSTR lpName) noexcept
     {
         Destroy();
         m_hEvent = ::CreateEvent(lpEventAttributes, bManualReset, bInitialState, lpName);
         return m_hEvent;
     }
 
-    BOOL Destroy()
+    BOOL Destroy() noexcept
     {
         return ( (m_hEvent != NULL) ? ::CloseHandle(m_hEvent) : FALSE );
     }
 
-    BOOL Set()
+    BOOL Set() noexcept
     {
         return ( (m_hEvent != NULL) ? ::SetEvent(m_hEvent) : FALSE );
     }
 
-    BOOL Reset()
+    BOOL Reset() noexcept
     {
         return ( (m_hEvent != NULL) ? ::ResetEvent(m_hEvent) : FALSE );
     }
 
-    DWORD Wait(DWORD dwMilliseconds) const
+    DWORD Wait(DWORD dwMilliseconds) const noexcept
     {
         return ( (m_hEvent != NULL) ? ::WaitForSingleObject(m_hEvent, dwMilliseconds) : WAIT_FAILED );
     }
@@ -365,9 +365,9 @@ protected:
 
 namespace NppExecHelpers
 {
-    bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread = NULL);
+    bool CreateNewThread(LPTHREAD_START_ROUTINE lpFunc, LPVOID lpParam, HANDLE* lphThread = NULL) noexcept;
 
-    HWND GetFocusedWnd();
+    HWND GetFocusedWnd() noexcept;
 
     tstr GetClipboardText(HWND hWndOwner = NULL);
     bool SetClipboardText(const tstr& text, HWND hWndOwner = NULL);
@@ -377,8 +377,8 @@ namespace NppExecHelpers
 
     tstr GetCurrentDir();
 
-    bool IsFullPath(const tstr& path);
-    bool IsFullPath(const TCHAR* path);
+    bool IsFullPath(const tstr& path) noexcept;
+    bool IsFullPath(const TCHAR* path) noexcept;
 
     tstr NormalizePath(const tstr& path);
     tstr NormalizePath(const TCHAR* path);
@@ -393,58 +393,58 @@ namespace NppExecHelpers
     tstr GetFileNamePart(const tstr& path, eFileNamePart whichPart);
     tstr GetFileNamePart(const TCHAR* path, eFileNamePart whichPart);
 
-    bool CreateDirectoryTree(const tstr& dir);
-    bool CreateDirectoryTree(const TCHAR* dir);
+    bool CreateDirectoryTree(const tstr& dir) noexcept;
+    bool CreateDirectoryTree(const TCHAR* dir) noexcept;
 
-    bool CheckDirectoryExists(const tstr& dir);
-    bool CheckDirectoryExists(const TCHAR* dir);
+    bool CheckDirectoryExists(const tstr& dir) noexcept;
+    bool CheckDirectoryExists(const TCHAR* dir) noexcept;
 
-    bool CheckFileExists(const tstr& filename);
-    bool CheckFileExists(const TCHAR* filename);
+    bool CheckFileExists(const tstr& filename) noexcept;
+    bool CheckFileExists(const TCHAR* filename) noexcept;
 
-    bool IsValidTextFile(const tstr& filename);
-    bool IsValidTextFile(const TCHAR* filename);
+    bool IsValidTextFile(const tstr& filename) noexcept;
+    bool IsValidTextFile(const TCHAR* filename) noexcept;
 
-    bool GetFileWriteTime(const TCHAR* filename, FILETIME* pLastWriteTime);
-    bool SetFileWriteTime(const TCHAR* filename, const FILETIME* pLastWriteTime);
+    bool GetFileWriteTime(const TCHAR* filename, FILETIME* pLastWriteTime) noexcept;
+    bool SetFileWriteTime(const TCHAR* filename, const FILETIME* pLastWriteTime) noexcept;
 
     tstr GetInstanceAsString(const void* pInstance);
 
-    void StrLower(tstr& S); // converts to lower case
-    void StrLower(TCHAR* S); // converts to lower case
-    void StrUpper(tstr& S); // converts to upper case
-    void StrUpper(TCHAR* S); // converts to upper case
+    void StrLower(tstr& S) noexcept; // converts to lower case
+    void StrLower(TCHAR* S) noexcept; // converts to lower case
+    void StrUpper(tstr& S) noexcept; // converts to upper case
+    void StrUpper(TCHAR* S) noexcept; // converts to upper case
 
-    TCHAR LatinCharUpper(TCHAR ch); // converts [a-z] to [A-Z]
-    TCHAR LatinCharLower(TCHAR ch); // converts [A-Z] to [a-z]
+    TCHAR LatinCharUpper(TCHAR ch) noexcept; // converts [a-z] to [A-Z]
+    TCHAR LatinCharLower(TCHAR ch) noexcept; // converts [A-Z] to [a-z]
 
     void StrQuote(tstr& S); // adds the starting and trailing ""
     void StrUnquote(tstr& S); // removes the starting and trailing ""
     void StrUnquoteEx(tstr& S); // removes the starting and trailing "" or '' or ``
 
-    bool IsStrQuoted(const tstr& S); // starts & ends with ""
-    bool IsStrQuotedEx(const tstr& S); // starts & ends with "" or '' or ``
-    bool IsStrNotQuoted(const tstr& S); // no " at start & at end
-    bool IsStrNotQuotedEx(const tstr& S); // no " or ' or ` at start & at end
+    bool IsStrQuoted(const tstr& S) noexcept; // starts & ends with ""
+    bool IsStrQuotedEx(const tstr& S) noexcept; // starts & ends with "" or '' or ``
+    bool IsStrNotQuoted(const tstr& S) noexcept; // no " at start & at end
+    bool IsStrNotQuotedEx(const tstr& S) noexcept; // no " or ' or ` at start & at end
 
     void StrEscape(tstr& S); // '\' -> '\\', '<TAB>' -> '\t', '<CR>' -> '\r', '<LF>' -> '\n', '"' -> '\"'
     void StrUnescape(tstr& S); // '\\' -> '\', '\t' -> '<TAB>', '\r' -> '<CR>', '\n' -> '<LF>', '\?' -> '?'
 
-    int StrCmpNoCase(const tstr& S1, const tstr& S2); // comparing case-insensitively
-    int StrCmpNoCase(const tstr& S1, const TCHAR* S2); // comparing case-insensitively
-    int StrCmpNoCase(const TCHAR* S1, const tstr& S2); // comparing case-insensitively
-    int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2); // comparing case-insensitively
-    int StrCmpNoCase(const TCHAR* S1, int Len1, const TCHAR* S2, int Len2);
+    int StrCmpNoCase(const tstr& S1, const tstr& S2) noexcept; // comparing case-insensitively
+    int StrCmpNoCase(const tstr& S1, const TCHAR* S2) noexcept; // comparing case-insensitively
+    int StrCmpNoCase(const TCHAR* S1, const tstr& S2) noexcept; // comparing case-insensitively
+    int StrCmpNoCase(const TCHAR* S1, const TCHAR* S2) noexcept; // comparing case-insensitively
+    int StrCmpNoCase(const TCHAR* S1, int Len1, const TCHAR* S2, int Len2) noexcept;
 
-    inline bool IsTabSpaceChar(char ch)
+    inline bool IsTabSpaceChar(char ch) noexcept
     {
         return ((ch == ' ') || (ch == '\t'));
     }
-    inline bool IsTabSpaceChar(wchar_t ch)
+    inline bool IsTabSpaceChar(wchar_t ch) noexcept
     {
         return ((ch == L' ') || (ch == L'\t'));
     }
-    inline bool IsAnySpaceChar(char ch)
+    inline bool IsAnySpaceChar(char ch) noexcept
     {
         switch ( ch )
         {
@@ -458,7 +458,7 @@ namespace NppExecHelpers
         }
         return false;
     }
-    inline bool IsAnySpaceChar(wchar_t ch)
+    inline bool IsAnySpaceChar(wchar_t ch) noexcept
     {
         switch ( ch )
         {

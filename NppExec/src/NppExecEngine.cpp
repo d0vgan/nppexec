@@ -237,7 +237,7 @@ template<class MacroVarFunc> bool IterateUserMacroVars(
     MacroVarFunc func)
 {
     // checking local vars first
-    for ( auto& v : userLocalMacroVars )
+    for ( const auto& v : userLocalMacroVars )
     {
         if ( func(v, true) )
             return true;
@@ -245,7 +245,7 @@ template<class MacroVarFunc> bool IterateUserMacroVars(
 
     // then checking global vars not overridden by local ones
     auto localVarsEnd = userLocalMacroVars.cend();
-    for ( auto& v : userMacroVars )
+    for ( const auto& v : userMacroVars )
     {
         if ( userLocalMacroVars.find(v.name) == localVarsEnd )
         {
@@ -4853,7 +4853,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
     {
         if ( aliasName.IsEmpty() )
         {
-            for ( auto& v : localCmdAliases )
+            for ( const auto& v : localCmdAliases )
             {
                 buildAliasString(S, v.name, v.value, true);
                 const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
@@ -4864,7 +4864,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
             {
                 // printing global cmd aliases not overridden by local ones
                 CMacroVars::const_iterator localAliasesEnd = localCmdAliases.cend();
-                for ( auto& v : globalCmdAliases )
+                for ( const auto& v : globalCmdAliases )
                 {
                     if ( localCmdAliases.find(v.name) == localAliasesEnd )
                     {
@@ -7852,7 +7852,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
                 if ( bLocalVar )
                 {
                     PrintMacroVarFunc func(m_pNppExec);
-                    for ( auto& v : userLocalMacroVars )
+                    for ( const auto& v : userLocalMacroVars )
                     {
                         func(v, true);
                     }
@@ -7965,37 +7965,37 @@ CScriptEngine::eCmdResult CScriptEngine::DoUnset(const tstr& params)
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
-CMacroVars::const_iterator CMacroVars::begin() const
+CMacroVars::const_iterator CMacroVars::begin() const noexcept
 {
     return m_MacroVars.begin();
 }
 
-CMacroVars::iterator CMacroVars::begin()
+CMacroVars::iterator CMacroVars::begin() noexcept
 {
     return m_MacroVars.begin();
 }
 
-CMacroVars::const_iterator CMacroVars::cbegin() const
+CMacroVars::const_iterator CMacroVars::cbegin() const noexcept
 {
     return m_MacroVars.cbegin();
 }
 
-CMacroVars::const_iterator CMacroVars::cend() const
+CMacroVars::const_iterator CMacroVars::cend() const noexcept
 {
     return m_MacroVars.cend();
 }
 
-CMacroVars::const_iterator CMacroVars::end() const
+CMacroVars::const_iterator CMacroVars::end() const noexcept
 {
     return m_MacroVars.end();
 }
 
-CMacroVars::iterator CMacroVars::end()
+CMacroVars::iterator CMacroVars::end() noexcept
 {
     return m_MacroVars.end();
 }
 
-bool CMacroVars::empty() const
+bool CMacroVars::empty() const noexcept
 {
     return m_MacroVars.empty();
 }
@@ -8021,7 +8021,7 @@ CMacroVars::iterator CMacroVars::find(const tstr& varName)
     return (itr != end && itr->name == varName) ? itr : end;
 }
 
-void CMacroVars::swap(CMacroVars& other)
+void CMacroVars::swap(CMacroVars& other) noexcept
 {
     m_MacroVars.swap(other.m_MacroVars);
 }
@@ -8280,8 +8280,10 @@ void CNppExecMacroVars::CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, b
         
         if ( S.length() > 0 )
         {
-            tstr t = S;
+            int len = 0;
+            while ( len < S.length() && !NppExecHelpers::IsAnySpaceChar(S[len]) ) ++len;
 
+            tstr t(S.c_str(), len);
             if ( t.length() > 0 )
             {
                 NppExecHelpers::StrUpper(t);
@@ -8294,18 +8296,12 @@ void CNppExecMacroVars::CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, b
                     bool isLocal = (n == 0);
                     CMacroVars& cmdAliases = isLocal ? GetLocalCmdAliases(pScriptEngine) : GetCmdAliases();
 
-                    for ( auto& v : cmdAliases )
+                    auto itrAlias = cmdAliases.find(t);
+                    if ( itrAlias != cmdAliases.end() )
                     {
-                        if ( t.StartsWith(v.name) )
-                        {
-                            const TCHAR ch = t.GetAt(v.name.length());
-                            if ( IsAnySpaceOrEmptyChar(ch) )
-                            {
-                                S.Replace( 0, v.name.length(), v.value.c_str(), v.value.length() );
-                                bSubstituted = true;
-                                break;
-                            }
-                        }
+                        const auto& v = *itrAlias;
+                        S.Replace( 0, v.name.length(), v.value.c_str(), v.value.length() );
+                        bSubstituted = true;
                     }
                 }
             }
