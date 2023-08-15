@@ -32,7 +32,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    CStrT, CBufT and CListT to satisfy STL's strong exception guarantee -
    thus e.g. std::vector performs moves on reallocations)
  + NppExec Manual updated
- + web-version of the NppExec Manual (thanks to Joseph Samuel and others)
+ + web-version of the NppExec Manual (thanks to Joseph Samuel, rdipardo
+   and others)
 
 
  v0.8.6 - August 2023
