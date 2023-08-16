@@ -153,7 +153,7 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,95,262,50,14
 //    PUSHBUTTON      "Donate...",IDC_BT_DONATE,180,262,50,14
 #ifdef UNICODE
-    CTEXT           "NppExec ver. 0.8.6 Unicode for Notepad++",
+    CTEXT           "NppExec ver. 0.8.6 for Notepad++",
 #else
     CTEXT           "NppExec ver. 0.8.6 ANSI for Notepad++",
 #endif

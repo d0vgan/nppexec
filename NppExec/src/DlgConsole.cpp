@@ -53,7 +53,7 @@ const TCHAR CONSOLE_CMD_MANUAL[] = _T("MANUAL"); // show plugin's manual
 const TCHAR CONSOLE_CMD_ABOUT[]  = _T("ABOUT");  // show plugin's about
 
 #ifdef UNICODE
-const TCHAR PLUGIN_CURRENT_VER[] = NPPEXEC_VER_STR _T(" Unicode"); // see also: NppExecPluginInterface.cpp
+const TCHAR PLUGIN_CURRENT_VER[] = NPPEXEC_VER_STR; // see also: NppExecPluginInterface.cpp
 #else
 const TCHAR PLUGIN_CURRENT_VER[] = NPPEXEC_VER_STR _T(" ANSI"); // see also: NppExecPluginInterface.cpp
 #endif
@@ -633,8 +633,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  con_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
-    _T("  Unicode version of NppExec can read ANSI, UTF-8, UCS-2 LE and") _T_RE_EOL \
-    _T("  UCS-2 BE text files") _T_RE_EOL \
+    _T("  NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE text files") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  con_saveto") _T_RE_EOL
   }, 
@@ -650,8 +649,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  con_saveto c:\\temp\\output.txt") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
-    _T("  Unicode version of NppExec saves the Console\'s content as") _T_RE_EOL \
-    _T("  an Unicode text file (UCS-2 LE)") _T_RE_EOL \
+    _T("  NppExec saves the Console\'s content as an Unicode text file (UCS-2 LE)") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  con_loadfrom") _T_RE_EOL
   },
@@ -2019,8 +2017,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  sel_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
-    _T("  Unicode version of NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE") _T_RE_EOL \
-    _T("  text files.") _T_RE_EOL \
+    _T("  NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE text files.") _T_RE_EOL \
     _T("  The text loaded from the file is converted to the current Scintialla's") _T_RE_EOL \
     _T("  encoding.") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
@@ -2100,8 +2097,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  text_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
-    _T("  Unicode version of NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE") _T_RE_EOL \
-    _T("  text files.") _T_RE_EOL \
+    _T("  NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE text files.") _T_RE_EOL \
     _T("  The text loaded from the file is converted to the current Scintialla's") _T_RE_EOL \
     _T("  encoding.") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \

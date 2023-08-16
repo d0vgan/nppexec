@@ -104,16 +104,16 @@ def update_rc_file(filename: str):
     short_date = get_short_date(DATE_TO_SET)
     line_idx = 0
     for line in lines:
-        if not is_ver_unicode_replaced and line.startswith('    CTEXT           "NppExec ver. ') and line.find(" Unicode ") != -1:
+        if not is_ver_ansi_replaced and line.startswith('    CTEXT           "NppExec ver. ') and line.find(" ANSI for ") != -1:
             pos_1 = line.find("ver. ") + 5
-            pos_2 = line.find(" Unicode ")
-            lines[line_idx] = line[0:pos_1] + VERSION_TO_SET + line[pos_2:]
-            is_ver_unicode_replaced = True
-        elif not is_ver_ansi_replaced and line.startswith('    CTEXT           "NppExec ver. ') and line.find(" ANSI ") != -1:
-            pos_1 = line.find("ver. ") + 5
-            pos_2 = line.find(" ANSI ")
+            pos_2 = line.find(" ANSI for ")
             lines[line_idx] = line[0:pos_1] + VERSION_TO_SET + line[pos_2:]
             is_ver_ansi_replaced = True
+        elif not is_ver_unicode_replaced and line.startswith('    CTEXT           "NppExec ver. ') and line.find(" for ") != -1:
+            pos_1 = line.find("ver. ") + 5
+            pos_2 = line.find(" for ")
+            lines[line_idx] = line[0:pos_1] + VERSION_TO_SET + line[pos_2:]
+            is_ver_unicode_replaced = True
         elif not is_filever_num_replaced and line.startswith(" FILEVERSION "):
             pos_1 = line.find("N ") + 2
             lines[line_idx] = line[0:pos_1] + ver_commas + get_line_end(line)
