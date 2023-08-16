@@ -47,24 +47,12 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU |
 CAPTION "Console"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
+#if USE_MSFTEDIT
+    CONTROL         "",IDC_RE_CONSOLE,MSFTEDIT_CLASS,ES_MULTILINE | ES_AUTOVSCROLL |
+#else
     CONTROL         "",IDC_RE_CONSOLE,RICHEDIT_CLASS,ES_MULTILINE | ES_AUTOVSCROLL |
+#endif
                     ES_AUTOHSCROLL | ES_WANTRETURN | ES_SAVESEL | ES_NOHIDESEL |
-//
-// Note:
-//  unminded VC++ 2003 transforms these two lines:
-//
-// CONTROL          "",IDC_RE_CONSOLE,"RICHEDIT",ES_MULTILINE | ES_AUTOVSCROLL |
-//                  ES_AUTOHSCROLL | ES_NOHIDESEL | ES_WANTRETURN |
-//
-//  to the following shit:
-//
-// CONTROL          "",IDC_RE_CONSOLE,"RICHEDIT",TCS_HOTTRACK | TCS_VERTICAL |
-//                  TCS_BUTTONS | TCS_FOCUSONBUTTONDOWN | TCS_MULTISELECT |
-//
-// 22 Nov 2007
-//  The control's style has been changed:  
-//   +ES_SAVESEL
-//
                     WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_TABSTOP,0,0,486,86
     CONTROL         "", IDC_ED_FIND, "Edit", WS_CHILD | WS_TABSTOP | ES_AUTOHSCROLL, 
                     20,88,146,12, WS_EX_CLIENTEDGE

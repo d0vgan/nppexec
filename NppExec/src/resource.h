@@ -1,3 +1,5 @@
+#define USE_MSFTEDIT 0
+
 #ifndef IDC_STATIC
 #define IDC_STATIC (-1)
 #endif

@@ -2095,8 +2095,12 @@ CNppExec::CNppExec() :
     m_nppData._nppHandle = NULL;
     m_nppData._scintillaMainHandle = NULL;
     m_nppData._scintillaSecondHandle = NULL;
+#if USE_MSFTEDIT
+    m_hRichEditDll = LoadLibrary( _T("msftedit.dll") ); // RichEdit 4 or newer
+#else
     //m_hRichEditDll = LoadLibrary( _T("Riched32.dll") ); // RichEdit 1.0
     m_hRichEditDll = LoadLibrary( _T("Riched20.dll") ); // RichEdit 2.0
+#endif
   
     m_idTimerAutoSave = 0;
     m_isSavingOptions = false;
