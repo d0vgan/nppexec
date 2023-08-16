@@ -33,7 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
    thus e.g. std::vector performs moves on reallocations)
  + NppExec Manual updated
  + web-version of the NppExec Manual (thanks to Joseph Samuel, rdipardo
-   and others)
+   and others) : https://d0vgan.github.io/nppexec/
+ * npp_files updated to Notepad++ 8.5.6
 
 
  v0.8.6 - August 2023

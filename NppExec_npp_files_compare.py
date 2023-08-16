@@ -6,7 +6,7 @@ from datetime import datetime
 
 WINMERGE_EXE = "C:/Progs/Progs/WinMerge64/WinMergeU.exe"
 RELATIVE_NPP_FILES_PATH = "NppExec/src/npp_files"
-RELATIVE_NPP_PATH = "../notepad-plus-plus-git/master.notepad-plus-plus"
+RELATIVE_NPP_PATH = ["../notepad-plus-plus-git/master.notepad-plus-plus", "../notepad-plus-plus"]
 NPP_FILES = [
     "PowerEditor/src/WinControls/DockingWnd/Docking.h",
     "PowerEditor/src/menuCmdID.h",
@@ -39,8 +39,13 @@ def run():
 
 
 def copyNppFilesToTempDir() -> str:
-    nppDir = os.path.normpath(os.path.join(getPyFileDir(), RELATIVE_NPP_PATH))
-    if not os.path.isdir(nppDir):
+    isNppDirExist = False
+    for relativePath in RELATIVE_NPP_PATH:
+        nppDir = os.path.normpath(os.path.join(getPyFileDir(), relativePath))
+        if os.path.isdir(nppDir):
+            isNppDirExist = True
+            break
+    if not isNppDirExist:
         showWarning("Directory does not exist: {0}".format(nppDir))
         return ""
     tempDir = ""
