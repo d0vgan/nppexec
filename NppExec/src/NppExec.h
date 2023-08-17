@@ -23,6 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  v0.8.7
  ------
  * Glory to Ukraine! Glory to the heroes!
+ - fixed: nested IF...GOTO sometimes did not work as expected
+ * changed: now "GoTo_MaxCount" is per-label rather than per-script
  + added: "npe_cmdalias local ..." for local command aliases, similarly to
    local variables
  + added: now npe_queue supports command aliases
