@@ -1681,14 +1681,25 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                 if ( isSkippingThisCommandDueToIfState(nCmdType, ifState) )
                 {
                     Runtime::GetLogger().AddEx( _T("; skipping - waiting for %s"),
-                        (ifState == IF_WANT_ENDIF || ifState == IF_WANT_SILENT_ENDIF || ifState == IF_EXECUTING) ? DoEndIfCommand::Name() : DoElseCommand::Name() );
+                        (ifState == IF_WANT_ENDIF || ifState == IF_WANT_SILENT_ENDIF || ifState == IF_EXECUTING || ifState == IF_EXECUTING_ELSE) ? DoEndIfCommand::Name() : DoElseCommand::Name() );
                 
                     if ( nCmdType == CMDTYPE_IF || nCmdType == CMDTYPE_CALCIF )
                     {
                         // nested IF inside a conditional block that is being skipped
+                        bool bWantSilentEndIf = false;
                         int n = -1;
                         eIfMode mode = getIfMode(S, n);
                         if ( mode != IF_GOTO )
+                        {
+                            bWantSilentEndIf = true;
+                        }
+                        else if ( p->GetNext() )
+                        {
+                            tstr S2 = p->GetNext()->GetItem();
+                            if ( modifyCommandLine(this, S2, IF_NONE) == CMDTYPE_ELSE ) // IF-GOTO ... ELSE
+                                bWantSilentEndIf = true;
+                        }
+                        if ( bWantSilentEndIf )
                         {
                             currentScript.PushIfState({IF_WANT_SILENT_ENDIF, m_execState.pScriptLineCurrent});
                             // skip the nested IF...ENDIF block as well - mark it as "silent"
@@ -1708,6 +1719,18 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                         if ( ifState == IF_EXECUTING )
                         {
                             // the IF...ELSE block completed
+                            currentScript.SetIfState(IF_WANT_ENDIF);
+                        }
+                        else if ( ifState == IF_EXECUTING_ELSE )
+                        {
+                            tstr Msg;
+                            NppExecHelpers::StrDelTrailingAnySpaces(S);
+                            NppExecHelpers::StrDelLeadingAnySpaces(S);
+                            if ( !S.IsEmpty() )  S.Insert(0, _T(' '));
+                            Msg.Format(64 + S.length(), _T("; Warning: \"ELSE%s\" is ignored because of preceding plain ELSE"), S.c_str());
+                            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                            m_pNppExec->GetConsole().PrintMessage(Msg.c_str(), nMsgFlags);
+
                             currentScript.SetIfState(IF_WANT_ENDIF);
                         }
                     }
@@ -1771,8 +1794,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                          (currentScript.GetIfDepth() == ifDepth) )
                     {
                         // The IfState was not changed, so remove IF_MAYBE_ELSE
-                        // TODO: maybe PopIfState() ?
-                        currentScript.SetIfState(IF_NONE);
+                        currentScript.PopIfState();
                     }
 
                     {
@@ -2236,7 +2258,7 @@ bool CScriptEngine::isSkippingThisCommandDueToIfState(eCmdType cmdType, eIfState
     return ( (ifState == IF_WANT_SILENT_ENDIF) ||
              ((ifState == IF_WANT_ENDIF) && (cmdType != CMDTYPE_ENDIF)) ||
              ((ifState == IF_WANT_ELSE) && (cmdType != CMDTYPE_ELSE && cmdType != CMDTYPE_ENDIF)) || 
-             ((ifState == IF_EXECUTING) && (cmdType == CMDTYPE_ELSE)) );
+             ((ifState == IF_EXECUTING || ifState == IF_EXECUTING_ELSE) && (cmdType == CMDTYPE_ELSE)) );
 }
 
 bool CScriptEngine::usesDelayedVarSubstitution(eCmdType cmdType)
@@ -3570,6 +3592,15 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
 
         currentScript.SetIfState(IF_WANT_ENDIF);
     }
+    else if ( ifState == IF_EXECUTING_ELSE )
+    {
+        tstr Msg;
+        Msg.Format(64 + params.length(), _T("; \"ELSE %s\" is ignored because of preceding plain ELSE"), params.c_str());
+        ScriptError( ET_REPORT, Msg.c_str() );
+
+        nCmdResult = CMDRESULT_FAILED;
+        currentScript.SetIfState(IF_WANT_ENDIF);
+    }
     else if ( ifState == IF_WANT_ELSE || ifState == IF_MAYBE_ELSE )
     {
         Runtime::GetLogger().Add( _T("; ELSE found") );
@@ -3577,7 +3608,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
         if ( params.IsEmpty() )
         {
             // ELSE without condition
-            currentScript.SetIfState(IF_EXECUTING);
+            currentScript.SetIfState(IF_EXECUTING_ELSE);
         }
         else
         {
@@ -3619,7 +3650,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
 
             if ( n < 0 )
             {
-                ScriptError( ET_UNPREDICTABLE, _T("- ELSE IF expected, but IF was not found.") );
+                const TCHAR* const errMsg = 
+                  (paramsUpperCase.EndsWith(_T("IF")) || paramsUpperCase.EndsWith(_T("IF~")))
+                    ? _T("- ELSE IF found, but IF-condition is absent.")
+                    : _T("- ELSE IF expected, but IF was not found.");
+                ScriptError( ET_UNPREDICTABLE, errMsg );
                 nCmdResult = CMDRESULT_FAILED;
             }
             else

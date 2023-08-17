@@ -125,11 +125,12 @@ class CScriptEngine : public IScriptEngine
         };
 
         enum eIfState {
-            IF_NONE = 0,   // not under IF
-            IF_EXECUTING,  // IF-condition is true, executing lines under the IF
-            IF_WANT_ELSE,  // IF-condition is false, want another ELSE (or ENDIF)
-            IF_WANT_ENDIF, // done with IF or ELSE, want ENDIF
-            IF_MAYBE_ELSE, // special case: ELSE *may* appear after GOTO
+            IF_NONE = 0,       // not under IF
+            IF_EXECUTING,      // IF-condition is true, executing lines under the IF
+            IF_EXECUTING_ELSE, // executing lines under plain ELSE (without IF)
+            IF_WANT_ELSE,      // IF-condition is false, want another ELSE (or ENDIF)
+            IF_WANT_ENDIF,     // done with IF or ELSE, want ENDIF
+            IF_MAYBE_ELSE,     // special case: ELSE *may* appear after GOTO
             IF_WANT_SILENT_ENDIF // special case: nested IF in a skipped condition block
         };
 
@@ -1592,6 +1593,9 @@ class CScriptEngine : public IScriptEngine
                         case IF_EXECUTING:
                             cszState = _T("IF_EXECUTING");
                             break;
+                        case IF_EXECUTING_ELSE:
+                            cszState = _T("IF_EXECUTING_ELSE");
+                            break;
                         case IF_WANT_ELSE:
                             cszState = _T("IF_WANT_ELSE");
                             break;
@@ -1648,8 +1652,7 @@ class CScriptEngine : public IScriptEngine
                 {
                     if ( GetIfState().state == IF_MAYBE_ELSE )
                     {
-                        // TODO: maybe PopIfState() ?
-                        SetIfState(IF_NONE); // remove IF_MAYBE_ELSE because of nested IF
+                        PopIfState(); // remove IF_MAYBE_ELSE because of nested IF
                     }
                     IfState.Append(ifState);
 
