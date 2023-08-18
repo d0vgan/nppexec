@@ -1727,9 +1727,9 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                             NppExecHelpers::StrDelTrailingAnySpaces(S);
                             NppExecHelpers::StrDelLeadingAnySpaces(S);
                             if ( !S.IsEmpty() )  S.Insert(0, _T(' '));
-                            Msg.Format(64 + S.length(), _T("; Warning: \"ELSE%s\" is ignored because of preceding plain ELSE"), S.c_str());
+                            Msg.Format(64 + S.length(), _T("; \"ELSE%s\" is ignored because of preceding plain ELSE"), S.c_str());
                             const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-                            m_pNppExec->GetConsole().PrintMessage(Msg.c_str(), nMsgFlags);
+                            m_pNppExec->GetConsole().PrintError(Msg.c_str(), nMsgFlags);
 
                             currentScript.SetIfState(IF_WANT_ENDIF);
                         }
