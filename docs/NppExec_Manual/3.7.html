@@ -45,6 +45,123 @@ NPP_EXEC &quot;$(FULL_CURRENT_PATH)&quot;  // ...and execute it</pre>
 </ol>
 </p>
 <p>NppExec stores your scripts in Notepad++'es &quot;$(PLUGINS_CONFIG_DIR)&quot; folder. The &quot;npes_saved.txt&quot; file stores all the scripts except the temporary one which is stored inside &quot;npes_temp.txt&quot;.</p>
+
+<p><b>NppExec's script syntax. General notes:</b></p>
+<ul>
+  <li>Use $(var) to get the value of an internal variable named &quot;var&quot;. Don't forget to use the form of $(var) in mathematical expressions as well:<blockquote>
+  <pre>set local x = 10        // assigns 10 to a variable 'x'
+set local x ~ $(x) + 1  // accesses the previous value of 'x' and adds 1</pre></blockquote>
+  </li>
+  <li>Use $(sys.var) to get the value of an environment variable &quot;var&quot;. NppExec does not understand such form as %var%:<blockquote>
+  <pre>echo $(SYS.PATH)  // prints the value of %PATH%
+env_set PATH = $(SYS.PATH);C:\tools  // updates the value of %PATH%</pre></blockquote>
+  </li>
+  <li>Use spaces to separate parameters of NppExec's command. Do not use neither brackets nor commas:<blockquote>
+  <pre>sci_sendmsg SCI_SETTEXT 0 &quot;some text&quot;
+set local pos ~ strfind &quot;Hello world&quot; Hello</pre></blockquote>
+  </li>
+  <li>Use &quot; &quot;, ` ` and ' ' around parameters that contain spaces or other quote characters:<blockquote>
+  <pre>sci_sendmsg SCI_SETTEXT 0 `&quot;some text in quotes&quot;`
+inputbox 'Hello World!'
+set local pos ~ strfind &quot;Hello's world&quot; `Hello's`
+set local len ~ strlen &quot;  34' 78  &quot;  // returns 12, including &quot;&quot;
+set local len ~ $(len) - 2           // 10, without the &quot;&quot;
+cd C:\Program Files (x86)  // cd accepts a parameter without quotes</pre></blockquote>
+Note: when a command expects several parameters, it takes the parameters' values without the surrounding quotes. If a command expects just one parameter, the surrounding quotes may or may not be removed, depending on the command. Refer to the built-in help by typing e.g. &quot;help sci_sendmsg&quot;, &quot;help inputbox&quot;, &quot;help set&quot;, &quot;help cd&quot; etc. for actual examples.
+  <blockquote><pre></pre></blockquote>
+  </li>
+  <li>Use different forms of IF-GOTO when needed:<blockquote>
+  <pre>// Simple IF-GOTO
+if $(x) == 1 goto 1
+if $(x) == 2 goto 2
+echo x is neither 1 nor 2
+goto end
+:1
+echo x is 1
+goto end
+:2
+echo x is 2
+goto end
+:end
+
+// IF-GOTO-ELSE
+if $(x) == 1 goto 1
+else if $(x) == 2 goto 2
+else
+  echo x is neither 1 nor 2
+  goto end
+endif
+:1
+echo x is 1
+goto end
+:2
+echo x is 2
+goto end
+:end
+
+// IF-GOTO Loop
+set local N = 10
+set local x = 1
+:1
+echo $(x)
+set local x ~ $(x) + 1
+if $(x) &lt;= $(N) goto 1</pre></blockquote>
+  </li>
+  <li>Use different forms of IF-THEN when needed:<blockquote>
+  <pre>// Simple IF-THEN
+if $(x) == 1 then
+  echo x is 1
+endif
+if $(x) == 2 then
+  echo x is 2
+endif
+echo x is neither 1 nor 2
+
+// IF-THEN-ELSE
+if $(x) == 1 then
+  echo x is 1
+else if $(x) == 2 then
+  echo x is 2
+else
+  echo x is neither 1 nor 2
+endif
+
+// Nested IF-THEN-ELSE
+if $(x) == 1 then
+  echo x is 1
+else
+  if $(x) == 2 then
+    echo x is 2
+  else
+    echo x is neither 1 nor 2
+  endif
+endif
+
+// IF-THEN-GOTO Loop
+set local N = 10
+set local x = 1
+:1
+if $(x) &lt;= $(N) then
+  echo $(x)
+  set local x ~ $(x) + 1
+  goto 1
+endif</pre></blockquote>
+  </li>
+  <li>Use IF~ to calculate mathematical expressions during the comparison:<blockquote>
+  <pre>set local x = 8
+set local y = 14
+if~ $(x) + 2 == $(y) - 4 then
+  echo left == right
+else
+  echo left != right
+endif</pre></blockquote>
+  </li>
+</ul>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
 <p>See also: &quot;Execute NppExec Script...&quot; <a href="3.6.html">[3.6]</a>; Run-time parameters <a href="4.3.html">[4.3]</a>.</p>
 <P>&nbsp;</P>
 </BODY>
