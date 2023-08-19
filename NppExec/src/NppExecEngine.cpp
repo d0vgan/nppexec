@@ -1789,7 +1789,8 @@ void CScriptEngine::Run(unsigned int nRunFlags)
 
                     // The same currentScript object is used here to handle NPP_EXEC as well
                     // (it's safe because ScriptContextList.DeleteLast() is not called before)
-                    if ( (ifState == IF_MAYBE_ELSE) &&
+                    if ( (m_nCmdType != CMDTYPE_ELSE && m_nCmdType != CMDTYPE_IF) &&
+                         (ifState == IF_MAYBE_ELSE) &&
                          (currentScript.GetIfState().state == IF_MAYBE_ELSE) &&
                          (currentScript.GetIfDepth() == ifDepth) )
                     {

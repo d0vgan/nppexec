@@ -1615,7 +1615,7 @@ class CScriptEngine : public IScriptEngine
 
                     S += cszState;
                 }
-                
+
                 void logIfState(const TCHAR* cszFuncName)
                 {
                     tstr S;
