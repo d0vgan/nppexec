@@ -112,7 +112,7 @@ HWND CPopupListBox::Create(HWND hParentWnd,
 {
   m_hWnd = ::CreateWindowEx(WS_EX_TOPMOST | WS_EX_CLIENTEDGE, 
     _T("LISTBOX"), _T(""), 
-    WS_CHILD | WS_BORDER | WS_VSCROLL | LBS_HASSTRINGS | LBS_SORT,
+    WS_CHILD | WS_BORDER | WS_VSCROLL | LBS_HASSTRINGS | LBS_SORT | LBS_NOTIFY,
     left, top, width, height, 
     hParentWnd, NULL, NULL, NULL);
 
