@@ -33,6 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + other internal optimizations (such as "noexcept" move-constructors for
    CStrT, CBufT and CListT to satisfy STL's strong exception guarantee -
    thus e.g. std::vector performs moves on reallocations)
+ + added: now double-click in the popup list of the Execute dialog is handled
+   in the same way as Enter (it picks up the word from the popup list)
  + NppExec Manual updated
  + web-version of the NppExec Manual (thanks to Joseph Samuel, rdipardo
    and others) : https://d0vgan.github.io/nppexec/
