@@ -603,12 +603,7 @@
  - update the NppExec Manual (currently it's incomplete, see below)
 
  - NppExec Manual - add info about opening files ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/ )
-   - add info about @exit_cmd ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/da49de3c/
-                                https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/
-                              )
-   - add info about NppExec Console colours ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/ )
    - other interesting info:
-     https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/
      https://github.com/d0vgan/nppexec/issues/4
      https://notepad-plus-plus.org/community/topic/15804/macro-delete-lines-that-contains-text-in-clipboard
    - FAQ section?
