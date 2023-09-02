@@ -603,7 +603,6 @@
  - update the NppExec Manual (currently it's incomplete, see below)
 
  - NppExec Manual - interesting info:
-     https://github.com/d0vgan/nppexec/issues/4
      https://notepad-plus-plus.org/community/topic/15804/macro-delete-lines-that-contains-text-in-clipboard
    - FAQ section?
 

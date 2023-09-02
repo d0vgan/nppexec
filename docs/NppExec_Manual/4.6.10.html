@@ -14,7 +14,7 @@
   <pre>// Lua in NppExec's Console
 set local Lua = C:\Lua\bin\lua.exe // &lt;-- specify your path to Lua here!
 npp_save // saves the current .lua file
-"$(Lua)" "$(FULL_CURRENT_PATH)" // runs it</pre>
+&quot;$(Lua)&quot; &quot;$(FULL_CURRENT_PATH)&quot; // runs it</pre>
 </blockquote>
 
 <p>and</p>
@@ -23,7 +23,7 @@ npp_save // saves the current .lua file
   <pre>// Lua in a separate console window
 set local Lua = C:\Lua\bin\lua.exe // &lt;-- specify your path to Lua here!
 npp_save // saves the current .lua file
-npp_run cmd /c ""$(Lua)" "$(FULL_CURRENT_PATH)" && pause" // runs it</pre>
+npp_run cmd /c &quot;&quot;$(Lua)&quot; &quot;$(FULL_CURRENT_PATH)&quot; && pause&quot; // runs it</pre>
 </blockquote>
 
 <blockquote>

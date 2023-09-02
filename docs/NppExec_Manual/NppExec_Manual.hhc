@@ -205,6 +205,10 @@
 				<param name="Name" value="4.6.16. Open a file basing on the text selected in the editor">
 				<param name="Local" value="4.6.16.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.17. Modify selected text and save to file">
+				<param name="Local" value="4.6.17.html">
+				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="4.7. Compiling">
