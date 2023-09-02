@@ -1,0 +1,103 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.16. Open a file basing on the text selected in the editor</title>
+</HEAD>
+<BODY>
+<h3>4.6.16. Open a file basing on the text selected in the editor</h3>
+
+<p>I was wondering whether NppExec allows to open a file, say, &quot;C:\Program Files (x86)\Notepad++\change.log&quot; when a text &quot;Notepad++\change.log&quot; is selected in the editor.</p>
+<p>NppExec does allow this!</p>
+<p>Here is NppExec's script required for this (please see the embedded comments for clarifications):</p>
+
+<blockquote>
+  <pre>npp_console ?
+
+// process the selected text...
+sci_sendmsg SCI_GETSELTEXT 0 @&quot;&quot;
+set local F = $(MSG_LPARAM) // the selected text
+if &quot;$(F)&quot; != &quot;&quot; then // something selected
+  // check current file name...
+  set local n ~ strfind &quot;$(FILE_NAME)&quot; &quot;$(F)&quot;
+  if $(n) == -1 then // current file name does not contain the selected text
+    // check already opened files...
+    set local prev_fpath = $(FULL_CURRENT_PATH)
+    npp_console local -
+    npp_switch $(F) // try to switch to another file
+    npp_console local +
+    if &quot;$(FULL_CURRENT_PATH)&quot; == &quot;$(prev_fpath)&quot; then // did not switch to another file
+      // check predefined directories...
+      npe_console local v+ --
+      C:\tools\findfile.bat &quot;$(F)&quot;
+      if &quot;$(OUTPUT1)&quot; != &quot;&quot; then // found in a predefined dir
+        set local F = $(OUTPUT1)
+      endif
+      npp_open $(F)
+    endif
+  endif
+endif</pre>
+</blockquote>
+
+<p>This NppExec's script uses external file &quot;C:\tools\findfile.bat&quot; which describes the set of predefined directories to be checked.</p>
+<p>Here is a possible content of this &quot;findfile.bat&quot;:</p>
+
+<blockquote>
+  <pre>@echo off
+
+for /D %%d in (
+               &quot;C:&quot;,
+               &quot;C:\Program Files&quot;,
+               &quot;C:\Program Files (x86)&quot;
+              ) do (
+    if exist &quot;%%~d\%~1&quot; (
+        call :EchoUnquotedString &quot;%%~d\%~1&quot;
+    )
+)
+goto End
+
+:EchoUnquotedString
+    echo %~1
+goto End
+
+:End</pre>
+</blockquote>
+
+<p>The predefined directories in this example are: &quot;C:&quot;, C:\Program Files&quot; and &quot;C:\Program Files (x86)&quot;. You can define your own set of directories here.</p>
+<p>Here is how it works:</p>
+<ul>
+  <li>the NppExec's statement <code>C:\tools\findfile.bat &quot;$(F)&quot;</code> invokes the external batch file, passing the selected text as an argument to it;</li>
+  <li>inside of &quot;C:\tools\findfile.bat&quot;, when <code>&quot;%%~d\%~1&quot;</code> exists, its full path is printed to the console output;</li>
+  <li>then NppExec's statement <code>if &quot;$(OUTPUT1)&quot; != &quot;&quot;</code> checks whether the output from &quot;C:\tools\findfile.bat&quot; is empty or not;</li>
+  <li>if it is not empty, we take <code>$(OUTPUT1)</code> as the file name to be opened: <code>set local F = $(OUTPUT1)</code>;</li>
+  <li>finally, the file is opened by <code>npp_open $(F)</code>.</li>
+</ul>
+
+<p>Basing on your needs, the batch file &quot;findfile.bat&quot; can be modified. For example, it can use the output of <code>git ls-files</code> :</p>
+<blockquote>
+  <pre>@echo off
+
+set WorkDir=C:\Projects\notepad-plus-plus
+cd /D &quot;%WorkDir%&quot;
+
+for /F %%f in ('git ls-files -- *%1*') do (
+  call :EchoUnquotedString &quot;%WorkDir%\%%~f&quot;
+)
+goto End
+
+:EchoUnquotedString
+    echo %~1
+goto End
+
+:End
+</pre>
+</blockquote>
+
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>
