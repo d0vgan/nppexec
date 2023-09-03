@@ -600,10 +600,10 @@
 
  TODO:
 
- - update the NppExec Manual (currently it's incomplete, see below)
-
- - NppExec Manual - interesting info:
+ - update the NppExec Manual:
+   - interesting info:
      https://notepad-plus-plus.org/community/topic/15804/macro-delete-lines-that-contains-text-in-clipboard
+     https://github.com/dinkumoil/ScriptCollection/tree/master/NppExec%20Scripts
    - FAQ section?
 
  - callback scripts? (though, we already have NppEventExec)
