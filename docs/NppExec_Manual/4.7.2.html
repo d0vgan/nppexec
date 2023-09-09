@@ -14,11 +14,12 @@
   <p>To compile a Java file, all you have to do is the following: </p>
   <ol>
     <li>Navigate to Plugins -&gt; NppExec -&gt; Execute. (Default Shortcut key is F6) </li>
-    <li>In the new popup window, type this</li>
+    <li>In the new popup window, type this
     <blockquote>
       <pre>NPE_CONSOLE local -- x+ // enable the built-in error highlight filter locally
 cmd /c cd &quot;$(CURRENT_DIRECTORY)&quot; &amp;&amp; &quot;%JAVA_HOME%\bin\javac&quot; &quot;$(FULL_CURRENT_PATH)&quot;  </pre>
     </blockquote>
+    </li>
     <li>Click on &quot;Save&quot; and give it a name say &quot;Java Compile&quot;. </li>
     <li>Bingo. You are there. Now any Java file you are editing in Notepad++
           can be compiled by pressing F6 and choosing this script &quot;Java Compile&quot;.
