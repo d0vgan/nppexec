@@ -3,10 +3,10 @@
 <HEAD>
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
-<title>4.6.4. Running Python & wxPython</title>
+<title>4.6.4. Running Python &amp; wxPython</title>
 </HEAD>
 <BODY>
-<h3>4.6.4. Running Python & wxPython</h3>
+<h3>4.6.4. Running Python &amp; wxPython</h3>
 
 <p><b>1. Interactive Python inside NppExec</b></p>
 <p>Running &quot;python -?&quot; gives the following help information, in particular:</p>
@@ -115,7 +115,7 @@ cmd /c python -u &quot;$(FILE_NAME)&quot;</pre>
 <p>Here is the related comment from superuser.com ( <code>https://superuser.com/questions/381942/stop-nppexec-from-trapping-console-output-until-program-finishes</code> ) where I found the solution to this problem:</p>
 <p><i>To prevent your python script's own windows being suppressed (not sure exactly what is going on here), run the call to Python as an argument to cmd by preprending &quot;cmd /c&quot;. For example, I'm using</i></p>
 <blockquote>
-  <pre>cmd /c python -u &quot$(FULL_CURRENT_PATH)&quot</pre>
+  <pre>cmd /c python -u &quot;$(FULL_CURRENT_PATH)&quot;</pre>
 </blockquote>
 <p><i>so my Cocos2D window shows up.</i></p>
 

@@ -50,7 +50,7 @@ if &quot;$(EXT_PART)&quot; ~= &quot;.xml&quot; then
   set local f ~ fileexists $(FULL_CURRENT_PATH)
   if $(f) != 0 then
     set local bakfile = $(FULL_CURRENT_PATH).bak
-    cmd /C (if exist &quot;$(bakfile)&quot; del /F &quot;$(bakfile)&quot;) & copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;$(bakfile)&quot;
+    cmd /C (if exist &quot;$(bakfile)&quot; del /F &quot;$(bakfile)&quot;) &amp; copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;$(bakfile)&quot;
   endif
 endif // &quot;.xml&quot;
 
@@ -72,7 +72,7 @@ if &quot;$(EXT_PART)&quot; ~= &quot;.xml&quot; then
   set local f ~ fileexists $(FULL_CURRENT_PATH)
   if $(f) != 0 then
     set local bakfile = $(FULL_CURRENT_PATH).bak
-    cmd /C (if exist &quot;$(bakfile)&quot; del /F &quot;$(bakfile)&quot;) & copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;$(bakfile)&quot;
+    cmd /C (if exist &quot;$(bakfile)&quot; del /F &quot;$(bakfile)&quot;) &amp; copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;$(bakfile)&quot;
   endif
 endif // &quot;.xml&quot;
 
@@ -129,7 +129,7 @@ if &quot;$(doBackup)&quot; == &quot;1&quot; then
   set local f ~ fileexists $(FULL_CURRENT_PATH)
   if $(f) != 0 then
     set local bakfile = $(FULL_CURRENT_PATH).bak
-    cmd /C (if exist &quot;$(bakfile)&quot; del /F &quot;$(bakfile)&quot;) & copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;$(bakfile)&quot;
+    cmd /C (if exist &quot;$(bakfile)&quot; del /F &quot;$(bakfile)&quot;) &amp; copy &quot;$(FULL_CURRENT_PATH)&quot; &quot;$(bakfile)&quot;
   endif
 endif
 

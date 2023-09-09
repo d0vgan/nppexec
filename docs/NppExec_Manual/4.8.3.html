@@ -34,7 +34,7 @@ m_ExecuteCmdEvent.Set();</pre>
 
 <blockquote>
   <pre>...
-auto& ExecuteQueue = pCommandExecutor-&gt;m_ExecuteQueue;
+auto&amp; ExecuteQueue = pCommandExecutor-&gt;m_ExecuteQueue;
 isExecuteQueueEmpty = ExecuteQueue.empty();
 if ( !isExecuteQueueEmpty )
     pCommand = ExecuteQueue.front();
@@ -55,7 +55,7 @@ if ( !isExecuteQueueEmpty )
 <blockquote>
   <pre>...
 CListItemT&lt;tstr&gt;* p = m_CmdList.GetFirst(); // first list item
-while ( p && ContinueExecution() )
+while ( p &amp;&amp; ContinueExecution() )
 {
     ...
     S = p-&gt;GetItem(); // extract a string
@@ -90,7 +90,7 @@ nCmdResult = pCmdExecFunc(this, S);</pre>
 <p>(5) When the `nCmdType` is 0 (i.e. CMDTYPE_UNKNOWN), it means the following: the current string does not contain any internal NppExec's command, so it is interpreted as an external command - i.e. as a path to some executable file. Let's look at the corresponding method to which pCmdExecFunc points to in this case:</p>
 
 <blockquote>
-  <pre>CScriptEngine::eCmdResult CScriptEngine::Do(const tstr& params)
+  <pre>CScriptEngine::eCmdResult CScriptEngine::Do(const tstr&amp; params)
 {
     ...
     std::shared_ptr&lt;CChildProcess&gt; proc(new CChildProcess(this));
@@ -106,7 +106,7 @@ nCmdResult = pCmdExecFunc(this, S);</pre>
 
 <blockquote>
   <pre>// initialize STARTUPINFO struct
-ZeroMemory(&si, sizeof(STARTUPINFO));
+ZeroMemory(&amp;si, sizeof(STARTUPINFO));
 si.cb = sizeof(STARTUPINFO);
 si.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
 si.wShowWindow = SW_HIDE;
@@ -142,10 +142,10 @@ do
     ...
 }
 while ( (isConsoleProcessRunning = (::WaitForSingleObject(m_ProcessInfo.hProcess, dwCycleTimeOut) == WAIT_TIMEOUT))
-         && m_pScriptEngine-&gt;ContinueExecution() && !isBreaking() );
+         &amp;&amp; m_pScriptEngine-&gt;ContinueExecution() &amp;&amp; !isBreaking() );
     // NOTE: time-out inside WaitForSingleObject() prevents from 100% CPU usage!
 
-if ( m_pScriptEngine-&gt;ContinueExecution() && (!isBreaking()) && !m_pScriptEngine-&gt;GetTriedExitCmd() )
+if ( m_pScriptEngine-&gt;ContinueExecution() &amp;&amp; (!isBreaking()) &amp;&amp; !m_pScriptEngine-&gt;GetTriedExitCmd() )
 {
     // maybe the child process is exited but not all its data is read
     readPipesAndOutput(bufLine, bPrevLineEmpty, nPrevState, true, bDoOutputNext);
@@ -162,7 +162,7 @@ do
 {
     Sleep(10);  // it prevents from 100% CPU usage while reading!
     dwBytesRead = 0;
-    if ( !::PeekNamedPipe(m_hStdOutReadPipe, NULL, 0, NULL, &dwBytesRead, NULL) )
+    if ( !::PeekNamedPipe(m_hStdOutReadPipe, NULL, 0, NULL, &amp;dwBytesRead, NULL) )
     {
         dwBytesRead = 0;
     }
@@ -178,21 +178,21 @@ do
             ::ZeroMemory(Buf, CONSOLEPIPE_BUFSIZE);
         dwBytesRead = 0;
         if ( (bContainsData
-              && ::ReadFile(m_hStdOutReadPipe, Buf, (CONSOLEPIPE_BUFSIZE-1)*sizeof(char), &dwBytesRead, NULL)
-              && (dwBytesRead &gt; 0)) || bOutputAll )
+              &amp;&amp; ::ReadFile(m_hStdOutReadPipe, Buf, (CONSOLEPIPE_BUFSIZE-1)*sizeof(char), &amp;dwBytesRead, NULL)
+              &amp;&amp; (dwBytesRead &gt; 0)) || bOutputAll )
         {
             // some data has been read from the Pipe or bOutputAll==true
             ...
         }
     }
 }
-while ( (dwBytesRead &gt; 0) && m_pScriptEngine-&gt;ContinueExecution() && !isBreaking() );</pre>
+while ( (dwBytesRead &gt; 0) &amp;&amp; m_pScriptEngine-&gt;ContinueExecution() &amp;&amp; !isBreaking() );</pre>
 </blockquote>
 
 <p>As you can see, at first we verify if there is something in the pipe:</p>
 
 <blockquote>
-  <pre>::PeekNamedPipe(..., &dwBytesRead, ...)
+  <pre>::PeekNamedPipe(..., &amp;dwBytesRead, ...)
 ...
 bool bContainsData = (dwBytesRead &gt; 0) ? true : false;</pre>
 </blockquote>
