@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.8.6 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - August 2023
+ * NppExec plugin ver. 0.8.7 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - September 2023
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
@@ -223,8 +223,8 @@
  *  HISTORY  *
  *************
 
- v0.8.7
- ------
+ v0.8.7 - September 2023
+ -----------------------
  * Glory to Ukraine! Glory to the heroes!
  - fixed: nested IF...GOTO sometimes did not work as expected
  * changed: now "GoTo_MaxCount" is per-label rather than per-script

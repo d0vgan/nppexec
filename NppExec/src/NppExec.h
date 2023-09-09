@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.7
- ------
+ v0.8.7 - September 2023
+ -----------------------
  * Glory to Ukraine! Glory to the heroes!
  - fixed: nested IF...GOTO sometimes did not work as expected
  * changed: now "GoTo_MaxCount" is per-label rather than per-script
@@ -781,8 +781,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F6
-#define NPPEXEC_VER_STR   _T("0.8.6")
+#define NPPEXEC_VER_DWORD 0x08F7
+#define NPPEXEC_VER_STR   _T("0.8.7")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
