@@ -23,7 +23,7 @@
 </ul>
 <p>Looking at the documentation, we may end up with the following NppExec script:</p>
 <blockquote>
-  <pre>// saving the caret pos & anchor
+  <pre>// saving the caret pos &amp; anchor
 sci_sendmsg SCI_GETCURRENTPOS
 set local pos = $(MSG_RESULT)
 sci_sendmsg SCI_GETANCHOR
@@ -35,7 +35,7 @@ sci_sendmsg SCI_SELECTALL
 // copying the selection to the clipboard
 sci_sendmsg SCI_COPY
 
-// restoring the caret pos & anchor
+// restoring the caret pos &amp; anchor
 sci_sendmsg SCI_SETSEL $(anchor) $(pos)
 
 // open new editor pane
@@ -73,13 +73,13 @@ sci_sendmsg SCI_PASTE</pre>
 npp_sendmsg NPPM_GETCURRENTBUFFERID
 set local originalBufferId = $(MSG_RESULT)
 
-// getting the current buffer encoding & lang type
+// getting the current buffer encoding &amp; lang type
 npp_sendmsg NPPM_GETBUFFERENCODING $(originalBufferId)
 set local bufEnc = $(MSG_RESULT)
 npp_sendmsg NPPM_GETBUFFERLANGTYPE $(originalBufferId)
 set local bufLangType = $(MSG_RESULT)
 
-// getting the caret pos & anchor
+// getting the caret pos &amp; anchor
 sci_sendmsg SCI_GETCURRENTPOS
 set local pos = $(MSG_RESULT)
 sci_sendmsg SCI_GETANCHOR
@@ -101,14 +101,14 @@ NPP_SENDMSG WM_COMMAND IDM_FILE_NEW
 npp_sendmsg NPPM_GETCURRENTBUFFERID
 set local newBufferId = $(MSG_RESULT)
 
-// setting the new buffer encoding & lang type
+// setting the new buffer encoding &amp; lang type
 npp_sendmsg NPPM_SETBUFFERENCODING $(newBufferId) $(bufEnc)
 npp_sendmsg NPPM_SETBUFFERLANGTYPE $(newBufferId) $(bufLangType)
 
 // pasting the text from the clipboard
 sci_sendmsg SCI_PASTE
 
-// setting the caret pos & anchor
+// setting the caret pos &amp; anchor
 sci_sendmsg SCI_SETSEL $(anchor) $(pos)
 sci_sendmsg SCI_SETFIRSTVISIBLELINE $(firstvisibleline)</pre>
 </blockquote>

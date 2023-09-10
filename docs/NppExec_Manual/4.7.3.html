@@ -61,7 +61,7 @@ cmd /K &quot;C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliar
 </blockquote>
 <p>Now, while the VS Developer Command Prompt is running in NppExec's Console, it is possible to e.g. compile the current file via the following command in NppExec's Console:</p>
 <blockquote>
-<pre>cd /D &quot;$(CURRENT_DIRECTORY)&quot; && cl &quot;$(FILE_NAME)&quot;</pre>
+<pre>cd /D &quot;$(CURRENT_DIRECTORY)&quot; &amp;&amp; cl &quot;$(FILE_NAME)&quot;</pre>
 </blockquote>
 <p><b>4. Using ENV_SET</b></p>
 <p>The initialization of environment variables for VC will look similar to the following:</p>
