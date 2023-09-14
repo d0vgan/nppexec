@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + NppExec Manual updated
  + web-version of the NppExec Manual (thanks to Joseph Samuel, rdipardo
    and others) : https://d0vgan.github.io/nppexec/
+   (the HTML content is searchable due to amazing enhancements by rdipardo)
  * npp_files updated to Notepad++ 8.5.6
 
 
