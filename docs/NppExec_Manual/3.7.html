@@ -48,6 +48,8 @@ NPP_EXEC &quot;$(FULL_CURRENT_PATH)&quot;  // ...and execute it</pre>
 
 <p><b>NppExec's script syntax. General notes:</b></p>
 <ul>
+  <li>Commands are case-insensitive. Thus, <code>npp_open</code> is the same as <code>NPP_OPEN</code>, <code>Npp_Open</code> and so on.</li>
+  <li>Use <code>help &lt;command&gt;</code> to get detailed help on any NppExec's &lt;command&gt;. For example: <code>help npp_open</code>, <code>help set</code>, <code>help sci_sendmsg</code> and so on.</li>
   <li>Use $(var) to get the value of an internal variable named &quot;var&quot;. Don't forget to use the form of $(var) in mathematical expressions as well:<blockquote>
   <pre>set local x = 10        // assigns 10 to a variable 'x'
 set local x ~ $(x) + 1  // accesses the previous value of 'x' and adds 1</pre></blockquote>
