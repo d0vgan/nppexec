@@ -50,14 +50,6 @@ NPP_EXEC &quot;$(FULL_CURRENT_PATH)&quot;  // ...and execute it</pre>
 <ul>
   <li>Commands are case-insensitive. Thus, <code>npp_open</code> is the same as <code>NPP_OPEN</code>, <code>Npp_Open</code> and so on.</li>
   <li>Use <code>help &lt;command&gt;</code> to get detailed help on any NppExec's &lt;command&gt;. For example: <code>help npp_open</code>, <code>help set</code>, <code>help sci_sendmsg</code> and so on.</li>
-  <li>Use $(var) to get the value of an internal variable named &quot;var&quot;. Don't forget to use the form of $(var) in mathematical expressions as well:<blockquote>
-  <pre>set local x = 10        // assigns 10 to a variable 'x'
-set local x ~ $(x) + 1  // accesses the previous value of 'x' and adds 1</pre></blockquote>
-  </li>
-  <li>Use $(sys.var) to get the value of an environment variable &quot;var&quot;. NppExec does not understand such form as %var%:<blockquote>
-  <pre>echo $(SYS.PATH)  // prints the value of %PATH%
-env_set PATH = $(SYS.PATH);C:\tools  // updates the value of %PATH%</pre></blockquote>
-  </li>
   <li>Use spaces to separate parameters of NppExec's command. Do not use neither brackets nor commas:<blockquote>
   <pre>sci_sendmsg SCI_SETTEXT 0 &quot;some text&quot;
 set local pos ~ strfind &quot;Hello world&quot; Hello</pre></blockquote>
@@ -69,8 +61,16 @@ set local pos ~ strfind &quot;Hello's world&quot; `Hello's`
 set local len ~ strlen &quot;  34' 78  &quot;  // returns 12, including &quot;&quot;
 set local len ~ $(len) - 2           // 10, without the &quot;&quot;
 cd C:\Program Files (x86)  // cd accepts a parameter without quotes</pre></blockquote>
-Note: when a command expects several parameters, it takes the parameters' values without the surrounding quotes. If a command expects just one parameter, the surrounding quotes may or may not be removed, depending on the command. Refer to the built-in help by typing e.g. &quot;help sci_sendmsg&quot;, &quot;help inputbox&quot;, &quot;help set&quot;, &quot;help cd&quot; etc. for actual examples.
+Note: when a command expects several parameters, it extracts the parameters' values by removing the surrounding quotes. If a command expects just one parameter, the surrounding quotes may or may not be removed, depending on the command. Refer to the built-in help by typing e.g. &quot;help sci_sendmsg&quot;, &quot;help inputbox&quot;, &quot;help set&quot;, &quot;help cd&quot; etc. for actual examples.
   <blockquote><pre></pre></blockquote>
+  </li>
+  <li>Use $(var) to get the value of an internal variable named &quot;var&quot;. Don't forget to use the form of $(var) in mathematical expressions as well:<blockquote>
+  <pre>set local x = 10        // assigns 10 to a variable 'x'
+set local x ~ $(x) + 1  // accesses the previous value of 'x' and adds 1</pre></blockquote>
+  </li>
+  <li>Use $(sys.var) to get the value of an environment variable &quot;var&quot;. NppExec does not understand such form as %var%:<blockquote>
+  <pre>echo $(SYS.PATH)  // prints the value of %PATH%
+env_set PATH = $(SYS.PATH);C:\tools  // updates the value of %PATH%</pre></blockquote>
   </li>
   <li>Use different forms of IF-GOTO when needed:<blockquote>
   <pre>// Simple IF-GOTO
