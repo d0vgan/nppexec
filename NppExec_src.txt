@@ -1,4 +1,5 @@
 NppExec_build_*.bat
+NppExec_Manual_chm_build.bat
 NppExec_zip_*.bat
 NppExec_*.py
 NppExec_src.txt
@@ -8,11 +9,14 @@ docs\NppExec*.txt
 docs\NppExec*.chm
 docs\*.html
 docs\*.css
+docs\*.js
+docs\.nojekyll
 docs\NppExec_Manual\*.html
 docs\NppExec_Manual\*.txt
 docs\NppExec_Manual\*.css
 docs\NppExec_Manual\*.hhc
 docs\NppExec_Manual\*.hhp
+docs\NppExec_Manual\*.js
 NppExec\ConsoleIcon.*
 NppExec\NppExec*.dev
 NppExec\NppExec*.vcproj
