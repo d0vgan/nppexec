@@ -49,12 +49,12 @@ NPP_EXEC &quot;$(FULL_CURRENT_PATH)&quot;  // ...and execute it</pre>
 <p><b>NppExec's script syntax. General notes:</b></p>
 <ul>
   <li>Commands are case-insensitive. Thus, <code>npp_open</code> is the same as <code>NPP_OPEN</code>, <code>Npp_Open</code> and so on.</li>
-  <li>Use <code>help &lt;command&gt;</code> to get detailed help on any NppExec's &lt;command&gt;. For example: <code>help npp_open</code>, <code>help set</code>, <code>help sci_sendmsg</code> and so on.</li>
+  <li>Use <code>help &lt;command&gt;</code> to get detailed help <a href="3.1.html">[3.1]</a> on any NppExec's &lt;command&gt;. For example: <code>help npp_open</code>, <code>help set</code>, <code>help sci_sendmsg</code> and so on.</li>
   <li>Use spaces to separate parameters of NppExec's command. Do not use neither brackets nor commas:<blockquote>
   <pre>sci_sendmsg SCI_SETTEXT 0 &quot;some text&quot;
 set local pos ~ strfind &quot;Hello world&quot; Hello</pre></blockquote>
   </li>
-  <li>Use &quot; &quot;, ` ` and ' ' around parameters that contain spaces or other quote characters:<blockquote>
+  <li>Use &quot; &quot;, ` ` and ' ' around parameters that contain spaces or other quote characters <a href="3.8.5.html">[3.8.5]</a> :<blockquote>
   <pre>sci_sendmsg SCI_SETTEXT 0 `&quot;some text in quotes&quot;`
 inputbox 'Hello World!'
 set local pos ~ strfind &quot;Hello's world&quot; `Hello's`
@@ -64,13 +64,18 @@ cd C:\Program Files (x86)  // cd accepts a parameter without quotes</pre></block
 Note: when a command expects several parameters, it extracts the parameters' values by removing the surrounding quotes. If a command expects just one parameter, the surrounding quotes may or may not be removed, depending on the command. Refer to the built-in help by typing e.g. &quot;help sci_sendmsg&quot;, &quot;help inputbox&quot;, &quot;help set&quot;, &quot;help cd&quot; etc. for actual examples.
   <blockquote><pre></pre></blockquote>
   </li>
-  <li>Use $(var) to get the value of an internal variable named &quot;var&quot;. Don't forget to use the form of $(var) in mathematical expressions as well:<blockquote>
+  <li>Use $(var) to get the value of an internal variable named &quot;var&quot; <a href="3.8.2.html">[3.8.2]</a> . Don't forget to use the form of $(var) in mathematical expressions <a href="3.8.4.html">[3.8.4]</a> as well:<blockquote>
   <pre>set local x = 10        // assigns 10 to a variable 'x'
 set local x ~ $(x) + 1  // accesses the previous value of 'x' and adds 1</pre></blockquote>
   </li>
-  <li>Use $(sys.var) to get the value of an environment variable &quot;var&quot;. NppExec does not understand such form as %var%:<blockquote>
+  <li>Use $(sys.var) to get the value of an environment variable &quot;var&quot; <a href="3.8.3.html">[3.8.3]</a> . NppExec does not understand such form as %var%:<blockquote>
   <pre>echo $(SYS.PATH)  // prints the value of %PATH%
 env_set PATH = $(SYS.PATH);C:\tools  // updates the value of %PATH%</pre></blockquote>
+  </li>
+  <li>Use <code> cmd /C </code> to explicitly invoke the system's command interpreter (cmd.exe) when needed <a href="4.4.html">[4.4]</a> . For example:<blockquote>
+  <pre>cmd /C echo %PATH%
+cmd /C time /t &gt;time.txt &amp;&amp; type time.txt
+cmd /C taskkill /? | findstr /ic:pid</pre></blockquote>
   </li>
   <li>Use different forms of IF-GOTO when needed:<blockquote>
   <pre>// Simple IF-GOTO
