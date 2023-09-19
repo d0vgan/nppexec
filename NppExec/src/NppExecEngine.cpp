@@ -9488,7 +9488,11 @@ bool CNppExecMacroVars::StrCalc::calcSubStr()
                             count = 0;
                     }
 
-                    if ( count > len - pos )
+                    if ( len < pos )
+                    {
+                        count = 0;
+                    }
+                    else if ( count > len - pos )
                     {
                         count = len - pos;
                     }
