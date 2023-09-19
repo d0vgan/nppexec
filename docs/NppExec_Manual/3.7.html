@@ -61,7 +61,7 @@ set local pos ~ strfind &quot;Hello's world&quot; `Hello's`
 set local len ~ strlen &quot;  34' 78  &quot;  // returns 12, including &quot;&quot;
 set local len ~ $(len) - 2           // 10, without the &quot;&quot;
 cd C:\Program Files (x86)  // cd accepts a parameter without quotes</pre></blockquote>
-Note: when a command expects several parameters, it extracts the parameters' values by removing the surrounding quotes. If a command expects just one parameter, the surrounding quotes may or may not be removed, depending on the command. Refer to the built-in help by typing e.g. &quot;help sci_sendmsg&quot;, &quot;help inputbox&quot;, &quot;help set&quot;, &quot;help cd&quot; etc. for actual examples.
+Note: when a command expects several parameters, it extracts the parameters' values by removing the surrounding quotes (there are rare exceptions, though, such as <i>substr</i> that preserves the surrounding quotes). If a command expects just one parameter, the surrounding quotes may or may not be removed, depending on the command. Refer to the built-in help by typing e.g. &quot;help sci_sendmsg&quot;, &quot;help inputbox&quot;, &quot;help set&quot;, &quot;help cd&quot; etc. for actual examples.
   <blockquote><pre></pre></blockquote>
   </li>
   <li>Use $(var) to get the value of an internal variable named &quot;var&quot; <a href="3.8.2.html">[3.8.2]</a> . Don't forget to use the form of $(var) in mathematical expressions <a href="3.8.4.html">[3.8.4]</a> as well:<blockquote>

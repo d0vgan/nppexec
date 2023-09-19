@@ -50,6 +50,28 @@ SCI_SENDMSG SCI_APPENDTEXT $(n) &quot; $(s) &quot;  // adding the spaces</pre>
 set n ~ $(n) - 2         // n=6: length without the &quot; symbols</pre>
 </blockquote>
 <p>NppExec ver. 0.5 had introduced several additional functions: strupper, strlower and substr. Even more functions have been added later. Type &quot;help set&quot; for more details.</p>
+<p>Here is an example that uses substr to extract a directory name from $(CURRENT_DIRECTORY) :</p>
+<blockquote>
+  <pre>npp_console local -
+set local dirname = $(CURRENT_DIRECTORY)
+set local c ~ substr -1 1 $(dirname)  // trailing character
+if &quot;$(c)&quot; == &quot;\&quot; then
+  set local dirname ~ substr 0 -1 $(dirname)  // removing trailing \
+else if &quot;$(c)&quot; == &quot;/&quot; then
+  set local dirname ~ substr 0 -1 $(dirname)  // removing trailing /
+endif
+set local n1 ~ strrfind &quot;$(dirname)&quot; \  // position of last \
+set local n2 ~ strrfind &quot;$(dirname)&quot; /  // position of last /
+if $(n1) &gt; $(n2) then
+  set local n1 ~ $(n1) + 1
+  set local dirname ~ substr $(n1) - $(dirname)
+else
+  set local n2 ~ $(n2) + 1
+  set local dirname ~ substr $(n2) - $(dirname)
+endif
+npp_console local +
+echo $(dirname)</pre>
+</blockquote>
 <blockquote>
   <pre> </pre>
 </blockquote>
