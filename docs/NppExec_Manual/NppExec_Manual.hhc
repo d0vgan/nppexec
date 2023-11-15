@@ -253,6 +253,10 @@
 		<param name="Name" value="5. Other">
 		</OBJECT>
 	<UL>
+	    <LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="FAQ">
+			<param name="Local" value="FAQ.html">
+			</OBJECT>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="About">
 			<param name="Local" value="About.html">

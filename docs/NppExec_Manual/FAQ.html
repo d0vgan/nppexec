@@ -1,0 +1,99 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>FAQ (Frequently Asked Questions)</title>
+<script src="show_matches.js" type="text/javascript"></script>
+</HEAD>
+
+<BODY>
+<h3>FAQ (Frequently Asked Questions)</h3>
+
+<p><b>Q1. Why program output is wrong in NppExec?</b></p>
+<p>To answer this question, let's mention the most common problems one may face in NppExec's Console first:</p>
+<ul>
+  <li>NppExec's Console does not show any output until a program exits;</li>
+  <li>NppExec's Console does not show any prompt when a program waits for user input;</li>
+  <li>NppExec's Console shows program's output with incorrect indentations or colors;</li>
+  <li>NppExec's Console shows program's output with unexpected characters;</li>
+  <li>NppExec's Console shows program's output with <i>stdout</i> and <i>stderr</i> mixed.</li>
+</ul>
+<p>Looking at this list, you are surely thinking: quite a few problems, man! Why have you introduced them?</p>
+<p>Well, I can assure you: this is not something intended. This is a limitation of the technique that NppExec uses to capture program's output.</p>
+<p>In short, NppExec does not use a real console (also known as &quot;terminal&quot;). Instead, NppExec uses pipes to &quot;communicate&quot; with an external program. And sometimes, depending on a program, these pipes do not work as expected. Technical details are explained in <a href="4.8.3.html">[4.8.3]</a>, from the point (6).</p>
+<p>Fortunately, there are workarounds for these issues which are explained below.</p>
+<p>&nbsp;</p>
+
+<p><b>Q2. Why NppExec does not use real console (terminal)?</b></p>
+<p>Very good question!</p>
+<p>I'll try to give a good answer.</p>
+<p>The main purpose of NppExec is its deep integration with Notepad++. NppExec achieves it by:</p>
+<ul>
+  <li>supporting Notepad++'s and own variables such as <i>$(FILE_NAME)</i>, <i>$(CWD)</i> and so on;</li>
+  <li>supporting various commands such as <i>npp_save</i>, <i>sci_sendmsg</i> and so on;</li>
+  <li>working with the text in Notepad++'s editing window (also with the selected text);</li>
+  <li>invoking external programs to alter the text in Notepad++'s editing window;</li>
+  <li>highlighting warnings and errors in a program's output;</li>
+  <li>automate certain actions in Notepad++ by means of NppExec's scripts.</li>
+</ul>
+<p>All of the above is not possible in a real console. Because there is no connection between a real console and Notepad++. A real console does not know anything about <i>$(FILE_NAME)</i>; it can't save a file in Notepad++; it can not alter the text selected in Notepad++; it can not produce clickable warnings and errors allowing to go to the corresponding file and line in Notepad++. And so on. Different tools, different abilities.</p>
+<p>So, NppExec provides some benefits with respect to integration with Notepad++, but lacks some benefits of the real console. Well, some sort of trade-off.</p>
+<p>&nbsp;</p>
+
+<p><b>Q3. How can I get proper program output in NppExec?</b></p>
+<p>The short answer is: run this program using the system's command-line interpreter which is <i>cmd.exe</i>. As NppExec lacks the features of the real console, the logical solution is to execute a program in a separate console window.</p>
+<p>There are two ways to achieve this:</p>
+<p><u>1. Using <i>npp_run</i>:</u></p>
+<blockquote><pre>npp_run program.exe</pre></blockquote>
+<p>This runs a program <i>program.exe</i> in a separate window (not in NppExec's Console). In this case, NppExec does not have any control over the <i>program.exe</i> - it does not know if the program is running or has it finished.</p>
+<p>To run the program with arguments such as <i>arg1</i> and <i>arg 2</i>, use:</p>
+<blockquote><pre>npp_run program.exe arg1 &quot;arg 2&quot;</pre></blockquote>
+<p><u>2. Using <i>cmd /C start /wait</i>:</u></p>
+<blockquote><pre>cmd /C start /wait &quot;some title&quot; program.exe</pre></blockquote>
+<p>In this case, <i>cmd</i> itself is running within NppExec's Console, so NppExec waits until the <i>cmd</i> is finished. In the same time, <i>start /wait</i> instructs the <i>cmd</i> to run the <i>program.exe</i> in a separate window and wait until the <i>program.exe</i> is finished.</p>
+<p>Correspondingly, we have the <i>program.exe</i> running in its own window and NppExec's Console waiting for the <i>program.exe</i> to finish. This is the advantage of <i>cmd /C start /wait</i> over <i>npp_run</i>.</p>
+<p>The <i>&quot;some title&quot;</i> is the title of the console window started by the <i>cmd /C start /wait</i>.</p>
+<p>To run the program with arguments such as <i>arg1</i> and <i>arg 2</i>, use:</p>
+<blockquote><pre>cmd /C start /wait &quot;some title&quot; program.exe arg1 &quot;arg 2&quot;</pre></blockquote>
+<p>Now, what if <i>program.exe</i> exits too fast - and, instead, we want its console output to remain until we read it? In such case, we are adding another explicit usage of <i>cmd /C</i>, this time calling it with <i>pause</i>:</p>
+<blockquote><pre>cmd /C start /wait &quot;some title&quot; cmd /C &quot;program.exe arg1 &quot;arg 2&quot; &amp;&amp; pause&quot;</pre></blockquote>
+<p>Finally, let's consider a more complicated scenario. What if we want to compile a file currently opened in Notepad++ and then to run the produced executable with some arguments? To do that, the following commands can be used:</p>
+<blockquote><pre>
+npp_save  // save the current file
+cd $(CURRENT_DIRECTORY)  // cd to the directory of the current file
+npe_console local -- x+  // enable the built-in error highlight filter
+compiler.exe &quot;$(FILE_NAME)&quot;  // compile the current file in NppExec's Console
+cmd /C start /wait &quot;$(NAME_PART)&quot; &quot;$(NAME_PART).exe&quot; arg1 &quot;arg 2&quot;  // run the compiled file
+npp_setfocus con  // return the focus back to NppExec's Console</pre>
+</blockquote>
+<p>The sequence of the commands above is called <i>NppExec's script</i> <a href="3.7.html">[3.7]</a>.</p>
+<p>&nbsp;</p>
+
+<p><b>Q4. Why output redirection and command chaining do not work in NppExec?</b></p>
+<p>They actually work by means of the system's command-line interpreter which is <i>cmd.exe</i>.</p>
+<p>For example:</p>
+<blockquote><pre>cmd /C program.exe &gt;program.txt</pre></blockquote>
+<p>and also:</p>
+<blockquote><pre>cmd /C start /wait &quot;example&quot; cmd /C &quot;echo Hello world! &amp;&amp; pause&quot;</pre></blockquote>
+<p>See more examples in <a href="4.4.html">[4.4]</a>.</p>
+<p>&nbsp;</p>
+
+<p><b>Q5. How can I compile my source code in NppExec?</b></p>
+<p>In short, you need two things: a proper compiler for your programming language and a proper way of using this compiler by means of NppExec.</p>
+<p>In general, each programming language and each compiler requires its own approach. The <b>Q3</b> above briefly mentions a template of <i>NppExec's script</i> <a href="3.7.html">[3.7]</a> that compiles the current file and runs the produced executable.</p>
+<p>Please refer to other sections of the NppExec Manual to get an idea of how to compile the source code for the programming language you are interested in. In particular:</p>
+<ul>
+  <li>Introduction to compiling/interpreting/etc. <a href="4.0.html">[4.0]</a>;</li>
+  <li>Running Python & wxPython <a href="4.6.4.html">[4.6.4]</a>;</li>
+  <li>Run and terminate PowerShell process <a href="4.6.7.html">[4.6.7]</a>;</li>
+  <li>Running Lua <a href="4.6.10.html">[4.6.10]</a>;</li>
+  <li>Compiling simple C and Pas-programs <a href="4.7.1.html">[4.7.1]</a>;</li>
+  <li>Compiling Java <a href="4.7.2.html">[4.7.2]</a>;</li>
+  <li>Using Visual Studio's compiler (cl.exe) <a href="4.7.3.html">[4.7.3]</a>;</li>
+  <li>Compiling ANY source file <a href="4.7.4.html">[4.7.4]</a>.</li>
+</ul>
+<p>&nbsp;</p>
+
+</BODY>
+</HTML>
