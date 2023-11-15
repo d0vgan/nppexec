@@ -45,37 +45,58 @@
 <p>The short answer is: run this program using the system's command-line interpreter which is <i>cmd.exe</i>. As NppExec lacks the features of the real console, the logical solution is to execute a program in a separate console window.</p>
 <p>There are two ways to achieve this:</p>
 <p><u>1. Using <i>npp_run</i>:</u></p>
-<blockquote><pre>npp_run program.exe</pre></blockquote>
+<blockquote>
+  <pre>npp_run program.exe</pre>
+</blockquote>
 <p>This runs a program <i>program.exe</i> in a separate window (not in NppExec's Console). In this case, NppExec does not have any control over the <i>program.exe</i> - it does not know if the program is running or has it finished.</p>
 <p>To run the program with arguments such as <i>arg1</i> and <i>arg 2</i>, use:</p>
-<blockquote><pre>npp_run program.exe arg1 &quot;arg 2&quot;</pre></blockquote>
+<blockquote>
+  <pre>npp_run program.exe arg1 &quot;arg 2&quot;</pre>
+</blockquote>
 <p><u>2. Using <i>cmd /C start /wait</i>:</u></p>
-<blockquote><pre>cmd /C start /wait &quot;some title&quot; program.exe</pre></blockquote>
+<blockquote>
+  <pre>cmd /C start /wait &quot;some title&quot; program.exe</pre>
+</blockquote>
 <p>In this case, <i>cmd</i> itself is running within NppExec's Console, so NppExec waits until the <i>cmd</i> is finished. In the same time, <i>start /wait</i> instructs the <i>cmd</i> to run the <i>program.exe</i> in a separate window and wait until the <i>program.exe</i> is finished.</p>
 <p>Correspondingly, we have the <i>program.exe</i> running in its own window and NppExec's Console waiting for the <i>program.exe</i> to finish. This is the advantage of <i>cmd /C start /wait</i> over <i>npp_run</i>.</p>
 <p>The <i>&quot;some title&quot;</i> is the title of the console window started by the <i>cmd /C start /wait</i>.</p>
 <p>To run the program with arguments such as <i>arg1</i> and <i>arg 2</i>, use:</p>
-<blockquote><pre>cmd /C start /wait &quot;some title&quot; program.exe arg1 &quot;arg 2&quot;</pre></blockquote>
+<blockquote>
+  <pre>cmd /C start /wait &quot;some title&quot; program.exe arg1 &quot;arg 2&quot;</pre>
+</blockquote>
 <p>Now, what if <i>program.exe</i> exits too fast - and, instead, we want its console output to remain until we read it? In such case, we are adding another explicit usage of <i>cmd /C</i>, this time calling it with <i>pause</i>:</p>
-<blockquote><pre>cmd /C start /wait &quot;some title&quot; cmd /C &quot;program.exe arg1 &quot;arg 2&quot; &amp;&amp; pause&quot;</pre></blockquote>
+<blockquote>
+  <pre>cmd /C start /wait &quot;some title&quot; cmd /C &quot;program.exe arg1 &quot;arg 2&quot; &amp;&amp; pause&quot;</pre>
+</blockquote>
 <p>Finally, let's consider a more complicated scenario. What if we want to compile a file currently opened in Notepad++ and then to run the produced executable with some arguments? To do that, the following commands can be used:</p>
-<blockquote><pre>
-npp_save  // save the current file
+<blockquote>
+  <pre>npp_save  // save the current file
 cd $(CURRENT_DIRECTORY)  // cd to the directory of the current file
 npe_console local -- x+  // enable the built-in error highlight filter
 compiler.exe &quot;$(FILE_NAME)&quot;  // compile the current file in NppExec's Console
+if $(EXITCODE) != 0 then  // check the compiler's exit code
+  exit  // the compiler did not succeed, no sense to continue
+endif
 cmd /C start /wait &quot;$(NAME_PART)&quot; &quot;$(NAME_PART).exe&quot; arg1 &quot;arg 2&quot;  // run the compiled file
 npp_setfocus con  // return the focus back to NppExec's Console</pre>
 </blockquote>
 <p>The sequence of the commands above is called <i>NppExec's script</i> <a href="3.7.html">[3.7]</a>.</p>
+<p>To run the compiled file (executable) and preserve its console output, use the same technique with <i>cmd /C</i> and <i>pause</i> as shown above:</p>
+<blockquote>
+  <pre>cmd /C start /wait &quot;$(NAME_PART)&quot; cmd /C &quot;&quot;$(NAME_PART).exe&quot; arg1 &quot;arg 2&quot; &amp;&amp; pause&quot;</pre>
+</blockquote>
 <p>&nbsp;</p>
 
 <p><b>Q4. Why output redirection and command chaining do not work in NppExec?</b></p>
 <p>They actually work by means of the system's command-line interpreter which is <i>cmd.exe</i>.</p>
 <p>For example:</p>
-<blockquote><pre>cmd /C program.exe &gt;program.txt</pre></blockquote>
+<blockquote>
+  <pre>cmd /C program.exe &gt;program.txt</pre>
+</blockquote>
 <p>and also:</p>
-<blockquote><pre>cmd /C start /wait &quot;example&quot; cmd /C &quot;echo Hello world! &amp;&amp; pause&quot;</pre></blockquote>
+<blockquote>
+  <pre>cmd /C start /wait &quot;example&quot; cmd /C &quot;echo Hello world! &amp;&amp; pause&quot;</pre>
+</blockquote>
 <p>See more examples in <a href="4.4.html">[4.4]</a>.</p>
 <p>&nbsp;</p>
 
