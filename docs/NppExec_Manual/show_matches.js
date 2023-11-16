@@ -4,7 +4,7 @@ window.onload = function() {
   var query = location.search
   var param = 'contains='
   var value = query.slice(query.indexOf(param) + param.length)
-  var encodedChars = value.match(/%[0-9a-f]{2,}/ig)
+  var encodedChars = value.match(/%[0-9A-Fa-f]{2}/g)
   if (encodedChars) {
     encodedChars.forEach(function(ch) {
       value = value.replace(ch, String.fromCharCode(parseInt(ch.slice(1), 16)))
