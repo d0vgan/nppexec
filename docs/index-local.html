@@ -7,6 +7,18 @@
     <link href="https://raw.githubusercontent.com/d0vgan/nppexec/master/NppExec/ConsoleIcon.ico" type="image/x-icon" rel="icon">
     <title>NppExec Manual: Index</title>
     <meta http-equiv="Permissions-Policy" content="interest-cohort=()"> <!--Remove warning in browser: feature not enabled: 'interest-cohort'-->
+    <script type="text/javascript">
+      window.addEventListener('DOMContentLoaded', function() {
+        try {
+          var query    = location.search || '';
+          var param    = 'q=';
+          var value    = query.slice(query.indexOf(param) + param.length);
+          if (value) {
+            parent.frames['content'].location.replace('NppExec_Manual/' + value + '.html');
+          }
+        } catch (e) { console.info(e); }
+      })
+    </script>
   </HEAD>
   <FRAMESET cols="30%, 70%">
     <FRAME name="toc" src="./NppExec_Manual/toc.html">
