@@ -2603,7 +2603,8 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGe
     filePath.CalculateLength();
     if (filePath.length() > S1.length())
     {
-      if (filePath.GetAt(filePath.length() - S1.length() - 1) == _T('\\'))
+      const TCHAR ch = filePath.GetAt(filePath.length() - S1.length() - 1);
+      if (ch == _T('\\') || ch == _T('/'))
       {
         NppExecHelpers::StrUpper(filePath);
         if (filePath.EndsWith(S1))
