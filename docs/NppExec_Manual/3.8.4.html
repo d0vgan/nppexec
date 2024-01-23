@@ -4,6 +4,7 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>3.8.4. Calculations, strlen and so on</title>
+<script src="show_matches.js" type="text/javascript"></script>
 </HEAD>
 <BODY>
 <h3>3.8.4. Calculations, strlen and so on</h3>
@@ -49,10 +50,32 @@ SCI_SENDMSG SCI_APPENDTEXT $(n) &quot; $(s) &quot;  // adding the spaces</pre>
 set n ~ $(n) - 2         // n=6: length without the &quot; symbols</pre>
 </blockquote>
 <p>NppExec ver. 0.5 had introduced several additional functions: strupper, strlower and substr. Even more functions have been added later. Type &quot;help set&quot; for more details.</p>
+<p>Here is an example that uses substr to extract a directory name from $(CURRENT_DIRECTORY) :</p>
+<blockquote>
+  <pre>npp_console local -
+set local dirname = $(CURRENT_DIRECTORY)
+set local c ~ substr -1 1 $(dirname)  // trailing character
+if &quot;$(c)&quot; == &quot;\&quot; then
+  set local dirname ~ substr 0 -1 $(dirname)  // removing trailing \
+else if &quot;$(c)&quot; == &quot;/&quot; then
+  set local dirname ~ substr 0 -1 $(dirname)  // removing trailing /
+endif
+set local n1 ~ strrfind &quot;$(dirname)&quot; \  // position of last \
+set local n2 ~ strrfind &quot;$(dirname)&quot; /  // position of last /
+if $(n1) &gt; $(n2) then
+  set local n1 ~ $(n1) + 1
+  set local dirname ~ substr $(n1) - $(dirname)
+else
+  set local n2 ~ $(n2) + 1
+  set local dirname ~ substr $(n2) - $(dirname)
+endif
+npp_console local +
+echo $(dirname)</pre>
+</blockquote>
 <blockquote>
   <pre> </pre>
 </blockquote>
-<p>Now let's discuss something different: pseudo-conditions in NppExec. Pseudo-conditions are available via the NPP_EXEC command plus some variable. The next idea lies behind this: you can form a script name dynamically in order to execute different script basing on some variable's value. Let me explain: a command &quot;NPP_EXEC script$(var)&quot; will execute different script according to the value of $(var). For example, let's assume you want to execute some program and then to have different behaviour depending on successful or unsuccessful execution of that program. Of course, you can use &quot;cmd /c program && do_something_different&quot; to achieve this, but such approach does not allow to use NppExec-specific functions (since everything is executing under cmd.exe). So, let's assume we have the following script:</p>
+<p>Now let's discuss something different: pseudo-conditions in NppExec. Pseudo-conditions are available via the NPP_EXEC command plus some variable. The next idea lies behind this: you can form a script name dynamically in order to execute different script basing on some variable's value. Let me explain: a command &quot;NPP_EXEC script$(var)&quot; will execute different script according to the value of $(var). For example, let's assume you want to execute some program and then to have different behaviour depending on successful or unsuccessful execution of that program. Of course, you can use &quot;cmd /c program &amp;&amp; do_something_different&quot; to achieve this, but such approach does not allow to use NppExec-specific functions (since everything is executing under cmd.exe). So, let's assume we have the following script:</p>
 <blockquote>
   <pre>program.exe  // execute the program
 NPP_EXEC OnProgramEnd_$(EXITCODE)  // pseudo-condition</pre>

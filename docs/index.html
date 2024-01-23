@@ -1,32 +1,30 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN"
-   "http://www.w3.org/TR/html4/frameset.dtd">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
 <HTML lang="en">
-<HEAD>
-<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
-<link href="style.css" rel="stylesheet" type="text/css">
-<title>NppExec Manual: Index</title>
-<meta http-equiv="Permissions-Policy" content="interest-cohort=()"> <!--Remove warning in browser: feature not enabled: 'interest-cohort'-->
-<base href="/nppexec/">
-</HEAD>
-<script>
-  // var protocol = location.protocol;
-  // var hostname = location.hostname;
-  // var pathname = location.pathname;
-  // var protocol = location.protocol
-  // var port     = window.location.port
-  // var baseHref = new URL('http://github.com'); 
-  // baseHref.host = hostname
-  // baseHref.port = port.length>0 ? port : null
-  // baseHref.pathname = pathname
-  // baseHref.protocol = protocol
-  // console.log(baseHref.href);
-  // var head = document.getElementsByTagName('head')[0];
-  // var base = document.createElement('base');
-  // base.href = baseHref.href;
-  // head.appendChild(base);
-</script>
-<FRAMESET cols="30%, 70%">
-  <FRAME name="toc" src="./NppExec_Manual/toc.html">
-  <FRAME name="content" src="./NppExec_Manual/0. Title Page.html">
-</FRAMESET>
+  <HEAD>
+    <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <link href="style.css" rel="stylesheet" type="text/css">
+    <link href="https://raw.githubusercontent.com/d0vgan/nppexec/master/NppExec/ConsoleIcon.ico" type="image/x-icon" rel="icon">
+    <title>NppExec Manual: Index</title>
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()"> <!--Remove warning in browser: feature not enabled: 'interest-cohort'-->
+    <base href="/nppexec/">
+    <script type="text/javascript">
+      var protocol = location.protocol;
+      var hostname = location.hostname;
+      var pathname = location.pathname;
+      var href     = location.href;
+      var newPath  = 'index-local.html';
+      var redir    = href.replace(/\/index\.(php|x?html?)$/, '/'+newPath);
+      if (protocol == 'file:') {
+        location.replace(redir);
+      } else if (hostname.match(/^(localhost|192\.168\.|127\.)(\d+\.)*/)) {
+        redir = (pathname == '/') ? href + newPath : redir;
+        location.replace(redir);
+      }
+    </script>
+  </HEAD>
+  <FRAMESET cols="30%, 70%">
+    <FRAME name="toc" src="./NppExec_Manual/toc.html">
+    <FRAME name="content" src="./NppExec_Manual/0. Title Page.html">
+  </FRAMESET>
 </HTML>

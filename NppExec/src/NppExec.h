@@ -20,9 +20,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.7
- ------
+ v0.8.7 - September 2023
+ -----------------------
  * Glory to Ukraine! Glory to the heroes!
+ - fixed: nested IF...GOTO sometimes did not work as expected
+ * changed: now "GoTo_MaxCount" is per-label rather than per-script
  + added: "npe_cmdalias local ..." for local command aliases, similarly to
    local variables
  + added: now npe_queue supports command aliases
@@ -31,8 +33,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  + other internal optimizations (such as "noexcept" move-constructors for
    CStrT, CBufT and CListT to satisfy STL's strong exception guarantee -
    thus e.g. std::vector performs moves on reallocations)
+ + added: now double-click in the popup list of the Execute dialog is handled
+   in the same way as Enter (it picks up the word from the popup list)
  + NppExec Manual updated
- + web-version of the NppExec Manual (thanks to Joseph Samuel and others)
+ + web-version of the NppExec Manual (thanks to Joseph Samuel, rdipardo
+   and others) : https://d0vgan.github.io/nppexec/
+   (the HTML content is searchable due to amazing enhancements by rdipardo)
+ * npp_files updated to Notepad++ 8.5.6
 
 
  v0.8.6 - August 2023
@@ -775,8 +782,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F6
-#define NPPEXEC_VER_STR   _T("0.8.6")
+#define NPPEXEC_VER_DWORD 0x08F7
+#define NPPEXEC_VER_STR   _T("0.8.7")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

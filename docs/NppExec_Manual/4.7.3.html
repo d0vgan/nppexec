@@ -4,6 +4,7 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>4.7.3. Using Visual Studio's compiler (cl.exe)</title>
+<script src="show_matches.js" type="text/javascript"></script>
 </HEAD>
 
 <BODY>
@@ -56,12 +57,12 @@ cl.cmd &quot;$(FULL_CURRENT_PATH)&quot;
 <p><b>3. Using a running (interactive) VS Developer Command Prompt</b></p>
 <p>The following NppExec's script can be used to run the Developer Command Prompt for VS 2022 in NppExec's Console:</p>
 <blockquote>
-<pre>set local @exit_cmd = exit  // sends "exit" when NppExec's Console is closed
-cmd /K "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat" x86</pre>
+<pre>set local @exit_cmd = exit  // sends &quot;exit&quot; when NppExec's Console is closed
+cmd /K &quot;C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvarsall.bat&quot; x86</pre>
 </blockquote>
 <p>Now, while the VS Developer Command Prompt is running in NppExec's Console, it is possible to e.g. compile the current file via the following command in NppExec's Console:</p>
 <blockquote>
-<pre>cd /D "$(CURRENT_DIRECTORY)" && cl "$(FILE_NAME)"</pre>
+<pre>cd /D &quot;$(CURRENT_DIRECTORY)&quot; &amp;&amp; cl &quot;$(FILE_NAME)&quot;</pre>
 </blockquote>
 <p><b>4. Using ENV_SET</b></p>
 <p>The initialization of environment variables for VC will look similar to the following:</p>
@@ -72,7 +73,7 @@ SET local VSCOMMON = C:\Program Files\Microsoft Visual Studio 8\Common7\IDE
 SET local MSSDK = C:\Program Files\Microsoft Platform SDK for Windows Server 2003 R2
 
 // setting NppExec's child process'es environment variables
-// (due to "local", the previous values of the environment
+// (due to &quot;local&quot;, the previous values of the environment
 //  variables will be restored when this script ends)
 ENV_SET local PATH = $(VCDIR)\bin;$(MSSDK)\bin;$(VSCOMMON);$(SYS.PATH)
 ENV_SET local INCLUDE = $(MSSDK)\include;$(VCDIR)\include;$(SYS.INCLUDE)
@@ -102,7 +103,7 @@ SET local VSCOMMON = $(VCBASE)\Common7\IDE
 SET local MSSDK = C:\Program Files\Microsoft SDKs\Windows\v7.0A
 
 // setting NppExec's child process'es environment variables
-// (due to "local", the previous values of the environment
+// (due to &quot;local&quot;, the previous values of the environment
 //  variables will be restored when this script ends)
 ENV_SET local PATH = $(VCDIR)\bin;$(MSSDK)\bin;$(VSCOMMON);$(SYS.PATH)
 ENV_SET local INCLUDE = $(MSSDK)\include;$(VCDIR)\include;$(SYS.INCLUDE)

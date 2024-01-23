@@ -3,10 +3,11 @@
 <HEAD>
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
-<title>4.6.4. Running Python & wxPython</title>
+<title>4.6.4. Running Python &amp; wxPython</title>
+<script src="show_matches.js" type="text/javascript"></script>
 </HEAD>
 <BODY>
-<h3>4.6.4. Running Python & wxPython</h3>
+<h3>4.6.4. Running Python &amp; wxPython</h3>
 
 <p><b>1. Interactive Python inside NppExec</b></p>
 <p>Running &quot;python -?&quot; gives the following help information, in particular:</p>
@@ -20,12 +21,12 @@
 <blockquote>
   <pre>npp_console local -  // disable any output to the Console
 npp_save  // save current file (a .py file is expected)
-cd "$(CURRENT_DIRECTORY)"  // use the current file's dir
+cd &quot;$(CURRENT_DIRECTORY)&quot;  // use the current file's dir
 set local @exit_cmd_silent = exit()  // allows to exit Python automatically
 env_set local PATH = $(SYS.PATH);C:\Python27  // using Python 2.7
 npp_setfocus con  // set the focus to the Console
 npp_console local +  // enable output to the Console
-python -i -u "$(FILE_NAME)"  // run Python's program interactively
+python -i -u &quot;$(FILE_NAME)&quot;  // run Python's program interactively
 </pre>
 </blockquote>
 <blockquote>
@@ -40,7 +41,7 @@ python -i -u "$(FILE_NAME)"  // run Python's program interactively
 <p>To be able to represent such non-ASCII characters correctly on any system, 
 such source file should be saved as UTF-8 (either without BOM or with BOM). 
 Though the error mentioned above still remains. 
-To avoid this error, acccording to https://peps.python.org/pep-0263/ , 
+To avoid this error, acccording to <code>https://peps.python.org/pep-0263/</code> , 
 you just need to specify</p>
 <blockquote>
   <pre># coding=utf-8</pre>
@@ -109,13 +110,13 @@ python -u $(FILE_NAME)</pre>
 <p>Eventually I was able to get it to work. The issue was that NppExec was somehow blocking window creation in the case of Pygame. Using &quot;cmd /c python&quot; fixed the issue with the window:</p>
 <blockquote>
   <pre>npp_save
-cd "$(CURRENT_DIRECTORY)"
-cmd /c python -u "$(FILE_NAME)"</pre>
+cd &quot;$(CURRENT_DIRECTORY)&quot;
+cmd /c python -u &quot;$(FILE_NAME)&quot;</pre>
 </blockquote>
-<p>Here is the related comment from superuser.com ( https://superuser.com/questions/381942/stop-nppexec-from-trapping-console-output-until-program-finishes ) where I found the solution to this problem:</p>
+<p>Here is the related comment from superuser.com ( <code>https://superuser.com/questions/381942/stop-nppexec-from-trapping-console-output-until-program-finishes</code> ) where I found the solution to this problem:</p>
 <p><i>To prevent your python script's own windows being suppressed (not sure exactly what is going on here), run the call to Python as an argument to cmd by preprending &quot;cmd /c&quot;. For example, I'm using</i></p>
 <blockquote>
-  <pre>cmd /c python -u &quot$(FULL_CURRENT_PATH)&quot</pre>
+  <pre>cmd /c python -u &quot;$(FULL_CURRENT_PATH)&quot;</pre>
 </blockquote>
 <p><i>so my Cocos2D window shows up.</i></p>
 

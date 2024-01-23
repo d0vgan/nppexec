@@ -4,6 +4,7 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>4.6.12. Passing multiple files to external tool</title>
+<script src="show_matches.js" type="text/javascript"></script>
 </HEAD>
 <BODY>
 <h3>4.6.12. Passing multiple files to external tool</h3>
@@ -22,20 +23,20 @@ set local i = 1
 // iterating through all opened files...
 :NextOpenedFile
 set local file = $(#$(i))  // full path name
-if "$(file)" == "" goto OutOfOpenedFiles
-set local n ~ strrfind "$(file)" \
+if &quot;$(file)&quot; == &quot;&quot; goto OutOfOpenedFiles
+set local n ~ strrfind &quot;$(file)&quot; \
 if n == -1 then
-  set local n ~ strrfind "$(file)" /
+  set local n ~ strrfind &quot;$(file)&quot; /
 endif
 if n != -1 then
   set local n ~ $(n) + 1
   set local file ~ substr $(n) - $(file)  // file name (without path)
 endif
-set local n ~ strrfind "$(file)" .
+set local n ~ strrfind &quot;$(file)&quot; .
 if n != -1 then
   set local e ~ substr $(n) - $(file)  // file extension
-  if "$(e)" ~= "$(MatchExt)" then      // compare case-insensitively
-    set local FileList = $(FileList) "$(file)"
+  if &quot;$(e)&quot; ~= &quot;$(MatchExt)&quot; then      // compare case-insensitively
+    set local FileList = $(FileList) &quot;$(file)&quot;
   endif
 endif
 set local i ~ $(i) + 1
@@ -46,11 +47,11 @@ npp_console local +  // enable output to the Console
 echo $(FileList)</pre>
 </blockquote>
 
-<p>If your project consists of a lot of files, including files in subfolders, we may form a list of all these files using some additional tool such as Swiss File Knife ( https://sourceforge.net/projects/swissfileknife/files/ ).</p>
+<p>If your project consists of a lot of files, including files in subfolders, we may form a list of all these files using some additional tool such as Swiss File Knife ( <code>https://sourceforge.net/projects/swissfileknife/files/</code> ).</p>
 <p>Here is how Swiss File Knife (sfk) creates a list of all .cpp files starting from the current directory:</p>
 
 <blockquote>
-  <pre>sfk list -quot -dir . -file .cpp +xed "/[xwhite]/ /"</pre>
+  <pre>sfk list -quot -dir . -file .cpp +xed &quot;/[xwhite]/ /&quot;</pre>
 </blockquote>
 
 <p>Then, using sfk, the NppExec's script will look like the following:</p>
@@ -60,7 +61,7 @@ echo $(FileList)</pre>
 set local MatchExt = .cpp  // file extension to match
 
 npe_console local v+
-sfk list -quot -dir . -file $(MatchExt) +xed "/[xwhite]/ /"
+sfk list -quot -dir . -file $(MatchExt) +xed &quot;/[xwhite]/ /&quot;
 set local FileList = $(OUTPUTL)
 
 npp_console local +  // enable output to the Console

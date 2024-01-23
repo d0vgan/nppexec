@@ -1548,7 +1548,6 @@ void CScriptEngine::Run(unsigned int nRunFlags)
 
     m_execState.nExecCounter = 0;
     m_execState.nExecMaxCount = m_pNppExec->GetOptions().GetInt(OPTI_EXEC_MAXCOUNT);
-    m_execState.nGoToCounter = 0;
     m_execState.nGoToMaxCount = m_pNppExec->GetOptions().GetInt(OPTI_GOTO_MAXCOUNT);
     m_execState.nExecTextCounter = 0;
     m_execState.nExecTextMaxCount = m_pNppExec->GetOptions().GetInt(OPTI_EXECTEXT_MAXCOUNT);
@@ -1674,7 +1673,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
 
             ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
             const int ifDepth = currentScript.GetIfDepth();
-            const eIfState ifState = currentScript.GetIfState();
+            const eIfState ifState = currentScript.GetIfState().state;
 
             nCmdType = modifyCommandLine(this, S, ifState);
             if ( nCmdType != CMDTYPE_COMMENT_OR_EMPTY )
@@ -1682,13 +1681,29 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                 if ( isSkippingThisCommandDueToIfState(nCmdType, ifState) )
                 {
                     Runtime::GetLogger().AddEx( _T("; skipping - waiting for %s"),
-                        (ifState == IF_WANT_ENDIF || ifState == IF_WANT_SILENT_ENDIF || ifState == IF_EXECUTING) ? DoEndIfCommand::Name() : DoElseCommand::Name() );
+                        (ifState == IF_WANT_ENDIF || ifState == IF_WANT_SILENT_ENDIF || ifState == IF_EXECUTING || ifState == IF_EXECUTING_ELSE) ? DoEndIfCommand::Name() : DoElseCommand::Name() );
                 
                     if ( nCmdType == CMDTYPE_IF || nCmdType == CMDTYPE_CALCIF )
                     {
                         // nested IF inside a conditional block that is being skipped
-                        currentScript.PushIfState(IF_WANT_SILENT_ENDIF);
-                        // skip the nested IF...ENDIF block as well - mark it as "silent"
+                        bool bWantSilentEndIf = false;
+                        int n = -1;
+                        eIfMode mode = getIfMode(S, n);
+                        if ( mode != IF_GOTO )
+                        {
+                            bWantSilentEndIf = true;
+                        }
+                        else if ( p->GetNext() )
+                        {
+                            tstr S2 = p->GetNext()->GetItem();
+                            if ( modifyCommandLine(this, S2, IF_NONE) == CMDTYPE_ELSE ) // IF-GOTO ... ELSE
+                                bWantSilentEndIf = true;
+                        }
+                        if ( bWantSilentEndIf )
+                        {
+                            currentScript.PushIfState({IF_WANT_SILENT_ENDIF, m_execState.pScriptLineCurrent});
+                            // skip the nested IF...ENDIF block as well - mark it as "silent"
+                        }
                     }
                     else if ( nCmdType == CMDTYPE_ENDIF )
                     {
@@ -1704,6 +1719,18 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                         if ( ifState == IF_EXECUTING )
                         {
                             // the IF...ELSE block completed
+                            currentScript.SetIfState(IF_WANT_ENDIF);
+                        }
+                        else if ( ifState == IF_EXECUTING_ELSE )
+                        {
+                            tstr Msg;
+                            NppExecHelpers::StrDelTrailingAnySpaces(S);
+                            NppExecHelpers::StrDelLeadingAnySpaces(S);
+                            if ( !S.IsEmpty() )  S.Insert(0, _T(' '));
+                            Msg.Format(64 + S.length(), _T("; \"ELSE%s\" is ignored because of preceding plain ELSE"), S.c_str());
+                            const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                            m_pNppExec->GetConsole().PrintError(Msg.c_str(), nMsgFlags);
+
                             currentScript.SetIfState(IF_WANT_ENDIF);
                         }
                     }
@@ -1762,12 +1789,13 @@ void CScriptEngine::Run(unsigned int nRunFlags)
 
                     // The same currentScript object is used here to handle NPP_EXEC as well
                     // (it's safe because ScriptContextList.DeleteLast() is not called before)
-                    if ( (ifState == IF_MAYBE_ELSE) &&
-                         (currentScript.GetIfState() == IF_MAYBE_ELSE) &&
+                    if ( (m_nCmdType != CMDTYPE_ELSE && m_nCmdType != CMDTYPE_IF) &&
+                         (ifState == IF_MAYBE_ELSE) &&
+                         (currentScript.GetIfState().state == IF_MAYBE_ELSE) &&
                          (currentScript.GetIfDepth() == ifDepth) )
                     {
                         // The IfState was not changed, so remove IF_MAYBE_ELSE
-                        currentScript.SetIfState(IF_NONE);
+                        currentScript.PopIfState();
                     }
 
                     {
@@ -2231,7 +2259,7 @@ bool CScriptEngine::isSkippingThisCommandDueToIfState(eCmdType cmdType, eIfState
     return ( (ifState == IF_WANT_SILENT_ENDIF) ||
              ((ifState == IF_WANT_ENDIF) && (cmdType != CMDTYPE_ENDIF)) ||
              ((ifState == IF_WANT_ELSE) && (cmdType != CMDTYPE_ELSE && cmdType != CMDTYPE_ENDIF)) || 
-             ((ifState == IF_EXECUTING) && (cmdType == CMDTYPE_ELSE)) );
+             ((ifState == IF_EXECUTING || ifState == IF_EXECUTING_ELSE) && (cmdType == CMDTYPE_ELSE)) );
 }
 
 bool CScriptEngine::usesDelayedVarSubstitution(eCmdType cmdType)
@@ -3546,7 +3574,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoEcho(const tstr& params)
 CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
 {
     ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-    const eIfState ifState = currentScript.GetIfState();
+    const eIfState ifState = currentScript.GetIfState().state;
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     unsigned int uFlags = 0;
@@ -3565,6 +3593,15 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
 
         currentScript.SetIfState(IF_WANT_ENDIF);
     }
+    else if ( ifState == IF_EXECUTING_ELSE )
+    {
+        tstr Msg;
+        Msg.Format(64 + params.length(), _T("; \"ELSE %s\" is ignored because of preceding plain ELSE"), params.c_str());
+        ScriptError( ET_REPORT, Msg.c_str() );
+
+        nCmdResult = CMDRESULT_FAILED;
+        currentScript.SetIfState(IF_WANT_ENDIF);
+    }
     else if ( ifState == IF_WANT_ELSE || ifState == IF_MAYBE_ELSE )
     {
         Runtime::GetLogger().Add( _T("; ELSE found") );
@@ -3572,7 +3609,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
         if ( params.IsEmpty() )
         {
             // ELSE without condition
-            currentScript.SetIfState(IF_EXECUTING);
+            currentScript.SetIfState(IF_EXECUTING_ELSE);
         }
         else
         {
@@ -3614,7 +3651,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
 
             if ( n < 0 )
             {
-                ScriptError( ET_UNPREDICTABLE, _T("- ELSE IF expected, but IF was not found.") );
+                const TCHAR* const errMsg = 
+                  (paramsUpperCase.EndsWith(_T("IF")) || paramsUpperCase.EndsWith(_T("IF~")))
+                    ? _T("- ELSE IF found, but IF-condition is absent.")
+                    : _T("- ELSE IF expected, but IF was not found.");
+                ScriptError( ET_UNPREDICTABLE, errMsg );
                 nCmdResult = CMDRESULT_FAILED;
             }
             else
@@ -3645,7 +3686,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoEndIf(const tstr& params)
     }
 
     ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
-    const eIfState ifState = currentScript.GetIfState();
+    const eIfState ifState = currentScript.GetIfState().state;
     if ( ifState == IF_NONE )
     {
         ScriptError( ET_UNPREDICTABLE, _T("- Unexpected ENDIF found, without preceding IF.") );
@@ -3936,7 +3977,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
 
     ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
     tLabels& Labels = currentScript.Labels;
-    tLabels::const_iterator itrLabel = Labels.find(labelName);
+    tLabels::iterator itrLabel = Labels.find(labelName);
     if ( itrLabel == Labels.end() )
     {
         Runtime::GetLogger().Activate(false);
@@ -3951,7 +3992,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
                 getLabelName(Cmd);
                 if ( Labels.find(Cmd) == Labels.end() )
                 {
-                    Labels[Cmd] = p->GetNext(); // label points to the next command
+                    Labels[Cmd] = {p->GetNext(), 0}; // label points to the next command
                 }
                 if ( Cmd == labelName )
                 {
@@ -3972,27 +4013,56 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
             return CMDRESULT_FAILED;
         }
     }
+    else
+    {
+        ScriptContext::tIfState ifState = currentScript.GetIfState();
+        if ( ifState.state != IF_NONE || currentScript.GetIfDepth() != 0 )
+        {
+            // handling GOTO out of IF...ELSE...ENDIF
+            const CListItemT<tstr>* pBegin = m_execState.GetCurrentScriptContext().CmdRange.pBegin;
+            const CListItemT<tstr>* pGoToLine = itrLabel->second.pLine;
+            const CListItemT<tstr>* pLine = m_execState.pScriptLineCurrent;
+
+            for ( ; ; )
+            {
+                // process the ifState first...
+                if ( pLine == ifState.pStartLine )
+                {
+                    m_execState.GetCurrentScriptContext().PopIfState();
+                    ifState = currentScript.GetIfState();
+                    if ( ifState.state == IF_NONE && currentScript.GetIfDepth() == 0 )
+                        break;
+                }
+                // ...and only then break if it's time to
+                if ( pLine != pBegin && pLine != pGoToLine )
+                    pLine = pLine->GetPrev();
+                else
+                    break;
+            }
+        }
+    }
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     bool bContinue = true;
 
-    ++m_execState.nGoToCounter;
-    if (m_execState.nGoToCounter > m_execState.nGoToMaxCount)
+    ++itrLabel->second.nGoToCounter;
+    if ( itrLabel->second.nGoToCounter > m_execState.nGoToMaxCount )
     {
         TCHAR szMsg[240];
 
-        m_execState.nGoToCounter = 0;
+        itrLabel->second.nGoToCounter = 0;
         bContinue = false;
         ::wsprintf(szMsg, 
-            _T("%s was performed more than %d times.\n") \
+            _T("%s %s was performed more than %d times.\n") \
             _T("Abort execution of this script?\n") \
             _T("(Press Yes to abort or No to continue execution)"),
             DoGoToCommand::Name(),
+            labelName.c_str(),
             m_execState.nGoToMaxCount
         );
-        if (::MessageBox(m_pNppExec->m_nppData._nppHandle, szMsg, 
+        if ( ::MessageBox(m_pNppExec->m_nppData._nppHandle, szMsg, 
                 _T("NppExec Warning: Possible infinite loop"),
-                  MB_YESNO | MB_ICONWARNING) == IDNO)
+                  MB_YESNO | MB_ICONWARNING) == IDNO )
         {
             bContinue = true;
         }
@@ -4008,7 +4078,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoGoTo(const tstr& params)
         }
         else
         {
-            m_execState.SetScriptLineNext(itrLabel->second);
+            m_execState.SetScriptLineNext(itrLabel->second.pLine);
 
             Runtime::GetLogger().AddEx( _T("; Jumping to command item p = 0x%X { \"%s\" }"),
                 m_execState.pScriptLineNext, 
@@ -4413,16 +4483,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoCalcIf(const tstr& params)
     return doIf(params, false, true);
 }
 
-CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf, bool isCalc)
+CScriptEngine::eIfMode CScriptEngine::getIfMode(const tstr& params, int& n)
 {
-    enum eIfMode {
-        IF_GOTO = 0,
-        IF_THEN
-    };
-
-    if ( !reportCmdAndParams( isCalc ? DoCalcIfCommand::Name() : DoIfCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
-        return CMDRESULT_INVALIDPARAM;
-
     tstr paramsUpperCase = params;
     NppExecHelpers::StrUpper(paramsUpperCase);
 
@@ -4438,34 +4500,76 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf,
         _T("\tTHEN")
     };
 
-    int mode = IF_GOTO;
-    int n = -1;
+    int nGoTo = -1;
     for ( const TCHAR* const& i : arrGoTo )
     {
-        n = paramsUpperCase.RFind(i);
-        if ( n >= 0 )
+        nGoTo = paramsUpperCase.RFind(i);
+        if ( nGoTo >= 0 )
             break;
     }
 
-    if ( n < 0 )
+    if ( nGoTo < 0 )
     {
         if ( paramsUpperCase.EndsWith(_T(" GOTO")) || paramsUpperCase.EndsWith(_T("\tGOTO")) )
         {
-            ScriptError( ET_UNPREDICTABLE, _T("- Empty goto-label specified.") );
-            return CMDRESULT_INVALIDPARAM;
+            n = -1;
+            return EMPTY_GOTO;
         }
-
-        mode = IF_THEN;
-        for ( const TCHAR* const& i : arrThen )
-        {
-            n = paramsUpperCase.RFind(i);
-            if ( n >= 0 )
-                break;
-        }
-
-        if ( n < 0 )
-            Runtime::GetLogger().Add(   _T("- no \"goto\" or \"then\" specified, assuming \"then\"") );
     }
+
+    int nThen = -1;
+    for ( const TCHAR* const& i : arrThen )
+    {
+        nThen = paramsUpperCase.RFind(i);
+        if ( nThen >= 0 )
+            break;
+    }
+
+    eIfMode mode = IF_GOTO;
+
+    if ( nThen < 0 )
+    {
+        if ( nGoTo < 0 )
+        {
+            n = -1;
+            mode = IF_ASSUMING_THEN;
+        }
+        else
+            n = nGoTo;
+    }
+    else // nThen >= 0
+    {
+        if ( nGoTo < nThen )
+        {
+            n = nThen;
+            mode = IF_THEN;
+        }
+        else
+            n = nGoTo;
+    }
+
+    return mode;
+}
+
+CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf, bool isCalc)
+{
+    if ( !reportCmdAndParams( isCalc ? DoCalcIfCommand::Name() : DoIfCommand::Name(), params, fMessageToConsole | fReportEmptyParam | fFailIfEmptyParam ) )
+        return CMDRESULT_INVALIDPARAM;
+
+    int n = -1;
+    eIfMode mode = getIfMode(params, n);
+
+    if ( mode == EMPTY_GOTO )
+    {
+        ScriptError(ET_UNPREDICTABLE, _T("- Empty goto-label specified."));
+        return CMDRESULT_INVALIDPARAM;
+    }
+
+    if ( mode == IF_ASSUMING_THEN )
+    {
+        mode = IF_THEN;
+        Runtime::GetLogger().Add(   _T("- no \"goto\" or \"then\" specified, assuming \"then\"") );
+    }    
 
     tstr ifCondition;
     ifCondition.Assign( params.c_str(), n );
@@ -4517,7 +4621,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf,
             Runtime::GetLogger().Add(   _T("; The condition is false; proceeding to next line") );
 
             if ( !isElseIf )
-                currentScript.PushIfState(IF_MAYBE_ELSE); // ELSE may appear after IF ... GOTO
+                currentScript.PushIfState({IF_MAYBE_ELSE, m_execState.pScriptLineCurrent}); // ELSE may appear after IF ... GOTO
             else
                 currentScript.SetIfState(IF_MAYBE_ELSE);
         }
@@ -4530,7 +4634,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf,
             Runtime::GetLogger().Add(   _T("; The condition is true; executing lines under the IF") );
 
             if ( !isElseIf )
-                currentScript.PushIfState(IF_EXECUTING);
+                currentScript.PushIfState({IF_EXECUTING, m_execState.pScriptLineCurrent});
             else
                 currentScript.SetIfState(IF_EXECUTING);
         }
@@ -4540,7 +4644,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf,
             Runtime::GetLogger().Add(   _T("; The condition is false; waiting for ELSE or ENDIF") );
 
             if ( !isElseIf )
-                currentScript.PushIfState(IF_WANT_ELSE);
+                currentScript.PushIfState({IF_WANT_ELSE, m_execState.pScriptLineCurrent});
             else
                 currentScript.SetIfState(IF_WANT_ELSE);
         }
@@ -4580,7 +4684,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoLabel(const tstr& params)
     tLabels::const_iterator itrLabel = Labels.find(labelName);
     if ( itrLabel != Labels.end() )
     {
-        if ( itrLabel->second != m_execState.pScriptLineCurrent->GetNext() )
+        if ( itrLabel->second.pLine != m_execState.pScriptLineCurrent->GetNext() )
         {
             tstr err = _T("- duplicated label found: ");
             err += labelName;
@@ -4590,7 +4694,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoLabel(const tstr& params)
     }
 
     CListItemT<tstr>* p = m_execState.pScriptLineCurrent->GetNext();
-    Labels[labelName] = p; // label points to the next command
+    Labels[labelName] = {p, 0}; // label points to the next command
 
     Runtime::GetLogger().AddEx( _T("; label %s -> command item p = 0x%X { \"%s\" }"), 
         labelName.c_str(), p, p ? p->GetItem().c_str() : _T("<NULL>") );
@@ -9384,7 +9488,11 @@ bool CNppExecMacroVars::StrCalc::calcSubStr()
                             count = 0;
                     }
 
-                    if ( count > len - pos )
+                    if ( len < pos )
+                    {
+                        count = 0;
+                    }
+                    else if ( count > len - pos )
                     {
                         count = len - pos;
                     }

@@ -4,6 +4,7 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>4.6.7. Run and terminate PowerShell process</title>
+<script src="show_matches.js" type="text/javascript"></script>
 </HEAD>
 <BODY>
 <h3>4.6.7. Run and terminate PowerShell process</h3>
@@ -106,7 +107,7 @@ cmd /c echo. | &quot;$(PS_EXE)&quot; -nologo &quot;$(TEMP_FILE)&quot;</pre>
 <blockquote>
   <pre>File &quot;test.ps1&quot; cannot be loaded because running scripts is disabled on this system</pre>
 </blockquote>
-<p>it could be related to the fact that there are 32-bit and 64-bit instances on 64-bit systems, and they can have different settings. According to https://stackoverflow.com/questions/4037939/powershell-says-execution-of-scripts-is-disabled-on-this-system , the following should help:</p>
+<p>it could be related to the fact that there are 32-bit and 64-bit instances on 64-bit systems, and they can have different settings. According to <code>https://stackoverflow.com/questions/4037939/powershell-says-execution-of-scripts-is-disabled-on-this-system</code> , the following should help:</p>
 <blockquote>
   <pre>x86 (32 bit)
 Open &quot;C:\Windows\SysWOW64\cmd.exe&quot;

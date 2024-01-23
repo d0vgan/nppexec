@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 const DWORD  PLUGIN_VER_DWORD = NPPEXEC_VER_DWORD;
 #ifdef UNICODE
-    const TCHAR* PLUGIN_VER_STR = NPPEXEC_VER_STR _T(" Unicode"); // see also: DlgConsole.cpp
+    const TCHAR* PLUGIN_VER_STR = NPPEXEC_VER_STR; // see also: DlgConsole.cpp
 #else
     const TCHAR* PLUGIN_VER_STR = NPPEXEC_VER_STR _T(" ANSI"); // see also: DlgConsole.cpp
 #endif

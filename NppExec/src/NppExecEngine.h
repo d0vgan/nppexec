@@ -125,11 +125,12 @@ class CScriptEngine : public IScriptEngine
         };
 
         enum eIfState {
-            IF_NONE = 0,   // not under IF
-            IF_EXECUTING,  // IF-condition is true, executing lines under the IF
-            IF_WANT_ELSE,  // IF-condition is false, want another ELSE (or ENDIF)
-            IF_WANT_ENDIF, // done with IF or ELSE, want ENDIF
-            IF_MAYBE_ELSE, // special case: ELSE *may* appear after GOTO
+            IF_NONE = 0,       // not under IF
+            IF_EXECUTING,      // IF-condition is true, executing lines under the IF
+            IF_EXECUTING_ELSE, // executing lines under plain ELSE (without IF)
+            IF_WANT_ELSE,      // IF-condition is false, want another ELSE (or ENDIF)
+            IF_WANT_ENDIF,     // done with IF or ELSE, want ENDIF
+            IF_MAYBE_ELSE,     // special case: ELSE *may* appear after GOTO
             IF_WANT_SILENT_ENDIF // special case: nested IF in a skipped condition block
         };
 
@@ -907,7 +908,11 @@ class CScriptEngine : public IScriptEngine
         static std::atomic_int nExecTextEnginesCount;
 
     public:
-        typedef std::map< tstr, CListItemT<tstr>* > tLabels;
+        typedef struct sLabel {
+            CListItemT<tstr>* pLine;
+            int nGoToCounter;
+        } tLabel;
+        typedef std::map< tstr, tLabel > tLabels;
 
         typedef struct sCmdRange {
             CListItemT<tstr>* pBegin; // points to first cmd
@@ -1543,6 +1548,12 @@ class CScriptEngine : public IScriptEngine
 
         class ScriptContext {
             public:
+                struct tIfState {
+                    eIfState state;
+                    CListItemT<tstr>* pStartLine;
+                };
+
+            public:
                 tstr               ScriptName;
                 tCmdRange          CmdRange;
                 tLabels            Labels;
@@ -1569,7 +1580,7 @@ class CScriptEngine : public IScriptEngine
                 }
 
             protected:
-                CBufT<eIfState> IfState;
+                CBufT<tIfState> IfState;
 
                 static void strAppendIfState(tstr& S, eIfState ifState)
                 {
@@ -1581,6 +1592,9 @@ class CScriptEngine : public IScriptEngine
                             break;
                         case IF_EXECUTING:
                             cszState = _T("IF_EXECUTING");
+                            break;
+                        case IF_EXECUTING_ELSE:
+                            cszState = _T("IF_EXECUTING_ELSE");
                             break;
                         case IF_WANT_ELSE:
                             cszState = _T("IF_WANT_ELSE");
@@ -1601,7 +1615,7 @@ class CScriptEngine : public IScriptEngine
 
                     S += cszState;
                 }
-                
+
                 void logIfState(const TCHAR* cszFuncName)
                 {
                     tstr S;
@@ -1609,7 +1623,7 @@ class CScriptEngine : public IScriptEngine
                     S.Reserve(20 * nIfStates);
                     for ( int i = 0; i < nIfStates; ++i )
                     {
-                        strAppendIfState(S, IfState[i]);
+                        strAppendIfState(S, IfState[i].state);
                     }
 
                     Runtime::GetLogger().AddEx_WithoutOutput( _T("; %s() : IfState[%u] = { %s }"), cszFuncName, IfState.size(), S.c_str() );
@@ -1621,24 +1635,24 @@ class CScriptEngine : public IScriptEngine
                     return IfState.size();
                 }
 
-                const eIfState GetIfState() const
+                const tIfState GetIfState() const
                 {
                     const int nSize = IfState.size();
-                    return ((nSize != 0) ? IfState[nSize - 1] : IF_NONE);
+                    return ((nSize != 0) ? IfState[nSize - 1] : tIfState{IF_NONE, NULL});
                 }
 
                 void SetIfState(eIfState ifState)
                 {
-                    IfState[IfState.size() - 1] = ifState;
+                    IfState[IfState.size() - 1].state = ifState;
 
                     logIfState( _T("SetIfState") );
                 }
 
-                void PushIfState(eIfState ifState)
+                void PushIfState(tIfState ifState)
                 {
-                    if ( GetIfState() == IF_MAYBE_ELSE )
+                    if ( GetIfState().state == IF_MAYBE_ELSE )
                     {
-                        SetIfState(IF_NONE); // remove IF_MAYBE_ELSE because of nested IF
+                        PopIfState(); // remove IF_MAYBE_ELSE because of nested IF
                     }
                     IfState.Append(ifState);
 
@@ -1657,7 +1671,6 @@ class CScriptEngine : public IScriptEngine
             // these 6 variables are needed to prevent infinite loops
             int nExecCounter;
             int nExecMaxCount;
-            int nGoToCounter;
             int nGoToMaxCount;
             int nExecTextCounter;
             int nExecTextMaxCount;
@@ -1713,6 +1726,13 @@ class CScriptEngine : public IScriptEngine
             fFailIfEmptyParam = 0x10
         };
 
+        enum eIfMode {
+            EMPTY_GOTO = -1,
+            IF_GOTO = 0,
+            IF_THEN = 1,
+            IF_ASSUMING_THEN = 2
+        };
+
         static CScriptCommandRegistry m_CommandRegistry; // one and only, for all script engines
 
         std::shared_ptr<CScriptEngine> m_pParentScriptEngine;
@@ -1741,6 +1761,7 @@ class CScriptEngine : public IScriptEngine
         void updateFocus();
 
         static void getLabelName(tstr& labelName);
+        static eIfMode getIfMode(const tstr& params, int& n);
 
         eCmdResult doSendMsg(const tstr& params, int cmdType);
         eCmdResult doSciFindReplace(const tstr& params, eCmdType cmdType);

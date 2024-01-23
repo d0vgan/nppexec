@@ -10,7 +10,7 @@ li {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-p {
+p, label {
   font-family: Arial, Helvetica, sans-serif;
 }
 
@@ -19,5 +19,64 @@ td {
 }
 
 pre {
+  font-family: "Courier New", Courier, mono;
+}
+
+button#goto-doc {
+  margin-left: 0.25rem;
+}
+
+@media screen and (max-width:350px) {
+  html, blockquote {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  pre, code {
+    white-space: pre-wrap;
+  }
+
+  a, a:active, a:focus, a:visited {
+    text-decoration: none;
+  }
+
+  input, button, button#goto-doc {
+    display: block;
+    margin: 0.5rem 0;
+    padding: 0.25rem;
+    width: 100%;
+  }
+
+  select {
+    padding: 0.5rem 0;
+  }
+
+  button {
+    border-radius: 15px;
+  }
+
+  blockquote, ol, ul, li {
+    margin: 0;
+    padding: 0;
+  }
+
+  ol, ul, li, p {
+    font-size: smaller;
+  }
+
+  ol, ul {
+    list-style: none;
+  }
+
+  li {
+    padding: 0.125rem 0;
+  }
+
+  td {
+    white-space: nowrap;
+  }
+}
+
+code {
   font-family: "Courier New", Courier, mono;
 }

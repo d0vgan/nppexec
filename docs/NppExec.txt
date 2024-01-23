@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.8.6 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - August 2023
+ * NppExec plugin ver. 0.8.7 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - September 2023
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
@@ -223,9 +223,11 @@
  *  HISTORY  *
  *************
 
- v0.8.7
- ------
+ v0.8.7 - September 2023
+ -----------------------
  * Glory to Ukraine! Glory to the heroes!
+ - fixed: nested IF...GOTO sometimes did not work as expected
+ * changed: now "GoTo_MaxCount" is per-label rather than per-script
  + added: "npe_cmdalias local ..." for local command aliases, similarly to
    local variables
  + added: now npe_queue supports command aliases
@@ -234,8 +236,13 @@
  + other internal optimizations (such as "noexcept" move-constructors for
    CStrT, CBufT and CListT to satisfy STL's strong exception guarantee -
    thus e.g. std::vector performs moves on reallocations)
+ + added: now double-click in the popup list of the Execute dialog is handled
+   in the same way as Enter (it picks up the word from the popup list)
  + NppExec Manual updated
- + web-version of the NppExec Manual (thanks to Joseph Samuel and others)
+ + web-version of the NppExec Manual (thanks to Joseph Samuel, rdipardo
+   and others) : https://d0vgan.github.io/nppexec/
+   (the HTML content is searchable due to amazing enhancements by rdipardo)
+ * npp_files updated to Notepad++ 8.5.6
 
 
  v0.8.6 - August 2023
@@ -594,18 +601,10 @@
 
  TODO:
 
- - update the NppExec Manual (currently it's incomplete, see below)
-
- - NppExec Manual - add info about opening files ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/ )
-   - add info about @exit_cmd ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/da49de3c/
-                                https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/
-                              )
-   - add info about NppExec Console colours ( https://sourceforge.net/p/npp-plugins/discussion/672146/thread/c2179f6d/ )
-   - other interesting info:
-     https://sourceforge.net/p/npp-plugins/discussion/672146/thread/b50394f7/
-     https://github.com/d0vgan/nppexec/issues/4
+ - update the NppExec Manual:
+   - interesting info:
      https://notepad-plus-plus.org/community/topic/15804/macro-delete-lines-that-contains-text-in-clipboard
-   - FAQ section?
+     https://github.com/dinkumoil/ScriptCollection/tree/master/NppExec%20Scripts
 
  - callback scripts? (though, we already have NppEventExec)
 

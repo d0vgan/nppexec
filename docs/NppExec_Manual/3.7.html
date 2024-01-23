@@ -4,6 +4,7 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>3.7. NppExec's script</title>
+<script src="show_matches.js" type="text/javascript"></script>
 </HEAD>
 <BODY>
 <h3>3.7. NppExec's script</h3>
@@ -37,14 +38,137 @@ NPP_EXEC &quot;$(FULL_CURRENT_PATH)&quot;  // ...and execute it</pre>
   <pre>NPP_EXEC &quot;$(FULL_CURRENT_PATH)&quot;</pre>
 </blockquote>
 <p>in NppExec's Console once, then use the Arrow Up key to repeat this command. However, be sure to save current file (with Ctrl+S) before executing it.</p>
-<p>To create a menu item for NppExec's script, use NppExec's Advanced Options dialog. Then a shortcut key can be assigned to it:
+<p>To create a menu item for NppExec's script, use NppExec's Advanced Options dialog. Then a shortcut key can be assigned to it:</p>
 <ol>
   <li>Create a menu item for the script using Plugins -&gt; NppExec -&gt; Advanced options (select a script in the &quot;Associated script&quot; drop-down list, specify its menu item name - by default it's the same as the script name - and press the &quot;Add/Modify&quot; button).</li>
   <li>Restart Notepad++ to get this new menu item.</li>
   <li>Assign a shortcut key to this new menu item using Notepad++'es Settings -&gt; Shortcut Mapper -&gt; Plugin commands (you'll find the menu item there).</li>
 </ol>
-</p>
 <p>NppExec stores your scripts in Notepad++'es &quot;$(PLUGINS_CONFIG_DIR)&quot; folder. The &quot;npes_saved.txt&quot; file stores all the scripts except the temporary one which is stored inside &quot;npes_temp.txt&quot;.</p>
+
+<p><b>NppExec's script syntax. General notes:</b></p>
+<ul>
+  <li>Commands are case-insensitive. Thus, <code>npp_open</code> is the same as <code>NPP_OPEN</code>, <code>Npp_Open</code> and so on.</li>
+  <li>Use <code>help &lt;command&gt;</code> to get detailed help <a href="3.1.html">[3.1]</a> on any NppExec's &lt;command&gt;. For example: <code>help npp_open</code>, <code>help set</code>, <code>help sci_sendmsg</code> and so on.</li>
+  <li>Use spaces to separate parameters of NppExec's command. Do not use neither brackets nor commas:<blockquote>
+  <pre>sci_sendmsg SCI_SETTEXT 0 &quot;some text&quot;
+set local pos ~ strfind &quot;Hello world&quot; Hello</pre></blockquote>
+  </li>
+  <li>Use &quot; &quot;, ` ` and ' ' around parameters that contain spaces or other quote characters <a href="3.8.5.html">[3.8.5]</a> :<blockquote>
+  <pre>sci_sendmsg SCI_SETTEXT 0 `&quot;some text in quotes&quot;`
+inputbox 'Hello World!'
+set local pos ~ strfind &quot;Hello's world&quot; `Hello's`
+set local len ~ strlen &quot;  34' 78  &quot;  // returns 12, including &quot;&quot;
+set local len ~ $(len) - 2           // 10, without the &quot;&quot;
+cd C:\Program Files (x86)  // cd accepts a parameter without quotes</pre></blockquote>
+Note: when a command expects several parameters, it extracts the parameters' values by removing the surrounding quotes (there are rare exceptions, though, such as <i>substr</i> that preserves the surrounding quotes). If a command expects just one parameter, the surrounding quotes may or may not be removed, depending on the command. Refer to the built-in help by typing e.g. &quot;help sci_sendmsg&quot;, &quot;help inputbox&quot;, &quot;help set&quot;, &quot;help cd&quot; etc. for actual examples.
+  <blockquote><pre></pre></blockquote>
+  </li>
+  <li>Use $(var) to get the value of an internal variable named &quot;var&quot; <a href="3.8.2.html">[3.8.2]</a> . Don't forget to use the form of $(var) in mathematical expressions <a href="3.8.4.html">[3.8.4]</a> as well:<blockquote>
+  <pre>set local x = 10        // assigns 10 to a variable 'x'
+set local x ~ $(x) + 1  // accesses the previous value of 'x' and adds 1</pre></blockquote>
+  </li>
+  <li>Use $(sys.var) to get the value of an environment variable &quot;var&quot; <a href="3.8.3.html">[3.8.3]</a> . NppExec does not understand such form as %var%:<blockquote>
+  <pre>echo $(SYS.PATH)  // prints the value of %PATH%
+env_set PATH = $(SYS.PATH);C:\tools  // updates the value of %PATH%</pre></blockquote>
+  </li>
+  <li>Use <code> cmd /C </code> to explicitly invoke the system's command interpreter (cmd.exe) when needed <a href="4.4.html">[4.4]</a> . For example:<blockquote>
+  <pre>cmd /C echo %PATH%
+cmd /C time /t &gt;time.txt &amp;&amp; type time.txt
+cmd /C taskkill /? | findstr /ic:pid</pre></blockquote>
+  </li>
+  <li>Use different forms of IF-GOTO when needed:<blockquote>
+  <pre>// Simple IF-GOTO
+if $(x) == 1 goto 1
+if $(x) == 2 goto 2
+echo x is neither 1 nor 2
+goto end
+:1
+echo x is 1
+goto end
+:2
+echo x is 2
+goto end
+:end
+
+// IF-GOTO-ELSE
+if $(x) == 1 goto 1
+else if $(x) == 2 goto 2
+else
+  echo x is neither 1 nor 2
+  goto end
+endif
+:1
+echo x is 1
+goto end
+:2
+echo x is 2
+goto end
+:end
+
+// IF-GOTO Loop
+set local N = 10
+set local x = 1
+:1
+echo $(x)
+set local x ~ $(x) + 1
+if $(x) &lt;= $(N) goto 1</pre></blockquote>
+  </li>
+  <li>Use different forms of IF-THEN when needed:<blockquote>
+  <pre>// Simple IF-THEN
+if $(x) == 1 then
+  echo x is 1
+endif
+if $(x) == 2 then
+  echo x is 2
+endif
+echo x is neither 1 nor 2
+
+// IF-THEN-ELSE
+if $(x) == 1 then
+  echo x is 1
+else if $(x) == 2 then
+  echo x is 2
+else
+  echo x is neither 1 nor 2
+endif
+
+// Nested IF-THEN-ELSE
+if $(x) == 1 then
+  echo x is 1
+else
+  if $(x) == 2 then
+    echo x is 2
+  else
+    echo x is neither 1 nor 2
+  endif
+endif
+
+// IF-THEN-GOTO Loop
+set local N = 10
+set local x = 1
+:1
+if $(x) &lt;= $(N) then
+  echo $(x)
+  set local x ~ $(x) + 1
+  goto 1
+endif</pre></blockquote>
+  </li>
+  <li>Use IF~ to calculate mathematical expressions during the comparison:<blockquote>
+  <pre>set local x = 8
+set local y = 14
+if~ $(x) + 2 == $(y) - 4 then
+  echo left == right
+else
+  echo left != right
+endif</pre></blockquote>
+  </li>
+</ul>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
 <p>See also: &quot;Execute NppExec Script...&quot; <a href="3.6.html">[3.6]</a>; Run-time parameters <a href="4.3.html">[4.3]</a>.</p>
 <P>&nbsp;</P>
 </BODY>

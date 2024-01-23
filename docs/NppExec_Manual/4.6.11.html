@@ -4,6 +4,7 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>4.6.11. Clone current document to new editor pane</title>
+<script src="show_matches.js" type="text/javascript"></script>
 </HEAD>
 <BODY>
 <h3>4.6.11. Clone current document to new editor pane</h3>
@@ -18,12 +19,12 @@
 </ol>
 <p>As Notepad++ uses Scintilla component to handle the text and all the text operations, let's deal directly with Scintilla to implement all of the above. Let's refer to Scintilla's documentation to get an idea of how to do it:</p>
 <ul>
-  <li>https://www.scintilla.org/ScintillaDoc.html#SelectionAndInformation</li>
-  <li>https://www.scintilla.org/ScintillaDoc.html#CutCopyAndPaste</li>
+  <li><code>https://www.scintilla.org/ScintillaDoc.html#SelectionAndInformation</code></li>
+  <li><code>https://www.scintilla.org/ScintillaDoc.html#CutCopyAndPaste</code></li>
 </ul>
 <p>Looking at the documentation, we may end up with the following NppExec script:</p>
 <blockquote>
-  <pre>// saving the caret pos & anchor
+  <pre>// saving the caret pos &amp; anchor
 sci_sendmsg SCI_GETCURRENTPOS
 set local pos = $(MSG_RESULT)
 sci_sendmsg SCI_GETANCHOR
@@ -35,7 +36,7 @@ sci_sendmsg SCI_SELECTALL
 // copying the selection to the clipboard
 sci_sendmsg SCI_COPY
 
-// restoring the caret pos & anchor
+// restoring the caret pos &amp; anchor
 sci_sendmsg SCI_SETSEL $(anchor) $(pos)
 
 // open new editor pane
@@ -73,13 +74,13 @@ sci_sendmsg SCI_PASTE</pre>
 npp_sendmsg NPPM_GETCURRENTBUFFERID
 set local originalBufferId = $(MSG_RESULT)
 
-// getting the current buffer encoding & lang type
+// getting the current buffer encoding &amp; lang type
 npp_sendmsg NPPM_GETBUFFERENCODING $(originalBufferId)
 set local bufEnc = $(MSG_RESULT)
 npp_sendmsg NPPM_GETBUFFERLANGTYPE $(originalBufferId)
 set local bufLangType = $(MSG_RESULT)
 
-// getting the caret pos & anchor
+// getting the caret pos &amp; anchor
 sci_sendmsg SCI_GETCURRENTPOS
 set local pos = $(MSG_RESULT)
 sci_sendmsg SCI_GETANCHOR
@@ -101,14 +102,14 @@ NPP_SENDMSG WM_COMMAND IDM_FILE_NEW
 npp_sendmsg NPPM_GETCURRENTBUFFERID
 set local newBufferId = $(MSG_RESULT)
 
-// setting the new buffer encoding & lang type
+// setting the new buffer encoding &amp; lang type
 npp_sendmsg NPPM_SETBUFFERENCODING $(newBufferId) $(bufEnc)
 npp_sendmsg NPPM_SETBUFFERLANGTYPE $(newBufferId) $(bufLangType)
 
 // pasting the text from the clipboard
 sci_sendmsg SCI_PASTE
 
-// setting the caret pos & anchor
+// setting the caret pos &amp; anchor
 sci_sendmsg SCI_SETSEL $(anchor) $(pos)
 sci_sendmsg SCI_SETFIRSTVISIBLELINE $(firstvisibleline)</pre>
 </blockquote>

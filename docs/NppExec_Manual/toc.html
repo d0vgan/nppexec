@@ -4,9 +4,27 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>NppExec Manual: Index</title>
+<!-- DO NOT change the script loading order! -->
+<script src="../topics.js" type="text/javascript"></script>
+<script src="../search.js" type="text/javascript"></script>
 </HEAD>
 <BODY>
 <h3>NppExec Manual: Index</h3>
+<div>
+  <div id="topic-search" style="display:none">
+    <label for="topic-search-box">Search for:</label>
+    <input id="topic-search-box" type="text" placeholder="Enter a topic keyword">
+    <button id="goto-doc" type="button">Go</button>
+    <p id="search-results" style="display:none">
+      <select id="matching-topics" style="max-width:100%;min-width:85%">
+        <optgroup id="topic-headings" label="Select a topic to view">
+          <option><!-- matching topics will appear here--></option>
+        </optgroup>
+      </select>
+    </p>
+  </div>
+  <p><button id="toggle-search-input">Search Topics</button></p>
+</div>
 <P><a target="content" href="0. Title Page.html">Title Page</a></P>
 <P>1. What is NppExec</P>
 <ul>
@@ -31,7 +49,7 @@
   <li><a target="content" href="3.5.html">3.5. NppExec's Console</a></li>
   <li><a target="content" href="3.6.html">3.6. Execute NppExec Script...</a></li>
   <li><a target="content" href="3.7.html">3.7. NppExec's script</a></li>
-  <li>3.8. Environment variables</li>
+  <li>3.8. Environment variables
   <ul>
     <li><a target="content" href="3.8.1.html">3.8.1. Predefined (read-only) variables</a></li>
     <li><a target="content" href="3.8.2.html">3.8.2. User (internal) variables</a></li>
@@ -39,6 +57,7 @@
     <li><a target="content" href="3.8.4.html">3.8.4. Calculations, strlen and so on</a></li>
     <li><a target="content" href="3.8.5.html">3.8.5. Passing enquoted strings and special characters</a></li>
   </ul>
+  </li>
 </ul>
 <P>4. Advanced Usage</P>
 <ul>
@@ -48,13 +67,13 @@
   <li><a target="content" href="4.3.html">4.3. Run-time parameters</a></li>
   <li><a target="content" href="4.4.html">4.4. Using cmd.exe</a></li>
   <li><a target="content" href="4.5.html">4.5. Console output redirection</a></li>
-  <li>4.6. Using external tools</li>
+  <li>4.6. Using external tools
   <ul>
     <li><a target="content" href="4.6.1.html">4.6.1. Applying external tool to selected text</a></li>
     <li><a target="content" href="4.6.2.html">4.6.2. Calculating</a></li>
-    <li><a target="content" href="4.6.3.html">4.6.3. Processing & replacing the selection</a></li>
-    <li><a target="content" href="4.6.4.html">4.6.4. Running Python & wxPython</a></li>
-    <li><a target="content" href="4.6.5.html">4.6.5. Grab date & time to NppExec variable</a></li>
+    <li><a target="content" href="4.6.3.html">4.6.3. Processing &amp; replacing the selection</a></li>
+    <li><a target="content" href="4.6.4.html">4.6.4. Running Python &amp; wxPython</a></li>
+    <li><a target="content" href="4.6.5.html">4.6.5. Grab date &amp; time to NppExec variable</a></li>
     <li><a target="content" href="4.6.6.html">4.6.6. Grab Console output to new editor pane</a></li>
     <li><a target="content" href="4.6.7.html">4.6.7. Run and terminate PowerShell process</a></li>
     <li><a target="content" href="4.6.8.html">4.6.8. Clipboard, keystrokes and much more</a></li>
@@ -65,23 +84,29 @@
     <li><a target="content" href="4.6.13.html">4.6.13. Working with the Notepad++ 'Replace' dialog</a></li>
     <li><a target="content" href="4.6.14.html">4.6.14. Notepad++ as a Clipboard Monitor</a></li>
     <li><a target="content" href="4.6.15.html">4.6.15. Triggering certain actions while saving a file</a></li>
+    <li><a target="content" href="4.6.16.html">4.6.16. Open a file basing on the text selected in the editor</a></li>
+    <li><a target="content" href="4.6.17.html">4.6.17. Modify selected text and save to file</a></li>
   </ul>
-  <li>4.7. Compiling</li>
+  </li>
+  <li>4.7. Compiling
   <ul>
     <li><a target="content" href="4.7.1.html">4.7.1. Compiling simple C and Pas-programs</a></li>
     <li><a target="content" href="4.7.2.html">4.7.2. Compiling Java</a></li>
     <li><a target="content" href="4.7.3.html">4.7.3. Using Visual Studio's compiler (cl.exe)</a></li>
     <li><a target="content" href="4.7.4.html">4.7.4. Compiling ANY source file</a></li>
   </ul>
-  <li>4.8. Advanced details</li>
+  </li>
+  <li>4.8. Advanced details
   <ul>
     <li><a target="content" href="4.8.1.html">4.8.1. Logging</a></li>
     <li><a target="content" href="4.8.2.html">4.8.2. Collateral scripts</a></li>
     <li><a target="content" href="4.8.3.html">4.8.3. Console child process workflow</a></li>
   </ul>
+  </li>
 </ul>
 <P>5. Other</P>
 <ul>
+  <li><a target="content" href="FAQ.html">FAQ</a></li>
   <li><a target="content" href="About.html">About</a></li>
   <li><a target="content" href="Questions_suggestions.html">Questions/suggestions?</a></li>
   <li><a target="content" href="Acknowledgment.html">Acknowledgments</a></li>

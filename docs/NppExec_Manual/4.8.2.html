@@ -4,6 +4,7 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>4.8.2. Collateral scripts</title>
+<script src="show_matches.js" type="text/javascript"></script>
 </HEAD>
 <BODY>
 <h3>4.8.2. Collateral scripts</h3>
@@ -69,10 +70,10 @@ int main()
 <p>The comment about a possible buffering inside a pipe relates to NppExec - because NppExec uses pipes to redirect the console process'es output and input. As I stated before, and I am still stating now, this &quot;feature&quot; of buffering in pipes is not something infused by or incorrectly handled by NppExec - it is a core &quot;feature&quot; of pipes as they were implemented by Microsoft. This is known for years - and still it has not been fixed. So do use fflush() whenever a program is expected to be run without a real console window (e.g. when it is run in NppExec).</p>
 <p>Surely you need either Python or a C compiler installed on you machine to proceed. Or just create a similar program using any other language you prefer.</p>
 <p>In case of Python, please be sure that the path to python.exe has been added to the PATH environment variable. In case of C, please ensure the path to a C compiler (such as Tiny C Compiler or GCC) has been added to the PATH environment variable. If you are not sure how to deal with the PATH environment variable, please search internet for this and ensure you do understand it prior to any further reading of this article. Here are a few links related to %PATH%, just in case:</p>
-<blockquote>
-  <pre>https://en.wikipedia.org/wiki/PATH_(variable)
-https://ss64.com/nt/path.html</pre>
-</blockquote>
+<ul>
+  <li><code>https://en.wikipedia.org/wiki/PATH_(variable)</code></li>
+  <li><code>https://ss64.com/nt/path.html</code></li>
+</ul>
 <p>Also, be sure to check &quot;Follow $(CURRENT_DIRECTORY)&quot; in NppExec: select &quot;Plugins&quot; in Notepad++'s main menu, then &quot;NppExec&quot;, then check &quot;Follow $(CURRENT_DIRECTORY)&quot;.</p>
 
 <p>Now, in case of Python, type:</p>
@@ -89,7 +90,7 @@ https://ss64.com/nt/path.html</pre>
 
 <p>In case of GCC, type:</p>
 <blockquote>
-  <pre>nppexec:cmd /c gcc &quot;$(FILE_NAME)&quot; -o &quot;$(NAME_PART).exe&quot; && &quot;$(NAME_PART).exe&quot;</pre>
+  <pre>nppexec:cmd /c gcc &quot;$(FILE_NAME)&quot; -o &quot;$(NAME_PART).exe&quot; &amp;&amp; &quot;$(NAME_PART).exe&quot;</pre>
 </blockquote>
 
 <p>And again, I assumed the C program has been saved into a file, e.g. &quot;test.c&quot;, and this file is currently opened in Notepad++.</p>

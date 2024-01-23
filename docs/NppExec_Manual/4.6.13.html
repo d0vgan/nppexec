@@ -4,13 +4,14 @@
 <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
 <link href="style.css" rel="stylesheet" type="text/css">
 <title>4.6.13. Working with the Notepad++ 'Replace' dialog</title>
+<script src="show_matches.js" type="text/javascript"></script>
 </HEAD>
 <BODY>
 <h3>4.6.13. Working with the Notepad++ 'Replace' dialog</h3>
 
 <p>Let's imagine you want to invoke the Notepad++ 'Replace' dialog, populate its 'Find what' and 'Replace with' fields with specific strings, check or uncheck the search-related checkboxes, and finally press the 'Find Next' button. And you want to do all of this programmatically.</p>
-<p>The first tools that come to my mind to do such things are AutoIt (https://www.autoitscript.com/) and AutoHotKey (https://www.autohotkey.com/).</p>
-<p>But let's consider something simpler. For example, NirCmd from NirSoft (https://www.nirsoft.net/).</p>
+<p>The first tools that come to my mind to do such things are AutoIt ( <code>https://www.autoitscript.com/</code> ) and AutoHotKey ( <code>https://www.autohotkey.com/</code> ).</p>
+<p>But let's consider something simpler. For example, NirCmd from NirSoft ( <code>https://www.nirsoft.net/</code> ).</p>
 <p>First, let's create the following NppExec script:</p>
 
 <blockquote>
@@ -44,7 +45,7 @@ win child title &quot;Replace&quot; sendmsg id 1 0x00F5 0 0</pre>
 
 <p>This file uses a hard-coded string &quot;Replace&quot; as the title of the Notepad++ 'Replace' dialog. If you are using a non-English localization, you will need to replace the word &quot;Replace&quot; with the localization-dependent title (such as &quot;Remplacer&quot; for French).</p>
 <p>Also, this file uses several magic numbers such as 1601 and 1602, 0x00F1 and 0x00F5, 0x0000 and 0x0001. Let me explain what they mean.</p>
-<p>To deal with controls (elements) of a dialog, we need to know the corresponding control identifiers (control IDs). Here is what we can see inside the Notepad++ source file https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/ScintillaComponent/FindReplaceDlg_rc.h :</p>
+<p>To deal with controls (elements) of a dialog, we need to know the corresponding control identifiers (control IDs). Here is what we can see inside the Notepad++ source file <code>https://github.com/notepad-plus-plus/notepad-plus-plus/blob/master/PowerEditor/src/ScintillaComponent/FindReplaceDlg_rc.h</code> :</p>
 <blockquote>
   <pre>#define	IDFINDWHAT						1601
 #define	IDREPLACEWITH					1602
@@ -53,16 +54,17 @@ win child title &quot;Replace&quot; sendmsg id 1 0x00F5 0 0</pre>
 #define IDREGEXP						1605
 #define	IDWRAP							1606</pre>
 </blockquote>
-<p>I believe this explains where the magic numbers of 1601, 1602, and so on, came from. These are the control IDs. Another way to get these IDs is to use a specific program such as Property Edit (https://mh-nexus.de/en/downloads.php?product=Property%20Edit).</p>
+<p>I believe this explains where the magic numbers of 1601, 1602, and so on, came from. These are the control IDs. Another way to get these IDs is to use a specific program such as Property Edit ( <code>https://mh-nexus.de/en/downloads.php?product=Property%20Edit</code> ).</p>
 <p>Now, knowing the control IDs, we want to send some specific messages to these controls. The BM_SETCHECK message is responsible for checking/unchecking a checkbox control; the BM_CLICK message is responsible for clicking a button. When we look inside a Windows header file, &quot;winuser.h&quot;, we can see that BM_SETCHECK is defined as 0x00F1 and BM_CLICK is defined as 0x00F5.</p>
-<p>Finally, the values of 0x0000 and 0x0001 in this context are parameters of the BM_SETCHECK (0x00F1) message. Their meanings with respect to the BM_SETCHECK message are: 0x0000 is BST_UNCHECKED and 0x0001 is BST_CHECKED. So, &quot;0x00F1 0x0001 0&quot; checks a checkbox control, whereas &quot;0x00F1 0x0000 0&quot; unchecks it. You may read more here: https://docs.microsoft.com/windows/win32/controls/bm-setcheck</p>
+<p>Finally, the values of 0x0000 and 0x0001 in this context are parameters of the BM_SETCHECK (0x00F1) message. Their meanings with respect to the BM_SETCHECK message are: 0x0000 is BST_UNCHECKED and 0x0001 is BST_CHECKED. So, &quot;0x00F1 0x0001 0&quot; checks a checkbox control, whereas &quot;0x00F1 0x0000 0&quot; unchecks it. You may read more here: <code>https://docs.microsoft.com/windows/win32/controls/bm-setcheck</code></p>
+<p>Important note: as NppExec's scripts are executed in a separate thread, the script <em>continues its execution</em> when Notepad++'s dialog is shown. It allows to use NirCmd (as well as AutoHotKey or any other tool) to interact with the Notepad++'s dialog by pressing its buttons and so on. Correspondingly, it's also possible to close the dialog and then execute other commands from the same NppExec's script.</p>
 
 <blockquote>
   <pre> </pre>
 </blockquote>
 
 <p>Now, after warming up, let's create a similar AutoHotKey script.</p>
-<p>AutoHotKey provides more abilities and more control over what we are doing, so it is recommended. We will use AutoHotKey 2.0 (refer to https://www.autohotkey.com/docs/v2/v2-changes.htm for details).</p>
+<p>AutoHotKey provides more abilities and more control over what we are doing, so it is recommended. We will use AutoHotKey 2.0 (refer to <code>https://www.autohotkey.com/docs/v2/v2-changes.htm</code> for details).</p>
 <p>The new NppExec script to invoke AutoHotKey will be quite similar to the one that invokes NirCmd. We will additionally pass a handle to the Notepad++ main window as an input parameter to the .ahk script. This is to ensure that we will be dealing with the current Notepad++ window (as there may be other running instances of Notepad++):</p>
 
 <blockquote>

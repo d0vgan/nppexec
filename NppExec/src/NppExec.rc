@@ -47,24 +47,12 @@ STYLE DS_SETFONT | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU |
 CAPTION "Console"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
+#if USE_MSFTEDIT
+    CONTROL         "",IDC_RE_CONSOLE,MSFTEDIT_CLASS,ES_MULTILINE | ES_AUTOVSCROLL |
+#else
     CONTROL         "",IDC_RE_CONSOLE,RICHEDIT_CLASS,ES_MULTILINE | ES_AUTOVSCROLL |
+#endif
                     ES_AUTOHSCROLL | ES_WANTRETURN | ES_SAVESEL | ES_NOHIDESEL |
-//
-// Note:
-//  unminded VC++ 2003 transforms these two lines:
-//
-// CONTROL          "",IDC_RE_CONSOLE,"RICHEDIT",ES_MULTILINE | ES_AUTOVSCROLL |
-//                  ES_AUTOHSCROLL | ES_NOHIDESEL | ES_WANTRETURN |
-//
-//  to the following shit:
-//
-// CONTROL          "",IDC_RE_CONSOLE,"RICHEDIT",TCS_HOTTRACK | TCS_VERTICAL |
-//                  TCS_BUTTONS | TCS_FOCUSONBUTTONDOWN | TCS_MULTISELECT |
-//
-// 22 Nov 2007
-//  The control's style has been changed:  
-//   +ES_SAVESEL
-//
                     WS_HSCROLL | WS_VSCROLL | WS_BORDER | WS_TABSTOP,0,0,486,86
     CONTROL         "", IDC_ED_FIND, "Edit", WS_CHILD | WS_TABSTOP | ES_AUTOHSCROLL, 
                     20,88,146,12, WS_EX_CLIENTEDGE
@@ -153,12 +141,12 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,95,262,50,14
 //    PUSHBUTTON      "Donate...",IDC_BT_DONATE,180,262,50,14
 #ifdef UNICODE
-    CTEXT           "NppExec ver. 0.8.6 Unicode for Notepad++",
+    CTEXT           "NppExec ver. 0.8.7 for Notepad++",
 #else
-    CTEXT           "NppExec ver. 0.8.6 ANSI for Notepad++",
+    CTEXT           "NppExec ver. 0.8.7 ANSI for Notepad++",
 #endif
                     IDC_STATIC,7,7,225,13
-                    CTEXT           "(C)  Dec 2006 - Aug 2023,  Vitaliy Dovgan aka DV <dvv81 @ ukr.net>",
+                    CTEXT           "(C)  Dec 2006 - Sep 2023,  Vitaliy Dovgan aka DV <dvv81 @ ukr.net>",
                     IDC_STATIC,5,22,229,33
     LTEXT           "",IDC_ED_INFO,7,98,225,134,0,WS_EX_STATICEDGE
     CTEXT           "Thanks to:\r\nDon HO for Notepad++,\r\nJens Lorenz for the docking feature,\r\nJuha Nieminen and Joel Yliluoma for Function Parser\r\nand myself for this plugin :-)",
@@ -497,8 +485,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0, 8, 6, 0
- PRODUCTVERSION 0, 8, 6, 0
+ FILEVERSION 0, 8, 7, 0
+ PRODUCTVERSION 0, 8, 7, 0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -516,12 +504,12 @@ BEGIN
             VALUE "Comments", "The wall is thin - and our foreheads are hard :-)"
             VALUE "CompanyName", "Full of Madness Co."
             VALUE "FileDescription", "NppExec plugin for Notepad++"
-            VALUE "FileVersion", "0, 8, 6, 0"
+            VALUE "FileVersion", "0, 8, 7, 0"
             VALUE "InternalName", "NppExec"
-            VALUE "LegalCopyright", "(C) Dec 2006 - Aug 2023, Vitaliy Dovgan aka DV"
+            VALUE "LegalCopyright", "(C) Dec 2006 - Sep 2023, Vitaliy Dovgan aka DV"
             VALUE "OriginalFilename", "NppExec.dll"
             VALUE "ProductName", "NppExec plugin for Notepad++"
-            VALUE "ProductVersion", "0, 8, 6, 0"
+            VALUE "ProductVersion", "0, 8, 7, 0"
         END
     END
     BLOCK "VarFileInfo"

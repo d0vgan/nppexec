@@ -53,6 +53,22 @@ WNDPROC  OriginalEditProc;
 LRESULT  CALLBACK edScriptWindowProc(HWND, UINT, WPARAM, LPARAM);
 
 
+static void pickupWordFromPopupList()
+{
+  int i = DoExecDlg.m_lbPopupList.GetCurSel();
+  if (i >= 0)
+  {
+    TCHAR str[200];
+    DoExecDlg.m_lbPopupList.GetString(i, str);
+    DoExecDlg.m_lbPopupList.ShowWindow(SW_HIDE);
+    DoExecDlg.m_edScript.SetSel(DoExecDlg.m_nCurrentWordStart,
+      DoExecDlg.m_nCurrentWordEnd);
+    DoExecDlg.m_edScript.ReplaceSelText(str);
+    DoExecDlg.m_edScript.Redraw();
+    DoExecDlg.m_edScript.SetFocus();
+  }
+}
+
 INT_PTR CALLBACK DoExecDlgProc(
   HWND   hDlg, 
   UINT   uMessage, 
@@ -84,18 +100,7 @@ INT_PTR CALLBACK DoExecDlgProc(
         }
         else
         {
-          int i = DoExecDlg.m_lbPopupList.GetCurSel();
-          if (i >= 0)
-          {
-            TCHAR str[200];
-            DoExecDlg.m_lbPopupList.GetString(i, str);
-            DoExecDlg.m_lbPopupList.ShowWindow(SW_HIDE);
-            DoExecDlg.m_edScript.SetSel(DoExecDlg.m_nCurrentWordStart,
-              DoExecDlg.m_nCurrentWordEnd);
-            DoExecDlg.m_edScript.ReplaceSelText(str);
-            DoExecDlg.m_edScript.Redraw();
-            DoExecDlg.m_edScript.SetFocus();
-          }
+          pickupWordFromPopupList();
         }
         return 1;
       }
@@ -115,31 +120,30 @@ INT_PTR CALLBACK DoExecDlgProc(
         }
         return 1;
       }
-      default:
-        break;
-    }
-    switch (HIWORD(wParam))
-    {
-      case CBN_SELCHANGE:
+      case IDC_CB_SCRIPT:
       {
-        DoExecDlg.OnCbnSelChange();
-        return 1;
+        if (HIWORD(wParam) == CBN_SELCHANGE)
+        {
+          DoExecDlg.OnCbnSelChange();
+          return 1;
+        }
+        break;
       }
       default:
         break;
     }
   }
-      
+
   else if (uMessage == WM_SIZING)
   {
     DoExecDlg.OnSizing( (RECT *) lParam );
   }
-  
+
   else if (uMessage == WM_SIZE)
   {
     DoExecDlg.OnSize();
   }
-  
+
   else if (uMessage == WM_NOTIFY)
   {
     
@@ -409,7 +413,7 @@ void CDoExecDlg::OnInitDialog(HWND hDlg)
   m_btOK.m_hWnd = ::GetDlgItem(hDlg, IDOK);
   m_btSave.m_hWnd = ::GetDlgItem(hDlg, IDSAVE);
   m_btCancel.m_hWnd = ::GetDlgItem(hDlg, IDCANCEL);
-  m_lbPopupList.Create(m_edScript.m_hWnd); 
+  m_lbPopupList.Create(m_edScript.m_hWnd);
 
 // get rid of the "conversion from 'LONG_PTR' to 'LONG'" shit
 // get rid of the "conversion from 'LONG' to 'WNDPROC'" shit
@@ -924,6 +928,18 @@ LRESULT CALLBACK edScriptWindowProc(
   else if (uMessage == WM_CTLCOLORLISTBOX)
   {
     return DoExecDlg.OnCtlColorListBox(wParam, lParam);
+  }
+
+  else if (uMessage == WM_COMMAND)
+  {
+    if (HIWORD(wParam) == LBN_DBLCLK)
+    {
+      if (DoExecDlg.m_lbPopupList.IsWindowVisible())
+      {
+        pickupWordFromPopupList();
+        return 1;
+      }
+    }
   }
 
   return CallWindowProc(OriginalEditProc, hEd, uMessage, wParam, lParam);
