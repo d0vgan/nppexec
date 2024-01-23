@@ -12,8 +12,8 @@
       var protocol = location.protocol;
       var hostname = location.hostname;
       var pathname = location.pathname;
-      var href     = location.href;
-      var newPath  = 'index-local.html';
+      var href     = location.href.replace(location.search, '');
+      var newPath  = 'index-local.html' + location.search;
       var redir    = href.replace(/\/index\.(php|x?html?)$/, '/'+newPath);
       if (protocol == 'file:') {
         location.replace(redir);
@@ -21,6 +21,16 @@
         redir = (pathname == '/') ? href + newPath : redir;
         location.replace(redir);
       }
+      window.addEventListener('DOMContentLoaded', function() {
+        try {
+          var query    = location.search || '';
+          var param    = 'q=';
+          var value    = query.slice(query.indexOf(param) + param.length);
+          if (value) {
+            parent.frames['content'].location.replace('NppExec_Manual/' + value + '.html');
+          }
+        } catch (e) { console.info(e); }
+      })
     </script>
   </HEAD>
   <FRAMESET cols="30%, 70%">

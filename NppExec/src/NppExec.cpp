@@ -2580,19 +2580,7 @@ char* CNppExec::convertSciText(char* pSciText, int nTextLen, int nSciCodePage, e
 
 int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView )
 {
-  if (bGetOpenFileNames)
-  {
-    if (nView == PRIMARY_VIEW || nView == SECOND_VIEW)
-    {
-      npp_nbFiles = nppGetOpenFileNamesInView(nView);
-    }
-    else
-      nppGetOpenFileNames();
-  }
-
-  tstr S;
   tstr S1 = NppExecHelpers::NormalizePath(fileName);
-
   int nFileLevel = 0;
   bool bFullPath = NppExecHelpers::IsFullPath(S1);
   if (!bFullPath)
@@ -2606,6 +2594,39 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGe
 
   NppExecHelpers::StrUpper(S1);
 
+  if (!bFullPath)
+  {
+    // checking the current (active) file first
+    tstr filePath;
+    filePath.Reserve(FILEPATH_BUFSIZE);
+    SendNppMsg(NPPM_GETFULLCURRENTPATH, (WPARAM) (filePath.GetMemSize() - 1), (LPARAM) filePath.data());
+    filePath.CalculateLength();
+    if (filePath.length() > S1.length())
+    {
+      filePath.Replace(_T('/'), _T('\\'));
+      if (filePath.GetAt(filePath.length() - S1.length() - 1) == _T('\\'))
+      {
+        NppExecHelpers::StrUpper(filePath);
+        if (filePath.EndsWith(S1))
+        {
+          S1 = filePath;
+          bFullPath = true;
+        }
+      }
+    }
+  }
+
+  if (bGetOpenFileNames)
+  {
+    if (nView == PRIMARY_VIEW || nView == SECOND_VIEW)
+    {
+      npp_nbFiles = nppGetOpenFileNamesInView(nView);
+    }
+    else
+      nppGetOpenFileNames();
+  }
+
+  tstr S;
   int iPartialMatch1 = -1;
   int iFind1 = -1;
   for (int i = 0; i < npp_nbFiles; ++i)

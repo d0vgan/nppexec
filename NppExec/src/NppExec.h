@@ -20,6 +20,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.8 - 2024
+ -------------
+ * Glory to Ukraine! Glory to the heroes!
+ - fixed: now findFileNameIndexInNppOpenFileNames checks the current (active)
+   file first (when, for example, a highlighted error message is double-clicked
+   in the Console and this error message contains a file name without a path)
+ + NppExec Manual updated
+ * npp_files updated to Notepad++ 8.6.2
+
+
  v0.8.7 - September 2023
  -----------------------
  * Glory to Ukraine! Glory to the heroes!
