@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.8 - 2024
- -------------
+ v0.8.8 - January 2024
+ ---------------------
  * Glory to Ukraine! Glory to the heroes!
  - fixed: now findFileNameIndexInNppOpenFileNames checks the current (active)
    file first (when, for example, a highlighted error message is double-clicked
@@ -792,8 +792,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F7
-#define NPPEXEC_VER_STR   _T("0.8.7")
+#define NPPEXEC_VER_DWORD 0x08F8
+#define NPPEXEC_VER_STR   _T("0.8.8")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

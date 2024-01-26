@@ -1,6 +1,6 @@
  ****************************************************************************
- * NppExec plugin ver. 0.8.7 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - September 2023
+ * NppExec plugin ver. 0.8.8 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - January 2024
  * https://github.com/d0vgan/nppexec
  ****************************************************************************
 
