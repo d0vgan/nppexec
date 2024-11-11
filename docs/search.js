@@ -86,7 +86,7 @@ window.onload = function() {
         });
         searchResults.style.display = 'block';
         /* Min visible size is 2 b/c the <optgroup> label is counted */
-        helpTopics.size = Math.max(foundTopics.length, 2);
+        helpTopics.size = Math.max(foundTopics.length + 1, 2);
         /* Make sure mobile <select> boxes are never blank */
         helpTopics.selectedIndex = 0;
         helpTopics.addEventListener('change', clickToView, { 'passive': false });
