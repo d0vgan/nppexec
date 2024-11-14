@@ -209,6 +209,10 @@
 				<param name="Name" value="4.6.17. Modify selected text and save to file">
 				<param name="Local" value="4.6.17.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.18. NppExec's Console as a Log Viewer">
+				<param name="Local" value="4.6.18.html">
+				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="4.7. Compiling">

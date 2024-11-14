@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.18. NppExec's Console as a Log Viewer</title>
+<script src="show_matches.js" type="text/javascript"></script>
+</HEAD>
+<BODY>
+<h3>4.6.18. NppExec's Console as a Log Viewer</h3>
+
+<p><em>[the idea was originally proposed by mischlrebl as &quot;show and reload file content periodically&quot; here: https://github.com/d0vgan/nppexec/issues/101]</em></p>
+
+<p>[ mischlrebl: ]</p>
+<blockquote>
+  <p>I am wondering if it is possible to watch and track a log file in the Console - like the &quot;Monitoring (tail -f)&quot; function in Notepad++?</p>
+  <p>It would be very handy to work with split screen on the files and to see the messages below.</p>
+</blockquote>
+
+<p>[ DV: ]</p>
+<blockquote>
+  <p>The closest built-in command in NppExec is <i>con_load</i>, though it loads an entire file into the Console window.</p>
+  <p>To achieve your goal, you may probably run some external log viewer/watcher implemented as a console application in NppExec's Console.</p>
+  <p>This version of <code>tail</code> works good in NppExec's Console: https://github.com/JavaScriptDude/cygtail </p>
+  <p>On the cygtail's project page, click the <code>&lt;&gt;Code</code> button and then click <code>Download ZIP</code> there.</p>
+  <p>After downloading and extracting the binaries, this command will do the job:</p>
+  <blockquote>
+    <pre>tail -f log.txt</pre>
+  </blockquote>
+</blockquote>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p>As I had never thought about NppExec in terms of log viewing, I asked mischlrebl for more details of this use-case. And here are the resulting images that speak for themselves:</p>
+
+<p> </p>
+
+<img src="images/4_6_18_Console_Highlight_Filters.png">
+
+<p> </p>
+
+<img src="images/4_6_18_NppExec_Console.png">
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p>See also: Clipboard, keystrokes and much more <a href="4.6.8.html">[4.6.8]</a>; Notepad++ as a Clipboard Monitor <a href="4.6.14.html">[4.6.14]</a>.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>
