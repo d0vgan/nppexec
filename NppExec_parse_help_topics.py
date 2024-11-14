@@ -28,7 +28,7 @@ class NppExecDocParser(HTMLParser):
         self.is_content = \
             re.match(r'h[1-6]', _tag) is not None or \
             _tag in ['b', 'blockquote', 'body', 'code', 'div', 'em', 'i',
-                     'li', 'ol', 'p', 'pre', 'span', 'strong', 'ul']
+                     'li', 'ol', 'p', 'pre', 'span', 'strong', 'ul', 'br']
 
     def handle_data(self, data: str):
         if self.is_doc_title:
