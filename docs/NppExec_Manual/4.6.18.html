@@ -21,11 +21,17 @@
 <blockquote>
   <p>The closest built-in command in NppExec is <i>con_load</i>, though it loads an entire file into the Console window.</p>
   <p>To achieve your goal, you may probably run some external log viewer/watcher implemented as a console application in NppExec's Console.</p>
-  <p>This version of <code>tail</code> works good in NppExec's Console: https://github.com/JavaScriptDude/cygtail <br>
+  <p>This version of <code>tail</code> works good in NppExec's Console: <code>https://github.com/JavaScriptDude/cygtail</code> <br>
   On the cygtail's project page, click the <code>&lt;&gt;Code</code> button and then click <code>Download ZIP</code> there.<br>
   After downloading and extracting the binaries, this command will do the job:</p>
   <blockquote>
     <pre>tail -f log.txt</pre>
+  </blockquote>
+  <p></p>
+  <p>BusyBox for Windows also works good in NppExec's Console: <code>https://frippery.org/busybox/</code> <br>
+  Once downloaded, this command will do the job:</p>
+  <blockquote>
+    <pre>busybox tail -f log.txt</pre>
   </blockquote>
 </blockquote>
 
