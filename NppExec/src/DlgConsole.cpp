@@ -632,6 +632,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  Loads a file\'s content to the Console") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  con_loadfrom c:\\temp\\output.txt") _T_RE_EOL \
+    _T("  con_loadfrom $(PLUGINS_CONFIG_DIR)\\npec_cmdhistory.txt") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  NppExec can read ANSI, UTF-8, UCS-2 LE and UCS-2 BE text files") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
