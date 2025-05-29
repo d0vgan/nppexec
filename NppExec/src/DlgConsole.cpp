@@ -513,6 +513,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  dir                 // list all subdirs and files in current directory") _T_RE_EOL \
     _T("  dir *               // the same") _T_RE_EOL \
     _T("  dir d:\\docs\\*.txt   // list all *.txt files in the folder d:\\docs") _T_RE_EOL \
+    _T("  dir $(PLUGINS_CONFIG_DIR)\\*.ini") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  cd, mask, npp_open") _T_RE_EOL
   },
