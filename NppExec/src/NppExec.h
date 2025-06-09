@@ -1625,7 +1625,7 @@ private:
   static void CALLBACK OnTimer_AutoSaveProc(HWND, UINT, UINT_PTR, DWORD);
   static DWORD WINAPI ExitScriptTimeoutThreadProc(LPVOID lpParam);
 
-  HWND    getCurrentScintilla(INT which);
+  HWND    getCurrentScintilla(INT which) const;
 
 public:
   typedef int (WINAPI *MSGBOXTIMEOUTFUNC)(HWND hWnd, LPCTSTR lpText, LPCTSTR lpCaption, UINT uType, WORD wLanguageId, DWORD dwMilliseconds);
@@ -1710,6 +1710,8 @@ public:
   int  nppGetMenuItemIdByName(const tstr& menuItemPathName, tstr& parsedPath, tstr& parsedSep);
   int  nppGetOpenFileNames();
   int  nppGetOpenFileNamesInView(int nView = PRIMARY_VIEW, int nFiles = -1);
+  tstr nppGetOpenFileName(int nDocPos, int nView = MAIN_VIEW) const;
+  tstr nppGetOpenFileNameImpl(tstr& fileName, int nDocPos, int nView) const;
   bool nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
   bool nppSaveAllFiles();
   /* bool nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders); */
@@ -1776,8 +1778,8 @@ public:
   };
   void SaveScripts(unsigned int nSaveFlags);
   
-  HWND GetScintillaHandle();
-  HMENU GetNppMainMenu();
+  HWND GetScintillaHandle() const;
+  HMENU GetNppMainMenu() const;
   void SetConsoleFont(HWND hEd, const LOGFONT* plf);
   void ShowError(LPCTSTR szMessage);
   void ShowWarning(LPCTSTR szMessage);
@@ -1828,7 +1830,7 @@ public:
   CNppExecCommandExecutor& GetCommandExecutor() { return m_CommandExecutor; }
   CNppExecPluginInterfaceImpl& GetPluginInterfaceImpl() { return m_PluginInterfaceImpl; }
 
-  LRESULT SendNppMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0); // to Notepad++
+  LRESULT SendNppMsg(UINT uMsg, WPARAM wParam = 0, LPARAM lParam = 0) const; // to Notepad++
 };
 
 namespace Runtime

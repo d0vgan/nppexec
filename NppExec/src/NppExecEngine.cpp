@@ -8630,23 +8630,22 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
 
       if (snum.length() > 0)
       {
-        const int MACRO_SIZE = 0x200;
-        TCHAR     szMacro[MACRO_SIZE];
-
         k = _ttoi(snum.c_str());
         if (k > 0) 
         {
           // #doc = 1..nbFiles
-          m_pNppExec->nppGetOpenFileNames();
-          if (k <= m_pNppExec->npp_nbFiles)
-          {
-            lstrcpy(szMacro, m_pNppExec->npp_bufFileNames[k-1]);
-            S.Insert(pos, szMacro);
-            pos += lstrlen(szMacro);
-          }
+          int currentEdit = 0;
+          m_pNppExec->SendNppMsg(NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&currentEdit);
+          int nView = currentEdit == 0 ? MAIN_VIEW : SUB_VIEW;
+          tstr fileName = m_pNppExec->nppGetOpenFileName(k - 1, nView);
+          S.Insert(pos, fileName);
+          pos += fileName.length();
         }
         else if (k == 0)
         {
+          const int MACRO_SIZE = 0x200;
+          TCHAR     szMacro[MACRO_SIZE];
+
           // #doc = 0 means notepad++ full path
           ::GetModuleFileName(NULL, szMacro, MACRO_SIZE-1);
           S.Insert(pos, szMacro);
@@ -8713,10 +8712,7 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            [](CNppExec* pNppExec)
            {
              int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, MAIN_VIEW, MAIN_VIEW);
-             if (pNppExec->nppGetOpenFileNamesInView(PRIMARY_VIEW, ind + 1) == ind + 1)
-               return tstr(pNppExec->npp_bufFileNames.GetAt(ind));
-             else
-               return tstr();
+             return pNppExec->nppGetOpenFileName(ind, MAIN_VIEW);
            }
          ) ||
          substituteMacroVar(
@@ -8725,10 +8721,7 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            [](CNppExec* pNppExec)
            {
              int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, SUB_VIEW, SUB_VIEW);
-             if (pNppExec->nppGetOpenFileNamesInView(SECOND_VIEW, ind + 1) == ind + 1)
-               return tstr(pNppExec->npp_bufFileNames.GetAt(ind));
-             else
-               return tstr();
+             return pNppExec->nppGetOpenFileName(ind, SUB_VIEW);
            }
          ) ||
          substituteMacroVar(

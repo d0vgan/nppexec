@@ -2152,7 +2152,7 @@ bool CNppExec::IsCmdListEmpty() const
     return m_ScriptCmdList.IsEmpty();
 }
 
-HWND CNppExec::getCurrentScintilla(INT which)
+HWND CNppExec::getCurrentScintilla(INT which) const
 {
   return ((which == 0) ? m_nppData._scintillaMainHandle : 
              m_nppData._scintillaSecondHandle);
@@ -3080,6 +3080,28 @@ int CNppExec::nppGetOpenFileNamesInView(int nView , int nFiles )
   SendNppMsg(uMsg, (WPARAM) npp_bufFileNames.GetData(), (LPARAM) nFiles);
 
   return nFiles;
+}
+
+tstr CNppExec::nppGetOpenFileName(int nDocPos, int nView /*= MAIN_VIEW*/) const
+{
+    tstr fileName;
+    return nppGetOpenFileNameImpl(fileName, nDocPos, nView);
+}
+
+tstr CNppExec::nppGetOpenFileNameImpl(tstr& fileName, int nDocPos, int nView) const
+{
+    fileName.Clear();
+    LRESULT bufId = SendNppMsg(NPPM_GETBUFFERIDFROMPOS, nDocPos, nView);
+    if (bufId != 0)
+    {
+        int nLen = (int) SendNppMsg(NPPM_GETFULLPATHFROMBUFFERID, bufId, 0);
+        if (fileName.Reserve(nLen))
+        {
+            if (SendNppMsg(NPPM_GETFULLPATHFROMBUFFERID, bufId, (LPARAM) fileName.data()) > 0)
+                fileName.SetLengthValue(nLen);
+        }
+    }
+    return fileName;
 }
 
 bool CNppExec::nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames, int nView )
@@ -4865,9 +4887,9 @@ void CNppExec::SaveScripts(unsigned int nSaveFlags)
   }
 }
 
-HWND CNppExec::GetScintillaHandle()
+HWND CNppExec::GetScintillaHandle() const
 {
-  INT currentEdit;
+  INT currentEdit = 0;
   SendNppMsg(NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&currentEdit);
   return getCurrentScintilla(currentEdit);
 }
@@ -4875,7 +4897,7 @@ HWND CNppExec::GetScintillaHandle()
 #define NOTEPADPLUS_USER_INTERNAL  (WM_USER + 0000)
 #define NPPM_INTERNAL_GETMENU      (NOTEPADPLUS_USER_INTERNAL + 14)
 
-HMENU CNppExec::GetNppMainMenu()
+HMENU CNppExec::GetNppMainMenu() const
 {
     HMENU hMenu;
 
@@ -5115,7 +5137,7 @@ CInputBoxDlg& CNppExec::GetInputBoxDlg()
   return InputBoxDlg;
 }
 
-LRESULT CNppExec::SendNppMsg(UINT uMsg, WPARAM wParam, LPARAM lParam) // to Notepad++
+LRESULT CNppExec::SendNppMsg(UINT uMsg, WPARAM wParam, LPARAM lParam) const // to Notepad++
 {
     return ::SendMessage(m_nppData._nppHandle, uMsg, wParam, lParam);
 }
