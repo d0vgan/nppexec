@@ -13,12 +13,14 @@ NppExec_Manual.chm
 
 #-- Build results
 [Dd]ebug/
-[Rr]elease/
+/NppExec/[Rr]elease/*
+!/NppExec/[Rr]elease/NppExec/*
 x64/
 x86/
 #[Bb]in/
 [Oo]bj/
 *.pdb
+*.lib
 
 #-- Visual C++ cache files
 .vs/
@@ -56,5 +58,6 @@ UpgradeLog*.htm
 *.tmp
 *.tmp_proj
 *.log
+*.tlog
 .builds
 *.pidb
