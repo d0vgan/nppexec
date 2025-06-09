@@ -237,6 +237,15 @@
  *  HISTORY  *
  *************
 
+ v0.8.9
+ ------
+ * Glory to Ukraine! Glory to the heroes!
+ * changed: now $(#N) considers the current view (Primary or Secondary)
+ * changed: nppGetOpenFileNames() has been replaced with nppGetOpenFileName()
+ + NppExec Manual updated
+ * npp_files updated to Notepad++ 8.8.2
+
+
  v0.8.8 - January 2024
  ---------------------
  * Glory to Ukraine! Glory to the heroes!
