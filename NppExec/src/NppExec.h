@@ -1644,9 +1644,6 @@ public:
 
   CNppScriptList  m_ScriptsList;
 
-  int             npp_nbFiles;
-  CBufT<TCHAR*>   npp_bufFileNames;
-
   MSGBOXTIMEOUTFUNC m_lpMsgBoxTimeoutFunc;
 
   CFileModificationWatcher m_FileWatcher;
@@ -1706,12 +1703,10 @@ public:
   char* sciGetText(bool bSelectionOnly, int* pnTextLen, int* pnSciCodePage);
   tstr  sciGetSelText();
   static char* convertSciText(char* pSciText, int nTextLen, int nSciCodePage, eTextEnc outEnc, int* pnOutLen);
-  int  nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
+  int  nppConvertToFullPathName(tstr& fileName, int nView = ALL_OPEN_FILES);
   int  nppGetMenuItemIdByName(const tstr& menuItemPathName, tstr& parsedPath, tstr& parsedSep);
-  int  nppGetOpenFileNames();
-  int  nppGetOpenFileNamesInView(int nView = PRIMARY_VIEW, int nFiles = -1);
   tstr nppGetOpenFileName(int nDocPos, int nView = MAIN_VIEW) const;
-  tstr nppGetOpenFileNameImpl(tstr& fileName, int nDocPos, int nView) const;
+  void nppGetOpenFileNameImpl(tstr& fileName, int nDocPos, int nView) const;
   bool nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
   bool nppSaveAllFiles();
   /* bool nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders); */
@@ -1719,7 +1714,7 @@ public:
   bool nppGetWorkspaceRootItemPath(tstr& rootItemPath);
   tstr nppGetSettingsCloudPath();
   tstr GetSettingsCloudPluginDir();
-  int  findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView = ALL_OPEN_FILES);
+  int  findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pOpenFileName = nullptr, int nView = ALL_OPEN_FILES);
 
   static void CreateCloudDirIfNeeded(const tstr& cloudDir);
 

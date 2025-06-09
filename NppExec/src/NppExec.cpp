@@ -2076,9 +2076,6 @@ CNppExec::CNppExec() :
     m_TB_IconsWithDarkMode.hToolbarIcon = NULL;
     m_TB_IconsWithDarkMode.hToolbarIconDarkMode = NULL;
 
-    npp_nbFiles = 0;
-    npp_bufFileNames.Clear();
-
     _bStopTheExitScript = false;
     _bOptionsSavedOnNppnShutdown = false;
 
@@ -2578,8 +2575,13 @@ char* CNppExec::convertSciText(char* pSciText, int nTextLen, int nSciCodePage, e
   return pOutText;
 }
 
-int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGetOpenFileNames, int nView )
+int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pOpenFileName , int nView )
 {
+  if (pOpenFileName)
+  {
+    pOpenFileName->Clear();
+  }
+
   tstr S1 = NppExecHelpers::NormalizePath(fileName);
   int nFileLevel = 0;
   bool bFullPath = NppExecHelpers::IsFullPath(S1);
@@ -2616,23 +2618,47 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGe
     }
   }
 
-  if (bGetOpenFileNames)
+  int nPrimaryViewFiles = 0;
+  int nSecondViewFiles = 0;
+  if (nView == PRIMARY_VIEW || nView == ALL_OPEN_FILES)
   {
-    if (nView == PRIMARY_VIEW || nView == SECOND_VIEW)
-    {
-      npp_nbFiles = nppGetOpenFileNamesInView(nView);
-    }
-    else
-      nppGetOpenFileNames();
+    nPrimaryViewFiles = (int) SendNppMsg(NPPM_GETNBOPENFILES, PRIMARY_VIEW, PRIMARY_VIEW);
+  }
+  if (nView == SECOND_VIEW || nView == ALL_OPEN_FILES)
+  {
+    nSecondViewFiles = (int) SendNppMsg(NPPM_GETNBOPENFILES, SECOND_VIEW, SECOND_VIEW);
   }
 
   tstr S;
+  tstr sOpenFile;
+  tstr sOpenFilePartial;
   int iPartialMatch1 = -1;
   int iFind1 = -1;
-  for (int i = 0; i < npp_nbFiles; ++i)
-  { 
-    S = npp_bufFileNames[i];
+  int i = 0;
+  nView = PRIMARY_VIEW;
+  for (;;)
+  {
+    if (nView == PRIMARY_VIEW)
+    {
+      if (i >= nPrimaryViewFiles)
+      {
+        i = 0;
+        nView = SECOND_VIEW;
+        continue;
+      }
+    }
+    else
+    {
+      if (i >= nSecondViewFiles)
+        break;
+    }
+
+    nppGetOpenFileNameImpl(S, i, nView == PRIMARY_VIEW ? MAIN_VIEW : SUB_VIEW);
     S.Replace(_T('/'), _T('\\'));
+    if (pOpenFileName)
+    {
+      sOpenFile = S;
+    }
 
     if (!bFullPath)
     {
@@ -2657,7 +2683,13 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGe
     NppExecHelpers::StrUpper(S);
 
     if (S == S1)
+    {
+      if (pOpenFileName)
+      {
+        pOpenFileName->Swap(sOpenFile);
+      }
       return i; // complete match
+    }
 
     if (!bFullPath)
     {
@@ -2670,12 +2702,22 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, bool bGe
           { // no partial match yet or closer to beginning of file name
             iFind1 = ifind;
             iPartialMatch1 = i;
+            if (pOpenFileName)
+            {
+              sOpenFilePartial = sOpenFile;
+            }
           }
         }
       }
     }
+
+    ++i;
   }
 
+  if (pOpenFileName && iPartialMatch1 != -1)
+  {
+    pOpenFileName->Swap(sOpenFilePartial);
+  }
   return iPartialMatch1; // first partial match or -1
 }
 
@@ -2820,7 +2862,7 @@ bool CNppExec::nppGetWorkspaceRootItemPath(tstr& rootItemPath)
     return bRet;
 }
 
-int CNppExec::nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, int nView )
+int CNppExec::nppConvertToFullPathName(tstr& fileName, int nView )
 {
   
   Runtime::GetLogger().Add(   _T("nppConvertToFullPathName()") );
@@ -2834,10 +2876,11 @@ int CNppExec::nppConvertToFullPathName(tstr& fileName, bool bGetOpenFileNames, i
       
     if (!NppExecHelpers::IsFullPath(fileName))
     {
-      int i = findFileNameIndexInNppOpenFileNames(fileName, bGetOpenFileNames, nView);
+      tstr openFileName;
+      int i = findFileNameIndexInNppOpenFileNames(fileName, &openFileName, nView);
       if (i != -1)
       {
-        fileName = npp_bufFileNames[i];
+        fileName.Swap(openFileName);
 
         Runtime::GetLogger().AddEx( _T("; changed to: \"%s\""), fileName.c_str() ); 
         Runtime::GetLogger().DecIndentLevel();
@@ -3022,73 +3065,14 @@ int CNppExec::nppGetMenuItemIdByName(const tstr& menuItemPathName, tstr& parsedP
     return menuItemId;
 }
 
-int CNppExec::nppGetOpenFileNames()
-{
-  TCHAR* p;
-  
-  npp_nbFiles = (int) SendNppMsg(NPPM_GETNBOPENFILES, 0, 0);
-  
-  npp_bufFileNames.SetSize(npp_nbFiles);  // reserving memory without 
-                                          // modification of its content
-  for (int i = npp_bufFileNames.GetCount(); i < npp_nbFiles; i++)
-  {
-    p = new TCHAR[FILEPATH_BUFSIZE];
-    if (p != NULL)
-      npp_bufFileNames.Append(p);
-  }
-
-  if (npp_nbFiles > npp_bufFileNames.GetCount())
-    npp_nbFiles = npp_bufFileNames.GetCount();
-
-  SendNppMsg(NPPM_GETOPENFILENAMES, 
-      (WPARAM) npp_bufFileNames.GetData(), (LPARAM) npp_nbFiles);
-
-  return npp_nbFiles;
-}
-
-int CNppExec::nppGetOpenFileNamesInView(int nView , int nFiles )
-{
-  if ( (nView != PRIMARY_VIEW) && 
-       (nView != SECOND_VIEW) &&
-       (nView != ALL_OPEN_FILES) )
-  {
-    return -1;
-  }
-  
-  if (nFiles < 0)
-  {
-    nFiles = (int) SendNppMsg(NPPM_GETNBOPENFILES, (WPARAM) nView, (LPARAM) nView);
-  }
-
-  npp_bufFileNames.SetSize(nFiles);  // reserving memory without 
-                                     // modification of its content
-  for (int i = npp_bufFileNames.GetCount(); i < nFiles; i++)
-  {
-    TCHAR* p = new TCHAR[FILEPATH_BUFSIZE];
-    if (p != NULL)
-      npp_bufFileNames.Append(p);
-  }
-
-  if (nFiles > npp_bufFileNames.GetCount())
-    nFiles = npp_bufFileNames.GetCount();
-
-  UINT uMsg = NPPM_GETOPENFILENAMES;
-  if (nView == PRIMARY_VIEW)
-    uMsg = NPPM_GETOPENFILENAMESPRIMARY;
-  else if (nView == SECOND_VIEW)
-    uMsg = NPPM_GETOPENFILENAMESSECOND;
-  SendNppMsg(uMsg, (WPARAM) npp_bufFileNames.GetData(), (LPARAM) nFiles);
-
-  return nFiles;
-}
-
 tstr CNppExec::nppGetOpenFileName(int nDocPos, int nView /*= MAIN_VIEW*/) const
 {
     tstr fileName;
-    return nppGetOpenFileNameImpl(fileName, nDocPos, nView);
+    nppGetOpenFileNameImpl(fileName, nDocPos, nView);
+    return fileName;
 }
 
-tstr CNppExec::nppGetOpenFileNameImpl(tstr& fileName, int nDocPos, int nView) const
+void CNppExec::nppGetOpenFileNameImpl(tstr& fileName, int nDocPos, int nView) const
 {
     fileName.Clear();
     LRESULT bufId = SendNppMsg(NPPM_GETBUFFERIDFROMPOS, nDocPos, nView);
@@ -3101,7 +3085,6 @@ tstr CNppExec::nppGetOpenFileNameImpl(tstr& fileName, int nDocPos, int nView) co
                 fileName.SetLengthValue(nLen);
         }
     }
-    return fileName;
 }
 
 bool CNppExec::nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames, int nView )
@@ -3114,13 +3097,14 @@ bool CNppExec::nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames,
     
   if (!NppExecHelpers::IsFullPath(fileName))
   {
-    int i = findFileNameIndexInNppOpenFileNames(fileName, bGetOpenFileNames, nView);
+    tstr openFileName;
+    int i = findFileNameIndexInNppOpenFileNames(fileName, &openFileName, nView);
     if (i != -1)
     {
         
-      Runtime::GetLogger().AddEx( _T("; changed to: \"%s\""), npp_bufFileNames[i] );  
+      Runtime::GetLogger().AddEx( _T("; changed to: \"%s\""), openFileName );  
           
-      SendNppMsg(NPPM_SWITCHTOFILE, (WPARAM) 0, (LPARAM) npp_bufFileNames[i]);
+      SendNppMsg(NPPM_SWITCHTOFILE, (WPARAM) 0, (LPARAM) openFileName.c_str());
     }
     else
     {
@@ -3216,18 +3200,6 @@ void CNppExec::Uninit()
         ::DestroyIcon(m_TB_IconsWithDarkMode.hToolbarIcon);
     if ( m_TB_IconsWithDarkMode.hToolbarIconDarkMode )
         ::DestroyIcon(m_TB_IconsWithDarkMode.hToolbarIconDarkMode);
-
-    if ( npp_bufFileNames.GetCount() > 0 )
-    {
-        for ( int i = 0; i < npp_bufFileNames.GetCount(); i++ )
-        {
-            if ( npp_bufFileNames[i] != NULL )
-            {
-                delete [] npp_bufFileNames[i];
-                npp_bufFileNames[i] = NULL;  // just in case
-            }
-        }
-    }
 
 }
 

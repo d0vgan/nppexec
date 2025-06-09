@@ -3398,20 +3398,20 @@ bool ConsoleDlg::GoToLineIfWarningAnalyzerMatch(CAnyRichEdit& Edit, const int nL
                 tstr fileName = WarningAnalyzer.GetFileName();
 
                 int nView = (int) NppExec.SendNppMsg(NPPM_GETCURRENTVIEW);
-                nView = (nView == 0) ? PRIMARY_VIEW : SECOND_VIEW;
+                nView = (nView == MAIN_VIEW) ? PRIMARY_VIEW : SECOND_VIEW;
 
                 // trying the current view first
-                int nFile = NppExec.findFileNameIndexInNppOpenFileNames(fileName, true, nView);
+                int nFile = NppExec.findFileNameIndexInNppOpenFileNames(fileName, nullptr, nView);
                 if ( nFile == -1 )
                 {
                     // trying the opposite view
                     nView = (nView == PRIMARY_VIEW) ? SECOND_VIEW : PRIMARY_VIEW;
-                    nFile = NppExec.findFileNameIndexInNppOpenFileNames(fileName, true, nView);
+                    nFile = NppExec.findFileNameIndexInNppOpenFileNames(fileName, nullptr, nView);
                 }
 
                 if ( nFile != -1 )
                 {
-                    NppExec.SendNppMsg( NPPM_ACTIVATEDOC, (nView == PRIMARY_VIEW) ? 0 : 1, nFile );
+                    NppExec.SendNppMsg( NPPM_ACTIVATEDOC, (nView == PRIMARY_VIEW) ? MAIN_VIEW : SUB_VIEW, nFile );
                 }
                 else
                 {

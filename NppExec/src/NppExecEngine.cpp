@@ -6071,7 +6071,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExec(const tstr& params)
 
                     if ( fileName.length() > 1 )
                     {
-                        m_pNppExec->nppConvertToFullPathName(fileName, true);
+                        m_pNppExec->nppConvertToFullPathName(fileName);
                     }
 
                     if ( fbuf.LoadFromFile(fileName.c_str(), true, m_pNppExec->GetOptions().GetInt(OPTI_UTF8_DETECT_LENGTH)) )
@@ -8634,9 +8634,7 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
         if (k > 0) 
         {
           // #doc = 1..nbFiles
-          int currentEdit = 0;
-          m_pNppExec->SendNppMsg(NPPM_GETCURRENTSCINTILLA, 0, (LPARAM)&currentEdit);
-          int nView = currentEdit == 0 ? MAIN_VIEW : SUB_VIEW;
+          int nView = (int) m_pNppExec->SendNppMsg(NPPM_GETCURRENTVIEW);
           tstr fileName = m_pNppExec->nppGetOpenFileName(k - 1, nView);
           S.Insert(pos, fileName);
           pos += fileName.length();
