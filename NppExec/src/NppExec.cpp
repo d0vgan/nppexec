@@ -2582,6 +2582,8 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
     pOpenFileName->Clear();
   }
 
+  tstr sOpenFile;
+  tstr S;
   tstr S1 = NppExecHelpers::NormalizePath(fileName);
   int nFileLevel = 0;
   bool bFullPath = NppExecHelpers::IsFullPath(S1);
@@ -2596,23 +2598,35 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
 
   NppExecHelpers::StrUpper(S1);
 
-  if (!bFullPath)
+  // checking the current (active) file first
+  S.Reserve(FILEPATH_BUFSIZE);
+  SendNppMsg(NPPM_GETFULLCURRENTPATH, (WPARAM) (S.GetMemSize() - 1), (LPARAM) S.data());
+  S.CalculateLength();
+  if (S.length() >= S1.length())
   {
-    // checking the current (active) file first
-    tstr filePath;
-    filePath.Reserve(FILEPATH_BUFSIZE);
-    SendNppMsg(NPPM_GETFULLCURRENTPATH, (WPARAM) (filePath.GetMemSize() - 1), (LPARAM) filePath.data());
-    filePath.CalculateLength();
-    if (filePath.length() > S1.length())
+    S.Replace(_T('/'), _T('\\'));
+    if (pOpenFileName)
     {
-      filePath.Replace(_T('/'), _T('\\'));
-      if (filePath.GetAt(filePath.length() - S1.length() - 1) == _T('\\'))
+      sOpenFile = S;
+    }
+    if (S.length() == S1.length() || S.GetAt(S.length() - S1.length() - 1) == _T('\\'))
+    {
+      NppExecHelpers::StrUpper(S);
+      if (S.EndsWith(S1))
       {
-        NppExecHelpers::StrUpper(filePath);
-        if (filePath.EndsWith(S1))
+        S1 = S;
+        bFullPath = true;
+
+        LRESULT bufId = SendNppMsg(NPPM_GETCURRENTBUFFERID);
+        int nView = (int) SendNppMsg(NPPM_GETCURRENTVIEW);
+        int n = (int) SendNppMsg(NPPM_GETPOSFROMBUFFERID, bufId, nView);
+        if (n != -1)
         {
-          S1 = filePath;
-          bFullPath = true;
+          if (pOpenFileName)
+          {
+            pOpenFileName->Swap(sOpenFile);
+          }
+          return (n & 0x0FFFFFFF); // complete match
         }
       }
     }
@@ -2629,8 +2643,6 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
     nSecondViewFiles = (int) SendNppMsg(NPPM_GETNBOPENFILES, SECOND_VIEW, SECOND_VIEW);
   }
 
-  tstr S;
-  tstr sOpenFile;
   tstr sOpenFilePartial;
   int iPartialMatch1 = -1;
   int iFind1 = -1;
