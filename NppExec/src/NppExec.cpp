@@ -2583,8 +2583,11 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
   }
 
   tstr sOpenFile;
+  tstr sOpenFilePartial;
   tstr S;
   tstr S1 = NppExecHelpers::NormalizePath(fileName);
+  int iPartialMatch1 = -1;
+  int iFind1 = -1;
   int nFileLevel = 0;
   bool bFullPath = NppExecHelpers::IsFullPath(S1);
   if (!bFullPath)
@@ -2608,25 +2611,61 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
     if (pOpenFileName)
     {
       sOpenFile = S;
+      sOpenFilePartial = S;
     }
-    if (S.length() == S1.length() || S.GetAt(S.length() - S1.length() - 1) == _T('\\'))
+    NppExecHelpers::StrUpper(S);
+
+    const int MatchFull = 1;
+    const int MatchPartial = 2;
+    unsigned int anyMatch = 0;
+    int ifind = -1;
+    if ((S.length() == S1.length() || S.GetAt(S.length() - S1.length() - 1) == _T('\\')) &&
+        S.EndsWith(S1))
     {
-      NppExecHelpers::StrUpper(S);
-      if (S.EndsWith(S1))
+      anyMatch = MatchFull;
+    }
+    else
+    {
+      int i = S.RFind(_T('\\'));
+      if (i != -1)
+      {
+        ++i;
+        int j = S.Find(S1, i);
+        if (j != -1)
+        {
+          ifind = j - i;
+          anyMatch = MatchPartial;
+        }
+      }
+    }
+    
+    if (anyMatch != 0)
+    {
+      if (anyMatch == MatchFull)
       {
         S1 = S;
         bFullPath = true;
+      }
 
-        LRESULT bufId = SendNppMsg(NPPM_GETCURRENTBUFFERID);
-        int nView = (int) SendNppMsg(NPPM_GETCURRENTVIEW);
-        int n = (int) SendNppMsg(NPPM_GETPOSFROMBUFFERID, bufId, nView);
-        if (n != -1)
+      LRESULT bufId = SendNppMsg(NPPM_GETCURRENTBUFFERID);
+      int nView = (int) SendNppMsg(NPPM_GETCURRENTVIEW);
+      int i = (int) SendNppMsg(NPPM_GETPOSFROMBUFFERID, bufId, nView);
+      if (i != -1)
+      {
+        i = (i & 0x0FFFFFFF);
+        if (anyMatch == MatchFull)
         {
           if (pOpenFileName)
           {
             pOpenFileName->Swap(sOpenFile);
           }
-          return (n & 0x0FFFFFFF); // complete match
+          return i; // complete match
+        }
+
+        if (anyMatch == MatchPartial)
+        {
+          iPartialMatch1 = i;
+          iFind1 = ifind; // partial match
         }
       }
     }
@@ -2643,9 +2682,6 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
     nSecondViewFiles = (int) SendNppMsg(NPPM_GETNBOPENFILES, SECOND_VIEW, SECOND_VIEW);
   }
 
-  tstr sOpenFilePartial;
-  int iPartialMatch1 = -1;
-  int iFind1 = -1;
   int i = 0;
   nView = PRIMARY_VIEW;
   for (;;)
