@@ -3102,7 +3102,7 @@ bool CNppExec::nppSwitchToDocument(const tstr& fileName, bool bGetOpenFileNames,
     if (i != -1)
     {
         
-      Runtime::GetLogger().AddEx( _T("; changed to: \"%s\""), openFileName );  
+      Runtime::GetLogger().AddEx( _T("; changed to: \"%s\""), openFileName.c_str() );  
           
       SendNppMsg(NPPM_SWITCHTOFILE, (WPARAM) 0, (LPARAM) openFileName.c_str());
     }
