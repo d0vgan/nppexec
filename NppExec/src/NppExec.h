@@ -20,8 +20,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.9
- ------
+ v0.8.9 - June 2025
+ ------------------
  * Glory to Ukraine! Glory to the heroes!
  * changed: now $(#N) considers the current view (Primary or Secondary)
  * changed: nppGetOpenFileNames() has been replaced with nppGetOpenFileName()
@@ -802,8 +802,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F8
-#define NPPEXEC_VER_STR   _T("0.8.8")
+#define NPPEXEC_VER_DWORD 0x08F9
+#define NPPEXEC_VER_STR   _T("0.8.9")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
