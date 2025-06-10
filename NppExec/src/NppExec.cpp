@@ -2626,7 +2626,13 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
     }
     else
     {
-      int i = sFullName.RFind(_T('\\'));
+      int i = -1;
+      for (int n = 0; n <= nFileLevel; ++n)
+      {
+        i = sFullName.RFind(_T('\\'), i != -1 ? i - 1 : i);
+        if (i == -1)
+          break;
+      }
       if (i != -1)
       {
         ++i;
