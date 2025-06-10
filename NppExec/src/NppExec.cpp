@@ -2584,53 +2584,53 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
 
   tstr sOpenFile;
   tstr sOpenFilePartial;
-  tstr S;
-  tstr S1 = NppExecHelpers::NormalizePath(fileName);
+  tstr sFullName;
+  tstr sName = NppExecHelpers::NormalizePath(fileName);
   int iPartialMatch1 = -1;
   int iFind1 = -1;
   int nFileLevel = 0;
-  bool bFullPath = NppExecHelpers::IsFullPath(S1);
+  bool bFullPath = NppExecHelpers::IsFullPath(sName);
   if (!bFullPath)
   {
-    for (int j = 0; j < S1.length(); ++j)
+    for (int j = 0; j < sName.length(); ++j)
     {
-      if (S1[j] == _T('\\'))
+      if (sName[j] == _T('\\'))
         ++nFileLevel;
     }
   }
 
-  NppExecHelpers::StrUpper(S1);
+  NppExecHelpers::StrUpper(sName);
 
   // checking the current (active) file first
-  S.Reserve(FILEPATH_BUFSIZE);
-  SendNppMsg(NPPM_GETFULLCURRENTPATH, (WPARAM) (S.GetMemSize() - 1), (LPARAM) S.data());
-  S.CalculateLength();
-  if (S.length() >= S1.length())
+  sFullName.Reserve(FILEPATH_BUFSIZE);
+  SendNppMsg(NPPM_GETFULLCURRENTPATH, (WPARAM) (sFullName.GetMemSize() - 1), (LPARAM) sFullName.data());
+  sFullName.CalculateLength();
+  if (sFullName.length() >= sName.length())
   {
-    S.Replace(_T('/'), _T('\\'));
+    sFullName.Replace(_T('/'), _T('\\'));
     if (pOpenFileName)
     {
-      sOpenFile = S;
-      sOpenFilePartial = S;
+      sOpenFile = sFullName;
+      sOpenFilePartial = sFullName;
     }
-    NppExecHelpers::StrUpper(S);
+    NppExecHelpers::StrUpper(sFullName);
 
     const int MatchFull = 1;
     const int MatchPartial = 2;
     unsigned int anyMatch = 0;
     int ifind = -1;
-    if ((S.length() == S1.length() || S.GetAt(S.length() - S1.length() - 1) == _T('\\')) &&
-        S.EndsWith(S1))
+    if ((sFullName.length() == sName.length() || sFullName.GetAt(sFullName.length() - sName.length() - 1) == _T('\\')) &&
+        sFullName.EndsWith(sName))
     {
       anyMatch = MatchFull;
     }
     else
     {
-      int i = S.RFind(_T('\\'));
+      int i = sFullName.RFind(_T('\\'));
       if (i != -1)
       {
         ++i;
-        int j = S.Find(S1, i);
+        int j = sFullName.Find(sName, i);
         if (j != -1)
         {
           ifind = j - i;
@@ -2643,7 +2643,7 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
     {
       if (anyMatch == MatchFull)
       {
-        S1 = S;
+        sName = sFullName;
         bFullPath = true;
       }
 
@@ -2701,24 +2701,24 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
         break;
     }
 
-    nppGetOpenFileNameImpl(S, i, nView == PRIMARY_VIEW ? MAIN_VIEW : SUB_VIEW);
-    S.Replace(_T('/'), _T('\\'));
+    nppGetOpenFileNameImpl(sFullName, i, nView == PRIMARY_VIEW ? MAIN_VIEW : SUB_VIEW);
+    sFullName.Replace(_T('/'), _T('\\'));
     if (pOpenFileName)
     {
-      sOpenFile = S;
+      sOpenFile = sFullName;
     }
 
     if (!bFullPath)
     {
       int n = 0;
-      int j = S.length() - 1;
+      int j = sFullName.length() - 1;
       while (j >= 0)
       {
-        if (S[j] == _T('\\'))
+        if (sFullName[j] == _T('\\'))
         {
           if (n == nFileLevel)
           {
-            S.Delete(0, j + 1);
+            sFullName.Delete(0, j + 1);
             break;
           }
           else
@@ -2728,9 +2728,9 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
       }
     }
 
-    NppExecHelpers::StrUpper(S);
+    NppExecHelpers::StrUpper(sFullName);
 
-    if (S == S1)
+    if (sFullName == sName)
     {
       if (pOpenFileName)
       {
@@ -2743,7 +2743,7 @@ int CNppExec::findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pO
     {
       if (iPartialMatch1 == -1 || iFind1 != 0)
       { // no partial match yet or not beginning of file name yet
-        int ifind = S.Find(S1);
+        int ifind = sFullName.Find(sName);
         if (ifind >= 0) // position inside file name
         {
           if (iFind1 == -1 || ifind < iFind1)
