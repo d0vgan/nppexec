@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Glory to Ukraine! Glory to the heroes!
  * changed: now $(#N) considers the current view (Primary or Secondary)
  * changed: nppGetOpenFileNames() has been replaced with nppGetOpenFileName()
+ * changed: further improvements in findFileNameIndexInNppOpenFileNames
  + NppExec Manual updated
  * npp_files updated to Notepad++ 8.8.2
 
