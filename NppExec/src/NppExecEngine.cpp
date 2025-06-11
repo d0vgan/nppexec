@@ -1165,6 +1165,8 @@ static FParserWrapper g_fp;
  *   - lists subdirs and files matched the mask
  * echo <text>
  *   - prints a text in the Console
+ * echo~ <math expression>
+ *   - calculates and prints in the Console
  * if <condition> goto <label>
  *   - jumps to the label if the condition is true
  * if~ <condition> goto <label>
@@ -3561,14 +3563,43 @@ CScriptEngine::eCmdResult CScriptEngine::DoDir(const tstr& params)
     return ( PrintDirContent(m_pNppExec, Path.c_str(), Filter.c_str()) ? CMDRESULT_SUCCEEDED : CMDRESULT_FAILED );
 }
 
-CScriptEngine::eCmdResult CScriptEngine::DoEcho(const tstr& params)
+CScriptEngine::eCmdResult CScriptEngine::doEcho(const tstr& params, bool isCalc)
 {
-    reportCmdAndParams( DoEchoCommand::Name(), params, 0 );
+    reportCmdAndParams(isCalc ? DoCalcEchoCommand::Name() : DoEchoCommand::Name(), params, 0);
+
+    const TCHAR* cszMessage = params.c_str();
+    tstr calcErr;
+    tstr calcResult;
+
+    if ( isCalc )
+    {
+        g_fp.Calculate(m_pNppExec, params, calcErr, calcResult);
+        if (calcErr.IsEmpty())
+        {
+            cszMessage = calcResult.c_str();
+        }
+        else
+        {
+            calcErr.Insert(0, _T("- fparser calc error: "));
+            m_pNppExec->GetConsole().PrintError(calcErr.c_str());
+            // cszMessage remains params.c_str()
+        }
+    }
 
     const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-    m_pNppExec->GetConsole().PrintMessage( params.c_str(), nMsgFlags );
+    m_pNppExec->GetConsole().PrintMessage(cszMessage, nMsgFlags);
 
     return CMDRESULT_SUCCEEDED;
+}
+
+CScriptEngine::eCmdResult CScriptEngine::DoEcho(const tstr& params)
+{
+    return doEcho(params, false);
+}
+
+CScriptEngine::eCmdResult CScriptEngine::DoCalcEcho(const tstr& params)
+{
+    return doEcho(params, true);
 }
 
 CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)

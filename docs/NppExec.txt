@@ -19,6 +19,7 @@
  *        dir <mask> - lists subdirs and files matched the mask
  *        dir <path\mask> - lists subdirs and files matched the mask
  *        echo <text> - prints a text in the Console
+ *        echo~ <math expression> - calculates and prints in the Console
  *        if <condition> goto <label> - jumps to the label if the condition is true
  *        if~ <condition> goto <label> - calculates and checks the condition
  *        if ... else if ... else ... endif - conditional execution
@@ -243,6 +244,7 @@
  * changed: now $(#N) considers the current view (Primary or Secondary)
  * changed: new method nppGetOpenFileName() does not use NPPM_GETOPENFILENAMES
  * changed: further improvements in findFileNameIndexInNppOpenFileNames
+ + added: echo~
  + NppExec Manual updated
  * npp_files updated to Notepad++ 8.8.2
 

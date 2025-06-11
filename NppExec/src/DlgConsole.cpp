@@ -96,6 +96,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("dir  -  lists files and subdirs") _T_RE_EOL \
   _T("dir <mask or path\\mask>  -  lists files/subdirs matched the mask") _T_RE_EOL \
   _T("echo <text>  -  prints a text in the Console") _T_RE_EOL \
+  _T("echo~ <math expression>  -  calculates and prints in the Console") _T_RE_EOL \
   _T("if <condition> goto <label>  -  jumps to the label if the condition is true") _T_RE_EOL \
   _T("if~ <condition> goto <label>  -  calculates and checks the condition") _T_RE_EOL \
   _T("if ... else if ... else ... endif  -  conditional execution") _T_RE_EOL \
@@ -529,7 +530,24 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("EXAMPLES:") _T_RE_EOL \
     _T("  echo Notepad++\'s directory is: $(NPP_DIRECTORY)") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  sleep, set") _T_RE_EOL
+    _T("  echo~, sleep, set") _T_RE_EOL
+  },
+
+  // ECHO~
+  {
+    CScriptEngine::DoCalcEchoCommand::Name(),
+    _T("COMMAND:  echo~") _T_RE_EOL \
+    _T("USAGE:") _T_RE_EOL \
+    _T("  echo~ <math expression>") _T_RE_EOL \
+    _T("DESCRIPTION:") _T_RE_EOL \
+    _T("  Calculatest and prints the math expression in the Console") _T_RE_EOL \
+    _T("EXAMPLES:") _T_RE_EOL \
+    _T("  echo~ 1 + 2 + 3 + 4 + 5") _T_RE_EOL \
+    _T("  echo~ 1 << 10") _T_RE_EOL \
+    _T("  set local x ~ pi/2") _T_RE_EOL \
+    _T("  echo~ sin($(x)) + cos(0)") _T_RE_EOL \
+    _T("SEE ALSO:") _T_RE_EOL \
+    _T("  echo, set, if~") _T_RE_EOL
   },
 
   // CON_COLOUR
@@ -2327,7 +2345,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  IF~ deals only with numbers and numeric calculations.") _T_RE_EOL \
     _T("  A string operand will cause a syntax error.") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
-    _T("  if, else, endif, goto, label, set") _T_RE_EOL
+    _T("  if, else, endif, goto, label, set, echo~") _T_RE_EOL
   },
 
   // LABEL

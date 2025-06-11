@@ -26,6 +26,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * changed: now $(#N) considers the current view (Primary or Secondary)
  * changed: new method nppGetOpenFileName() does not use NPPM_GETOPENFILENAMES
  * changed: further improvements in findFileNameIndexInNppOpenFileNames
+ + added: echo~
  + NppExec Manual updated
  * npp_files updated to Notepad++ 8.8.2
 

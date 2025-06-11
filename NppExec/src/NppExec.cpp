@@ -36,6 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        dir <mask> - lists subdirs and files matched the mask
  *        dir <path\mask> - lists subdirs and files matched the mask
  *        echo <text> - prints a text in the Console
+ *        echo~ <math expression> - calculates and prints in the Console
  *        if <condition> goto <label> - jumps to the label if the condition is true
  *        if~ <condition> goto <label> - calculates and checks the condition
  *        if ... else if ... else ... endif - conditional execution
