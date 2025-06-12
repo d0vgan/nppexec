@@ -3565,7 +3565,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoDir(const tstr& params)
 
 CScriptEngine::eCmdResult CScriptEngine::doEcho(const tstr& params, bool isCalc)
 {
-    reportCmdAndParams(isCalc ? DoCalcEchoCommand::Name() : DoEchoCommand::Name(), params, 0);
+    reportCmdAndParams( isCalc ? DoCalcEchoCommand::Name() : DoEchoCommand::Name(), params, 0 );
 
     const TCHAR* cszMessage = params.c_str();
     tstr calcErr;
@@ -3574,7 +3574,7 @@ CScriptEngine::eCmdResult CScriptEngine::doEcho(const tstr& params, bool isCalc)
     if ( isCalc )
     {
         g_fp.Calculate(m_pNppExec, params, calcErr, calcResult);
-        if (calcErr.IsEmpty())
+        if ( calcErr.IsEmpty() )
         {
             cszMessage = calcResult.c_str();
         }

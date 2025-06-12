@@ -546,6 +546,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  echo~ 1 << 10") _T_RE_EOL \
     _T("  set local x ~ pi/2") _T_RE_EOL \
     _T("  echo~ sin($(x)) + cos(0)") _T_RE_EOL \
+    _T("  npe_cmdalias ~ = echo~  // alias: ~ -> echo~") _T_RE_EOL \
+    _T("  ~ 1 + 2/3 + 4/5  // using the alias for echo~") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  echo, set, if~") _T_RE_EOL
   },
