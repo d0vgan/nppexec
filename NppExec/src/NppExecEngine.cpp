@@ -6384,17 +6384,20 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppOpen(const tstr& params)
     if ( nFilterPos < 0 )
     {
         Runtime::GetLogger().Add(   _T("; direct file (path)name specified") );
-        
+
         // direct file (path)name
-        if ( !m_pNppExec->SendNppMsg(NPPM_RELOADFILE, (WPARAM) FALSE, (LPARAM) params.c_str()) )
+        const tstr filePath = NppExecHelpers::IsFullLocalPath(params) ?
+            NppExecHelpers::NormalizePath(params) : params;
+        if ( !m_pNppExec->SendNppMsg(NPPM_RELOADFILE, (WPARAM) FALSE, (LPARAM) filePath.c_str()) )
         {
+            // NPPM_RELOADFILE did not succeed:
             int nFiles = (int) m_pNppExec->SendNppMsg(NPPM_GETNBOPENFILES, 0, 0);
 
-            if ( !m_pNppExec->SendNppMsg(NPPM_DOOPEN, (WPARAM) 0, (LPARAM) params.c_str()) )
+            if ( !m_pNppExec->SendNppMsg(NPPM_DOOPEN, (WPARAM) 0, (LPARAM) filePath.c_str()) )
             {
                 nCmdResult = CMDRESULT_FAILED;
 
-                DWORD dwAttr = ::GetFileAttributes(params.c_str());
+                DWORD dwAttr = ::GetFileAttributes(filePath.c_str());
                 if ( (dwAttr != INVALID_FILE_ATTRIBUTES) &&
                      ((dwAttr & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY) )
                 {
@@ -6407,6 +6410,19 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppOpen(const tstr& params)
                         nCmdResult = CMDRESULT_SUCCEEDED;
                     }
                 }
+            }
+        }
+        else
+        {
+            // NPPM_RELOADFILE succeeded:
+            TCHAR szFileName[FILEPATH_BUFSIZE];
+
+            m_pNppExec->SendNppMsg( NPPM_GETFULLCURRENTPATH,
+                (WPARAM) (FILEPATH_BUFSIZE - 1), (LPARAM) szFileName );
+
+            if ( NppExecHelpers::StrCmpNoCase(filePath, szFileName) != 0 )
+            {
+                m_pNppExec->SendNppMsg(NPPM_SWITCHTOFILE, 0, (LPARAM) filePath.c_str());
             }
         }
     }

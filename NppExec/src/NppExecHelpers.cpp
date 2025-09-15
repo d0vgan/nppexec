@@ -67,6 +67,30 @@ namespace
         }
         return impl_createDir(inter_dir.c_str());
     }
+
+    bool is_full_local_path(const TCHAR* path)
+    {
+        switch ( path[0] )
+        {
+        case _T('\\') :  // "\..."
+        case _T('/') :   // "/..."
+        case 0 :         // ""
+            break;
+        default:
+            if ( path[1] == _T(':') )  // "X:..."
+            {
+                switch ( path[2] )
+                {
+                case _T('\\') :  // "X:\..."
+                case _T('/') :   // "X:/..."
+                case 0 :         // "X:"
+                    return true;
+                }
+            }
+            break;
+        }
+        return false;
+    }
 }
 
 namespace NppExecHelpers
@@ -244,6 +268,30 @@ namespace NppExecHelpers
         return false;
     }
 
+    bool IsFullLocalPath(const tstr& path) noexcept
+    {
+        return IsFullLocalPath( path.c_str() );
+    }
+
+    bool IsFullLocalPath(const TCHAR* path) noexcept
+    {
+        switch ( path[0] )
+        {
+        case _T('\\') :
+        case _T('/') :
+            if ( path[1] == path[0] &&
+                 path[2] == _T('.') &&
+                 path[3] == path[0] )
+            {
+                return is_full_local_path(path + 4);
+            }
+            break;
+        default:
+            return is_full_local_path(path);
+        }
+        return false;
+    }
+
     tstr NormalizePath(const tstr& path)
     {
         return NormalizePath(path.c_str());
@@ -295,6 +343,11 @@ namespace NppExecHelpers
                     if ( isEndOfString ) // ends with "."
                     {
                         remove_trailing_sep(pathParts);
+                    }
+                    else if ( pathParts.GetCount() == 1 && pathParts.GetFirst()->GetItem() == _T("\\\\") )
+                    {
+                        part += _T('\\'); // the leading "\\.\"
+                        pathParts.Add(part);
                     }
                     part.Clear();
                     continue;

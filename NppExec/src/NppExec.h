@@ -20,6 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.9.1 - September 2025
+ -------------------------
+ * Glory to Ukraine! Glory to the heroes!
+ - fixed: NPP_OPEN did not active a document that was already opened
+ - fixed: normpath preserves the leading "\\.\"
+
+
  v0.8.9 - June 2025
  ------------------
  * Glory to Ukraine! Glory to the heroes!
@@ -804,7 +811,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iterator>
 
 #define NPPEXEC_VER_DWORD 0x08F9
-#define NPPEXEC_VER_STR   _T("0.8.9")
+#define NPPEXEC_VER_STR   _T("0.8.9.1")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

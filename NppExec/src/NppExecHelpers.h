@@ -380,6 +380,9 @@ namespace NppExecHelpers
     bool IsFullPath(const tstr& path) noexcept;
     bool IsFullPath(const TCHAR* path) noexcept;
 
+    bool IsFullLocalPath(const tstr& path) noexcept;
+    bool IsFullLocalPath(const TCHAR* path) noexcept;
+
     tstr NormalizePath(const tstr& path);
     tstr NormalizePath(const TCHAR* path);
 
