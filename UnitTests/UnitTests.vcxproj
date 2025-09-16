@@ -126,6 +126,7 @@
     <ClCompile Include="..\NppExec\src\c_base\str_func.c" />
     <ClCompile Include="..\NppExec\src\encodings\SysUniConv.cpp" />
     <ClCompile Include="..\NppExec\src\NppExecHelpers.cpp" />
+    <ClCompile Include="Tests_NppExecHelpers.cpp" />
     <ClCompile Include="UnitTests.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

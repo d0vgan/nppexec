@@ -70,13 +70,10 @@ namespace
 
     bool is_full_local_path(const TCHAR* path)
     {
-        switch ( path[0] )
+        const TCHAR ch = path[0]; // drive letter
+        if ( (ch >= _T('A') && ch <= _T('Z')) ||
+             (ch >= _T('a') && ch <= _T('z')) )
         {
-        case _T('\\') :  // "\..."
-        case _T('/') :   // "/..."
-        case 0 :         // ""
-            break;
-        default:
             if ( path[1] == _T(':') )  // "X:..."
             {
                 switch ( path[2] )
@@ -87,7 +84,6 @@ namespace
                     return true;
                 }
             }
-            break;
         }
         return false;
     }

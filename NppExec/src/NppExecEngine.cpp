@@ -6415,12 +6415,12 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppOpen(const tstr& params)
         else
         {
             // NPPM_RELOADFILE succeeded:
-            TCHAR szFileName[FILEPATH_BUFSIZE];
+            TCHAR szFullPath[FILEPATH_BUFSIZE];
 
             m_pNppExec->SendNppMsg( NPPM_GETFULLCURRENTPATH,
-                (WPARAM) (FILEPATH_BUFSIZE - 1), (LPARAM) szFileName );
+                (WPARAM) (FILEPATH_BUFSIZE - 1), (LPARAM) szFullPath );
 
-            if ( NppExecHelpers::StrCmpNoCase(filePath, szFileName) != 0 )
+            if ( NppExecHelpers::StrCmpNoCase(filePath, szFullPath) != 0 )
             {
                 m_pNppExec->SendNppMsg(NPPM_SWITCHTOFILE, 0, (LPARAM) filePath.c_str());
             }

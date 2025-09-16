@@ -27,5 +27,8 @@
     <ClCompile Include="..\NppExec\src\c_base\str_func.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Tests_NppExecHelpers.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
