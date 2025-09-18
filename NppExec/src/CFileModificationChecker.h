@@ -77,6 +77,7 @@ private:
 private:
     HANDLE m_hStopWatchThreadEvent;
     HANDLE m_hWatchThreadDoneEvent;
+    bool m_isWatchThreadStarted;
     CInternalDirectoryChangeListener m_DirChangeListener;
     dir_items_type m_Dirs;
 };
@@ -119,7 +120,7 @@ struct DirWatchStruct
     tstr sDirectory;
     file_items_type Files;
 
-    DirWatchStruct(CDirectoryWatcher* pDirWatcher_, IDirectoryChangeListener* pChangeListener_, 
+    DirWatchStruct(CDirectoryWatcher* pDirWatcher_, IDirectoryChangeListener* pChangeListener_,
                    DWORD dwNotifyFilter_, BOOL bRecursive_, const tstr& sDirectory_);
 
     void AddFile(IFileChangeListener* pChangeListener_, const tstr& sFilePath);

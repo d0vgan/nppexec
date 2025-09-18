@@ -49,6 +49,7 @@ CDirectoryWatcher::CDirectoryWatcher()
 {
     m_hStopWatchThreadEvent = ::CreateEvent(NULL, TRUE, FALSE, NULL);
     m_hWatchThreadDoneEvent = ::CreateEvent(NULL, TRUE, TRUE, NULL);
+    m_isWatchThreadStarted = false;
 }
 
 CDirectoryWatcher::~CDirectoryWatcher()
@@ -147,13 +148,21 @@ void CDirectoryWatcher::AddFile(LPCTSTR cszFilePath, IFileChangeListener* pChang
 
 void CDirectoryWatcher::StartWatching()
 {
-    NppExecHelpers::CreateNewThread(WatchThreadProc, this);
+    if ( m_isWatchThreadStarted )
+        return;
+
+    ::ResetEvent(m_hStopWatchThreadEvent);
+    if ( NppExecHelpers::CreateNewThread(WatchThreadProc, this) )
+    {
+        m_isWatchThreadStarted = true;
+    }
 }
 
 void CDirectoryWatcher::StopWatching()
 {
     ::SetEvent(m_hStopWatchThreadEvent);
     ::WaitForSingleObject(m_hWatchThreadDoneEvent, INFINITE);
+    m_isWatchThreadStarted = false;
 }
 
 void CDirectoryWatcher::CInternalDirectoryChangeListener::HandleDirectoryChange(const DirWatchStruct* pDir)
@@ -192,7 +201,7 @@ void CFileModificationWatcher::StopWatching()
 
 
 // FileInfoStruct
-FileInfoStruct::FileInfoStruct(IFileChangeListener* pChangeListener_, const tstr& filePath_) : 
+FileInfoStruct::FileInfoStruct(IFileChangeListener* pChangeListener_, const tstr& filePath_) :
   pChangeListener(pChangeListener_), filePath(filePath_)
 {
     GetFileSizeAndTime(filePath.c_str(), &fileSize, &fileLastWriteTime);
@@ -235,7 +244,7 @@ void FileInfoStruct::CopySizeAndTime(const FileInfoStruct& other)
 
 
 // DirWatchStruct
-DirWatchStruct::DirWatchStruct(CDirectoryWatcher* pDirWatcher_, IDirectoryChangeListener* pChangeListener_, 
+DirWatchStruct::DirWatchStruct(CDirectoryWatcher* pDirWatcher_, IDirectoryChangeListener* pChangeListener_,
                                DWORD dwNotifyFilter_, BOOL bRecursive_, const tstr& sDirectory_) :
   pDirWatcher(pDirWatcher_), pChangeListener(pChangeListener_),
   dwNotifyFilter(dwNotifyFilter_), bRecursive(bRecursive_), sDirectory(sDirectory_)
