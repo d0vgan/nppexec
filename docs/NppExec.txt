@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.8.9.1 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - September 2025
+ * NppExec plugin ver. 0.8.10 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - October 2025
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  ****************************************************************************
@@ -238,12 +238,13 @@
  *  HISTORY  *
  *************
 
- v0.8.9.1 - September 2025
- -------------------------
+ v0.8.10 - October 2025
+ ----------------------
  * Glory to Ukraine! Glory to the heroes!
  - fixed: NPP_OPEN did not active a document that was already opened
  - fixed: normpath preserves the leading "\\.\"
  + NppExec Manual updated
+ * npp_files updated to Notepad++ 8.8.6
 
 
  v0.8.9 - June 2025

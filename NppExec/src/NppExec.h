@@ -20,12 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
- v0.8.9.1 - September 2025
- -------------------------
+ v0.8.10 - October 2025
+ ----------------------
  * Glory to Ukraine! Glory to the heroes!
  - fixed: NPP_OPEN did not active a document that was already opened
  - fixed: normpath preserves the leading "\\.\"
  + NppExec Manual updated
+ * npp_files updated to Notepad++ 8.8.6
 
 
  v0.8.9 - June 2025
@@ -811,8 +812,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08F9
-#define NPPEXEC_VER_STR   _T("0.8.9.1")
+#define NPPEXEC_VER_DWORD 0x08FA
+#define NPPEXEC_VER_STR   _T("0.8.10")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
