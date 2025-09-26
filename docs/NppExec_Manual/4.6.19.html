@@ -1,0 +1,58 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.19. Auto-hide NppExec's Console after executing a script</title>
+<script src="show_matches.js" type="text/javascript"></script>
+</HEAD>
+<BODY>
+<h3>4.6.19. Auto-hide NppExec's Console after executing a script</h3>
+
+<p>Let's imagine we want to use NppExec for file backup, and want NppExec's Console to be automatically shown at the beginning of the file backup and automatically hidden at the end.<br>
+Thus, the Console will be just an informational window that is shown to reflect the progress of certain operations and then is hidden.</p>
+<p>The file backup operations may be as simple as that:</p>
+<blockquote>
+  <pre>set local backupDir = $(SYS.USERPROFILE)\OneDrive\  // the backup directory
+npp_save  // saving the current file
+cmd /C copy /B /Y "$(FULL_CURRENT_PATH)" "$(backupDir)"  // backing the current file up</pre>
+</blockquote>
+<p>By default, when NppExec executes a script, the Console is automatically shown, unless <code>npp_console ?</code> is explicitly specified at the very beginning of the script. Then, at the end of the script, a visible Console remains visible.<br>
+For the purpose of auto-hiding the Console at the end of the script, we need to alter the default behavior. We need to use the <code>npp_console</code> command with the specific parameters:</p>
+<blockquote>
+  <pre>npp_console local on</pre>
+</blockquote>
+<p>This command has the following effects: 1. If the Console is hidden, it is shown. 2. As this command is <code>local</code>, the previous state of the Console (before the script) is restored at the end of the script. I.e. if the Console was hidden before the script, it is shown during the script and then becomes hidden at the end of the script. This is the desired &quot;Auto-hide&quot; behavior. So, this is the exact command we want at the very beginning of our script.<br>
+(Note: With this command, if the Console was shown before the script, it remains shown after the script. If you want the Console to be always hidden at the end of the script, use <code>npp_console off</code> at the end of the script).</p>
+<p>As the Console will be auto-hidden, we may need some pause to see the Console's output while it is visible:</p>
+<blockquote>
+  <pre>sleep 2000  // waiting for 2 seconds</pre>
+</blockquote>
+<p>Also, we may want to preserve the keyboard focus in the editing window rather than having the focus in the Console while it is visible:</p>
+<blockquote>
+  <pre>npp_setfocus sci  // setting the focus to the Scintilla's editing window</pre>
+</blockquote>
+<p>Finally, it is a good idea to disable the output to the Console while the auxiliary commands are executed:</p>
+<blockquote>
+  <pre>npp_console local -  // disabling the output to the Console</pre>
+</blockquote>
+
+<p>So, here is the full script:</p>
+<blockquote>
+  <pre>npp_console local on  // showing the Console if it is hidden
+npp_console local -   // disabling the output to the Console
+set local backupDir = $(SYS.USERPROFILE)\OneDrive\  // the backup directory
+npp_setfocus sci      // setting the focus to the Scintilla's editing window
+npp_console local +   // enabling the output to the Console
+npp_save              // saving the current file
+cmd /C copy /B /Y "$(FULL_CURRENT_PATH)" "$(backupDir)"  // backing the current file up
+npp_console local -   // disabling the output to the Console
+sleep 2000            // waiting for 2 seconds</pre>
+</blockquote>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>
