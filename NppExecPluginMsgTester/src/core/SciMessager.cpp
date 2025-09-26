@@ -81,11 +81,11 @@ Sci_Position CSciMessager::getTextLength() const
 
 Sci_Position CSciMessager::getTextRange(Sci_Position pos1, Sci_Position pos2, char* pText) const
 {
-    Sci_TextRange tr;
+    Sci_TextRangeFull tr;
     tr.chrg.cpMin = pos1;
     tr.chrg.cpMax = pos2;
     tr.lpstrText = pText;
-    return (Sci_Position) SendSciMsg( SCI_GETTEXTRANGE, 0, (LPARAM) &tr );
+    return (Sci_Position) SendSciMsg( SCI_GETTEXTRANGEFULL, 0, (LPARAM) &tr );
 }
 
 void CSciMessager::goToPos(Sci_Position pos)

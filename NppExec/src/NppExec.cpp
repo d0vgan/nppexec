@@ -2039,6 +2039,7 @@ extern "C" __declspec(dllexport) LRESULT messageProc(UINT Message, WPARAM /*wPar
 {
   if ( Message == NPPM_MSGTOPLUGIN )
   {
+    // NppExec-specific NPPM_MSGTOPLUGIN is processed here
     CommunicationInfo* pci = (CommunicationInfo *) lParam;
     if ( pci )
     {
