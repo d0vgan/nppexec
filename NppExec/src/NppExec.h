@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Glory to Ukraine! Glory to the heroes!
  - fixed: NPP_OPEN did not active a document that was already opened
  - fixed: normpath preserves the leading "\\.\"
+ + NppExec Manual updated
 
 
  v0.8.9 - June 2025

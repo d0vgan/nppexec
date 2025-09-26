@@ -213,6 +213,10 @@
 				<param name="Name" value="4.6.18. NppExec's Console as a Log Viewer">
 				<param name="Local" value="4.6.18.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.19. Auto-hide NppExec's Console after executing a script">
+				<param name="Local" value="4.6.19.html">
+				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="4.7. Compiling">
