@@ -1663,6 +1663,7 @@ public:
   bool            m_TempScriptIsModified;
 
   CNppScriptList  m_ScriptsList;
+  tstr            m_PluginMessageCommand;
 
   MSGBOXTIMEOUTFUNC m_lpMsgBoxTimeoutFunc;
 
@@ -1771,6 +1772,7 @@ public:
 
   void RunTheStartScript();
   void RunTheExitScript();
+  void RunThePluginMessageCommand();
 
 #ifdef _SCROLL_TO_LATEST  
   void OnScrollToLatest();

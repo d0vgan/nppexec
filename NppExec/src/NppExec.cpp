@@ -1691,7 +1691,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
 {
     static bool bNppReady = false;
 
-    if ( notifyCode->nmhdr.code == NPPN_SHORTCUTREMAPPED )
+    if ( notifyCode->nmhdr.code == NPPN_SHORTCUTREMAPPED ) // hwndFrom is _not_ nppHandle here!
     {
         const int n = (g_nUserMenuItems > 0) ? (nbFunc + g_nUserMenuItems + 1) : nbFunc;
         for ( int i = 0; i < n; i++ )
@@ -1708,10 +1708,10 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
         }
         return;
     }
-  
+
     if ( notifyCode->nmhdr.hwndFrom == Runtime::GetNppExec().m_nppData._nppHandle )
     {
-  
+
         if ( notifyCode->nmhdr.code == NPPN_BUFFERACTIVATED || 
              notifyCode->nmhdr.code == NPPN_FILESAVED )
         {
@@ -1896,6 +1896,7 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
             }
 
             NppExec.RunTheStartScript();
+            NppExec.RunThePluginMessageCommand();
 
             if ( Runtime::GetLogger().IsLogFileOpen() )
             {
@@ -2015,6 +2016,78 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
                 }
             }
         } // NPPN_TBMODIFICATION
+
+        else if ( notifyCode->nmhdr.code == NPPN_CMDLINEPLUGINMSG )
+        {
+            const TCHAR* pszMsg = reinterpret_cast<const TCHAR*>(notifyCode->nmhdr.idFrom);
+            if ( pszMsg )
+            {
+                tstr scriptName;
+                tstr arg;
+                std::vector<tstr> args;
+                int n = 0;
+
+                for ( ; ; )
+                {
+                    int k = c_base::_tstr_unsafe_find(pszMsg + n, _T("NppExec"));
+                    if ( k == -1 )
+                        break;
+
+                    n += (k + 7); // length of "NppExec"
+                    if ( n == 7 || pszMsg[n - 8] == _T(';') )
+                    {
+                        if ( c_base::_tstr_unsafe_cmpn(pszMsg + n, _T("Script="), 7) == 0 )
+                        {
+                            n += 7; // length of "Script="
+                            k = c_base::_tstr_unsafe_findch(pszMsg + n, _T(';'));
+                            scriptName.Assign(pszMsg + n, (k != -1) ? k : -1);
+                            if ( k != -1 )
+                            {
+                                n += (k + 1);
+                                args.reserve(5);
+                            }
+                            else
+                                break;
+                        }
+                        else if ( c_base::_tstr_unsafe_cmpn(pszMsg + n, _T("Arg"), 3) == 0 )
+                        {
+                            n += 3; // length of "Arg"
+                            if ( pszMsg[n] >= _T('1') && pszMsg[n] <= _T('9') &&
+                                pszMsg[n + 1] == _T('=') )
+                            {
+                                unsigned int idx = static_cast<unsigned int>(pszMsg[n] - _T('1'));
+                                n += 2; // length of "N="
+                                k = c_base::_tstr_unsafe_findch(pszMsg + n, _T(';'));
+                                arg.Assign(pszMsg + n, (k != -1) ? k : -1);
+                                if ( args.size() < idx + 1 )
+                                {
+                                    args.resize(idx + 1);
+                                }
+                                args[idx] = arg;
+                                if ( k != -1 )
+                                    n += (k + 1);
+                                else
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                if ( !scriptName.IsEmpty() )
+                {
+                    tstr scriptCmd = _T("npp_exec \"");
+                    scriptCmd += scriptName;
+                    scriptCmd += _T('"');
+                    for ( const tstr& argn : args )
+                    {
+                        scriptCmd += _T(" \"");
+                        scriptCmd += argn;
+                        scriptCmd += _T("\"");
+                    }
+                    Runtime::GetNppExec().m_PluginMessageCommand = scriptCmd;
+                }
+            }
+        } // NPPN_CMDLINEPLUGINMSG
     
     }
     else
@@ -3684,6 +3757,16 @@ void CNppExec::RunTheExitScript()
         // the exit script is done (or has been aborted)
         m_ExitScriptIsDone.Set();
     }
+}
+
+void CNppExec::RunThePluginMessageCommand()
+{
+    if ( m_PluginMessageCommand.IsEmpty() )
+        return;
+
+    CListT<tstr> CmdList(m_PluginMessageCommand);
+    CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(tstr(), CmdList, 0, CNppExecCommandExecutor::ExpirableCommand::NonExpirable);
+    GetCommandExecutor().ExecuteCommand(pCommand);
 }
 
 void CNppExec::OnNoInternalMsgs()
