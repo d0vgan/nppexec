@@ -4,6 +4,10 @@
  * by DV <dvv81 @ ukr.net>, December 2006 - October 2025
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
+ *
+ * NppExec Manual online:
+ * https://d0vgan.github.io/nppexec/
+ *
  ****************************************************************************
  *
  * Abilities:
@@ -217,6 +221,10 @@
  *        $(@EXIT_CMD)          : a callback exit command for a child process
  *        $(@EXIT_CMD_SILENT)   : a silent (non-printed) callback exit command
  *
+ * Command-line arguments:
+ *   notepad++.exe -pluginMessage="NppExecScript=ScriptName"
+ *   notepad++.exe -pluginMessage="NppExecScript=ScriptName;NppExecArg1=Arg1;NppExecArg2=Arg2;..."
+ *
  ****************************************************************************
 
  *************
@@ -243,6 +251,7 @@
  * Glory to Ukraine! Glory to the heroes!
  - fixed: NPP_OPEN did not active a document that was already opened
  - fixed: normpath preserves the leading "\\.\"
+ + handling the "-pluginMessage" command-line arguments
  + NppExec Manual updated
  * npp_files updated to Notepad++ 8.8.6
 

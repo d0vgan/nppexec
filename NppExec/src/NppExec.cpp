@@ -21,6 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * by DV <dvv81 @ ukr.net>, December 2006 - October 2025
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
+ *
+ * NppExec Manual online:
+ * https://d0vgan.github.io/nppexec/
+ *
  ****************************************************************************
  *
  * Abilities:
@@ -233,6 +237,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(SYS.<var>)          : system's environment variable, e.g. $(SYS.PATH)
  *        $(@EXIT_CMD)          : a callback exit command for a child process
  *        $(@EXIT_CMD_SILENT)   : a silent (non-printed) callback exit command
+ *
+ * Command-line arguments:
+ *   notepad++.exe -pluginMessage="NppExecScript=ScriptName"
+ *   notepad++.exe -pluginMessage="NppExecScript=ScriptName;NppExecArg1=Arg1;NppExecArg2=Arg2;..."
  *
  ****************************************************************************/
 
