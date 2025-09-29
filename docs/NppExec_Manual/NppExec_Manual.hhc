@@ -108,6 +108,10 @@
 				<param name="Local" value="3.8.5.html">
 				</OBJECT>
 		</UL>
+		<LI> <OBJECT type="text/sitemap">
+			<param name="Name" value="3.9. Command-line arguments: pluginMessage">
+			<param name="Local" value="3.9.html">
+			</OBJECT>
 	</UL>
 	<LI> <OBJECT type="text/sitemap">
 		<param name="Name" value="4. Advanced usage">

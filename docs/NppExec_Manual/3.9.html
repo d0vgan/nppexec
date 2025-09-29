@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>3.9. Command-line arguments: pluginMessage</title>
+<script src="show_matches.js" type="text/javascript"></script>
+</HEAD>
+<BODY>
+<h3>3.9. Command-line arguments: pluginMessage</h3>
+<p><b>1. Notepad++'s pluginMessage</b></p>
+<p>NppExec supports Notepad++'s <code>-pluginMessage</code> command-line arguments in the form of:</p>
+<blockquote>
+  <pre>notepad++.exe -pluginMessage=&quot;NppExecScript=ScriptName&quot;</pre>
+</blockquote>
+<p>and</p>
+<blockquote>
+  <pre>notepad++.exe -pluginMessage=&quot;NppExecScript=ScriptName;NppExecArg1=Arg1;NppExecArg2=Arg2;...;NppExecArg9=Arg9&quot;</pre>
+</blockquote>
+<p>where</p>
+<ul>
+  <li><code>ScriptName</code> specifies NppExec's script name or a path to a file that contains NppExec's script. The <code>ScriptName</code> may contain spaces since the semicolon character '<code>;</code>' is used as the separator between the arguments of the <code>pluginMessage</code>.</li>
+  <li><code>Arg1</code> is the first argument passed to the given NppExec's script. Up to 9 arguments are supported. These arguments may contain spaces. The semicolon character is used as the separator.</li>
+</ul>
+<p>To pass a semicolon character as an argument's value, just specify the first semicolon character as the value and then the second semicolon character as the separator. For example:</p>
+<blockquote>  
+  <pre>notepad++.exe -pluginMessage=&quot;NppExecScript=ScriptName;NppExecArg1=;;NppExecArg2=Arg2&quot;</pre>
+</blockquote>
+<p>While this works with a single semicolon '<code>;</code>' as the value, as well as with consequent semicolons &quot;<code>;;;</code>&quot; as the value, you can't pass a semicolon in the middle of a value, such as &quot;<code>a;b</code>&quot;. The last case is not supported currently.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+<p><b>2. Example</b></p>
+<p>Let's assume we have the following NppExec's script named &quot;test&quot;:</p>
+<blockquote>
+  <pre>// test
+echo $(argv[1])
+echo $(argv[2])</pre>
+</blockquote>
+<p>And we specify the following command-line arguments to run Notepad++:</p>
+<blockquote>
+  <pre>notepad++.exe -pluginMessage=&quot;NppExecScript=test;NppExecArg1=;;NppExecArg2=a b c&quot;</pre>
+</blockquote>
+<p>As the result, Notepad++ starts with the following lines shown in NppExec's Console:</p>
+<blockquote>
+  <pre>;
+a b c</pre>
+</blockquote>
+
+<p><b>Note</b>:<br>
+In case a start-up script is specified in NppExec's Advanced Options, NppExec will first run the start-up script and then run the script specified as the <code>NppExecScript</code> value.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>
