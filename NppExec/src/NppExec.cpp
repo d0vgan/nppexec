@@ -1582,6 +1582,7 @@ extern "C" BOOL APIENTRY DllMain(
 #endif
       g_bInitialized = false;
       CNppExec::_bIsNppReady = false;
+      CNppExec::_bIsPluginMessage = false;
 
       Runtime::GetNppExec().InitPluginName((HMODULE) hInstance);
         
@@ -1896,7 +1897,10 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
             }
 
             NppExec.RunTheStartScript();
-            NppExec.RunThePluginMessageCommand();
+            if ( CNppExec::_bIsPluginMessage )
+            {
+                NppExec.RunThePluginMessageCommand();
+            }
 
             if ( Runtime::GetLogger().IsLogFileOpen() )
             {
@@ -2023,9 +2027,21 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
             if ( pszMsg )
             {
                 tstr scriptName;
-                tstr arg;
                 std::vector<tstr> args;
                 int n = 0;
+
+                auto get_arg_value = [](const TCHAR* pszStr, int& nSepPos) -> tstr
+                {
+                    int k = c_base::_tstr_unsafe_findch(pszStr, _T(';'));
+                    if ( k != -1 )
+                    {
+                        // in case of several ';', only the last one is the separator
+                        while ( pszStr[k + 1] == _T(';') )
+                            ++k;
+                    }
+                    nSepPos = k;
+                    return tstr(pszStr, (k != -1) ? k : -1);
+                };
 
                 for ( ; ; )
                 {
@@ -2039,11 +2055,10 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
                         if ( c_base::_tstr_unsafe_cmpn(pszMsg + n, _T("Script="), 7) == 0 )
                         {
                             n += 7; // length of "Script="
-                            k = c_base::_tstr_unsafe_findch(pszMsg + n, _T(';'));
-                            scriptName.Assign(pszMsg + n, (k != -1) ? k : -1);
+                            scriptName = get_arg_value(pszMsg + n, k);
                             if ( k != -1 )
                             {
-                                n += (k + 1);
+                                n += (k + 1); // right after the separator
                                 args.reserve(5);
                             }
                             else
@@ -2053,19 +2068,17 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
                         {
                             n += 3; // length of "Arg"
                             if ( pszMsg[n] >= _T('1') && pszMsg[n] <= _T('9') &&
-                                pszMsg[n + 1] == _T('=') )
+                                 pszMsg[n + 1] == _T('=') )
                             {
                                 unsigned int idx = static_cast<unsigned int>(pszMsg[n] - _T('1'));
                                 n += 2; // length of "N="
-                                k = c_base::_tstr_unsafe_findch(pszMsg + n, _T(';'));
-                                arg.Assign(pszMsg + n, (k != -1) ? k : -1);
                                 if ( args.size() < idx + 1 )
                                 {
                                     args.resize(idx + 1);
                                 }
-                                args[idx] = arg;
+                                args[idx] = get_arg_value(pszMsg + n, k);
                                 if ( k != -1 )
-                                    n += (k + 1);
+                                    n += (k + 1); // right after the separator
                                 else
                                     break;
                             }
@@ -2078,13 +2091,20 @@ extern "C" __declspec(dllexport) void beNotified(SCNotification *notifyCode)
                     tstr scriptCmd = _T("npp_exec \"");
                     scriptCmd += scriptName;
                     scriptCmd += _T('"');
-                    for ( const tstr& argn : args )
+                    for ( const tstr& arg : args )
                     {
                         scriptCmd += _T(" \"");
-                        scriptCmd += argn;
+                        scriptCmd += arg;
                         scriptCmd += _T("\"");
                     }
-                    Runtime::GetNppExec().m_PluginMessageCommand = scriptCmd;
+
+                    CNppExec& NppExec = Runtime::GetNppExec();
+                    NppExec.m_PluginMessageCommand = scriptCmd;
+                    CNppExec::_bIsPluginMessage = true;
+                    if ( CNppExec::_bIsNppReady )
+                    {
+                        NppExec.RunThePluginMessageCommand();
+                    }
                 }
             }
         } // NPPN_CMDLINEPLUGINMSG
@@ -2134,6 +2154,7 @@ extern "C" __declspec(dllexport) BOOL isUnicode()
 
 bool CNppExec::_bIsNppReady = false;
 bool CNppExec::_bIsNppShutdown = false;
+bool CNppExec::_bIsPluginMessage = false;
 
 CNppExec::CNppExec() :
   m_Options(_T("NppExec"), optArray, OPT_COUNT),

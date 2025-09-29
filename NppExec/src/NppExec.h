@@ -1673,6 +1673,7 @@ public:
 public:
   static bool     _bIsNppReady;
   static bool     _bIsNppShutdown; // should exist even after ~CNppExec()
+  static bool     _bIsPluginMessage;
   bool            _bStopTheExitScript;
   bool            _bOptionsSavedOnNppnShutdown;
 
