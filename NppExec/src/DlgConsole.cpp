@@ -247,7 +247,6 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_DIR)  :  directory containing the current item in the workspace pane") _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_NAME)  :  file name of the current item in the workspace pane") _T_RE_EOL \
   _T("$(WORKSPACE_ITEM_ROOT)  :  root path of the current item in the workspace pane") _T_RE_EOL \
-  _T("$(CLOUD_LOCATION_PATH)  :  cloud location path (in Notepad++\'s settings)") _T_RE_EOL \
   _T("$(CLIPBOARD_TEXT)  :  text from the clipboard") _T_RE_EOL \
   _T("$(#N)  :  full path of the Nth opened document (N=1,2,3...)") _T_RE_EOL \
   _T("$(#0)  :  full path to notepad++.exe") _T_RE_EOL \
@@ -255,6 +254,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(RIGHT_VIEW_FILE)  :  current file path-name in secondary (right) view") _T_RE_EOL \
   _T("$(PLUGINS_CONFIG_DIR)  :  full path of the plugins configuration directory") _T_RE_EOL \
   _T("$(NPP_SETTINGS_DIR)  :  path for the active Notepad++ settings") _T_RE_EOL \
+  _T("$(CLOUD_LOCATION_PATH)  :  cloud location path (settings on cloud)") _T_RE_EOL \
   _T("$(CWD)  :  current working directory of NppExec (use \"cd\" to change it)") _T_RE_EOL \
   _T("$(ARGC)  :  number of arguments passed to the NPP_EXEC command") _T_RE_EOL \
   _T("$(ARGV)  :  all arguments passed to the NPP_EXEC command after the script name") _T_RE_EOL \

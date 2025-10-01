@@ -200,7 +200,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(WORKSPACE_ITEM_DIR) : directory containing the current item in the workspace pane
  *        $(WORKSPACE_ITEM_NAME): file name of the current item in the workspace pane
  *        $(WORKSPACE_ITEM_ROOT): root path of the current item in the workspace pane
- *        $(CLOUD_LOCATION_PATH): cloud location path (in Notepad++'s settings)
  *        $(CLIPBOARD_TEXT)     : text from the clipboard
  *        $(#0)                 : C:\Program Files\Notepad++\notepad++.exe
  *        $(#N), N=1,2,3...     : full path of the Nth opened document
@@ -208,6 +207,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(RIGHT_VIEW_FILE)    : current file path-name in second (right) view
  *        $(PLUGINS_CONFIG_DIR) : full path of the plugins configuration directory
  *        $(NPP_SETTINGS_DIR)   : path for the active Notepad++ settings
+ *        $(CLOUD_LOCATION_PATH): cloud location path (settings on cloud)
  *        $(CWD)                : current working directory of NppExec (use "cd" to change it)
  *        $(ARGC)               : number of arguments passed to the NPP_EXEC command
  *        $(ARGV)               : all arguments passed to the NPP_EXEC command after the script name
