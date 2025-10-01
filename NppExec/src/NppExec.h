@@ -1736,16 +1736,17 @@ public:
   /* bool nppGetWorkspaceRootFolders(CListT<tstr>& listOfRootFolders); */
   bool nppGetWorkspaceItemPath(tstr& itemPath);
   bool nppGetWorkspaceRootItemPath(tstr& rootItemPath);
-  tstr nppGetSettingsCloudPath();
-  tstr nppGetSettingsDir();
-  tstr GetSettingsCloudPluginDir();
+  tstr nppGetSettingsCloudPath() const;
+  tstr nppGetSettingsDir() const;
+  tstr GetSettingsCloudPluginDir() const;
   int  findFileNameIndexInNppOpenFileNames(const tstr& fileName, tstr* pOpenFileName = nullptr, int nView = ALL_OPEN_FILES);
 
   static void CreateCloudDirIfNeeded(const tstr& cloudDir);
 
 private:
   void SaveConfiguration();
-  
+  void nppGetFilePath(tstr& filePath, UINT uNppMsg, WPARAM* pwParam = nullptr) const;
+
 public: 
   void InitPluginName(HMODULE hDllModule); // called _before_ Init()
   void Init();

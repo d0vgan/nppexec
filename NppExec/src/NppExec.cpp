@@ -3068,33 +3068,35 @@ int CNppExec::nppConvertToFullPathName(tstr& fileName, int nView )
   return 0;
 }
 
-tstr CNppExec::nppGetSettingsCloudPath()
+void CNppExec::nppGetFilePath(tstr& filePath, UINT uNppMsg, WPARAM* pwParam) const
 {
-    tstr cloudPath;
-    int nLen = (int) SendNppMsg( NPPM_GETSETTINGSONCLOUDPATH, 0, 0 );
+    WPARAM wParam = (pwParam == nullptr) ? 0 : *pwParam;
+    int nLen = (int) SendNppMsg( uNppMsg, wParam, 0 );
     if (nLen != 0)
     {
-        cloudPath.Reserve(nLen + 1);
-        nLen = (int) SendNppMsg( NPPM_GETSETTINGSONCLOUDPATH, nLen + 1, (LPARAM) cloudPath.data() );
-        cloudPath.SetLengthValue(nLen);
+        filePath.Reserve(nLen + 1);
+        filePath[nLen] = 0;
+        wParam = (pwParam == nullptr) ? (nLen + 1) : *pwParam;
+        nLen = (int) SendNppMsg( uNppMsg, wParam, (LPARAM) filePath.data() );
+        filePath.SetLengthValue(nLen);
     }
+}
+
+tstr CNppExec::nppGetSettingsCloudPath() const
+{
+    tstr cloudPath;
+    nppGetFilePath(cloudPath, NPPM_GETSETTINGSONCLOUDPATH);
     return cloudPath;
 }
 
-tstr CNppExec::nppGetSettingsDir()
+tstr CNppExec::nppGetSettingsDir() const
 {
     tstr settingsDir;
-    int nLen = (int) SendNppMsg( NPPM_GETNPPSETTINGSDIRPATH, 0, 0 );
-    if (nLen != 0)
-    {
-        settingsDir.Reserve(nLen + 1);
-        nLen = (int) SendNppMsg( NPPM_GETNPPSETTINGSDIRPATH, nLen + 1, (LPARAM) settingsDir.data() );
-        settingsDir.SetLengthValue(nLen);
-    }
+    nppGetFilePath(settingsDir, NPPM_GETNPPSETTINGSDIRPATH);
     return settingsDir;
 }
 
-tstr CNppExec::GetSettingsCloudPluginDir()
+tstr CNppExec::GetSettingsCloudPluginDir() const
 {
     tstr cloudDir = nppGetSettingsCloudPath();
     if (!cloudDir.IsEmpty())
@@ -3247,15 +3249,10 @@ tstr CNppExec::nppGetOpenFileName(int nDocPos, int nView /*= MAIN_VIEW*/) const
 void CNppExec::nppGetOpenFileNameImpl(tstr& fileName, int nDocPos, int nView) const
 {
     fileName.Clear();
-    LRESULT bufId = SendNppMsg(NPPM_GETBUFFERIDFROMPOS, nDocPos, nView);
+    WPARAM bufId = (WPARAM) SendNppMsg(NPPM_GETBUFFERIDFROMPOS, nDocPos, nView);
     if (bufId != 0)
     {
-        int nLen = (int) SendNppMsg(NPPM_GETFULLPATHFROMBUFFERID, bufId, 0);
-        if (fileName.Reserve(nLen))
-        {
-            if (SendNppMsg(NPPM_GETFULLPATHFROMBUFFERID, bufId, (LPARAM) fileName.data()) > 0)
-                fileName.SetLengthValue(nLen);
-        }
+        nppGetFilePath(fileName, NPPM_GETFULLPATHFROMBUFFERID, &bufId);
     }
 }
 
