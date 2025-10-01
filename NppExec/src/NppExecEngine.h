@@ -1823,6 +1823,7 @@ extern const TCHAR MACRO_SYSVAR[];
 extern const TCHAR MACRO_LEFT_VIEW_FILE[];
 extern const TCHAR MACRO_RIGHT_VIEW_FILE[];
 extern const TCHAR MACRO_PLUGINS_CONFIG_DIR[];
+extern const TCHAR MACRO_NPP_SETTINGS_DIR[];
 extern const TCHAR MACRO_CURRENT_WORKING_DIR[];
 extern const TCHAR MACRO_ARGC[];
 extern const TCHAR MACRO_ARGV[];

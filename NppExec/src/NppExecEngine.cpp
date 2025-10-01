@@ -80,6 +80,7 @@ const TCHAR MACRO_SYSVAR[]              = _T("$(SYS.");
 const TCHAR MACRO_LEFT_VIEW_FILE[]      = _T("$(LEFT_VIEW_FILE)");
 const TCHAR MACRO_RIGHT_VIEW_FILE[]     = _T("$(RIGHT_VIEW_FILE)");
 const TCHAR MACRO_PLUGINS_CONFIG_DIR[]  = _T("$(PLUGINS_CONFIG_DIR)");
+const TCHAR MACRO_NPP_SETTINGS_DIR[]    = _T("$(NPP_SETTINGS_DIR)");
 const TCHAR MACRO_CURRENT_WORKING_DIR[] = _T("$(CWD)");
 const TCHAR MACRO_ARGC[]                = _T("$(ARGC)");
 const TCHAR MACRO_ARGV[]                = _T("$(ARGV");
@@ -1448,6 +1449,7 @@ static FParserWrapper g_fp;
  * $(LEFT_VIEW_FILE)     : current file path-name in primary (left) view
  * $(RIGHT_VIEW_FILE)    : current file path-name in second (right) view
  * $(PLUGINS_CONFIG_DIR) : full path of the plugins configuration directory
+ * $(NPP_SETTINGS_DIR)   : path for the active Notepad++ settings
  * $(CWD)                : current working directory of NppExec (use "cd" to change it)
  * $(ARGC)               : number of arguments passed to the NPP_EXEC command
  * $(ARGV)               : all arguments passed to the NPP_EXEC command after the script name
@@ -8783,6 +8785,14 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            [](CNppExec* pNppExec)
            {
              return tstr(pNppExec->getConfigPath());
+           }
+         ) ||
+         substituteMacroVar(
+           Cmd, S, pos,
+           MACRO_NPP_SETTINGS_DIR,
+           [](CNppExec* pNppExec)
+           {
+               return pNppExec->nppGetSettingsDir();
            }
          ) ||
          substituteMacroVar(

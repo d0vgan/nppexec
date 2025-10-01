@@ -207,6 +207,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(LEFT_VIEW_FILE)     : current file path-name in primary (left) view
  *        $(RIGHT_VIEW_FILE)    : current file path-name in second (right) view
  *        $(PLUGINS_CONFIG_DIR) : full path of the plugins configuration directory
+ *        $(NPP_SETTINGS_DIR)   : path for the active Notepad++ settings
  *        $(CWD)                : current working directory of NppExec (use "cd" to change it)
  *        $(ARGC)               : number of arguments passed to the NPP_EXEC command
  *        $(ARGV)               : all arguments passed to the NPP_EXEC command after the script name
@@ -3074,10 +3075,23 @@ tstr CNppExec::nppGetSettingsCloudPath()
     if (nLen != 0)
     {
         cloudPath.Reserve(nLen + 1);
-        nLen = (int) SendNppMsg( NPPM_GETSETTINGSONCLOUDPATH, nLen + 1, (LPARAM) cloudPath.c_str() );
+        nLen = (int) SendNppMsg( NPPM_GETSETTINGSONCLOUDPATH, nLen + 1, (LPARAM) cloudPath.data() );
         cloudPath.SetLengthValue(nLen);
     }
     return cloudPath;
+}
+
+tstr CNppExec::nppGetSettingsDir()
+{
+    tstr settingsDir;
+    int nLen = (int) SendNppMsg( NPPM_GETNPPSETTINGSDIRPATH, 0, 0 );
+    if (nLen != 0)
+    {
+        settingsDir.Reserve(nLen + 1);
+        nLen = (int) SendNppMsg( NPPM_GETNPPSETTINGSDIRPATH, nLen + 1, (LPARAM) settingsDir.data() );
+        settingsDir.SetLengthValue(nLen);
+    }
+    return settingsDir;
 }
 
 tstr CNppExec::GetSettingsCloudPluginDir()

@@ -254,6 +254,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(LEFT_VIEW_FILE)  :  current file path-name in primary (left) view") _T_RE_EOL \
   _T("$(RIGHT_VIEW_FILE)  :  current file path-name in secondary (right) view") _T_RE_EOL \
   _T("$(PLUGINS_CONFIG_DIR)  :  full path of the plugins configuration directory") _T_RE_EOL \
+  _T("$(NPP_SETTINGS_DIR)  :  path for the active Notepad++ settings") _T_RE_EOL \
   _T("$(CWD)  :  current working directory of NppExec (use \"cd\" to change it)") _T_RE_EOL \
   _T("$(ARGC)  :  number of arguments passed to the NPP_EXEC command") _T_RE_EOL \
   _T("$(ARGV)  :  all arguments passed to the NPP_EXEC command after the script name") _T_RE_EOL \
@@ -515,6 +516,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  dir *               // the same") _T_RE_EOL \
     _T("  dir d:\\docs\\*.txt   // list all *.txt files in the folder d:\\docs") _T_RE_EOL \
     _T("  dir $(PLUGINS_CONFIG_DIR)\\*.ini") _T_RE_EOL \
+    _T("  dir $(NPP_SETTINGS_DIR)\\*.xml") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  cd, mask, npp_open") _T_RE_EOL
   },
@@ -5266,6 +5268,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_OUTPUTL );                //  $(OUTPUTL)
   CmdVarsList.Add( MACRO_OUTPUT1 );                //  $(OUTPUT1)
   CmdVarsList.Add( MACRO_OUTPUT );                 //  $(OUTPUT)
+  CmdVarsList.Add( MACRO_NPP_SETTINGS_DIR );       //  $(NPP_SETTINGS_DIR)
   CmdVarsList.Add( MACRO_NPP_PID );                //  $(NPP_PID)
   CmdVarsList.Add( MACRO_NPP_HWND );               //  $(NPP_HWND)
   CmdVarsList.Add( MACRO_NPP_FULL_FILE_PATH );     //  $(NPP_FULL_FILE_PATH)
