@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  v0.8.10 - October 2025
  ----------------------
  * Glory to Ukraine! Glory to the heroes!
- - fixed: NPP_OPEN did not active a document that was already opened
+ - fixed: NPP_OPEN did not activate a document that was already opened
  - fixed: normpath preserves the leading "\\.\"
  + handling the "-pluginMessage" command-line arguments
  + new environment variable: $(NPP_SETTINGS_DIR)
