@@ -24,7 +24,7 @@ For the purpose of auto-hiding the Console at the end of the script, we need to 
 </blockquote>
 <p>This command has the following effects: 1. If the Console is hidden, it is shown. 2. As this command is <code>local</code>, the previous state of the Console (before the script) is restored at the end of the script. I.e. if the Console was hidden before the script, it is shown during the script and then becomes hidden at the end of the script. This is the desired &quot;Auto-hide&quot; behavior. So, this is the exact command we want at the very beginning of our script.<br>
 (Note: With this command, if the Console was shown before the script, it remains shown after the script. If you want the Console to be always hidden at the end of the script, use <code>npp_console off</code> at the end of the script).</p>
-<p>As the Console will be auto-hidden, we may need some pause to see the Console's output while it is visible:</p>
+<p>As the Console will be auto-hidden, we may need some pause to read the Console's output while it is visible:</p>
 <blockquote>
   <pre>sleep 2000  // waiting for 2 seconds</pre>
 </blockquote>
