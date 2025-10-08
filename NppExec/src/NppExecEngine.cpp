@@ -1166,8 +1166,8 @@ static FParserWrapper g_fp;
  *   - lists subdirs and files matched the mask
  * echo <text>
  *   - prints a text in the Console
- * echo~ <math expression>
- *   - calculates and prints in the Console
+ * echo~ <math/str expression>
+ *   - prints the calculated/transformed result
  * if <condition> goto <label>
  *   - jumps to the label if the condition is true
  * if~ <condition> goto <label>
@@ -3570,11 +3570,21 @@ CScriptEngine::eCmdResult CScriptEngine::doEcho(const tstr& params, bool isCalc)
     reportCmdAndParams( isCalc ? DoCalcEchoCommand::Name() : DoEchoCommand::Name(), params, 0 );
 
     const TCHAR* cszMessage = params.c_str();
-    tstr calcErr;
-    tstr calcResult;
+    tstr calcResult; // note: its value may be referenced by cszMessage
 
     if ( isCalc )
     {
+        // StrCalc supports numeric calculations, 'strlen', 'strupper', 'strlower', 'substr' and so on
+        calcResult = params;
+        if ( CNppExecMacroVars::StrCalc(calcResult, m_pNppExec).Process() )
+        {
+            cszMessage = calcResult.c_str();
+        }
+
+        /*
+        // only numeric calculations:
+        tstr calcErr;
+
         g_fp.Calculate(m_pNppExec, params, calcErr, calcResult);
         if ( calcErr.IsEmpty() )
         {
@@ -3586,6 +3596,7 @@ CScriptEngine::eCmdResult CScriptEngine::doEcho(const tstr& params, bool isCalc)
             m_pNppExec->GetConsole().PrintError(calcErr.c_str());
             // cszMessage remains params.c_str()
         }
+        */
     }
 
     const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;

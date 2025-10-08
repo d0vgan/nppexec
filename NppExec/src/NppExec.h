@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  - fixed: normpath preserves the leading "\\.\"
  + handling the "-pluginMessage" command-line arguments
  + new environment variable: $(NPP_SETTINGS_DIR)
+ + updated: now echo~ supports both math and string expressions
  + NppExec Manual updated
  * npp_files updated to Notepad++ 8.8.6
 

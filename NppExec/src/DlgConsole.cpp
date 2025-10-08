@@ -96,7 +96,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("dir  -  lists files and subdirs") _T_RE_EOL \
   _T("dir <mask or path\\mask>  -  lists files/subdirs matched the mask") _T_RE_EOL \
   _T("echo <text>  -  prints a text in the Console") _T_RE_EOL \
-  _T("echo~ <math expression>  -  calculates and prints in the Console") _T_RE_EOL \
+  _T("echo~ <math/str expression>  -  prints the calculated/transformed result") _T_RE_EOL \
   _T("if <condition> goto <label>  -  jumps to the label if the condition is true") _T_RE_EOL \
   _T("if~ <condition> goto <label>  -  calculates and checks the condition") _T_RE_EOL \
   _T("if ... else if ... else ... endif  -  conditional execution") _T_RE_EOL \
@@ -540,16 +540,27 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     CScriptEngine::DoCalcEchoCommand::Name(),
     _T("COMMAND:  echo~") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
-    _T("  echo~ <math expression>") _T_RE_EOL \
+    _T("  echo~ <math/str expression>") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
-    _T("  Calculatest and prints the math expression in the Console") _T_RE_EOL \
+    _T("  1. Calculates the math expression and prints the result") _T_RE_EOL \
+    _T("  2. Transforms the string expression and prints the result") _T_RE_EOL \
+    _T("     (supports the same string expressions as the SET command)") _T_RE_EOL \
     _T("EXAMPLES:") _T_RE_EOL \
-    _T("  echo~ 1 + 2 + 3 + 4 + 5") _T_RE_EOL \
-    _T("  echo~ 1 << 10") _T_RE_EOL \
+    _T("  // Math calculations...") _T_RE_EOL \
+    _T("  echo~ 1 + 2 + 3 + 4 + 5       // prints 15") _T_RE_EOL \
+    _T("  echo~ 1 << 10                 // prints 1024") _T_RE_EOL \
     _T("  set local x ~ pi/2") _T_RE_EOL \
-    _T("  echo~ sin($(x)) + cos(0)") _T_RE_EOL \
-    _T("  npe_cmdalias ~ = echo~  // alias: ~ -> echo~") _T_RE_EOL \
-    _T("  ~ 1 + 2/3 + 4/5  // using the alias for echo~") _T_RE_EOL \
+    _T("  echo~ sin($(x)) + cos(0)      // prints 2.0") _T_RE_EOL \
+    _T("  // String transformations...") _T_RE_EOL \
+    _T("  echo~ strlen abcdef           // prints 6") _T_RE_EOL \
+    _T("  echo~ strupper abc def        // prints ABC DEF") _T_RE_EOL \
+    _T("  echo~ ordx A                  // prints 0x41") _T_RE_EOL \
+    _T("  echo~ chr 0x61                // prints a") _T_RE_EOL \
+    _T("  echo~ strfromhex 41 00 61 00  // prints Aa") _T_RE_EOL \
+    _T("  // Command alias...") _T_RE_EOL \
+    _T("  npe_cmdalias ~ = echo~        // alias: ~ -> echo~") _T_RE_EOL \
+    _T("  ~ 1 + 2/3 + 4/5               // prints 2.466667, using the alias for echo~") _T_RE_EOL \
+    _T("  ~ strquote abc                // prints \"abc\", using the alias for echo~") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  echo, set, if~") _T_RE_EOL
   },
@@ -2330,7 +2341,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("       ...") _T_RE_EOL \
     _T("     endif") _T_RE_EOL \
     _T("DESCRIPTION:") _T_RE_EOL \
-    _T("  First calculates the operands, then checks the condition.") _T_RE_EOL \
+    _T("  First calculates the operands mathematically, then checks the condition.") _T_RE_EOL \
     _T("  If the condition is true, jumps to the specified label.") _T_RE_EOL \
     _T("  If the condition is false, proceeds to the next line.") _T_RE_EOL \
     _T("  * If the specified label can not be found within the current script,") _T_RE_EOL \
@@ -2347,6 +2358,8 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  a <= b  - less or equal:     1 <= 2,  $(x) - 2 <= $(y) - 2") _T_RE_EOL \
     _T("REMARKS:") _T_RE_EOL \
     _T("  IF~ deals only with numbers and numeric calculations.") _T_RE_EOL \
+    _T("  (Unlike ECHO~, IF~ does not support string expressions") _T_RE_EOL \
+    _T("  such as strlen, strupper etc. for performance reasons).") _T_RE_EOL \
     _T("  A string operand will cause a syntax error.") _T_RE_EOL \
     _T("SEE ALSO:") _T_RE_EOL \
     _T("  if, else, endif, goto, label, set, echo~") _T_RE_EOL

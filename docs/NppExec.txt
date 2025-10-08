@@ -23,7 +23,7 @@
  *        dir <mask> - lists subdirs and files matched the mask
  *        dir <path\mask> - lists subdirs and files matched the mask
  *        echo <text> - prints a text in the Console
- *        echo~ <math expression> - calculates and prints in the Console
+ *        echo~ <math/str expression> - prints the calculated/transformed result
  *        if <condition> goto <label> - jumps to the label if the condition is true
  *        if~ <condition> goto <label> - calculates and checks the condition
  *        if ... else if ... else ... endif - conditional execution
@@ -254,6 +254,7 @@
  - fixed: normpath preserves the leading "\\.\"
  + handling the "-pluginMessage" command-line arguments
  + new environment variable: $(NPP_SETTINGS_DIR)
+ + updated: now echo~ supports both math and string expressions
  + NppExec Manual updated
  * npp_files updated to Notepad++ 8.8.6
 
