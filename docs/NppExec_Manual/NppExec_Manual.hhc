@@ -221,6 +221,10 @@
 				<param name="Name" value="4.6.19. Auto-hide NppExec's Console after executing a script">
 				<param name="Local" value="4.6.19.html">
 				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="4.6.20. Opening multiple files and switching between them">
+				<param name="Local" value="4.6.20.html">
+				</OBJECT>
 		</UL>
 		<LI> <OBJECT type="text/sitemap">
 			<param name="Name" value="4.7. Compiling">

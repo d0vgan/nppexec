@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<HTML lang="en">
+<HEAD>
+<META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<link href="style.css" rel="stylesheet" type="text/css">
+<title>4.6.20. Opening multiple files and switching between them</title>
+<script src="show_matches.js" type="text/javascript"></script>
+</HEAD>
+<BODY>
+<h3>4.6.20. Opening multiple files and switching between them</h3>
+
+<p>To open multiple files by means of NppExec, use <code>npp_open</code>:</p>
+
+<blockquote>
+  <pre>npp_open file_path_1
+npp_open file_path_2
+npp_open file_path_3</pre>
+</blockquote>
+
+<p>The example above opens 3 files in Notepad++ and the last opened file becomes active.</p>
+<p>If you want to preserve the order of opening these files but activate the first one (instead of the last one), use <code>npp_switch</code> at the end:</p>
+
+<blockquote>
+  <pre>npp_open file_path_1
+npp_open file_path_2
+npp_open file_path_3
+npp_switch file_path_1</pre>
+</blockquote>
+
+<p>Both <code>npp_open</code> and <code>npp_switch</code> accept full file paths and relative file paths.<br>
+Moreover, <code>npp_switch</code> also supports partial file names. For example, <code>npp_switch abc</code> will switch to the first opened file that contains &quot;abc&quot; in its name.</p>
+<p>It is possible to open multiple files by specifying a file mask. For example, this will open all .txt files from a given directory:</p>
+
+<blockquote>
+  <pre>npp_open C:\some_dir\*.txt</pre>
+</blockquote>
+
+<p>In this case, if you want to switch to the very first file opened by <code>npp_open</code>, a few additional commands are needed.<br>
+At first, we need to remember the number of opened files before <code>npp_open</code>. Let's say this number is <code>N</code>.<br>
+Then we call <code>npp_open</code> to open multiple files.<br>
+Finally, we switch to the <code>(N+1)</code>th opened file.</p>
+<p>Here is the corresponding NppExec's script:</p>
+
+<blockquote>
+  <pre>// 1. remembering the number of opened files
+npp_sendmsg NPPM_GETCURRENTSCINTILLA 0 @0
+set local view ~ $(MSG_LPARAM) + 1
+npp_sendmsg NPPM_GETNBOPENFILES 0 $(view)
+set local num_opened_files = $(MSG_RESULT)
+
+// 2. calling npp_open
+npp_open C:\some_dir\*.txt
+
+// 3. switching to the (num_opened_files + 1)th document
+set local file_idx ~ $(num_opened_files) + 1
+npp_switch $(#$(file_idx))</pre>
+</blockquote>
+
+<p>Just for information, <code>npp_switch $(#$(file_idx))</code> becomes e.g. <code>npp_switch $(#5)</code> when the value of <code>$(file_idx)</code> is <code>5</code>.<br>
+This trick is called &quot;indirect variable reference, e.g. $($(name))&quot; and was added in NppExec v0.6.2.</p>
+
+<blockquote>
+  <pre> </pre>
+</blockquote>
+
+</BODY>
+</HTML>
