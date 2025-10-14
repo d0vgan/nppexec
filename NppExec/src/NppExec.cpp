@@ -4100,35 +4100,39 @@ void CNppExec::OnHelpManual()
             }
         }
 
-        sHelpFile.Replace( _T('/'), _T('\\') );
-        if ( NppExecHelpers::IsFullPath(sHelpFile) )
+        const bool isURL = (sHelpFile.Find(_T("://")) > 0);
+        if ( !isURL )
         {
-            if ( !NppExecHelpers::CheckFileExists(sHelpFile) )
-                return; // file does not exist, nothing to do
-        }
-        else
-        {
-            // sHelpFile is a relative pathname
-            if ( sHelpFile.GetFirstChar() == _T('\\') )
-                sHelpFile.DeleteFirstChar();
-
-            // first, trying the folder at the level of NppExec.dll
-            tstr sHelpFilePath = getPluginDllPath();
-            sHelpFilePath += _T('\\');
-            sHelpFilePath += sHelpFile;
-            if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
+            sHelpFile.Replace( _T('/'), _T('\\') );
+            if ( NppExecHelpers::IsFullPath(sHelpFile) )
             {
-                // then, trying the folder one level upper
-                sHelpFilePath = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpDirPath);
-                sHelpFilePath += sHelpFile;
-                if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
+                if ( !NppExecHelpers::CheckFileExists(sHelpFile) )
                     return; // file does not exist, nothing to do
             }
-            sHelpFile.Swap(sHelpFilePath);
+            else
+            {
+                // sHelpFile is a relative pathname
+                if ( sHelpFile.GetFirstChar() == _T('\\') )
+                    sHelpFile.DeleteFirstChar();
+
+                // first, trying the folder at the level of NppExec.dll
+                tstr sHelpFilePath = getPluginDllPath();
+                sHelpFilePath += _T('\\');
+                sHelpFilePath += sHelpFile;
+                if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
+                {
+                    // then, trying the folder one level upper
+                    sHelpFilePath = NppExecHelpers::GetFileNamePart(getPluginDllPath(), NppExecHelpers::fnpDirPath);
+                    sHelpFilePath += sHelpFile;
+                    if ( !NppExecHelpers::CheckFileExists(sHelpFilePath) )
+                        return; // file does not exist, nothing to do
+                }
+                sHelpFile.Swap(sHelpFilePath);
+            }
         }
-        
+
 #ifndef __MINGW32__
-        if ( sHelpFile.Find(_T(".chm")) > 0 )
+        if ( sHelpFile.Find(_T(".chm")) > 0 && !isURL )
             ::HtmlHelp( NULL, sHelpFile.c_str(), HH_DISPLAY_TOPIC, NULL );
         else
 #endif

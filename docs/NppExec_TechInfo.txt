@@ -720,6 +720,14 @@
      $(SYS.TEMP)
      $(NPP_DIRECTORY)
      $(PLUGINS_CONFIG_DIR)
+   This can also be a URL that points to the online version of the Manual:
+     HelpFile=https://d0vgan.github.io/nppexec/
+   To start with a specific topic of the online Manual, use "?q=", such as:
+     HelpFile=https://d0vgan.github.io/nppexec/?q=FAQ
+   or:
+     HelpFile=https://d0vgan.github.io/nppexec/?q=4.0
+   This can also be a path to the local HTML version of the Manual, e.g.:
+     HelpFile=C:\github\nppexec\docs\index.html
 
 
  TempScriptFile

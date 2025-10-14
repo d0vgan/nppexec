@@ -255,6 +255,7 @@
  + handling the "-pluginMessage" command-line arguments
  + new environment variable: $(NPP_SETTINGS_DIR)
  + updated: now echo~ supports both math and string expressions
+ + updated: HelpFile can be a URL (see "NppExec_TechInfo.txt")
  + NppExec Manual updated
  * npp_files updated to Notepad++ 8.8.6
 
