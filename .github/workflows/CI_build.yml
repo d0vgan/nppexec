@@ -1,0 +1,45 @@
+name: CI_build
+
+on: [push, pull_request]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v6
+
+    - name: Install swissfileknife
+      run: |
+           choco install swissfileknife
+
+    - name: Add msbuild to PATH
+      uses: microsoft/setup-msbuild@v2
+
+    - name: Build plugin dlls
+      working-directory: .\NppExec
+      run: |
+            msbuild NppExec_VC2022.sln /m /p:configuration="Release" /p:platform="Win32"
+            msbuild NppExec_VC2022.sln /m /p:configuration="Release" /p:platform="x64"
+
+    - name: Build plugin chm help
+      working-directory: .
+      shell: cmd
+      run: |
+           NppExec_Manual_chm_build.bat
+
+
+    - name: create zip packages
+      working-directory: .
+      shell: cmd
+      run: |
+           NppExec_zip_src_dll.bat
+
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v6
+      with:
+          name: nppexec zips
+          path: NppExec*.zip
+
