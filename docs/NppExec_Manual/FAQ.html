@@ -116,5 +116,23 @@ npp_setfocus con  // return the focus back to NppExec's Console</pre>
 </ul>
 <p>&nbsp;</p>
 
+<p><b>Q6. Why NppExec echoes each input command?</b></p>
+<p>By default, NppExec echoes each input command in green color (which corresponds to TextColorMessage in NppExec's Advanced Options). This is the NppExec's way to confirm that an input command has been received and is being processed.</p>
+<p>You can disable this echoing either from NppExec's plugin menu <a href="3.4.html">[3.4]</a> or programmatically:</p>
+<ul>
+  <li>either check &quot;No internal messages&quot; under Plugins -&gt; NppExec;</li>
+  <li>or execute this command:
+  <blockquote>
+    <pre>npe_console -- m-</pre>
+  </blockquote>
+  (for details, type &quot;help npe_console&quot; in NppExec's Console).</li>
+</ul>
+<p>Another potential source of echoed commands is <i>cmd.exe</i> running in NppExec's Console. In such case, just add the <code>/Q</code> switch to <i>cmd.exe</i>:</p>
+  <blockquote>
+    <pre>cmd /Q</pre>
+  </blockquote>
+<p>In this case, <i>cmd.exe</i> will not echo its input commands.</p>
+<p>&nbsp;</p>
+
 </BODY>
 </HTML>
