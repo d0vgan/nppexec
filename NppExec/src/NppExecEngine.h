@@ -1835,6 +1835,7 @@ extern const TCHAR MACRO_OUTPUTL[];
 extern const TCHAR MACRO_EXITCODE[];
 extern const TCHAR MACRO_PID[];
 extern const TCHAR MACRO_IS_PROCESS[];
+extern const TCHAR MACRO_IS_CONSOLE[];
 extern const TCHAR MACRO_MSG_RESULT[];
 extern const TCHAR MACRO_MSG_WPARAM[];
 extern const TCHAR MACRO_MSG_LPARAM[];

@@ -223,6 +223,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *        $(EXITCODE)           : exit code of the last executed child process
  *        $(PID)                : process id of the current (or the last) child process
  *        $(IS_PROCESS)         : is child process running (1 - yes, 0 - no)
+ *        $(IS_CONSOLE)         : is NppExec's Console visible (1 - yes, 0 - no)
  *        $(LAST_CMD_RESULT)    : result of the last NppExec's command
  *                                  (1 - succeeded, 0 - failed, -1 - invalid arg)
  *        $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
