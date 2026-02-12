@@ -39,15 +39,23 @@ For the purpose of auto-hiding the Console at the end of the script, we need to 
 
 <p>So, here is the full script:</p>
 <blockquote>
-  <pre>npp_console local on  // showing the Console if it is hidden
+  <pre>// 1. Begin: Showing the Console in its auto-hiding mode
+npp_console ?  // don't show the Console if it is hidden
+set local wasConVisible = $(IS_CONSOLE)  // is Console visible?
+npp_console local on  // showing the Console if it is hidden
+cls  // clear the Console
+// 2. Operation: File backup
 npp_console local -   // disabling the output to the Console
 set local backupDir = $(SYS.USERPROFILE)\OneDrive\  // the backup directory
 npp_setfocus sci      // setting the focus to the Scintilla's editing window
 npp_console local +   // enabling the output to the Console
 npp_save              // saving the current file
 cmd /C copy /B /Y "$(FULL_CURRENT_PATH)" "$(backupDir)"  // backing the current file up
-npp_console local -   // disabling the output to the Console
-sleep 2000            // waiting for 2 seconds</pre>
+// 3. End: Delay the Console auto-hiding
+npp_console local -            // disabling the output to the Console
+if $(wasConVisible) == 0 then  // was Console not visible initially?
+  sleep 2000                   // waiting for 2 seconds
+endif</pre>
 </blockquote>
 
 <blockquote>
