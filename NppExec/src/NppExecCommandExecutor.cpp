@@ -278,6 +278,12 @@ bool CNppExecCommandExecutor::ExecuteCollateralScript(const CListT<tstr>& script
     CScriptEngine* pScriptEngine = new CScriptEngine(m_pNppExec, scriptCmdList, id);
     if ( pScriptEngine )
     {
+        if ( !(nRunFlags & IScriptEngine::rfConsoleIsVisible) )
+        {
+            if ( m_pNppExec->isConsoleDialogCurrentlyVisible() )
+                nRunFlags |= IScriptEngine::rfConsoleIsVisible;
+        }
+
         CScriptEngineRunner* pScriptEngineRunner = new CScriptEngineRunner(pScriptEngine, nRunFlags);
         if ( pScriptEngineRunner )
         {
@@ -1277,8 +1283,13 @@ void CNppExecCommandExecutor::ScriptableCommand::OnDirectExec(bool bCanSaveAll, 
         }
     }
 
-    if ( pNppExec->checkCmdListAndPrepareConsole(CmdList) )
+    const UINT uCheck = pNppExec->checkCmdListAndPrepareConsole(CmdList);
+    if ( uCheck )
     {
+        if ( uCheck & IScriptEngine::rfConsoleIsVisible )
+        {
+            nRunFlags |= IScriptEngine::rfConsoleIsVisible;
+        }
         DoRunScript(CmdList, nRunFlags);
     }
 }

@@ -64,6 +64,7 @@ const TCHAR* const VariablesList[] = {
   MACRO_INPUT,                 //  $(INPUT)
   _T("$(INPUT[1])"),           //  $(INPUT[1])
   MACRO_IS_CONSOLE,            //  $(IS_CONSOLE)
+  MACRO_IS_CONSOLE0,           //  $(IS_CONSOLE0)
   MACRO_IS_PROCESS,            //  $(IS_PROCESS)
   MACRO_LAST_CMD_RESULT,       //  $(LAST_CMD_RESULT)
   MACRO_LEFT_VIEW_FILE,        //  $(LEFT_VIEW_FILE)

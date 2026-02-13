@@ -54,7 +54,8 @@ public:
         rfStartScript           = 0x0020, // is running on start (NPPN_READY)
         rfExitScript            = 0x0040, // is running on exit (NPPN_SHUTDOWN)
         rfExternal              = 0x0100, // initiated by external plugin
-        rfShareConsoleLocalVars = 0x0200  // can be combined with rfShareLocalVars
+        rfShareConsoleLocalVars = 0x0200, // can be combined with rfShareLocalVars
+        rfConsoleIsVisible      = 0x1000  // the Console was visible when the script has started
     };
 
 public:

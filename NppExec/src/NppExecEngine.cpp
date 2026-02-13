@@ -91,6 +91,7 @@ const TCHAR MACRO_EXITCODE[]            = _T("$(EXITCODE)");
 const TCHAR MACRO_PID[]                 = _T("$(PID)");
 const TCHAR MACRO_IS_PROCESS[]          = _T("$(IS_PROCESS)");
 const TCHAR MACRO_IS_CONSOLE[]          = _T("$(IS_CONSOLE)");
+const TCHAR MACRO_IS_CONSOLE0[]         = _T("$(IS_CONSOLE0)");
 const TCHAR MACRO_OUTPUT[]              = _T("$(OUTPUT)");
 const TCHAR MACRO_OUTPUT1[]             = _T("$(OUTPUT1)");
 const TCHAR MACRO_OUTPUTL[]             = _T("$(OUTPUTL)");
@@ -1467,6 +1468,7 @@ static FParserWrapper g_fp;
  * $(PID)                : process id of the current (or the last) child process
  * $(IS_PROCESS)         : is child process running (1 - yes, 0 - no)
  * $(IS_CONSOLE)         : is NppExec's Console visible (1 - yes, 0 - no)
+ * $(IS_CONSOLE0)        : was the Console visible when the script has started
  * $(LAST_CMD_RESULT)    : result of the last NppExec's command
  *                           (1 - succeeded, 0 - failed, -1 - invalid arg)
  * $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
@@ -1503,6 +1505,7 @@ CScriptEngine::CScriptEngine(CNppExec* pNppExec, const CListT<tstr>& CmdList, co
     m_nPrintingMsgReady = -1;
     m_bTriedExitCmd = false;
     m_isClosingConsole = false;
+    m_isConsoleInitiallyVisible = true;
 
     Runtime::GetLogger().AddEx_WithoutOutput( _T("; CScriptEngine - create (instance = %s)"), GetInstanceStr() );
 
@@ -1533,6 +1536,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
     m_nPrintingMsgReady = -1;
     m_bTriedExitCmd = false;
     m_isClosingConsole = false;
+    m_isConsoleInitiallyVisible = ((nRunFlags & rfConsoleIsVisible) != 0);
 
     if ( m_eventRunIsDone.IsNull() )
         m_eventRunIsDone.Create(NULL, TRUE, FALSE, NULL); // manual reset, non-signaled
@@ -8640,12 +8644,13 @@ void CNppExecMacroVars::logNoOutput()
 }
 
 bool CNppExecMacroVars::substituteMacroVar(const tstr& Cmd, tstr& S, int& pos,
+                                           CScriptEngine* pScriptEngine,
                                            const TCHAR* varName,
-                                           tstr (*getValue)(CNppExec* pNppExec) )
+                                           tstr (*getValue)(CNppExec* pNppExec, CScriptEngine* pScriptEngine) )
 {
   if (StrUnsafeSubCmp(Cmd.c_str() + pos, varName) == 0)
   {
-    tstr varValue = getValue(m_pNppExec);
+    tstr varValue = getValue(m_pNppExec, pScriptEngine);
     int nVarNameLen = lstrlen(varName);
 
     S.Replace(pos, nVarNameLen, varValue);
@@ -8657,7 +8662,7 @@ bool CNppExecMacroVars::substituteMacroVar(const tstr& Cmd, tstr& S, int& pos,
   return false;
 }
 
-bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
+bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos, CScriptEngine* pScriptEngine)
 {
   logInput( _T("CheckPluginMacroVars()"), S.c_str(), pos );
 
@@ -8759,131 +8764,131 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
     }
 
     if ( substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_SELECTED_TEXT,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              return pNppExec->sciGetSelText();
            }
          ) || 
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_LEFT_VIEW_FILE,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, MAIN_VIEW, MAIN_VIEW);
              return pNppExec->nppGetOpenFileName(ind, MAIN_VIEW);
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_RIGHT_VIEW_FILE,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              int ind = (int) pNppExec->SendNppMsg(NPPM_GETCURRENTDOCINDEX, SUB_VIEW, SUB_VIEW);
              return pNppExec->nppGetOpenFileName(ind, SUB_VIEW);
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_CURRENT_WORKING_DIR,
-           [](CNppExec* )
+           [](CNppExec*, CScriptEngine* )
            {
              return NppExecHelpers::GetCurrentDir();
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_PLUGINS_CONFIG_DIR,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              return tstr(pNppExec->getConfigPath());
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_NPP_SETTINGS_DIR,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
                return pNppExec->nppGetSettingsDir();
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_CLIPBOARD_TEXT,
-           [](CNppExec* )
+           [](CNppExec*, CScriptEngine* )
            {
              return NppExecHelpers::GetClipboardText();
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_CLOUD_LOCATION_PATH,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              return pNppExec->nppGetSettingsCloudPath();
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_NPP_HWND,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              return uptr2tstr((UINT_PTR)(pNppExec->m_nppData._nppHandle));
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_NPP_PID,
-           [](CNppExec* )
+           [](CNppExec*, CScriptEngine* )
            {
              return uint2tstr(::GetCurrentProcessId());
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_SCI_HWND,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              return uptr2tstr((UINT_PTR)(pNppExec->GetScintillaHandle()));
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_SCI_HWND1,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              return uptr2tstr((UINT_PTR)(pNppExec->m_nppData._scintillaMainHandle));
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_SCI_HWND2,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              return uptr2tstr((UINT_PTR)(pNppExec->m_nppData._scintillaSecondHandle));
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_CON_HWND,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              return uptr2tstr((UINT_PTR)(pNppExec->GetConsole().GetConsoleWnd()));
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_FOCUSED_HWND,
-           [](CNppExec* )
+           [](CNppExec*, CScriptEngine* )
            {
              return uptr2tstr((UINT_PTR)(NppExecHelpers::GetFocusedWnd()));
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_WORKSPACE_ITEM_PATH,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              tstr sWorkspaceItem;
              pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem);
@@ -8891,9 +8896,9 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_WORKSPACE_ITEM_DIR,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              tstr sWorkspaceItem;
              if (pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem))
@@ -8906,9 +8911,9 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_WORKSPACE_ITEM_NAME,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              tstr sWorkspaceItem;
              if (pNppExec->nppGetWorkspaceItemPath(sWorkspaceItem))
@@ -8919,9 +8924,9 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_WORKSPACE_ITEM_ROOT,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              tstr sWorkspaceItem;
              pNppExec->nppGetWorkspaceRootItemPath(sWorkspaceItem);
@@ -8929,21 +8934,30 @@ bool CNppExecMacroVars::CheckPluginMacroVars(tstr& S, int& pos)
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
+           Cmd, S, pos, pScriptEngine,
            MACRO_IS_PROCESS,
-           [](CNppExec* pNppExec)
+           [](CNppExec* pNppExec, CScriptEngine* )
            {
              TCHAR ch = pNppExec->GetCommandExecutor().IsChildProcessRunning() ? _T('1') : _T('0');
              return tstr(ch);
            }
          ) ||
          substituteMacroVar(
-           Cmd, S, pos,
-           MACRO_IS_CONSOLE,
-           [](CNppExec* pNppExec)
+           Cmd, S, pos, pScriptEngine,
+           MACRO_IS_CONSOLE0,
+           [](CNppExec* pNppExec, CScriptEngine* pScriptEngine)
            {
-             const HWND hConDlgWnd = pNppExec->GetConsole().GetDialogWnd();
-             TCHAR ch = (hConDlgWnd != NULL && ::IsWindowVisible(hConDlgWnd)) ? _T('1') : _T('0');
+             bool isVisible = pScriptEngine ? pScriptEngine->IsConsoleInitiallyVisible() : pNppExec->isConsoleDialogCurrentlyVisible();
+             TCHAR ch = isVisible ? _T('1') : _T('0');
+             return tstr(ch);
+           }
+         ) ||
+         substituteMacroVar(
+           Cmd, S, pos, pScriptEngine,
+           MACRO_IS_CONSOLE,
+           [](CNppExec* pNppExec, CScriptEngine* )
+           {
+             TCHAR ch = pNppExec->isConsoleDialogCurrentlyVisible() ? _T('1') : _T('0');
              return tstr(ch);
            }
          )
@@ -9084,7 +9098,7 @@ bool CNppExecMacroVars::CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S,
 
                     if ( !bCmdArg &&
                          !CheckNppMacroVars(S, pos) &&
-                         !CheckPluginMacroVars(S, pos) )
+                         !CheckPluginMacroVars(S, pos, pScriptEngine) )
                     {
                         if ( !CheckUserMacroVars(pScriptEngine, S, pos) )
                         {

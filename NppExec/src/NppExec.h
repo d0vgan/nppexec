@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  v0.8.11 - February 2026
  -----------------------
  * Glory to Ukraine! Glory to the heroes!
- + added: $(IS_CONSOLE)
+ + added: $(IS_CONSOLE), $(IS_CONSOLE0)
  + NppExec Manual updated
 
 
@@ -1531,7 +1531,7 @@ public:
     static bool CheckCmdArgs(tstr& Cmd, int& pos, const CStrSplitT<TCHAR>& args);
     void        CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, bool useLogging);
     bool        CheckNppMacroVars(tstr& S, int& pos);
-    bool        CheckPluginMacroVars(tstr& S, int& pos);
+    bool        CheckPluginMacroVars(tstr& S, int& pos, CScriptEngine* pScriptEngine = nullptr);
     bool        CheckUserMacroVars(CScriptEngine* pScriptEngine, tstr& S, int& pos);
     static bool CheckEmptyMacroVars(tstr& S, int& pos);
     bool        CheckAllMacroVars(CScriptEngine* pScriptEngine, tstr& S, bool useLogging, int nCmdType = 0);
@@ -1546,8 +1546,9 @@ protected:
     static void logOutput(const TCHAR* outputVar);
     static void logNoOutput();
     bool substituteMacroVar(const tstr& Cmd, tstr& S, int& pos,
+                            CScriptEngine* pScriptEngine,
                             const TCHAR* varName,
-                            tstr (*getValue)(CNppExec* pNppExec) );
+                            tstr (*getValue)(CNppExec* pNppExec, CScriptEngine* pScriptEngine) );
 
 public:
     class StrCalc
@@ -1833,7 +1834,7 @@ public:
   
   bool initConsoleDialog();
 
-  bool checkCmdListAndPrepareConsole(const CListT<tstr>& CmdList, bool bCanClearConsole = true);
+  UINT checkCmdListAndPrepareConsole(const CListT<tstr>& CmdList, bool bCanClearConsole = true);
 
   enum eDlgExistResult {
       dlgNotExist,
@@ -1841,10 +1842,11 @@ public:
       dlgJustCreated
   };
   eDlgExistResult verifyConsoleDialogExists();
-  bool isConsoleDialogVisible();
+  bool isConsoleDialogVisible() const; // either visible or treated as visible
+  bool isConsoleDialogCurrentlyVisible() const; // actually visible
   void UpdateConsoleEncoding();
   void updateConsoleEncodingFlags();
-  
+
   void printConsoleHelpInfo();
 
   void UpdateOutputFilterMenuItem();
@@ -1856,6 +1858,7 @@ public:
   static void printScriptLog(const TCHAR* str, int len);
   static void printScriptString(const TCHAR* str, int len);
 
+  const CNppExecConsole& GetConsole() const { return m_Console; }
   CNppExecConsole& GetConsole() { return m_Console; }
   CNppExecMacroVars& GetMacroVars() { return m_MacroVars; }
   CNppExecCommandExecutor& GetCommandExecutor() { return m_CommandExecutor; }

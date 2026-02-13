@@ -834,6 +834,7 @@ class CScriptEngine : public IScriptEngine
         bool IsCollateral() const { return ((m_nRunFlags & rfCollateralScript) != 0); }
         bool IsExternal() const { return ((m_nRunFlags & rfExternal) != 0); }
         bool IsClosingConsole() const { return m_isClosingConsole; } // "npp_console off" is in progress
+        bool IsConsoleInitiallyVisible() const { return m_isConsoleInitiallyVisible; }
 
         void DoNotShareLocalVars()
         {
@@ -1762,6 +1763,7 @@ class CScriptEngine : public IScriptEngine
         int            m_nPrintingMsgReady;
         bool           m_bTriedExitCmd;
         bool           m_isClosingConsole;
+        bool           m_isConsoleInitiallyVisible;
         CEvent         m_eventRunIsDone;
         CEvent         m_eventAbortTheScript;
 
@@ -1836,6 +1838,7 @@ extern const TCHAR MACRO_EXITCODE[];
 extern const TCHAR MACRO_PID[];
 extern const TCHAR MACRO_IS_PROCESS[];
 extern const TCHAR MACRO_IS_CONSOLE[];
+extern const TCHAR MACRO_IS_CONSOLE0[];
 extern const TCHAR MACRO_MSG_RESULT[];
 extern const TCHAR MACRO_MSG_WPARAM[];
 extern const TCHAR MACRO_MSG_LPARAM[];

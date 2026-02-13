@@ -207,6 +207,7 @@
  *        $(PID)                : process id of the current (or the last) child process
  *        $(IS_PROCESS)         : is child process running (1 - yes, 0 - no)
  *        $(IS_CONSOLE)         : is NppExec's Console visible (1 - yes, 0 - no)
+ *        $(IS_CONSOLE0)        : was the Console visible when the script has started
  *        $(LAST_CMD_RESULT)    : result of the last NppExec's command
  *                                  (1 - succeeded, 0 - failed, -1 - invalid arg)
  *        $(MSG_RESULT)         : result of 'npp_sendmsg[ex]' or 'sci_sendmsg'
@@ -251,7 +252,7 @@
  v0.8.11 - February 2026
  -----------------------
  * Glory to Ukraine! Glory to the heroes!
- + added: $(IS_CONSOLE)
+ + added: $(IS_CONSOLE), $(IS_CONSOLE0)
  + NppExec Manual updated
 
 

@@ -271,6 +271,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("$(PID)  :  process id of the current (or the last) child process") _T_RE_EOL \
   _T("$(IS_PROCESS)  :  is child process running (1 - yes, 0 - no)") _T_RE_EOL \
   _T("$(IS_CONSOLE)  :  is NppExec's Console visible (1 - yes, 0 - no)") _T_RE_EOL \
+  _T("$(IS_CONSOLE0)  :  was the Console visible when the script has started") _T_RE_EOL \
   _T("$(LAST_CMD_RESULT)  :  result of the last NppExec's command") _T_RE_EOL \
   _T("                         (1 - succeeded, 0 - failed, -1 - invalid arg)") _T_RE_EOL \
   _T("$(MSG_RESULT)  :  result of \'npp_sendmsg[ex]\' or \'sci_sendmsg\'") _T_RE_EOL \
@@ -4346,7 +4347,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                         CListT<tstr> CmdList(S);
                         if (isScriptRunningOrQueued || (cmdPrefix == CScriptEngine::CmdPrefixCollateralForced))
                         {
-                            unsigned int nRunFlags = CScriptEngine::rfCollateralScript;
+                            unsigned int nRunFlags = CScriptEngine::rfCollateralScript | CScriptEngine::rfConsoleIsVisible;
                             if (cmdPrefix == CScriptEngine::CmdPrefixCollateralOrRegular)
                                 nRunFlags |= (CScriptEngine::rfShareLocalVars | CScriptEngine::rfShareConsoleState);
                             Runtime::GetNppExec().GetCommandExecutor().ExecuteCollateralScript(CmdList, tstr(), nRunFlags);
@@ -4354,7 +4355,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                         else
                         {
                             Runtime::GetNppExec().SetCmdList(CmdList);
-                            Runtime::GetNppExec().DoRunScript(CmdList, CScriptEngine::rfConsoleLocalVars | CScriptEngine::rfShareConsoleState);
+                            Runtime::GetNppExec().DoRunScript(CmdList, CScriptEngine::rfConsoleLocalVars | CScriptEngine::rfShareConsoleState | CScriptEngine::rfConsoleIsVisible);
                         }
 
                         //lpmsgf->wParam = 0;
@@ -5294,6 +5295,7 @@ void ConsoleDlg::loadCmdVarsList()
   CmdVarsList.Add( MACRO_LEFT_VIEW_FILE );         //  $(LEFT_VIEW_FILE)
   CmdVarsList.Add( MACRO_LAST_CMD_RESULT );        //  $(LAST_CMD_RESULT)
   CmdVarsList.Add( MACRO_IS_PROCESS );             //  $(IS_PROCESS)
+  CmdVarsList.Add( MACRO_IS_CONSOLE0 );            //  $(IS_CONSOLE0)
   CmdVarsList.Add( MACRO_IS_CONSOLE );             //  $(IS_CONSOLE)
   CmdVarsList.Add( _T("$(INPUT[1])") );            //  $(INPUT[1])
   CmdVarsList.Add( MACRO_INPUT );                  //  $(INPUT)

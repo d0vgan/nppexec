@@ -417,17 +417,29 @@ DWORD WINAPI CNppExecPluginInterfaceImpl::BackgroundExecAsyncCmdThreadFunc(LPVOI
                 CListT<tstr> CmdList = getCmdListFromScriptBody(Cmd.GetScriptBody().c_str());
                 CNppExec* pNppExec = pImpl->GetNppExec();
                 pNppExec->initConsoleDialog();
-                if ( pNppExec->checkCmdListAndPrepareConsole(CmdList, false) )
+
+                const UINT uCheck = pNppExec->checkCmdListAndPrepareConsole(CmdList, false);
+                if ( uCheck )
                 {
                     const tstr& id = Cmd.GetId();
                     const AsyncCmd::eType type = Cmd.GetType();
                     if ( type == AsyncCmd::cmdCollateralScript )
                     {
-                        pNppExec->GetCommandExecutor().ExecuteCollateralScript(CmdList, id, IScriptEngine::rfCollateralScript | IScriptEngine::rfExternal);
+                        unsigned int nRunFlags = IScriptEngine::rfCollateralScript | IScriptEngine::rfExternal;
+                        if ( uCheck & IScriptEngine::rfConsoleIsVisible )
+                        {
+                            nRunFlags |= IScriptEngine::rfConsoleIsVisible;
+                        }
+                        pNppExec->GetCommandExecutor().ExecuteCollateralScript(CmdList, id, nRunFlags);
                     }
                     else if ( type == AsyncCmd::cmdQueuedScript )
                     {
-                        CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(id, CmdList, IScriptEngine::rfExternal, CNppExecCommandExecutor::ExpirableCommand::NonExpirable);
+                        unsigned int nRunFlags = IScriptEngine::rfExternal;
+                        if ( uCheck & IScriptEngine::rfConsoleIsVisible )
+                        {
+                            nRunFlags |= IScriptEngine::rfConsoleIsVisible;
+                        }
+                        CNppExecCommandExecutor::ScriptableCommand * pCommand = new CNppExecCommandExecutor::DoRunScriptCommand(id, CmdList, nRunFlags, CNppExecCommandExecutor::ExpirableCommand::NonExpirable);
                         pNppExec->GetCommandExecutor().ExecuteCommand(pCommand);
                     }
                 }
