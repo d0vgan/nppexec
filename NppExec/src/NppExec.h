@@ -823,8 +823,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <functional>
 #include <iterator>
 
-#define NPPEXEC_VER_DWORD 0x08FA
-#define NPPEXEC_VER_STR   _T("0.8.10")
+#define NPPEXEC_VER_DWORD 0x08FB
+#define NPPEXEC_VER_STR   _T("0.8.11")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 
