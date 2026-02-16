@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "CPopupListBox.h"
 #include "cpp/CStrT.h"
-#include "NppExecEngine.h"
+#include "NppExecScriptEngine.h"
 
 
 const TCHAR* const NpeSearchFlagsList[] = {

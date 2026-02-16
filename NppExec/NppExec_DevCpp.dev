@@ -356,7 +356,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit31]
-FileName=src\NppExecEngine.cpp
+FileName=src\NppExecScriptEngine.cpp
 CompileCpp=1
 Folder=NppExec
 Compile=1
@@ -366,7 +366,7 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit32]
-FileName=src\NppExecEngine.h
+FileName=src\NppExecScriptEngine.h
 CompileCpp=1
 Folder=NppExec
 Compile=1

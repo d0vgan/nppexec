@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _npp_exec_engine_h_
-#define _npp_exec_engine_h_
+#ifndef _npp_exec_script_engine_h_
+#define _npp_exec_script_engine_h_
 //---------------------------------------------------------------------------
 #include "base.h"
 #include "NppExec.h"

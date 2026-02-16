@@ -1,7 +1,7 @@
 #include "ChildProcess.h"
 #include "NppExecHelpers.h"
 #include "NppExec.h"
-#include "NppExecEngine.h"
+#include "NppExecScriptEngine.h"
 #include "DlgConsoleEncoding.h"
 #include "cpp/StrSplitT.h"
 #include "c_base/MatchMask.h"

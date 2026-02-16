@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "WarningAnalyzer.h"
-#include "NppExecEngine.h"
+#include "NppExecScriptEngine.h"
 #include "c_base/str_func.h"
 #include "tchar.h"
 #include "richedit.h"

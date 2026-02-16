@@ -759,7 +759,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ----------------------
  - fixed: buffer size was not checked before calling OemToChar() 
  - fixed/added: '\b' and '\r' handling
- + a lot of changes in plugin's internals (basic cpp-classes and NppExecEngine)
+ + a lot of changes in plugin's internals (basic cpp-classes and NppExecScriptEngine)
  + new command: cd, cd <path>, cd <drive:\path>
  + new command: dir, dir <mask>, dir <path\mask>
  + new feature: npp_open <mask>, npp_open <path\mask>

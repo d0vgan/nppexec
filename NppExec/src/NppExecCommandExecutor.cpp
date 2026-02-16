@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "NppExecCommandExecutor.h"
 #include "NppExec.h"
-#include "NppExecEngine.h"
+#include "NppExecScriptEngine.h"
 #include "ChildProcess.h"
 #include "resource.h"
 #include "DlgDoExec.h"

@@ -90,7 +90,7 @@
     <ClCompile Include="src\NppExec.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\NppExecEngine.cpp">
+    <ClCompile Include="src\NppExecScriptEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\PluginCommunication\NppExecPluginInterface.cpp">
@@ -221,7 +221,7 @@
     <ClInclude Include="src\PluginCommunication\nppexec_msgs.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\NppExecEngine.h">
+    <ClInclude Include="src\NppExecScriptEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\PluginCommunication\NppExecPluginInterface.h">

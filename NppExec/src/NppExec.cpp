@@ -251,7 +251,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #define _TEST_ONLY_
 
 #include "NppExec.h"
-#include "NppExecEngine.h"
+#include "NppExecScriptEngine.h"
 #include "ChildProcess.h"
 #include "resource.h"
 #include "DlgDoExec.h"
@@ -400,7 +400,7 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
       DEFAULT_SENDMSG_MAXBUFLEN, NULL },
     { OPTS_CALC_PRECISION, OPTT_STR | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("Calc_Precision"),
-      0, NULL }, // see "NppExecEngine.cpp", calc_precision
+      0, NULL }, // see "NppExecScriptEngine.cpp", calc_precision
     { OPTS_COMMENTDELIMITER, OPTT_STR | OPTF_READWRITE, 
       INI_SECTION_CONSOLE, _T("CommentDelimiter"), 
       0, DEFAULT_COMMENTDELIMITER },
