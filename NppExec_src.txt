@@ -18,6 +18,7 @@ docs\NppExec_Manual\*.hhc
 docs\NppExec_Manual\*.hhp
 docs\NppExec_Manual\*.js
 docs\NppExec_Manual\images\*.png
+docs\NppExec_Manual\images\*.ico
 NppExec\ConsoleIcon.*
 NppExec\NppExec*.dev
 NppExec\NppExec*.vcproj
