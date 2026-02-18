@@ -103,7 +103,7 @@ def include_finder_script(doc: Path, name: str, rewrite: bool):
 def run(format_opts: dict, script_opts: dict):
     parser = NppExecDocParser()
     docdir = Path(PurePath(sys.path[0]) / 'docs' / 'NppExec_Manual')
-    topics = Path(PurePath(sys.path[0]) / 'docs' / 'topics.js')
+    topics = Path(PurePath(sys.path[0]) / 'docs' / 'NppExec_Manual' / 'topics.js')
 
     if not docdir.exists():
         print('No such directory:', docdir)
@@ -116,7 +116,7 @@ def run(format_opts: dict, script_opts: dict):
             continue
         if script_opts.get('add_script', False):
             rewrite = script_opts.get('update', False)
-            name = script_opts.get('script_name', 'show_matches.js')
+            name = script_opts.get('script_name', './NppExec_Manual/show_matches.js')
             include_finder_script(doc, name, rewrite)
 
         parser.collect_info(docdir, doc)
@@ -144,7 +144,7 @@ def parse_options():
         dest='update_script', default=False,
         help='rewrite docs even if the <head> already has a <script> element')
     arg_parser.add_argument('-n', '--script-name', action='store', type=str,
-        dest='script_name', metavar='<name>.js',default='show_matches.js',
+        dest='script_name', metavar='<name>.js',default='./NppExec_Manual/show_matches.js',
         help='name of script to include in docs')
     args = arg_parser.parse_args()
     opts = vars(args)
