@@ -1,13 +1,71 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
-<HTML lang="en">
-  <HEAD>
-    <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=windows-1252">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+
     <link href="./NppExec_Manual/style.css" rel="stylesheet" type="text/css">
     <link href="./NppExec_Manual/images/ConsoleIcon.ico" type="image/x-icon" rel="icon">
-    <title>NppExec Manual: Index</title>
-    <meta http-equiv="Permissions-Policy" content="interest-cohort=()"> <!--Remove warning in browser: feature not enabled: 'interest-cohort'-->
     <base href="/nppexec/">
+
+    <title>NppExec Manual: Index</title>
+
+    <style>
+        /* Modern Reset and Layout Styling */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            font-family: sans-serif;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+            flex-direction: row;
+        }
+
+        #toc-sidebar {
+            width: 30%;
+            min-width: 100px;
+            height: 100%;
+            background-color: #f9f9f9; /* Optional: adds a slight distinction */
+        }
+
+        /* The Resizer (Splitter Bar) */
+        #resizer {
+            width: 6px;
+            cursor: col-resize;
+            background: #eee;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            transition: background 0.1s;
+        }
+
+        #resizer:hover {
+            background: #ddd;
+        }
+
+        #content-area {
+            flex: 1;
+            height: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Visual Fix: disables iframe mouse capture while dragging the splitter */
+        .dragging iframe {
+            pointer-events: none;
+        }
+    </style>
+
     <script type="text/javascript">
       var protocol = location.protocol;
       var hostname = location.hostname;
@@ -21,20 +79,66 @@
         redir = (pathname == '/') ? href + newPath : redir;
         location.replace(redir);
       }
+      // Loading specific pages via ?q=Parameter
       window.addEventListener('DOMContentLoaded', function() {
         try {
-          var query    = location.search || '';
-          var param    = 'q=';
-          var value    = query.slice(query.indexOf(param) + param.length);
-          if (value) {
-            parent.frames['content'].location.replace('NppExec_Manual/' + value + '.html');
+          var query = location.search || '';
+          var param = 'q=';
+          var index = query.indexOf(param);
+
+          if (index !== -1) {
+            var value = query.slice(index + param.length);
+            if (value) {
+                // Modified to target the iframe element specifically
+                var contentFrame = document.getElementById('content-frame');
+                contentFrame.contentWindow.location.replace('NppExec_Manual/' + value + '.html');
+            }
           }
         } catch (e) { console.info(e); }
-      })
+      });
     </script>
-  </HEAD>
-  <FRAMESET cols="30%, 70%">
-    <FRAME name="toc" src="./NppExec_Manual/toc.html">
-    <FRAME name="content" src="./NppExec_Manual/0. Title Page.html">
-  </FRAMESET>
-</HTML>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <div id="toc-sidebar">
+        <iframe src="./NppExec_Manual/toc.html" name="toc" id="toc-frame"></iframe>
+    </div>
+
+    <div id="resizer" title="Drag to resize content area"></div>
+
+    <div id="content-area">
+        <iframe src="./NppExec_Manual/0. Title Page.html" name="content" id="content-frame"></iframe>
+    </div>
+</div>
+
+<script type="text/javascript">
+    // Logic for the Resizer (Splitter)
+    const resizer = document.getElementById('resizer');
+    const sidebar = document.getElementById('toc-sidebar');
+    const container = document.getElementById('main-container');
+
+    resizer.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        container.classList.add('dragging');
+
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', function() {
+            container.classList.remove('dragging');
+            document.removeEventListener('mousemove', handleMouseMove);
+        });
+    });
+
+    function handleMouseMove(e) {
+        const containerWidth = container.offsetWidth;
+        const newWidthPercentage = (e.clientX / containerWidth) * 100;
+
+        // Limits: Prevents the sidebar from disappearing or becoming too huge
+        if (newWidthPercentage > 5 && newWidthPercentage < 90) {
+            sidebar.style.width = newWidthPercentage + '%';
+        }
+    }
+</script>
+
+</body>
+</html>
