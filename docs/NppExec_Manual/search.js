@@ -113,23 +113,42 @@ window.onload = function() {
   document.getElementById('goto-doc').addEventListener('click', clickToView, { 'passive': false });
 
   /* Bind event handlers to the show/hide <button> */
+  /* Standalone function to toggle search visibility */
+  var toggleSearch = function(forceHide) {
+    var toggleBtn = document.getElementById('toggle-search-input');
+    var search = document.getElementById('topic-search');
+    var display = search.style.display;
+    var onClick = function() { this.select() };
+
+    // If forceHide is true OR search is currently visible, we hide it
+    if (forceHide === true || display !== 'none') {
+      toggleBtn.innerText = 'Search Topics';
+      search.style.display = 'none';
+      searchResults.style.display = 'none';
+      searchBox.removeEventListener('click', onClick);
+    } else {
+      // Otherwise, we show it
+      toggleBtn.innerText = 'Hide Search';
+      search.style.display = 'block';
+      searchResults.style.display = Boolean(helpTopics.value) ? 'block' : 'none';
+      searchBox.addEventListener('click', onClick);
+      searchBox.click();
+    }
+  };
+
+  /* Bind the toggle function to the button click */
   document.getElementById('toggle-search-input').addEventListener('click', function(evnt) {
     evnt.preventDefault();
-    var search = document.getElementById('topic-search')
-    var display = search.style.display
-    var onClick = function() { this.select() }
-
-    if (display === 'none') {
-      evnt.target.innerText = 'Hide Search'
-      search.style.display = 'block'
-      searchResults.style.display = Boolean(helpTopics.value) ? 'block' : 'none'
-      searchBox.addEventListener('click', onClick)
-      searchBox.click()
-    } else {
-      evnt.target.innerText = 'Search Topics'
-      search.style.display = 'none'
-      searchResults.style.display = 'none'
-      searchBox.removeEventListener('click', onClick)
-    }
+    toggleSearch();
   }, { 'passive': false });
+
+  /* Bind Escape key to hide the search */
+  document.addEventListener('keydown', function(evnt) {
+    if (evnt.key === 'Escape' || evnt.keyCode === 27) {
+      // Only hide if the search is currently visible
+      if (document.getElementById('topic-search').style.display !== 'none') {
+        toggleSearch(true); // Force hide
+      }
+    }
+  });
 }
