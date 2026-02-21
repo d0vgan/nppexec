@@ -1,6 +1,9 @@
 REM Creates an archive with PluginsAdmin-specific folder structure
 REM (starting from Notepad++ 7.6.x)
 
+set USE_CHM_MANUAL=1
+set ARC_EXE=7z.exe
+
 for /f "tokens=1-3 delims=/.- " %%a in ('DATE /T') do set ARC_DATE=%%c%%b%%a
 if not exist %TEMP%\%ARC_DATE% mkdir %TEMP%\%ARC_DATE%
 set TMP_DIR=%TEMP%\%ARC_DATE%\NppExec
@@ -17,15 +20,23 @@ copy README.md %TMP_DIR%\doc\NppExec\README.txt
 sfk replace %TMP_DIR%\doc\NppExec\README.txt /\*/*/ -yes
 
 copy docs\NppExec*.txt %TMP_DIR%\doc\NppExec\
-copy docs\NppExec_Manual.chm %TMP_DIR%\doc\NppExec\
-copy docs\fparser.html %TMP_DIR%\doc\NppExec\
 copy docs\*.css %TMP_DIR%\doc\NppExec\
+if "%USE_CHM_MANUAL%" == "1" (
+    copy docs\NppExec_Manual.chm %TMP_DIR%\doc\NppExec\
+    copy /Y docs\fparser*.html %TMP_DIR%\doc\NppExec\
+) else (
+    copy docs\*.html %TMP_DIR%\doc\NppExec\
+    mkdir %TMP_DIR%\doc\NppExec\NppExec_Manual
+    mkdir %TMP_DIR%\doc\NppExec\NppExec_Manual\images
+    copy /Y docs\NppExec_Manual\*.css  %TMP_DIR%\doc\NppExec\NppExec_Manual\
+    copy /Y docs\NppExec_Manual\*.html %TMP_DIR%\doc\NppExec\NppExec_Manual\
+    copy /Y docs\NppExec_Manual\*.js   %TMP_DIR%\doc\NppExec\NppExec_Manual\
+    copy /Y docs\NppExec_Manual\images\*.* %TMP_DIR%\doc\NppExec\NppExec_Manual\images\
+)
 
 cd NppExec
 
 copy Release\NppExec\*.h %TMP_DIR%\NppExec\NppExec\
-
-set ARC_EXE=7z.exe
 
 set ARC_DLL_NAME=NppExec%ARC_DATE%_dll_PA
 set ARC_DLL_NAME_64=NppExec%ARC_DATE%_dll_x64_PA

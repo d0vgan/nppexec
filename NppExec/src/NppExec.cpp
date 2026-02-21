@@ -283,6 +283,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <CommCtrl.h>
 
+#define USE_CHM_MANUAL 1
 
 #define  MAX_PLUGIN_NAME  60
 TCHAR PLUGIN_NAME[MAX_PLUGIN_NAME] = _T("NppExec");
@@ -341,7 +342,11 @@ const int   DEFAULT_SENDMSG_MAXBUFLEN         = 4*1024*1024; // 4 M symbols
 const int   DEFAULT_UTF8_DETECT_LENGTH        = 16384;
 const int   DEFAULT_CD_UNNAMEDFILE            = 1;
 const TCHAR DEFAULT_COMMENTDELIMITER[]        = _T("//");
+#if USE_CHM_MANUAL
 const TCHAR DEFAULT_HELPFILE[]                = _T("doc\\NppExec\\NppExec_Manual.chm");
+#else
+const TCHAR DEFAULT_HELPFILE[]                = _T("doc\\NppExec\\index-local.html");
+#endif
 const TCHAR DEFAULT_LOGSDIR[]                 = _T("");
 const TCHAR DEFAULT_SCRIPTSDIR[]              = _T("");
 const TCHAR DEFAULT_CHILDP_COMSPECSWITCHES[]  = _T("/C");
