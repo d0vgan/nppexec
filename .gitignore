@@ -19,6 +19,7 @@ NppExecPluginMsgTester/[Rr]elease*/*
 UnitTests/[Rr]elease*/*
 x64/
 x86/
+arm64/
 #[Bb]in/
 [Oo]bj/
 *.pdb
