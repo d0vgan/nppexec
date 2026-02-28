@@ -281,7 +281,7 @@
     <ClCompile Include="src\PickColorBtn.cpp" />
     <ClCompile Include="src\NppExec.cpp" />
     <ClCompile Include="src\NppExecCommandExecutor.cpp" />
-    <ClCompile Include="src\NppExecEngine.cpp" />
+    <ClCompile Include="src\NppExecScriptEngine.cpp" />
     <ClCompile Include="src\NppExecHelpers.cpp" />
     <ClCompile Include="src\NppScript.cpp" />
     <ClCompile Include="src\NppScriptList.cpp" />
@@ -336,7 +336,7 @@
     <ClInclude Include="src\npp_files\Sci_Position.h" />
     <ClInclude Include="src\NppExec.h" />
     <ClInclude Include="src\NppExecCommandExecutor.h" />
-    <ClInclude Include="src\NppExecEngine.h" />
+    <ClInclude Include="src\NppExecScriptEngine.h" />
     <ClInclude Include="src\NppExecHelpers.h" />
     <ClInclude Include="src\NppScriptList.h" />
     <ClInclude Include="src\PickColorBtn.h" />
