@@ -38,7 +38,7 @@ jobs:
            NppExec_zip_src_dll.bat
 
     - name: Archive artifacts
-      uses: actions/upload-artifact@v6
+      uses: actions/upload-artifact@v7
       with:
           name: nppexec zips
           path: NppExec*.zip
