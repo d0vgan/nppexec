@@ -1,0 +1,62 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden; /* Avoiding double-scrolling */
+  font-family: sans-serif;
+}
+
+.container {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  flex-direction: row;
+}
+
+#toc-sidebar {
+  position: relative;
+  width: 30%;
+  min-width: 100px;
+  height: 100%;
+  background-color: #f9f9f9; /* Optional: adds a slight distinction */
+}
+
+#resizer {
+  width: 6px;
+  cursor: col-resize;
+  background: #eee;
+  border-left: 1px solid #ccc;
+  border-right: 1px solid #ccc;
+  transition: background 0.1s;
+  z-index: 10; /* Resizer over the frames */
+}
+
+#resizer:hover {
+  background: #ddd;
+}
+
+#content-area {
+  position: relative;
+  flex: 1;
+  height: 100%;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Visual Fix: disables iframe mouse capture while dragging the splitter */
+.dragging iframe {
+  pointer-events: none;
+}
+
+/* Hidden inputs for the focusing */
+#toc-focus-trigger, #focus-trigger {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+}

@@ -6,6 +6,20 @@ window.onload = function() {
   var helpTopics = document.getElementById('matching-topics');
   /* Keyword search <input> */
   var searchBox = document.getElementById('topic-search-box');
+
+  /* When TOC gets the focus, setting the focus to helpTopics or searchBox */
+  window.addEventListener('focus', function() {
+    var helpTopics = document.getElementById('matching-topics');
+    var searchBox = document.getElementById('topic-search-box');
+    var searchResults = document.getElementById('search-results');
+
+    if (searchResults && searchResults.style.display !== 'none') {
+        helpTopics.focus();
+    } else {
+        searchBox.focus();
+    }
+  });
+
   /* Shows the page mapped to the active <select> item */
   var clickToView = function(evnt) {
     evnt.preventDefault(); // Cancel any submit action
@@ -13,20 +27,33 @@ window.onload = function() {
       if (!Boolean(helpTopics.value)) // Nothing selected
         return;
 
-      var searchParam = helpTopics[helpTopics.selectedIndex].dataset.contains
-      var targetURI = helpTopics.value + encodeURI('?contains=' + searchParam)
-      parent.frames['content'].location.replace(targetURI)
+      var searchParam = helpTopics[helpTopics.selectedIndex].dataset.contains;
+      var targetURI = helpTopics.value + encodeURI('?contains=' + searchParam);
+      parent.frames['content'].location.replace(targetURI);
+
+      setTimeout(function() {
+        helpTopics.focus();
+      }, 100);
     } catch (e) {
       /* Handle the DOMException that may be thrown by trying to access cross-origin frames on the `file://` protocol
        * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Property_access_denied
        */
       if (e instanceof DOMException) {
-          /* Open the requested doc in a "modal" window  */
-          window.open(targetURI, '_bank','noopener')
+        /* Open the requested doc in a "modal" window  */
+        window.open(targetURI, '_bank','noopener');
+
+        setTimeout(function() {
+          window.focus();
+          helpTopics.focus();
+        }, 100);
       } else {
-          var docIndex = helpTopics.selectedIndex
-          var requestedDoc = (docIndex >= 0) ? helpTopics[docIndex].innerHTML : helpTopics.value;
-          window.alert('"' + requestedDoc + '" is missing or access is restricted.')
+        var docIndex = helpTopics.selectedIndex;
+        var requestedDoc = (docIndex >= 0) ? helpTopics[docIndex].innerHTML : helpTopics.value;
+        window.alert('"' + requestedDoc + '" is missing or access is restricted.');
+
+        setTimeout(function() {
+          helpTopics.focus();
+        }, 100);
       }
     }
   };
@@ -88,11 +115,23 @@ window.onload = function() {
         /* Min visible size is 2 b/c the <optgroup> label is counted */
         helpTopics.size = Math.max(foundTopics.length + 1, 2);
         /* Make sure mobile <select> boxes are never blank */
-        helpTopics.selectedIndex = 0;
+        //helpTopics.selectedIndex = 0;
         helpTopics.addEventListener('change', clickToView, { 'passive': false });
         helpTopics.addEventListener('focus',
           /* Selecting the first <option> should *also* fire a 'change' event */
           function() { if (this.selectedIndex === 0) this.selectedIndex-- }, { 'once': true });
+
+        var focusContent = function(evnt) {
+          if (evnt.type === 'dblclick' || evnt.key === 'Enter' || evnt.keyCode === 13) {
+            setTimeout(function() {
+              if (parent.frames['content']) {
+                parent.frames['content'].focus();
+              }
+            }, 100);
+          }
+        };
+        helpTopics.addEventListener('keydown', focusContent);
+        helpTopics.addEventListener('dblclick', focusContent);
       }
     } catch (e) {
       console.error(e.message)

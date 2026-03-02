@@ -1,144 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
+  <meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta http-equiv="Permissions-Policy" content="interest-cohort=()">
 
-    <link href="./NppExec_Manual/style.css" rel="stylesheet" type="text/css">
-    <link href="./NppExec_Manual/images/ConsoleIcon.ico" type="image/x-icon" rel="icon">
-    <base href="/nppexec/">
+  <link href="NppExec_Manual/style.css" rel="stylesheet" type="text/css">
+  <link href="NppExec_Manual/main_layout.css" rel="stylesheet" type="text/css">
+  <link href="NppExec_Manual/images/ConsoleIcon.ico" type="image/x-icon" rel="icon">
+  <base href="/nppexec/">
 
-    <title>NppExec Manual: Index</title>
+  <title>NppExec Manual: Index</title>
 
-    <style>
-        /* Modern Reset and Layout Styling */
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden;
-            font-family: sans-serif;
-        }
-
-        .container {
-            display: flex;
-            width: 100%;
-            height: 100vh;
-            flex-direction: row;
-        }
-
-        #toc-sidebar {
-            width: 30%;
-            min-width: 100px;
-            height: 100%;
-            background-color: #f9f9f9; /* Optional: adds a slight distinction */
-        }
-
-        /* The Resizer (Splitter Bar) */
-        #resizer {
-            width: 6px;
-            cursor: col-resize;
-            background: #eee;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
-            transition: background 0.1s;
-        }
-
-        #resizer:hover {
-            background: #ddd;
-        }
-
-        #content-area {
-            flex: 1;
-            height: 100%;
-        }
-
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Visual Fix: disables iframe mouse capture while dragging the splitter */
-        .dragging iframe {
-            pointer-events: none;
-        }
-    </style>
-
-    <script type="text/javascript">
-      var protocol = location.protocol;
-      var hostname = location.hostname;
-      var pathname = location.pathname;
-      var href     = location.href.replace(location.search, '');
-      var newPath  = 'index-local.html' + location.search;
-      var redir    = href.replace(/\/index\.(php|x?html?)$/, '/'+newPath);
-      if (protocol == 'file:') {
-        location.replace(redir);
-      } else if (hostname.match(/^(localhost|192\.168\.|127\.)(\d+\.)*/)) {
-        redir = (pathname == '/') ? href + newPath : redir;
-        location.replace(redir);
-      }
-      // Loading specific pages via ?q=Parameter
-      window.addEventListener('DOMContentLoaded', function() {
-        try {
-          var query = location.search || '';
-          var param = 'q=';
-          var index = query.indexOf(param);
-
-          if (index !== -1) {
-            var value = query.slice(index + param.length);
-            if (value) {
-                // Modified to target the iframe element specifically
-                var contentFrame = document.getElementById('content-frame');
-                contentFrame.contentWindow.location.replace('NppExec_Manual/' + value + '.html');
-            }
-          }
-        } catch (e) { console.info(e); }
-      });
-    </script>
+  <script type="text/javascript">
+    var protocol = location.protocol;
+    var hostname = location.hostname;
+    var pathname = location.pathname;
+    var href     = location.href.replace(location.search, '');
+    var newPath  = 'index-local.html' + location.search;
+    var redir    = href.replace(/\/index\.(php|x?html?)$/, '/'+newPath);
+    if (protocol == 'file:') {
+      location.replace(redir);
+    } else if (hostname.match(/^(localhost|192\.168\.|127\.)(\d+\.)*/)) {
+      redir = (pathname == '/') ? href + newPath : redir;
+      location.replace(redir);
+    }
+  </script>
 </head>
 <body>
 
 <div class="container" id="main-container">
-    <div id="toc-sidebar">
-        <iframe src="./NppExec_Manual/toc.html" name="toc" id="toc-frame"></iframe>
-    </div>
+  <div id="toc-sidebar" style="position: relative;">
+    <input type="text" id="toc-focus-trigger" style="position: absolute; opacity: 0; pointer-events: none;">
+    <iframe src="NppExec_Manual/toc.html" name="toc" id="toc-frame"></iframe>
+  </div>
 
-    <div id="resizer" title="Drag to resize content area"></div>
+  <div id="resizer" title="Drag to resize content area"></div>
 
-    <div id="content-area">
-        <iframe src="./NppExec_Manual/0. Title Page.html" name="content" id="content-frame"></iframe>
-    </div>
+  <div id="content-area" style="position: relative;">
+    <input type="text" id="focus-trigger" style="position: absolute; opacity: 0; pointer-events: none;">
+    <iframe src="NppExec_Manual/0. Title Page.html" name="content" id="content-frame"></iframe>
+  </div>
+
+  <script src="NppExec_Manual/main_ui.js"></script>
 </div>
-
-<script type="text/javascript">
-    // Logic for the Resizer (Splitter)
-    const resizer = document.getElementById('resizer');
-    const sidebar = document.getElementById('toc-sidebar');
-    const container = document.getElementById('main-container');
-
-    resizer.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        container.classList.add('dragging');
-
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', function() {
-            container.classList.remove('dragging');
-            document.removeEventListener('mousemove', handleMouseMove);
-        });
-    });
-
-    function handleMouseMove(e) {
-        const containerWidth = container.offsetWidth;
-        const newWidthPercentage = (e.clientX / containerWidth) * 100;
-
-        // Limits: Prevents the sidebar from disappearing or becoming too huge
-        if (newWidthPercentage > 5 && newWidthPercentage < 90) {
-            sidebar.style.width = newWidthPercentage + '%';
-        }
-    }
-</script>
 
 </body>
 </html>

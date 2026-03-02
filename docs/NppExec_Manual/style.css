@@ -80,3 +80,14 @@ button#goto-doc {
 code {
   font-family: "Courier New", Courier, mono;
 }
+
+#matching-topics option:checked {
+  background: #0078d7 !important; /* Standard Windows blue */
+  color: white !important;
+}
+
+/* For some browsers such as Chrome/Edge */
+#matching-topics:focus-within option:checked {
+  background-color: #0078d7 !important;
+  color: white !important;
+}
