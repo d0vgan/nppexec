@@ -1,5 +1,8 @@
+// This file is used by the TOC
 window.onload = function() {
   "use strict";
+
+  var forceFocusToContent = false;
   /* The search result container */
   var searchResults = document.getElementById('search-results');
   /* The topic heading <select> element */
@@ -27,33 +30,30 @@ window.onload = function() {
       if (!Boolean(helpTopics.value)) // Nothing selected
         return;
 
+      // ensure the selected item is visible
+      var selectedOption = helpTopics.options[helpTopics.selectedIndex];
+      selectedOption.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      // open the selected document
       var searchParam = helpTopics[helpTopics.selectedIndex].dataset.contains;
       var targetURI = helpTopics.value + encodeURI('?contains=' + searchParam);
+      // Example: targetURI = "./4.0.html?contains=find"
+      forceFocusToContent = false; // focusing the Help Topics
       parent.frames['content'].location.replace(targetURI);
 
-      setTimeout(function() {
-        helpTopics.focus();
-      }, 100);
     } catch (e) {
       /* Handle the DOMException that may be thrown by trying to access cross-origin frames on the `file://` protocol
        * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Property_access_denied
        */
+      //console.log(e);
       if (e instanceof DOMException) {
         /* Open the requested doc in a "modal" window  */
         window.open(targetURI, '_bank','noopener');
 
-        setTimeout(function() {
-          window.focus();
-          helpTopics.focus();
-        }, 100);
       } else {
         var docIndex = helpTopics.selectedIndex;
         var requestedDoc = (docIndex >= 0) ? helpTopics[docIndex].innerHTML : helpTopics.value;
         window.alert('"' + requestedDoc + '" is missing or access is restricted.');
-
-        setTimeout(function() {
-          helpTopics.focus();
-        }, 100);
       }
     }
   };
@@ -123,11 +123,13 @@ window.onload = function() {
 
         var focusContent = function(evnt) {
           if (evnt.type === 'dblclick' || evnt.key === 'Enter' || evnt.keyCode === 13) {
+            forceFocusToContent = true; // focusing the Content, not Help Topics
             setTimeout(function() {
-              if (parent.frames['content']) {
-                parent.frames['content'].focus();
+              var contentFrame = parent.frames['content'];
+              if (contentFrame) {
+                contentFrame.focus();
               }
-            }, 150);
+            }, 50);
           }
         };
         helpTopics.addEventListener('keydown', focusContent);
@@ -190,4 +192,18 @@ window.onload = function() {
       }
     }
   });
+
+  // Handling 'CONTENT_PAGE_LOADED' originated from a content page
+  window.addEventListener('message', function(event) {
+    if (event.data === 'CONTENT_PAGE_LOADED') {
+      if (!forceFocusToContent) {
+        if (helpTopics) {
+          helpTopics.focus();
+        }
+      } else {
+        // page has been loaded as a result of e.g. double-click
+        forceFocusToContent = false;
+      }
+    }
+  }, false);
 }

@@ -1,3 +1,4 @@
+// This file is used by the index.html
 document.addEventListener('DOMContentLoaded', function() {
   "use strict";
 
@@ -86,4 +87,14 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
+
+  // Forwarding the messages
+  window.addEventListener('message', function(event) {
+    if (event.data === 'CONTENT_PAGE_LOADED') {
+      // forwarding 'CONTENT_PAGE_LOADED' from a content page to the tocFrame
+      if (tocFrame && tocFrame.contentWindow) {
+        tocFrame.contentWindow.postMessage('CONTENT_PAGE_LOADED', '*');
+      }
+    }
+  }, false);
 });
