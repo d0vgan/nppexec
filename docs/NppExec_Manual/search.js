@@ -33,7 +33,7 @@ window.onload = function() {
 
       setTimeout(function() {
         helpTopics.focus();
-      }, 100);
+      }, 200);
     } catch (e) {
       /* Handle the DOMException that may be thrown by trying to access cross-origin frames on the `file://` protocol
        * See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors/Property_access_denied
@@ -45,7 +45,7 @@ window.onload = function() {
         setTimeout(function() {
           window.focus();
           helpTopics.focus();
-        }, 100);
+        }, 200);
       } else {
         var docIndex = helpTopics.selectedIndex;
         var requestedDoc = (docIndex >= 0) ? helpTopics[docIndex].innerHTML : helpTopics.value;
@@ -53,7 +53,7 @@ window.onload = function() {
 
         setTimeout(function() {
           helpTopics.focus();
-        }, 100);
+        }, 200);
       }
     }
   };
@@ -127,7 +127,7 @@ window.onload = function() {
               if (parent.frames['content']) {
                 parent.frames['content'].focus();
               }
-            }, 100);
+            }, 250);
           }
         };
         helpTopics.addEventListener('keydown', focusContent);
