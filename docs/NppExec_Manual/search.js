@@ -2,6 +2,7 @@
 window.onload = function() {
   "use strict";
 
+  var searchedText = "";
   var forceFocusToContent = false;
   /* The search result container */
   var searchResults = document.getElementById('search-results');
@@ -25,7 +26,9 @@ window.onload = function() {
 
   /* Shows the page mapped to the active <select> item */
   var clickToView = function(evnt) {
-    evnt.preventDefault(); // Cancel any submit action
+    if (evnt) {
+      evnt.preventDefault(); // Cancel any submit action
+    }
     try {
       if (!Boolean(helpTopics.value)) // Nothing selected
         return;
@@ -77,12 +80,17 @@ window.onload = function() {
         return;
       }
 
+      var query = searchBox.value.trim();
+      if (query === searchedText)
+        return;
+
+      searchedText = query;
+
       /* The global 'NPPEXEC_HELP_TOPICS' object is defined in 'topics.js', which *must*
        * be loaded before this script
        */
       var topicIndex = JSON.parse(JSON.stringify(NPPEXEC_HELP_TOPICS));
       /* Compile RegExp from the search string that was just typed */
-      var query = searchBox.value.trim();
       var queryRE = new RegExp('(?:)(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\s?', 'iu');
       /* Collection of objects holding topic metadata */
       var foundTopics = [];
@@ -114,12 +122,14 @@ window.onload = function() {
         searchResults.style.display = 'block';
         /* Min visible size is 2 b/c the <optgroup> label is counted */
         helpTopics.size = Math.max(foundTopics.length + 1, 2);
-        /* Make sure mobile <select> boxes are never blank */
-        //helpTopics.selectedIndex = 0;
+        helpTopics.selectedIndex = -1;
         helpTopics.addEventListener('change', clickToView, { 'passive': false });
-        helpTopics.addEventListener('focus',
-          /* Selecting the first <option> should *also* fire a 'change' event */
-          function() { if (this.selectedIndex === 0) this.selectedIndex-- }, { 'once': true });
+        helpTopics.addEventListener('focus', function() {
+          if (this.selectedIndex === -1) {
+            this.selectedIndex = 0;
+            clickToView(null);
+          }
+        }, { 'once': true });
 
         var focusContent = function(evnt) {
           if (evnt.type === 'dblclick' || evnt.key === 'Enter' || evnt.keyCode === 13) {
