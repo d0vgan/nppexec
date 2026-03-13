@@ -55,6 +55,23 @@ document.addEventListener('DOMContentLoaded', function() {
         sidebar.style.width = newWidthPercentage + '%';
       }
     }
+
+    // Touchscreen support
+    resizer.addEventListener('touchstart', function(e) {
+      container.classList.add('dragging');
+
+      const handleTouchMove = (e) => {
+        if (e.touches.length > 0) {
+          handleMouseMove(e.touches[0]);
+        }
+      };
+
+      document.addEventListener('touchmove', handleTouchMove, { passive: false });
+      document.addEventListener('touchend', function() {
+        container.classList.remove('dragging');
+        document.removeEventListener('touchmove', handleTouchMove);
+      }, { once: true });
+    });
   }
 
   // Content Frame focusing logic
