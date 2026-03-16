@@ -3,7 +3,9 @@ window.onload = function() {
   "use strict";
 
   var searchedText = "";
+  var shouldFocusHelpTopics = false;
   var forceFocusToContent = false;
+  var topicIndex = null;
   /* The search result container */
   var searchResults = document.getElementById('search-results');
   /* The topic heading <select> element */
@@ -11,18 +13,12 @@ window.onload = function() {
   /* Keyword search <input> */
   var searchBox = document.getElementById('topic-search-box');
 
-  /* When TOC gets the focus, setting the focus to helpTopics or searchBox */
-  window.addEventListener('focus', function() {
-    var helpTopics = document.getElementById('matching-topics');
-    var searchBox = document.getElementById('topic-search-box');
-    var searchResults = document.getElementById('search-results');
-
-    if (searchResults && searchResults.style.display !== 'none') {
-        helpTopics.focus();
-    } else {
-        searchBox.focus();
-    }
-  });
+  var helpTopics_ensureSelectedItemIsVisible = function() {
+    try {
+      var selectedOption = helpTopics.options[helpTopics.selectedIndex];
+      selectedOption.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    } catch (e) { }
+  }
 
   /* Shows the page mapped to the active <select> item */
   var clickToView = function(evnt) {
@@ -33,9 +29,9 @@ window.onload = function() {
       if (!Boolean(helpTopics.value)) // Nothing selected
         return;
 
-      // ensure the selected item is visible
-      var selectedOption = helpTopics.options[helpTopics.selectedIndex];
-      selectedOption.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      if (evnt) {
+        helpTopics_ensureSelectedItemIsVisible();
+      }
 
       // open the selected document
       var searchParam = helpTopics[helpTopics.selectedIndex].dataset.contains;
@@ -89,7 +85,9 @@ window.onload = function() {
       /* The global 'NPPEXEC_HELP_TOPICS' object is defined in 'topics.js', which *must*
        * be loaded before this script
        */
-      var topicIndex = JSON.parse(JSON.stringify(NPPEXEC_HELP_TOPICS));
+      if (topicIndex === null) {
+        topicIndex = JSON.parse(JSON.stringify(NPPEXEC_HELP_TOPICS));
+      }
       /* Compile RegExp from the search string that was just typed */
       var queryRE = new RegExp('(?:)(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')\s?', 'iu');
       /* Collection of objects holding topic metadata */
@@ -123,32 +121,42 @@ window.onload = function() {
         /* Min visible size is 2 b/c the <optgroup> label is counted */
         helpTopics.size = Math.max(foundTopics.length + 1, 2);
         helpTopics.selectedIndex = -1;
-        helpTopics.addEventListener('change', clickToView, { 'passive': false });
         helpTopics.addEventListener('focus', function() {
           if (this.selectedIndex === -1) {
             this.selectedIndex = 0;
             clickToView(null);
           }
         }, { 'once': true });
-
-        var focusContent = function(evnt) {
-          if (evnt.type === 'dblclick' || evnt.key === 'Enter' || evnt.keyCode === 13) {
-            forceFocusToContent = true; // focusing the Content, not Help Topics
-            setTimeout(function() {
-              var contentFrame = parent.frames['content'];
-              if (contentFrame) {
-                contentFrame.focus();
-              }
-            }, 50);
-          }
-        };
-        helpTopics.addEventListener('keydown', focusContent);
-        helpTopics.addEventListener('dblclick', focusContent);
       }
     } catch (e) {
       console.error(e.message)
     }
   };
+
+  /* Set the focus to the 'content' frame */
+  var focusContent = function(evnt) {
+    if (evnt.type === 'dblclick' || evnt.key === 'Enter' || evnt.keyCode === 13) {
+      forceFocusToContent = true; // focusing the Content, not Help Topics
+      setTimeout(function() {
+        var contentFrame = parent.frames['content'];
+        if (contentFrame) {
+          contentFrame.focus();
+        }
+      }, 50);
+    }
+  };
+
+  helpTopics.addEventListener('keydown', focusContent);
+  helpTopics.addEventListener('dblclick', focusContent);
+  helpTopics.addEventListener('change', clickToView, { 'passive': false });
+  helpTopics.addEventListener('focus', function() {
+    shouldFocusHelpTopics = true;
+    helpTopics_ensureSelectedItemIsVisible();
+  });
+
+  searchBox.addEventListener('focus', function() {
+    shouldFocusHelpTopics = false;
+  });
 
   searchBox.addEventListener('keyup', findTopics);
   if (window.matchMedia && window.matchMedia('(max-width:350px)')) {
@@ -159,6 +167,15 @@ window.onload = function() {
       findTopics(new KeyboardEvent('keyup', { 'key': searchBox.value }));
       }, 1000);
   }
+
+  /* When TOC gets the focus, setting the focus to helpTopics or searchBox */
+  window.addEventListener('focus', function() {
+    if (shouldFocusHelpTopics && searchResults && searchResults.style.display !== 'none') {
+      helpTopics.focus();
+    } else {
+      searchBox.focus();
+    }
+  });
 
   /* Bind event handler to the doc navigation <button> */
   document.getElementById('goto-doc').addEventListener('click', clickToView, { 'passive': false });
