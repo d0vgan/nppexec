@@ -168,12 +168,24 @@ window.onload = function() {
       }, 1000);
   }
 
+  var isElementVisible = function(elem) {
+    if (!elem) return false;
+    const rect = elem.getBoundingClientRect();
+    const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
+    console.log('rect', rect, windowHeight);
+    return rect.bottom > 10 && rect.top < windowHeight;
+  };
+
   /* When TOC gets the focus, setting the focus to helpTopics or searchBox */
   window.addEventListener('focus', function() {
     if (shouldFocusHelpTopics && searchResults && searchResults.style.display !== 'none') {
-      helpTopics.focus();
+      if (isElementVisible(helpTopics)) {
+        helpTopics.focus();
+      }
     } else {
-      searchBox.focus();
+      if (isElementVisible(searchBox)) {
+        searchBox.focus();
+      }
     }
   });
 
