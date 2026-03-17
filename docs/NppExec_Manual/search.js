@@ -172,7 +172,7 @@ window.onload = function() {
     if (!elem) return false;
     const rect = elem.getBoundingClientRect();
     const windowHeight = (window.innerHeight || document.documentElement.clientHeight);
-    console.log('rect', rect, windowHeight);
+    //console.log('rect', rect, windowHeight);
     return rect.bottom > 10 && rect.top < windowHeight;
   };
 
