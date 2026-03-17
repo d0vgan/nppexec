@@ -178,11 +178,11 @@ window.onload = function() {
 
   /* When TOC gets the focus, setting the focus to helpTopics or searchBox */
   window.addEventListener('focus', function() {
-    if (shouldFocusHelpTopics && searchResults && searchResults.style.display !== 'none') {
+    if (shouldFocusHelpTopics === true && searchResults && searchResults.style.display !== 'none') {
       if (isElementVisible(helpTopics)) {
         helpTopics.focus();
       }
-    } else {
+    } else if (shouldFocusHelpTopics === false) {
       if (isElementVisible(searchBox)) {
         searchBox.focus();
       }
@@ -231,6 +231,21 @@ window.onload = function() {
       }
     }
   });
+
+  /* Intercept clicks on TOC links */
+  document.addEventListener('click', function(evnt) {
+    // Searching for an <a> element
+    var target = evnt.target;
+    while (target && target.tagName !== 'A') {
+      target = target.parentElement;
+    }
+
+    if (target && target.tagName === 'A' && target.target === 'content') {
+      // <a> element has been clicked - don't focus the help topics
+      shouldFocusHelpTopics = undefined;
+      helpTopics.selectedIndex = -1;
+    }
+  }, false);
 
   // Handling 'CONTENT_PAGE_LOADED' originated from a content page
   window.addEventListener('message', function(event) {
