@@ -1,0 +1,66 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build NppExec: Debug x64 (VS2017)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\.vscode\\build_vc2017.bat",
+            "args": [
+                "${workspaceFolder}\\NppExec\\NppExec_VC2017.vcxproj",
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true",
+                "/t:build",
+                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
+                "/consoleloggerparameters:NoSummary",
+                "/p:Configuration=Debug",
+                "/p:Platform=x64"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "always"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "build NppExec: Debug x64 (VS2022)",
+            "type": "shell",
+            "command": "${workspaceFolder}\\.vscode\\build_vc2022.bat",
+            "args": [
+                "${workspaceFolder}\\NppExec\\NppExec_VC2022.vcxproj",
+                // Ask msbuild to generate full paths for file names.
+                "/property:GenerateFullPaths=true",
+                "/t:build",
+                // Do not generate summary otherwise it leads to duplicate errors in Problems panel
+                "/consoleloggerparameters:NoSummary",
+                "/p:Configuration=Debug",
+                "/p:Platform=x64"
+            ],
+            "group": "build",
+            "presentation": {
+                // Reveal the output only if unrecognized errors occur.
+                "reveal": "always"
+            },
+            // Use the standard MS compiler pattern to detect errors, warnings and infos
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "copy NppExec.dll to Notepad++ plugins",
+            "type": "shell",
+            "command": "cmd",
+            "args": [
+                "/c",
+                "copy",
+                "/Y",
+                "${workspaceFolder}\\NppExec\\x64\\Debug\\NppExec.dll",
+                "C:\\Progs\\Progs\\Notepadpp\\plugins\\NppExec\\NppExec.dll"
+            ],
+            // "dependsOn": "build QSearch (VS2022)",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}
