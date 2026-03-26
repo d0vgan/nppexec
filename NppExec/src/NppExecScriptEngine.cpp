@@ -7158,14 +7158,18 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
                     delete [] pParam[n];
                     pParam[n] = NULL;
                 }
-                for ( i = varValue.length() - 1; i >= 0; i-- )
-                {
-                    const TCHAR ch = varValue[i];
-                    if ( ch == _T('\r') || ch == _T('\n') )
-                        varValue.Delete(i, 1); // exclude trailing '\r' or '\n'
-                    else
-                        break;
-                }
+                //
+                // Why did I do that??? --
+                //
+                // for ( i = varValue.length() - 1; i >= 0; i-- )
+                // {
+                //     const TCHAR ch = varValue[i];
+                //     if ( ch == _T('\r') || ch == _T('\n') )
+                //         varValue.Delete(i, 1); // exclude trailing '\r' or '\n'
+                //     else
+                //         break;
+                // }
+                //
                 m_pNppExec->GetMacroVars().SetUserMacroVar(this, varName, varValue, CNppExecMacroVars::svLocalVar); // local var
                 break;
 
