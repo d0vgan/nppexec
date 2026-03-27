@@ -1447,10 +1447,12 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set s ~ strstrip 0x23 ` \\n abc \\n ` // \"\\n abc \\n\"") _T_RE_EOL \
     _T("  // strquote") _T_RE_EOL \
     _T("  set s ~ strquote a b c        // \"a b c\"") _T_RE_EOL \
-    _T("  set s ~ strquote \"a b c\"      // \"a b c\"") _T_RE_EOL \
+    _T("  set s ~ strquote \"a b c\"      // \"a b c\"  (already quoted)") _T_RE_EOL \
+    _T("  set s ~ strquote `a b c`      // `a b c`  (already quoted)") _T_RE_EOL \
     _T("  // strunquote") _T_RE_EOL \
     _T("  set s ~ strunquote \"a b c\"    // a b c") _T_RE_EOL \
     _T("  set s ~ strunquote a b c      // a b c") _T_RE_EOL \
+    _T("  set s ~ strunquote `a b c`    // a b c") _T_RE_EOL \
     _T("  // strescape & strunescape") _T_RE_EOL \
     _T("  set local TAB ~ chr 0x09  // <TAB> = '\\t'") _T_RE_EOL \
     _T("  set local LF ~ chr 0x0A  // <LF> = '\\n'") _T_RE_EOL \

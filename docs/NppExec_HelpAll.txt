@@ -1245,10 +1245,12 @@ EXAMPLES:
   set s ~ strstrip 0x23 ` \n abc \n ` // "\n abc \n"
   // strquote
   set s ~ strquote a b c        // "a b c"
-  set s ~ strquote "a b c"      // "a b c"
+  set s ~ strquote "a b c"      // "a b c"  (already quoted)
+  set s ~ strquote `a b c`      // `a b c`  (already quoted)
   // strunquote
   set s ~ strunquote "a b c"    // a b c
   set s ~ strunquote a b c      // a b c
+  set s ~ strunquote `a b c`    // a b c
   // strescape & strunescape
   set local TAB ~ chr 0x09  // <TAB> = '\t'
   set local LF ~ chr 0x0A  // <LF> = '\n'
