@@ -509,18 +509,19 @@ namespace NppExecHelpers
     }
 
     enum eStrStripKind {
-        sskWhiteBoth     =  0, // leading and trailing whitespaces (including '\n' and '\r')
-        sskWhiteLeading  =  1, // only leading whitespaces (including '\n' and '\r')
-        sskWhiteTrailing =  2, // only trailing whitespaces (including '\n' and '\r')
-        sskAnyBoth       = 10, // leading and trailing any spaces (not including '\n' and '\r')
-        sskAnyLeading    = 11, // only leading any spaces (not including '\n' and '\r')
-        sskAnyTrailing   = 12, // only trailing any spaces (not including '\n' and '\r')
-        sskTabSpBoth     = 20, // leading and trailing tabs and spaces
-        sskTabSpLeading  = 21, // only leading tabs and spaces
-        sskTabSpTrailing = 22, // only trailing tabs and spaces
-        sskNewLnBoth     = 30, // leading and trailing new line chars ('\n' and '\r')
-        sskNewLnLeading  = 31, // only leading new line chars ('\n' and '\r')
-        sskNewLnTrailing = 32  // only trailing new line chars ('\n' and '\r')
+        sskNone          = 0x00,
+        sskWhiteLeading  = 0x01, // only leading whitespaces (including '\n' and '\r')
+        sskWhiteTrailing = 0x02, // only trailing whitespaces (including '\n' and '\r')
+        sskWhiteBoth     = 0x03, // leading and trailing whitespaces (including '\n' and '\r')
+        sskAnyLeading    = 0x11, // only leading any spaces (not including '\n' and '\r')
+        sskAnyTrailing   = 0x12, // only trailing any spaces (not including '\n' and '\r')
+        sskAnyBoth       = 0x13, // leading and trailing any spaces (not including '\n' and '\r')
+        sskTabSpLeading  = 0x21, // only leading tabs and spaces
+        sskTabSpTrailing = 0x22, // only trailing tabs and spaces
+        sskTabSpBoth     = 0x23, // leading and trailing tabs and spaces
+        sskNewLnLeading  = 0x41, // only leading new line chars ('\n' and '\r')
+        sskNewLnTrailing = 0x42, // only trailing new line chars ('\n' and '\r')
+        sskNewLnBoth     = 0x43  // leading and trailing new line chars ('\n' and '\r')
     };
     void StrStrip(CStrT<char>& S, eStrStripKind kind) noexcept;
     void StrStrip(CStrT<wchar_t>& S, eStrStripKind kind) noexcept;

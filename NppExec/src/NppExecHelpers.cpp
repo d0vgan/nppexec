@@ -891,40 +891,40 @@ namespace NppExecHelpers
     {
         switch ( kind )
         {
-        case sskWhiteBoth:
         case sskWhiteTrailing:
+        case sskWhiteBoth:
             StrStripTrailing(S, is_wtsp<T>());
             break;
-        case sskAnyBoth:
         case sskAnyTrailing:
+        case sskAnyBoth:
             StrStripTrailing(S, is_anysp<T>());
             break;
-        case sskTabSpBoth:
         case sskTabSpTrailing:
+        case sskTabSpBoth:
             StrStripTrailing(S, is_tabsp<T>());
             break;
-        case sskNewLnBoth:
         case sskNewLnTrailing:
+        case sskNewLnBoth:
             StrStripTrailing(S, is_newln<T>());
             break;
         }
 
         switch ( kind )
         {
-        case sskWhiteBoth:
         case sskWhiteLeading:
+        case sskWhiteBoth:
             StrStripLeading(S, is_wtsp<T>());
             break;
-        case sskAnyBoth:
         case sskAnyLeading:
+        case sskAnyBoth:
             StrStripLeading(S, is_anysp<T>());
             break;
-        case sskTabSpBoth:
         case sskTabSpLeading:
+        case sskTabSpBoth:
             StrStripLeading(S, is_tabsp<T>());
             break;
-        case sskNewLnBoth:
         case sskNewLnLeading:
+        case sskNewLnBoth:
             StrStripLeading(S, is_newln<T>());
             break;
         }

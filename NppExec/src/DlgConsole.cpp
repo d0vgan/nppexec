@@ -119,6 +119,7 @@ const TCHAR CONSOLE_COMMANDS_INFO[] = _T_RE_EOL \
   _T("set <var> ~ strfind <s> <t>  -  returns the first position of <t> in <s>") _T_RE_EOL \
   _T("set <var> ~ strrfind <s> <t>  -  returns the last position of <t> in <s>") _T_RE_EOL \
   _T("set <var> ~ strreplace <s> <t0> <t1>  -  replaces all <t0> with <t1>") _T_RE_EOL \
+  _T("set <var> ~ strstrip <k> <s>  -  strips whitespaces in <s>") _T_RE_EOL \
   _T("set <var> ~ strquote <s>  -  surrounds <s> with \"\" quotes") _T_RE_EOL \
   _T("set <var> ~ strunquote <s>  -  removes the surrounding \"\" quotes") _T_RE_EOL \
   _T("set <var> ~ strescape <s>  -  simple character escaping (e.g. <TAB> to '\\t')") _T_RE_EOL \
@@ -1128,9 +1129,10 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  // !!! All SCI_* messages must be specified in upper case !!!") _T_RE_EOL \
     _T("  // !!! (These messages are read from NppExec\\Scintilla.h) !!!") _T_RE_EOL \
     _T("  // get the text of the first visible line:") _T_RE_EOL \
-    _T("  sci_sendmsg SCI_GETFIRSTVISIBLELINE  // returns line number as LRESULT") _T_RE_EOL \
-    _T("  sci_sendmsg SCI_GETLINE $(MSG_RESULT) @\"\"") _T_RE_EOL \
-    _T("  echo $(MSG_LPARAM)  // prints the string pointed by lParam") _T_RE_EOL \
+    _T("  sci_sendmsg SCI_GETFIRSTVISIBLELINE // returns line number as $(MSG_RESULT)") _T_RE_EOL \
+    _T("  sci_sendmsg SCI_GETLINE $(MSG_RESULT) @\"\" // returns the line as $(MSG_LPARAM)") _T_RE_EOL \
+    _T("  set local line ~ strstrip 0x42 `$(MSG_LPARAM)` // removes the trailing \\r\\n") _T_RE_EOL \
+    _T("  echo $(line)  // prints the line") _T_RE_EOL \
     _T("  // insert some text at the current position:") _T_RE_EOL \
     _T("  sci_sendmsg SCI_INSERTTEXT -1 \"Some text\"") _T_RE_EOL \
     _T("  // insert some multi-line text:") _T_RE_EOL \
@@ -1304,19 +1306,20 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  5g. set <var> ~ strfind <string> <sfind>") _T_RE_EOL \
     _T("  5h. set <var> ~ strrfind <string> <sfind>") _T_RE_EOL \
     _T("  5i. set <var> ~ strreplace <string> <sfind> <sreplace>") _T_RE_EOL \
-    _T("  5j. set <var> ~ strquote <string>") _T_RE_EOL \
-    _T("  5k. set <var> ~ strunquote <string>") _T_RE_EOL \
-    _T("  5l. set <var> ~ strescape <string>") _T_RE_EOL \
-    _T("  5m. set <var> ~ strunescape <string>") _T_RE_EOL \
-    _T("  5n. set <var> ~ strexpand <string>") _T_RE_EOL \
-    _T("  5o. set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
-    _T("  5p. set <var> ~ strtohex <string>") _T_RE_EOL \
-    _T("  5q. set <var> ~ chr <n>") _T_RE_EOL \
-    _T("  5r. set <var> ~ ord <c>") _T_RE_EOL \
-    _T("  5s. set <var> ~ ordx <c>") _T_RE_EOL \
-    _T("  5t. set <var> ~ normpath <path>") _T_RE_EOL \
-    _T("  5u. set <var> ~ fileexists <path>") _T_RE_EOL \
-    _T("  5v. set <var> ~ direxists <path>") _T_RE_EOL \
+    _T("  5j. set <var> ~ strstrip <k> <string>") _T_RE_EOL \
+    _T("  5k. set <var> ~ strquote <string>") _T_RE_EOL \
+    _T("  5l. set <var> ~ strunquote <string>") _T_RE_EOL \
+    _T("  5m. set <var> ~ strescape <string>") _T_RE_EOL \
+    _T("  5n. set <var> ~ strunescape <string>") _T_RE_EOL \
+    _T("  5o. set <var> ~ strexpand <string>") _T_RE_EOL \
+    _T("  5p. set <var> ~ strfromhex <hexstring>") _T_RE_EOL \
+    _T("  5q. set <var> ~ strtohex <string>") _T_RE_EOL \
+    _T("  5r. set <var> ~ chr <n>") _T_RE_EOL \
+    _T("  5s. set <var> ~ ord <c>") _T_RE_EOL \
+    _T("  5t. set <var> ~ ordx <c>") _T_RE_EOL \
+    _T("  5u. set <var> ~ normpath <path>") _T_RE_EOL \
+    _T("  5v. set <var> ~ fileexists <path>") _T_RE_EOL \
+    _T("  5w. set <var> ~ direxists <path>") _T_RE_EOL \
     _T("  6.  set local") _T_RE_EOL \
     _T("      set local <var>") _T_RE_EOL \
     _T("      set local <var> = ...") _T_RE_EOL \
@@ -1341,21 +1344,22 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  5g. Returns the position of first <sfind> in <string>") _T_RE_EOL \
     _T("  5h. Returns the position of last <sfind> in <string>") _T_RE_EOL \
     _T("  5i. Replaces all <sfind> with <sreplace> in <string>") _T_RE_EOL \
-    _T("  5j. Returns the string surrounded with \"\" quotes") _T_RE_EOL \
-    _T("  5k. Removes the surrounding \"\" quotes") _T_RE_EOL \
-    _T("  5l. Simple character escaping: '\\' -> '\\\\', '<TAB>' -> '\\t',") _T_RE_EOL \
+    _T("  5j. Returns the string with whitespace characters stripped") _T_RE_EOL \
+    _T("  5k. Returns the string surrounded with \"\" quotes") _T_RE_EOL \
+    _T("  5l. Removes the surrounding \"\" quotes") _T_RE_EOL \
+    _T("  5m. Simple character escaping: '\\' -> '\\\\', '<TAB>' -> '\\t',") _T_RE_EOL \
     _T("      '<CR>' -> '\\r', '<LF>' -> '\\n', '\"' -> '\\\"'") _T_RE_EOL \
-    _T("  5m. Simple character unescaping: '\\\\' -> '\\', '\\t' -> '<TAB>',") _T_RE_EOL \
+    _T("  5n. Simple character unescaping: '\\\\' -> '\\', '\\t' -> '<TAB>',") _T_RE_EOL \
     _T("      '\\r' -> '<CR>', '\\n' -> '<LF>', '\\?' -> '?'") _T_RE_EOL \
-    _T("  5n. Expands all $(sub) values within the <string>") _T_RE_EOL \
-    _T("  5o. Returns a string from the <hexstring>") _T_RE_EOL \
-    _T("  5p. Returns a hex-string from the <string>") _T_RE_EOL \
-    _T("  5q. Returns a character from a character code <n>") _T_RE_EOL \
-    _T("  5r. Returns a decimal character code of a character <c>") _T_RE_EOL \
-    _T("  5s. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
-    _T("  5t. Returns a normalized path") _T_RE_EOL \
-    _T("  5u. Returns 1 if a given file exists, 0 otherwise") _T_RE_EOL \
-    _T("  5v. Returns 1 if a given directory exists, 0 otherwise") _T_RE_EOL \
+    _T("  5o. Expands all $(sub) values within the <string>") _T_RE_EOL \
+    _T("  5p. Returns a string from the <hexstring>") _T_RE_EOL \
+    _T("  5q. Returns a hex-string from the <string>") _T_RE_EOL \
+    _T("  5r. Returns a character from a character code <n>") _T_RE_EOL \
+    _T("  5s. Returns a decimal character code of a character <c>") _T_RE_EOL \
+    _T("  5t. Returns a hexadecimal character code of a character <c>") _T_RE_EOL \
+    _T("  5u. Returns a normalized path") _T_RE_EOL \
+    _T("  5v. Returns 1 if a given file exists, 0 otherwise") _T_RE_EOL \
+    _T("  5w. Returns 1 if a given directory exists, 0 otherwise") _T_RE_EOL \
     _T("  6.  Shows/sets the value of local variable (\"set local <var> ...\")") _T_RE_EOL \
     _T("  7.  Sets a value using delayed substitution of variables (\"set +v ...\")") _T_RE_EOL \
     _T("  8.  Removes the variable <var> (\"unset <var>\")") _T_RE_EOL \
@@ -1426,6 +1430,21 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  set s ~ strreplace \"$(s)\" l 1            // He110 w0r1d    (\"l\" -> \"1\")") _T_RE_EOL \
     _T("  set s ~ strreplace \"$(s)\" 1 \"y \"         // Hey y 0 w0ry d (\"1\" -> \"y \")") _T_RE_EOL \
     _T("  set s ~ strreplace \"queen-bee\" ee \"\"     // qun-b          (\"ee\" -> \"\")") _T_RE_EOL \
+    _T("  // strstrip") _T_RE_EOL \
+    _T("  // * quotes are not treated as a part of a string itself") _T_RE_EOL \
+    _T("  // k = 0x01, 0x02, 0x03 - strip whitespaces: ' ', '\\t', '\\v', '\\f', '\\n', '\\r'") _T_RE_EOL \
+    _T("  // k = 0x11, 0x12, 0x13 - strip non-EOL spaces: ' ', '\\t', '\\v', '\\f'") _T_RE_EOL \
+    _T("  // k = 0x21, 0x22, 0x23 - strip space and tab: ' ', '\\t'") _T_RE_EOL \
+    _T("  // k = 0x41, 0x42, 0x43 - strip EOL: '\\n', '\\r'") _T_RE_EOL \
+    _T("  // when k ends with 1 - strip only the leading ones") _T_RE_EOL \
+    _T("  // when k ends with 2 - strip only the trailing ones") _T_RE_EOL \
+    _T("  // when k ends with 3 - strip both leading and trailing ones") _T_RE_EOL \
+    _T("  set s ~ strstrip 0x11 `  abc   ` // \"abc   \"") _T_RE_EOL \
+    _T("  set s ~ strstrip 0x12 `  abc   ` // \"  abc\"") _T_RE_EOL \
+    _T("  set s ~ strstrip 0x13 `  abc   ` // \"abc\"") _T_RE_EOL \
+    _T("  set s ~ strstrip 0x42 ` abc\\r\\n` // \" abc\"") _T_RE_EOL \
+    _T("  set s ~ strstrip 0x03 `  abc \\r\\n` // \"abc\"") _T_RE_EOL \
+    _T("  set s ~ strstrip 0x23 ` \\n abc \\n ` // \"\\n abc \\n\"") _T_RE_EOL \
     _T("  // strquote") _T_RE_EOL \
     _T("  set s ~ strquote a b c        // \"a b c\"") _T_RE_EOL \
     _T("  set s ~ strquote \"a b c\"      // \"a b c\"") _T_RE_EOL \
@@ -5203,6 +5222,7 @@ bool ConsoleDlg::IsConsoleHelpCommand(const tstr& S, bool bCalledFromScriptEngin
                      S1 == _T("SUBSTR")     ||
                      S1 == _T("STRFIND")    || S1 == _T("STRRFIND")    ||
                      S1 == _T("STRREPLACE") || S1 == _T("STRRPLC")     ||
+                     S1 == _T("STRSTRIP")   ||
                      S1 == _T("STRQUOTE")   || S1 == _T("STRUNQUOTE")  ||
                      S1 == _T("STRESCAPE")  || S1 == _T("STRUNESCAPE") ||
                      S1 == _T("STREXPAND")  ||

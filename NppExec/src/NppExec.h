@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  --------------------
  * Glory to Ukraine! Glory to the heroes!
  + added: $(IS_CONSOLE), $(IS_CONSOLE0)
+ + added: set <var> ~ strstrip <k> <string>
  + NppExec Manual updated
  * the CHM version of NppExec Manual is replaced with the HTML version
  * vc2026 project files with arm64 added, thanks to jjsilvan
@@ -1567,6 +1568,7 @@ public:
             CT_STRFIND,
             CT_STRRFIND,
             CT_STRREPLACE,
+            CT_STRSTRIP,
             CT_STRQUOTE,
             CT_STRUNQUOTE,
             CT_STRESCAPE,
@@ -1596,6 +1598,7 @@ public:
         bool calcSubStr();
         bool calcStrFind();
         bool calcStrRplc();
+        bool calcStrStrip();
         bool calcStrFromHex();
         bool calcStrToHex();
         bool calcChr();

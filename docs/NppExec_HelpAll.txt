@@ -59,6 +59,7 @@ set <var> ~ substr <pos> <len> <string>  -  returns the substring
 set <var> ~ strfind <s> <t>  -  returns the first position of <t> in <s>
 set <var> ~ strrfind <s> <t>  -  returns the last position of <t> in <s>
 set <var> ~ strreplace <s> <t0> <t1>  -  replaces all <t0> with <t1>
+set <var> ~ strstrip <k> <s>  -  strips whitespaces in <s>
 set <var> ~ strquote <s>  -  surrounds <s> with "" quotes
 set <var> ~ strunquote <s>  -  removes the surrounding "" quotes
 set <var> ~ strescape <s>  -  simple character escaping (e.g. <TAB> to '\t')
@@ -870,9 +871,10 @@ EXAMPLES:
   // !!! All SCI_* messages must be specified in upper case !!!
   // !!! (These messages are read from NppExec\Scintilla.h) !!!
   // get the text of the first visible line:
-  sci_sendmsg SCI_GETFIRSTVISIBLELINE  // returns line number as LRESULT
-  sci_sendmsg SCI_GETLINE $(MSG_RESULT) @""
-  echo $(MSG_LPARAM)  // prints the string pointed by lParam
+  sci_sendmsg SCI_GETFIRSTVISIBLELINE // returns line number as $(MSG_RESULT)
+  sci_sendmsg SCI_GETLINE $(MSG_RESULT) @"" // returns the line as $(MSG_LPARAM)
+  set local line ~ strstrip 0x42 `$(MSG_LPARAM)` // removes the trailing \r\n
+  echo $(line)  // prints the line
   // insert some text at the current position:
   sci_sendmsg SCI_INSERTTEXT -1 "Some text"
   // insert some multi-line text:
@@ -1102,19 +1104,20 @@ USAGE:
   5g. set <var> ~ strfind <string> <sfind>
   5h. set <var> ~ strrfind <string> <sfind>
   5i. set <var> ~ strreplace <string> <sfind> <sreplace>
-  5j. set <var> ~ strquote <string>
-  5k. set <var> ~ strunquote <string>
-  5l. set <var> ~ strescape <string>
-  5m. set <var> ~ strunescape <string>
-  5n. set <var> ~ strexpand <string>
-  5o. set <var> ~ strfromhex <hexstring>
-  5p. set <var> ~ strtohex <string>
-  5q. set <var> ~ chr <n>
-  5r. set <var> ~ ord <c>
-  5s. set <var> ~ ordx <c>
-  5t. set <var> ~ normpath <path>
-  5u. set <var> ~ fileexists <path>
-  5v. set <var> ~ direxists <path>
+  5j. set <var> ~ strstrip <k> <string>
+  5k. set <var> ~ strquote <string>
+  5l. set <var> ~ strunquote <string>
+  5m. set <var> ~ strescape <string>
+  5n. set <var> ~ strunescape <string>
+  5o. set <var> ~ strexpand <string>
+  5p. set <var> ~ strfromhex <hexstring>
+  5q. set <var> ~ strtohex <string>
+  5r. set <var> ~ chr <n>
+  5s. set <var> ~ ord <c>
+  5t. set <var> ~ ordx <c>
+  5u. set <var> ~ normpath <path>
+  5v. set <var> ~ fileexists <path>
+  5w. set <var> ~ direxists <path>
   6.  set local
       set local <var>
       set local <var> = ...
@@ -1139,21 +1142,22 @@ DESCRIPTION:
   5g. Returns the position of first <sfind> in <string>
   5h. Returns the position of last <sfind> in <string>
   5i. Replaces all <sfind> with <sreplace> in <string>
-  5j. Returns the string surrounded with "" quotes
-  5k. Removes the surrounding "" quotes
-  5l. Simple character escaping: '\' -> '\\', '<TAB>' -> '\t',
+  5j. Returns the string with whitespace characters stripped
+  5k. Returns the string surrounded with "" quotes
+  5l. Removes the surrounding "" quotes
+  5m. Simple character escaping: '\' -> '\\', '<TAB>' -> '\t',
       '<CR>' -> '\r', '<LF>' -> '\n', '"' -> '\"'
-  5m. Simple character unescaping: '\\' -> '\', '\t' -> '<TAB>',
+  5n. Simple character unescaping: '\\' -> '\', '\t' -> '<TAB>',
       '\r' -> '<CR>', '\n' -> '<LF>', '\?' -> '?'
-  5n. Expands all $(sub) values within the <string>
-  5o. Returns a string from the <hexstring>
-  5p. Returns a hex-string from the <string>
-  5q. Returns a character from a character code <n>
-  5r. Returns a decimal character code of a character <c>
-  5s. Returns a hexadecimal character code of a character <c>
-  5t. Returns a normalized path
-  5u. Returns 1 if a given file exists, 0 otherwise
-  5v. Returns 1 if a given directory exists, 0 otherwise
+  5o. Expands all $(sub) values within the <string>
+  5p. Returns a string from the <hexstring>
+  5q. Returns a hex-string from the <string>
+  5r. Returns a character from a character code <n>
+  5s. Returns a decimal character code of a character <c>
+  5t. Returns a hexadecimal character code of a character <c>
+  5u. Returns a normalized path
+  5v. Returns 1 if a given file exists, 0 otherwise
+  5w. Returns 1 if a given directory exists, 0 otherwise
   6.  Shows/sets the value of local variable ("set local <var> ...")
   7.  Sets a value using delayed substitution of variables ("set +v ...")
   8.  Removes the variable <var> ("unset <var>")
@@ -1224,6 +1228,21 @@ EXAMPLES:
   set s ~ strreplace "$(s)" l 1            // He110 w0r1d    ("l" -> "1")
   set s ~ strreplace "$(s)" 1 "y "         // Hey y 0 w0ry d ("1" -> "y ")
   set s ~ strreplace "queen-bee" ee ""     // qun-b          ("ee" -> "")
+  // strstrip
+  // * quotes are not treated as a part of a string itself
+  // k = 0x01, 0x02, 0x03 - strip whitespaces: ' ', '\t', '\v', '\f', '\n', '\r'
+  // k = 0x11, 0x12, 0x13 - strip non-EOL spaces: ' ', '\t', '\v', '\f'
+  // k = 0x21, 0x22, 0x23 - strip space and tab: ' ', '\t'
+  // k = 0x41, 0x42, 0x43 - strip EOL: '\n', '\r'
+  // when k ends with 1 - strip only the leading ones
+  // when k ends with 2 - strip only the trailing ones
+  // when k ends with 3 - strip both leading and trailing ones
+  set s ~ strstrip 0x11 `  abc   ` // "abc   "
+  set s ~ strstrip 0x12 `  abc   ` // "  abc"
+  set s ~ strstrip 0x13 `  abc   ` // "abc"
+  set s ~ strstrip 0x42 ` abc\r\n` // " abc"
+  set s ~ strstrip 0x03 `  abc \r\n` // "abc"
+  set s ~ strstrip 0x23 ` \n abc \n ` // "\n abc \n"
   // strquote
   set s ~ strquote a b c        // "a b c"
   set s ~ strquote "a b c"      // "a b c"

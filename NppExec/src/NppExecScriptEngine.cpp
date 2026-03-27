@@ -1205,6 +1205,8 @@ static FParserWrapper g_fp;
  *   - returns the last position of <t> in <s>
  * set <var> ~ strreplace <s> <t0> <t1>
  *   - replaces all <t0> with <t1>
+ * set <var> ~ strstrip <k> <s>
+ *   - strips whitespaces in <s>
  * set <var> ~ strquote <s>
  *   - surrounds <s> with "" quotes
  * set <var> ~ strunquote <s>
@@ -9321,6 +9323,7 @@ bool CNppExecMacroVars::StrCalc::Process()
             { _T("STRRFIND"),    CT_STRRFIND    },
             { _T("STRREPLACE"),  CT_STRREPLACE  },
             { _T("STRRPLC"),     CT_STRREPLACE  },
+            { _T("STRSTRIP"),    CT_STRSTRIP    },
             { _T("STRQUOTE"),    CT_STRQUOTE    },
             { _T("STRUNQUOTE"),  CT_STRUNQUOTE  },
             { _T("STRESCAPE"),   CT_STRESCAPE   },
@@ -9373,6 +9376,9 @@ bool CNppExecMacroVars::StrCalc::Process()
             break;
         case CT_STRREPLACE:
             bSucceded = calcStrRplc();
+            break;
+        case CT_STRSTRIP:
+            bSucceded = calcStrStrip();
             break;
         case CT_STRQUOTE:
         case CT_STRUNQUOTE:
@@ -9652,6 +9658,96 @@ bool CNppExecMacroVars::StrCalc::calcStrRplc()
     {
         m_pNppExec->GetConsole().PrintError( _T("- too much STRREPLACE parameters given: 3 parameters expected") );
         m_pNppExec->GetConsole().PrintError( _T("- try to enclose the STRREPLACE parameters with quotes, e.g. \"s\" \"sfind\" \"sreplace\"") );
+    }
+
+    return bSucceded;
+}
+
+bool CNppExecMacroVars::StrCalc::calcStrStrip()
+{
+    using namespace NppExecHelpers;
+
+    bool bSucceded = false;
+
+    if ( *m_pVar )
+    {
+        m_pVar = get_param(m_pVar, m_param);
+        if ( isDecNumChar(m_param.GetAt(0)) )
+        {
+            eStrStripKind kind = sskNone;
+            int k = c_base::_tstr2int(m_param.c_str());
+            switch ( k )
+            {
+            case sskWhiteLeading:
+                kind = sskWhiteLeading;
+                break;
+            case sskWhiteTrailing:
+                kind = sskWhiteTrailing;
+                break;
+            case sskWhiteBoth:
+                kind = sskWhiteBoth;
+                break;
+            case sskAnyLeading:
+                kind = sskAnyLeading;
+                break;
+            case sskAnyTrailing:
+                kind = sskAnyTrailing;
+                break;
+            case sskAnyBoth:
+                kind = sskAnyBoth;
+                break;
+            case sskTabSpLeading:
+                kind = sskTabSpLeading;
+                break;
+            case sskTabSpTrailing:
+                kind = sskTabSpTrailing;
+                break;
+            case sskTabSpBoth:
+                kind = sskTabSpBoth;
+                break;
+            case sskNewLnLeading:
+                kind = sskNewLnLeading;
+                break;
+            case sskNewLnTrailing:
+                kind = sskNewLnTrailing;
+                break;
+            case sskNewLnBoth:
+                kind = sskNewLnBoth;
+                break;
+            default:
+                kind = sskNone;
+                break;
+            }
+
+            if ( kind != sskNone )
+            {
+                if ( *m_pVar )
+                {
+                    m_varValue = m_pVar;
+                    StrUnquoteEx(m_varValue);
+                    StrStrip(m_varValue, kind);
+
+                    Runtime::GetLogger().AddEx(
+                        _T("; strstrip: %s"),
+                        m_varValue.c_str()
+                    );
+
+                    bSucceded = true;
+                }
+            }
+            else
+            {
+                m_pNppExec->GetConsole().PrintError(_T("- unsupported value of 1st parameter of STRSTRIP"));
+            }
+        }
+        else
+        {
+            m_pNppExec->GetConsole().PrintError(_T("- failed to get 1st parameter of STRSTRIP: a number expected"));
+        }
+    }
+    else
+    {
+        m_pNppExec->GetConsole().PrintError(_T("- failed to get 1st parameter of STRSTRIP"));
     }
 
     return bSucceded;

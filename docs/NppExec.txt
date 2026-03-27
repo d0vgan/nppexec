@@ -46,6 +46,7 @@
  *        set <var> ~ strfind <s> <t> - returns the first position of <t> in <s>
  *        set <var> ~ strrfind <s> <t> - returns the last position of <t> in <s>
  *        set <var> ~ strreplace <s> <t0> <t1> - replaces all <t0> with <t1>
+ *        set <var> ~ strstrip <k> <s> - strips whitespaces in <s>
  *        set <var> ~ strquote <s> - surrounds <s> with "" quotes
  *        set <var> ~ strunquote <s> - removes the surrounding "" quotes
  *        set <var> ~ strescape <s> - simple character escaping (e.g. <TAB> to '\t')
@@ -253,6 +254,7 @@
  --------------------
  * Glory to Ukraine! Glory to the heroes!
  + added: $(IS_CONSOLE), $(IS_CONSOLE0)
+ + added: set <var> ~ strstrip <k> <string>
  + NppExec Manual updated
  * the CHM version of NppExec Manual is replaced with the HTML version
  * vc2026 project files with arm64 added, thanks to jjsilvan
