@@ -447,43 +447,83 @@ namespace NppExecHelpers
     {
         return ((ch == L' ') || (ch == L'\t'));
     }
-    inline bool IsAnySpaceChar(char ch) noexcept
+    inline bool IsAnySpaceChar(char ch) // does not include '\n' and '\r'
     {
         switch ( ch )
         {
             case ' ':   // 0x20, space
             case '\t':  // 0x09, tabulation
-            //case '\n':  // 0x0A, line feed
             case '\v':  // 0x0B, line tabulation
             case '\f':  // 0x0C, form feed
-            //case '\r':  // 0x0D, carriage return
                 return true;
         }
         return false;
     }
-    inline bool IsAnySpaceChar(wchar_t ch) noexcept
+    inline bool IsAnySpaceChar(wchar_t ch) noexcept // does not include '\n' and '\r'
     {
         switch ( ch )
         {
             case L' ':   // 0x20, space
             case L'\t':  // 0x09, tabulation
-            //case L'\n':  // 0x0A, line feed
             case L'\v':  // 0x0B, line tabulation
             case L'\f':  // 0x0C, form feed
-            //case L'\r':  // 0x0D, carriage return
                 return true;
         }
         return false;
     }
+    inline bool IsWhiteSpaceChar(char ch) noexcept // includes '\n' and '\r'
+    {
+        switch (ch)
+        {
+        case ' ':   // 0x20, space
+        case '\t':  // 0x09, tabulation
+        case '\n':  // 0x0A, line feed
+        case '\v':  // 0x0B, line tabulation
+        case '\f':  // 0x0C, form feed
+        case '\r':  // 0x0D, carriage return
+            return true;
+        }
+        return false;
+    }
+    inline bool IsWhiteSpaceChar(wchar_t ch) noexcept // includes '\n' and '\r'
+    {
+        switch (ch)
+        {
+        case L' ':   // 0x20, space
+        case L'\t':  // 0x09, tabulation
+        case L'\n':  // 0x0A, line feed
+        case L'\v':  // 0x0B, line tabulation
+        case L'\f':  // 0x0C, form feed
+        case L'\r':  // 0x0D, carriage return
+            return true;
+        }
+        return false;
+    }
+    inline bool IsNewLineChar(char ch) noexcept
+    {
+        return ((ch == '\n') || (ch == '\r'));
+    }
+    inline bool IsNewLineChar(wchar_t ch) noexcept
+    {
+        return ((ch == L'\n') || (ch == L'\r'));
+    }
 
-    void StrDelLeadingTabSpaces(CStrT<char>& S);
-    void StrDelLeadingTabSpaces(CStrT<wchar_t>& S);
-    void StrDelTrailingTabSpaces(CStrT<char>& S);
-    void StrDelTrailingTabSpaces(CStrT<wchar_t>& S);
-    void StrDelLeadingAnySpaces(CStrT<char>& S);
-    void StrDelLeadingAnySpaces(CStrT<wchar_t>& S);
-    void StrDelTrailingAnySpaces(CStrT<char>& S);
-    void StrDelTrailingAnySpaces(CStrT<wchar_t>& S);
+    enum eStrStripKind {
+        sskWhiteBoth     =  0, // leading and trailing whitespaces (including '\n' and '\r')
+        sskWhiteLeading  =  1, // only leading whitespaces (including '\n' and '\r')
+        sskWhiteTrailing =  2, // only trailing whitespaces (including '\n' and '\r')
+        sskAnyBoth       = 10, // leading and trailing any spaces (not including '\n' and '\r')
+        sskAnyLeading    = 11, // only leading any spaces (not including '\n' and '\r')
+        sskAnyTrailing   = 12, // only trailing any spaces (not including '\n' and '\r')
+        sskTabSpBoth     = 20, // leading and trailing tabs and spaces
+        sskTabSpLeading  = 21, // only leading tabs and spaces
+        sskTabSpTrailing = 22, // only trailing tabs and spaces
+        sskNewLnBoth     = 30, // leading and trailing new line chars ('\n' and '\r')
+        sskNewLnLeading  = 31, // only leading new line chars ('\n' and '\r')
+        sskNewLnTrailing = 32  // only trailing new line chars ('\n' and '\r')
+    };
+    void StrStrip(CStrT<char>& S, eStrStripKind kind) noexcept;
+    void StrStrip(CStrT<wchar_t>& S, eStrStripKind kind) noexcept;
 
     CWStr CStrToWStr(const CStr& S, UINT aCodePage = CP_ACP);
     CStr  WStrToCStr(const CWStr& S, UINT aCodePage = CP_ACP);

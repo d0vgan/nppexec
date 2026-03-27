@@ -619,7 +619,7 @@ class FParserWrapper
 
         void parse_Define(sParseContext& context)
         {
-            NppExecHelpers::StrDelLeadingAnySpaces(context.line);
+            NppExecHelpers::StrStrip(context.line, NppExecHelpers::sskAnyLeading);
             if ( context.line.IsEmpty() )
                 return;
 
@@ -634,8 +634,7 @@ class FParserWrapper
             }
 
             context.line.Delete(0, i); // delete const name
-            NppExecHelpers::StrDelLeadingAnySpaces(context.line);
-            NppExecHelpers::StrDelTrailingAnySpaces(context.line);
+            NppExecHelpers::StrStrip(context.line, NppExecHelpers::sskAnyBoth);
             if ( context.line.IsEmpty() )
                 return;
 
@@ -654,7 +653,7 @@ class FParserWrapper
 
         void parse_EnumDeclaration(sParseContext& context)
         {
-            NppExecHelpers::StrDelTrailingAnySpaces(context.line);
+            NppExecHelpers::StrStrip(context.line, NppExecHelpers::sskAnyTrailing);
             if ( context.line.EndsWith('\\') )
                 context.line.DeleteLastChar();
 
@@ -662,7 +661,7 @@ class FParserWrapper
             if ( i >= 0 )
             {
                 context.line.Delete(0, i + 1);
-                NppExecHelpers::StrDelLeadingAnySpaces(context.line);
+                NppExecHelpers::StrStrip(context.line, NppExecHelpers::sskAnyLeading);
 
                 context.state = stEnumBody;
                 context.nNextEnumValue = 0;
@@ -672,7 +671,7 @@ class FParserWrapper
 
         void parse_EnumBody(sParseContext& context)
         {
-            NppExecHelpers::StrDelTrailingAnySpaces(context.line);
+            NppExecHelpers::StrStrip(context.line, NppExecHelpers::sskAnyTrailing);
             if ( context.line.EndsWith('\\') )
                 context.line.DeleteLastChar();
 
@@ -684,8 +683,7 @@ class FParserWrapper
                 context.state = stNormal;
             }
 
-            NppExecHelpers::StrDelTrailingAnySpaces(context.line);
-            NppExecHelpers::StrDelLeadingAnySpaces(context.line);
+            NppExecHelpers::StrStrip(context.line, NppExecHelpers::sskAnyBoth);
             if ( context.line.IsEmpty() )
                 return;
 
@@ -703,14 +701,12 @@ class FParserWrapper
                 if ( j >= 0 )
                 {
                     varName.Assign(S.c_str(), j);
-                    NppExecHelpers::StrDelTrailingAnySpaces(varName);
-                    NppExecHelpers::StrDelLeadingAnySpaces(varName);
+                    NppExecHelpers::StrStrip(varName, NppExecHelpers::sskAnyBoth);
                     if ( varName.IsEmpty() )
                         continue;
 
                     varValue.Assign(S.c_str() + j + 1, S.length() - j - 1);
-                    NppExecHelpers::StrDelTrailingAnySpaces(varValue);
-                    NppExecHelpers::StrDelLeadingAnySpaces(varValue);
+                    NppExecHelpers::StrStrip(varValue, NppExecHelpers::sskAnyBoth);
                     if ( !varValue.IsEmpty() )
                     {
                         tstr calcError;
@@ -742,8 +738,7 @@ class FParserWrapper
                 else
                 {
                     varName = S;
-                    NppExecHelpers::StrDelTrailingAnySpaces(varName);
-                    NppExecHelpers::StrDelLeadingAnySpaces(varName);
+                    NppExecHelpers::StrStrip(varName, NppExecHelpers::sskAnyBoth);
                     if ( !varName.IsEmpty() )
                     {
                         m_fp->AddConstant(varName.c_str(), fparser_type::value_type(context.nNextEnumValue));
@@ -806,7 +801,7 @@ class FParserWrapper
                     if ( i >= 0 )
                         context.line.Delete(i, -1);
 
-                    NppExecHelpers::StrDelLeadingAnySpaces(context.line);
+                    NppExecHelpers::StrStrip(context.line, NppExecHelpers::sskAnyLeading);
                     if ( context.line.IsEmpty() )
                         continue;
 
@@ -1734,8 +1729,7 @@ void CScriptEngine::Run(unsigned int nRunFlags)
                         else if ( ifState == IF_EXECUTING_ELSE )
                         {
                             tstr Msg;
-                            NppExecHelpers::StrDelTrailingAnySpaces(S);
-                            NppExecHelpers::StrDelLeadingAnySpaces(S);
+                            NppExecHelpers::StrStrip(S, NppExecHelpers::sskAnyBoth);
                             if ( !S.IsEmpty() )  S.Insert(0, _T(' '));
                             Msg.Format(64 + S.length(), _T("; \"ELSE%s\" is ignored because of preceding plain ELSE"), S.c_str());
                             const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
@@ -2119,7 +2113,7 @@ CScriptEngine::eNppExecCmdPrefix CScriptEngine::checkNppExecCmdPrefix(const CNpp
             if ( bRemovePrefix )
             {
                 Cmd.Delete(0, nPrefixLen);
-                NppExecHelpers::StrDelLeadingAnySpaces(Cmd);
+                NppExecHelpers::StrStrip(Cmd, NppExecHelpers::sskAnyLeading);
             }
         }
     }
@@ -2140,8 +2134,7 @@ CScriptEngine::eCmdType CScriptEngine::getCmdType(CNppExec* pNppExec, CScriptEng
         Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), Cmd.c_str() );
     }
 
-    NppExecHelpers::StrDelLeadingAnySpaces(Cmd);
-    NppExecHelpers::StrDelTrailingAnySpaces(Cmd);
+    NppExecHelpers::StrStrip(Cmd, NppExecHelpers::sskAnyBoth);
 
     CScriptEngine::eNppExecCmdPrefix cmdPrefix = checkNppExecCmdPrefix(pNppExec, Cmd);
 
@@ -2350,7 +2343,7 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
         return nCmdType;
     }
 
-    NppExecHelpers::StrDelLeadingAnySpaces(Cmd);
+    NppExecHelpers::StrStrip(Cmd, NppExecHelpers::sskAnyLeading);
     if ( Cmd.IsEmpty() || (nCmdType == CMDTYPE_CLS) )
     {
         Runtime::GetLogger().Add(   _T("; no arguments given") );
@@ -2390,7 +2383,7 @@ CScriptEngine::eCmdType CScriptEngine::modifyCommandLine(CScriptEngine* pScriptE
             
             if ( nCmdType != CMDTYPE_UNKNOWN )
             {
-                NppExecHelpers::StrDelLeadingAnySpaces(Cmd);
+                NppExecHelpers::StrStrip(Cmd, NppExecHelpers::sskAnyLeading);
             }
         }
 
@@ -2494,7 +2487,7 @@ bool CScriptEngine::isLocalParam(tstr& param)
         {
             isLocal = true;
             param.Delete(0, n);
-            NppExecHelpers::StrDelLeadingAnySpaces(param);
+            NppExecHelpers::StrStrip(param, NppExecHelpers::sskAnyLeading);
         }
     }
     return isLocal;
@@ -2523,7 +2516,7 @@ bool CScriptEngine::isDelayedSubstVar(tstr& param, bool& bKeywordPresent)
             if ( isKeyword )
             {
                 param.Delete(0, n);
-                NppExecHelpers::StrDelLeadingAnySpaces(param);
+                NppExecHelpers::StrStrip(param, NppExecHelpers::sskAnyLeading);
             }
         }
     }
@@ -2588,20 +2581,19 @@ bool CScriptEngine::isCmdCommentOrEmpty(const CNppExec* pNppExec, tstr& Cmd)
 
         }
     }
-  
-    NppExecHelpers::StrDelLeadingAnySpaces(Cmd);
-    NppExecHelpers::StrDelTrailingAnySpaces(Cmd);
+
+    NppExecHelpers::StrStrip(Cmd, NppExecHelpers::sskAnyBoth);
 
     return Cmd.IsEmpty();
 }
 
 bool CScriptEngine::isCmdDirective(const CNppExec* , tstr& Cmd)
 {
-    NppExecHelpers::StrDelLeadingAnySpaces(Cmd);
+    NppExecHelpers::StrStrip(Cmd, NppExecHelpers::sskAnyLeading);
 
     if ( Cmd.StartsWith(DIRECTIVE_PREFIX_CHAR) )
     {
-        NppExecHelpers::StrDelTrailingAnySpaces(Cmd);
+        NppExecHelpers::StrStrip(Cmd, NppExecHelpers::sskAnyTrailing);
         NppExecHelpers::StrUpper(Cmd);
 
         if ( Cmd == DIRECTIVE_COLLATERAL )
@@ -2616,11 +2608,11 @@ int CScriptEngine::isCmdNppExecPrefixed(CNppExec* pNppExec, CScriptEngine* pScri
     bool bRemovePrefix = ((nFlags & npfRemovePrefix) != 0);
     bool bSubstituteMacroVars = ((nFlags & npfSubstituteMacroVars) != 0);
 
-    // We don't call StrDelLeadingAnySpaces for 'cmd' as the leading space(s)
+    // We don't call StrStrip(sskAnyLeading) for 'cmd' as the leading space(s)
     // can be a meaningful part of a command given to the child process 
     // (example: Python, where indentation is important).
     tstr s = cmd;
-    NppExecHelpers::StrDelLeadingAnySpaces(s);
+    NppExecHelpers::StrStrip(s, NppExecHelpers::sskAnyLeading);
     eNppExecCmdPrefix cmdPrefix = checkNppExecCmdPrefix(pNppExec, s, bRemovePrefix);
     if ( cmdPrefix != CmdPrefixNone )
     {
@@ -2641,7 +2633,7 @@ int CScriptEngine::isCmdNppExecPrefixed(CNppExec* pNppExec, CScriptEngine* pScri
         MacroVars.CheckAllMacroVars(pScriptEngine, cmd, true);
 
         s = cmd;
-        NppExecHelpers::StrDelLeadingAnySpaces(s);
+        NppExecHelpers::StrStrip(s, NppExecHelpers::sskAnyLeading);
         cmdPrefix = checkNppExecCmdPrefix(pNppExec, s, bRemovePrefix);
         if ( cmdPrefix != CmdPrefixNone )
             cmd = s;
@@ -3115,8 +3107,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                 COLORREF color;
 
                 colorFG.Delete(0, n + 1);
-                NppExecHelpers::StrDelLeadingAnySpaces(colorFG);
-                NppExecHelpers::StrDelTrailingAnySpaces(colorFG);
+                NppExecHelpers::StrStrip(colorFG, NppExecHelpers::sskAnyBoth);
                 if ( (!colorFG.IsEmpty()) && getColorFromStr(colorFG.c_str(), &color) )
                 {
                     ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
@@ -3163,8 +3154,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoConColour(const tstr& params)
                 COLORREF color;
 
                 colorBG.Delete(0, n + 1);
-                NppExecHelpers::StrDelLeadingAnySpaces(colorBG);
-                NppExecHelpers::StrDelTrailingAnySpaces(colorBG);
+                NppExecHelpers::StrStrip(colorBG, NppExecHelpers::sskAnyBoth);
                 if ( (!colorBG.IsEmpty()) && getColorFromStr(colorBG.c_str(), &color) )
                 {
                     ScriptContext& currentScript = m_execState.GetCurrentScriptContext();
@@ -3712,8 +3702,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoElse(const tstr& params)
             {
                 tstr ifParams;
                 ifParams.Assign( params.c_str() + n + (isCalc ? 4 : 3) );
-                NppExecHelpers::StrDelLeadingAnySpaces(ifParams);
-                NppExecHelpers::StrDelTrailingAnySpaces(ifParams);
+                NppExecHelpers::StrStrip(ifParams, NppExecHelpers::sskAnyBoth);
 
                 doIf(ifParams, true, isCalc);
             }
@@ -3770,11 +3759,9 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
         tstr varName = args.Arg(0);
         bool isLocal = isLocalParam(varName);
         tstr& varValue = args.Arg(1);
-        
-        NppExecHelpers::StrDelLeadingAnySpaces(varName);
-        NppExecHelpers::StrDelTrailingAnySpaces(varName);
-        NppExecHelpers::StrDelLeadingAnySpaces(varValue);
-        NppExecHelpers::StrDelTrailingAnySpaces(varValue);
+
+        NppExecHelpers::StrStrip(varName, NppExecHelpers::sskAnyBoth);
+        NppExecHelpers::StrStrip(varValue, NppExecHelpers::sskAnyBoth);
 
         if ( isLocal && varName.IsEmpty() )
         {
@@ -3837,9 +3824,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvSet(const tstr& params)
     // show the value
     tstr varName = args.Arg(0);
     bool isLocal = isLocalParam(varName);
-        
-    NppExecHelpers::StrDelLeadingAnySpaces(varName);
-    NppExecHelpers::StrDelTrailingAnySpaces(varName);
+
+    NppExecHelpers::StrStrip(varName, NppExecHelpers::sskAnyBoth);
 
     if ( isLocal && varName.IsEmpty() )
     {
@@ -3901,9 +3887,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoEnvUnset(const tstr& params)
 
     eCmdResult nCmdResult = CMDRESULT_SUCCEEDED;
     tstr varName = params;
-    
-    NppExecHelpers::StrDelLeadingAnySpaces(varName);
-    NppExecHelpers::StrDelTrailingAnySpaces(varName);
+
+    NppExecHelpers::StrStrip(varName, NppExecHelpers::sskAnyBoth);
 
     if ( varName.length() > 0 )
     {
@@ -4003,8 +3988,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoExit(const tstr& params)
 
 void CScriptEngine::getLabelName(tstr& labelName)
 {
-    NppExecHelpers::StrDelLeadingAnySpaces(labelName);
-    NppExecHelpers::StrDelTrailingAnySpaces(labelName);
+    NppExecHelpers::StrStrip(labelName, NppExecHelpers::sskAnyBoth);
     NppExecHelpers::StrUpper(labelName);
 
     if ( labelName.StartsWith(_T(':')) )
@@ -4411,8 +4395,7 @@ static bool IsConditionTrue(CScriptEngine* pScriptEngine, const tstr& Condition,
             {
                 pos = cond_pos;
                 op1.Assign(Condition.c_str(), pos);
-                NppExecHelpers::StrDelLeadingAnySpaces(op1);
-                NppExecHelpers::StrDelTrailingAnySpaces(op1);
+                NppExecHelpers::StrStrip(op1, NppExecHelpers::sskAnyBoth);
                 state = stGotOp1;
             }
         }
@@ -4424,8 +4407,7 @@ static bool IsConditionTrue(CScriptEngine* pScriptEngine, const tstr& Condition,
             while ( NppExecHelpers::IsAnySpaceChar(Condition.GetAt(pos)) )  ++pos;  // skip spaces after cond
 
             op2.Assign(Condition.c_str() + pos);
-            NppExecHelpers::StrDelLeadingAnySpaces(op2);
-            NppExecHelpers::StrDelTrailingAnySpaces(op2);
+            NppExecHelpers::StrStrip(op2, NppExecHelpers::sskAnyBoth);
             state = stGotOp2;
         }
     }
@@ -4623,8 +4605,7 @@ CScriptEngine::eCmdResult CScriptEngine::doIf(const tstr& params, bool isElseIf,
 
     tstr ifCondition;
     ifCondition.Assign( params.c_str(), n );
-    NppExecHelpers::StrDelLeadingAnySpaces(ifCondition);
-    NppExecHelpers::StrDelTrailingAnySpaces(ifCondition);
+    NppExecHelpers::StrStrip(ifCondition, NppExecHelpers::sskAnyBoth);
 
     if ( ifCondition.IsEmpty() )
     {
@@ -4889,10 +4870,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
             aliasName = args.Arg(0);
             aliasValue = args.Arg(1);
 
-            NppExecHelpers::StrDelLeadingAnySpaces(aliasName);
-            NppExecHelpers::StrDelTrailingAnySpaces(aliasName);
-            NppExecHelpers::StrDelLeadingAnySpaces(aliasValue);
-            NppExecHelpers::StrDelTrailingAnySpaces(aliasValue);
+            NppExecHelpers::StrStrip(aliasName, NppExecHelpers::sskAnyBoth);
+            NppExecHelpers::StrStrip(aliasValue, NppExecHelpers::sskAnyBoth);
 
             if ( aliasName.IsEmpty() )
             {
@@ -4903,8 +4882,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
                     aliasName += args.Arg(0);
                     aliasValue = args.Arg(1);
 
-                    NppExecHelpers::StrDelTrailingAnySpaces(aliasName);
-                    NppExecHelpers::StrDelLeadingAnySpaces(aliasValue);
+                    NppExecHelpers::StrStrip(aliasName, NppExecHelpers::sskAnyTrailing);
+                    NppExecHelpers::StrStrip(aliasValue, NppExecHelpers::sskAnyLeading);
                 }
                 else if ( isLocal && !aliasValue.IsEmpty() )
                 {
@@ -4990,8 +4969,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeCmdAlias(const tstr& params)
         else
         {
             aliasName = args.Arg(0);
-            NppExecHelpers::StrDelLeadingAnySpaces(aliasName);
-            NppExecHelpers::StrDelTrailingAnySpaces(aliasName);
+            NppExecHelpers::StrStrip(aliasName, NppExecHelpers::sskAnyBoth);
 
             NppExecHelpers::StrUpper(aliasName);
         }
@@ -7122,10 +7100,9 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
         }
     }
 
-    int  i;
     tstr varName;
     tstr varValue;
-    
+
     for ( int n = 0; n < 2; n++ )
     {
         varName = (n == 0) ? MACRO_MSG_WPARAM : MACRO_MSG_LPARAM;
@@ -7159,16 +7136,9 @@ CScriptEngine::eCmdResult CScriptEngine::doSendMsg(const tstr& params, int cmdTy
                     pParam[n] = NULL;
                 }
                 //
-                // Why did I do that??? --
-                //
-                // for ( i = varValue.length() - 1; i >= 0; i-- )
-                // {
-                //     const TCHAR ch = varValue[i];
-                //     if ( ch == _T('\r') || ch == _T('\n') )
-                //         varValue.Delete(i, 1); // exclude trailing '\r' or '\n'
-                //     else
-                //         break;
-                // }
+                // Note:
+                // Since e.g. SCI_GETLINE returns a string with the trailing EOL,
+                // use StrStrip(sskNewLnTrailing) to get rid of the EOL.
                 //
                 m_pNppExec->GetMacroVars().SetUserMacroVar(this, varName, varValue, CNppExecMacroVars::svLocalVar); // local var
                 break;
@@ -7927,10 +7897,8 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
             isInternalMsg = true;
 
             tstr& varValue = args.Arg(1);
-            NppExecHelpers::StrDelLeadingAnySpaces(varName);
-            NppExecHelpers::StrDelTrailingAnySpaces(varName);
-            NppExecHelpers::StrDelLeadingAnySpaces(varValue);
-            NppExecHelpers::StrDelTrailingAnySpaces(varValue);
+            NppExecHelpers::StrStrip(varName, NppExecHelpers::sskAnyBoth);
+            NppExecHelpers::StrStrip(varValue, NppExecHelpers::sskAnyBoth);
 
             CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
             MacroVars.CheckAllMacroVars(this, varName, true, CMDTYPE_SET);
@@ -7982,8 +7950,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoSet(const tstr& params)
             // "set" returns all vars and values
             // "set local" returns all local vars and values
             varName = params; // let's check for "set local"
-            NppExecHelpers::StrDelLeadingAnySpaces(varName);
-            NppExecHelpers::StrDelTrailingAnySpaces(varName);
+            NppExecHelpers::StrStrip(varName, NppExecHelpers::sskAnyBoth);
 
             // Note: it is possible to have a variable named "+v" or "-v"
             bDelayedSubst = isDelayedSubstVar(varName, bDelayedSubstKeyword); // checking for "+v" before "local"
@@ -8086,8 +8053,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoUnset(const tstr& params)
         tstr varName = params;
         int k = varName.Find( _T("=") );
         if ( k >= 0 )  varName.SetSize(k);
-        NppExecHelpers::StrDelLeadingAnySpaces(varName);
-        NppExecHelpers::StrDelTrailingAnySpaces(varName);
+        NppExecHelpers::StrStrip(varName, NppExecHelpers::sskAnyBoth);
 
         CNppExecMacroVars& MacroVars = m_pNppExec->GetMacroVars();
         MacroVars.CheckAllMacroVars(this, varName, true, CMDTYPE_UNSET);
@@ -8449,9 +8415,9 @@ void CNppExecMacroVars::CheckCmdAliases(CScriptEngine* pScriptEngine, tstr& S, b
             Runtime::GetLogger().Add(   _T("; command aliases enabled") );
             Runtime::GetLogger().AddEx( _T("[in]  \"%s\""), S.c_str() );
         }
-        
-        //NppExecHelpers::StrDelLeadingAnySpaces(S);
-        
+
+        //NppExecHelpers::StrStrip(S, NppExecHelpers::sskAnyLeading);
+
         if ( S.length() > 0 )
         {
             int len = 0;

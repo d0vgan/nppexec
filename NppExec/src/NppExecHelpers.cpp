@@ -816,84 +816,128 @@ namespace NppExecHelpers
         return strCompareNoCase(S1, Len1, S2, Len2);
     }
 
-    void StrDelLeadingTabSpaces(CStrT<char>& S)
-    {
-        int i = 0;
-        while ( IsTabSpaceChar(S.GetAt(i)) )
-        {
-            ++i;
-        }
-        S.Delete(0, i);
-    }
+    template<typename T> struct is_wtsp {};
 
-    void StrDelLeadingTabSpaces(CStrT<wchar_t>& S)
+    template<> struct is_wtsp<char>
     {
-        int i = 0;
-        while ( IsTabSpaceChar(S.GetAt(i)) )
-        {
-            ++i;
-        }
-        S.Delete(0, i);
-    }
+        bool operator()(char ch) { return IsWhiteSpaceChar(ch); }
+    };
 
-    void StrDelTrailingTabSpaces(CStrT<char>& S)
+    template<> struct is_wtsp<wchar_t>
     {
+        bool operator()(wchar_t ch) { return IsWhiteSpaceChar(ch); }
+    };
+
+    template<typename T> struct is_anysp {};
+
+    template<> struct is_anysp<char>
+    {
+        bool operator()(char ch) { return IsAnySpaceChar(ch); }
+    };
+
+    template<> struct is_anysp<wchar_t>
+    {
+        bool operator()(wchar_t ch) { return IsAnySpaceChar(ch); }
+    };
+
+    template<typename T> struct is_tabsp {};
+
+    template<> struct is_tabsp<char>
+    {
+        bool operator()(char ch) { return IsTabSpaceChar(ch); }
+    };
+
+    template<> struct is_tabsp<wchar_t>
+    {
+        bool operator()(wchar_t ch) { return IsTabSpaceChar(ch); }
+    };
+
+    template<typename T> struct is_newln {};
+
+    template<> struct is_newln<char>
+    {
+        bool operator()(char ch) { return IsNewLineChar(ch); }
+    };
+
+    template<> struct is_newln<wchar_t>
+    {
+        bool operator()(wchar_t ch) { return IsNewLineChar(ch); }
+    };
+
+    template<typename T, typename F> void StrStripTrailing(CStrT<T>& S, F isSp) noexcept
+    {
+        if ( S.IsEmpty() )
+            return;
+
         int i = S.length() - 1;
-        while ( IsTabSpaceChar(S.GetAt(i)) )
+        while ( isSp(S.GetAt(i)) )
         {
             --i;
         }
         S.Delete(i + 1, -1);
     }
 
-    void StrDelTrailingTabSpaces(CStrT<wchar_t>& S)
-    {
-        int i = S.length() - 1;
-        while ( IsTabSpaceChar(S.GetAt(i)) )
-        {
-            --i;
-        }
-        S.Delete(i + 1, -1);
-    }
-
-    void StrDelLeadingAnySpaces(CStrT<char>& S)
+    template<typename T, typename F> void StrStripLeading(CStrT<T>& S, F isSp) noexcept
     {
         int i = 0;
-        while ( IsAnySpaceChar(S.GetAt(i)) )
+        while ( isSp(S.GetAt(i)) )
         {
             ++i;
         }
         S.Delete(0, i);
     }
 
-    void StrDelLeadingAnySpaces(CStrT<wchar_t>& S)
+    template<typename T> void StrStripImpl(CStrT<T>& S, eStrStripKind kind) noexcept
     {
-        int i = 0;
-        while ( IsAnySpaceChar(S.GetAt(i)) )
+        switch ( kind )
         {
-            ++i;
+        case sskWhiteBoth:
+        case sskWhiteTrailing:
+            StrStripTrailing(S, is_wtsp<T>());
+            break;
+        case sskAnyBoth:
+        case sskAnyTrailing:
+            StrStripTrailing(S, is_anysp<T>());
+            break;
+        case sskTabSpBoth:
+        case sskTabSpTrailing:
+            StrStripTrailing(S, is_tabsp<T>());
+            break;
+        case sskNewLnBoth:
+        case sskNewLnTrailing:
+            StrStripTrailing(S, is_newln<T>());
+            break;
         }
-        S.Delete(0, i);
+
+        switch ( kind )
+        {
+        case sskWhiteBoth:
+        case sskWhiteLeading:
+            StrStripLeading(S, is_wtsp<T>());
+            break;
+        case sskAnyBoth:
+        case sskAnyLeading:
+            StrStripLeading(S, is_anysp<T>());
+            break;
+        case sskTabSpBoth:
+        case sskTabSpLeading:
+            StrStripLeading(S, is_tabsp<T>());
+            break;
+        case sskNewLnBoth:
+        case sskNewLnLeading:
+            StrStripLeading(S, is_newln<T>());
+            break;
+        }
     }
 
-    void StrDelTrailingAnySpaces(CStrT<char>& S)
+    void StrStrip(CStrT<char>& S, eStrStripKind kind) noexcept
     {
-        int i = S.length() - 1;
-        while ( IsAnySpaceChar(S.GetAt(i)) )
-        {
-            --i;
-        }
-        S.Delete(i + 1, -1);
+        StrStripImpl(S, kind);
     }
 
-    void StrDelTrailingAnySpaces(CStrT<wchar_t>& S)
+    void StrStrip(CStrT<wchar_t>& S, eStrStripKind kind) noexcept
     {
-        int i = S.length() - 1;
-        while ( IsAnySpaceChar(S.GetAt(i)) )
-        {
-            --i;
-        }
-        S.Delete(i + 1, -1);
+        StrStripImpl(S, kind);
     }
 
     CWStr CStrToWStr(const CStr& S, UINT aCodePage )

@@ -4596,7 +4596,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                                     break;
                             }
 
-                            NppExecHelpers::StrDelLeadingAnySpaces(cmdLine);
+                            NppExecHelpers::StrStrip(cmdLine, NppExecHelpers::sskAnyLeading);
 
                             bool bEndsWithIncompleteMacroVar = false;
                             const int nMacroVarStart = cmdLine.RFind(_T("$("));
