@@ -33,15 +33,15 @@
 <p>These two functions calculate an ANSI and an UTF-8 string length. For Latin characters, both 'strlen' and 'strlenutf8' will return the same value. But for non-Latin characters (such as Cyrillic), 'strlenutf8' will return a greater value than 'strlen' because each non-Latin character in UTF-8 may be represented by 2 or 3 bytes (unlike Latin characters which are always represented by 1 byte in UTF-8). Actually, 'strlenutf8' returns the number of bytes in an UTF-8 string. This number has to be specified for some Scintilla's messages invoked via SCI_SENDMSG. Type &quot;help sci_sendmsg&quot; in NppExec's Console for more details regarding SCI_SENDMSG.</p>
 <p>Here is an example which uses 'strlen' and SCI_SENDMSG:</p>
 <blockquote>
-  <pre>set s = My string
-set n ~ strlen $(s)
+  <pre>set local s = My string
+set local n ~ strlen $(s)
 SCI_SENDMSG SCI_APPENDTEXT $(n) &quot;$(s)&quot;</pre>
 </blockquote>
 <p>If you want to add spaces before and after &quot;My string&quot; (e.g. to have &quot; My string &quot;), you should modify the script since NppExec removes leading and trailing spaces around the value:</p>
 <blockquote>
-  <pre>set s =  My string   // leading/trailing spaces will be removed
-set n ~ strlen $(s)  // length without leading/trailing spaces
-set n ~ $(n) + 2     // length with additional two spaces
+  <pre>set local s =  My string   // leading/trailing spaces will be removed
+set local n ~ strlen $(s)  // length without leading/trailing spaces
+set local n ~ $(n) + 2     // length with additional two spaces
 SCI_SENDMSG SCI_APPENDTEXT $(n) &quot; $(s) &quot;  // adding the spaces</pre>
 </blockquote>
 <p>You will encounter similar problem when calculating 'strlen' of a string which starts or ends with spaces. These spaces will be removed before calculating the string length. To avoid this, you should enclose such string in double quotes:</p>
@@ -49,7 +49,7 @@ SCI_SENDMSG SCI_APPENDTEXT $(n) &quot; $(s) &quot;  // adding the spaces</pre>
   <pre>set n ~ strlen &quot;  ABC &quot;  // n=8: string length with two &quot; symbols
 set n ~ $(n) - 2         // n=6: length without the &quot; symbols</pre>
 </blockquote>
-<p>NppExec ver. 0.5 had introduced several additional functions: strupper, strlower and substr. Even more functions have been added later. Type &quot;help set&quot; for more details.</p>
+<p>NppExec ver. 0.5 had introduced several additional functions: strupper, strlower and substr. Even more functions have been added later. (In particular, an example with strunquote below shows the way to preserve leading and trailing spaces while assigning a string value). Type &quot;help set&quot; for more details.</p>
 <p>Here is an example that uses substr to extract a directory name from $(CURRENT_DIRECTORY) :</p>
 <blockquote>
   <pre>npp_console local -
@@ -118,6 +118,19 @@ set q = &quot;
 sci_sendmsg SCI_SETTEXT 0 &quot;$(q)some text in double quotes$(q)&quot;</pre>
 </blockquote>
 <p>Not a big trick, actually, but may be useful :)</p>
+<p>Starting from NppExec ver. 0.7, quoted strings can have a form of <code>&quot;string&quot;</code>, <code>'string'</code> and <code>`string`</code>. Which means that the previous example with <code>SCI_SETTEXT</code> may be simplified to:</p>
+<blockquote>
+  <pre>sci_sendmsg SCI_SETTEXT 0 `&quot;some text in double quotes&quot;`</pre>
+</blockquote>
+<p>Here is a technique to assign a string value with leading and trailing spaces:</p>
+<blockquote>
+  <pre>set local s ~ strunquote `  a b c    `  // removes ``, preserves the spaces
+echo [$(s)]  //  [  a b c    ]</pre>
+</blockquote>
+<p>Similarly, the following command prints a string value with leading and trailing spaces:</p>
+<blockquote>
+  <pre>echo~ strunquote `  a b c    `</pre>
+</blockquote>
 <p>See also: Calculating <a href="4.6.2.html">[4.6.2]</a>; Passing enquoted strings and special characters <a href="3.8.5.html">[3.8.5]</a>.</p>
 </BODY>
 </HTML>

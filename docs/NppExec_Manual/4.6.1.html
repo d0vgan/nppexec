@@ -14,7 +14,7 @@
     an AWK
 executable, for example, &quot;awk95.exe&quot; or &quot;gawk.exe&quot;.</p>
 <p>When you want to apply some AWK
-    program to your selected text, this AWK program must exists, isn't it? So,
+    program to your selected text, this AWK program must exist, isn't it? So,
     create
 a file &quot;do.awk&quot; in your Notepad++'s folder. The full path to this file is &quot;$(NPP_DIRECTORY)\do.awk&quot;. </p>
 <p>OK, the file is created, now you
@@ -65,6 +65,110 @@ SCI_SENDMSG SCI_SETSEL $(wordStart) $(wordEnd)
  </pre>
 </blockquote>
 <p>If you combine this script with the previous one, you will be able to apply an external tool to a word under the caret. (I.e. first it will select a word under the caret, and then will apply an external tool to that selected word.) Also consider ability to use $(CURRENT_WORD) instead of SEL_SAVETO in this case (see <a href="4.6.3.html">[4.6.3]</a>).</p>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+<p>P.P.S. If you don't want to use a temporary file and pass the selected text via a command line instead, use the following: </p>
+<blockquote>
+  <pre>npp_console local -  // disabling output to the Console
+npe_console local -- m-  // disabling the internal messages
+set local AWK_EXE = C:\tools\awk\awk95.exe  // path to an external tool
+set local s = $(SELECTED_TEXT)
+set local s ~ strreplace `$(s)` `^` `^^^^`  // double-escaping the '^' char
+if $(LAST_CMD_RESULT) != 1 then
+  npp_console local +  // enabling the output
+  echo ERROR: the selected text contains the ` symbol
+  npp_console local -  // disabling the output
+  exit
+endif
+set local s ~ strreplace `$(s)` `|` `^^^|`  // double-escaping the '|' char
+set local s ~ strreplace `$(s)` `&` `^^^&`  // double-escaping the '&' char
+set local s ~ strreplace `$(s)` `&lt;` `^^^&lt;`  // double-escaping the '&lt;' char
+set local s ~ strreplace `$(s)` `&gt;` `^^^&gt;`  // double-escaping the '&gt;' char
+set local s ~ strreplace `$(s)` `(` `^(`  // escaping the '(' char
+set local s ~ strreplace `$(s)` `)` `^)`  // escaping the ')' char
+set local s ~ strreplace `$(s)` `&quot;` `^&quot;`  // escaping the '&quot;' char
+npp_console local +  // enabling the output
+cmd /C echo $(s)| &quot;$(AWK_EXE)&quot; -f &quot;$(NPP_DIRECTORY)\do.awk&quot;</pre>
+</blockquote>
+<p>This example works with a single-line selection. But what if the selection is multi-line? In such case, we may need to split the selected text to lines and pass each line to an external tool. The corresponding NppExec's script will be noticeably more complicated. Here it is:</p>
+<blockquote>
+  <pre>npp_console local -  // disabling output to the Console
+npe_console local -- m-  // disabling the internal messages
+set local AWK_EXE = C:\tools\awk\awk95.exe  // path to an external tool
+set local s = $(SELECTED_TEXT)  // the selected text
+set local s ~ strreplace `$(s)` `^` `^^^^`  // double-escaping the '^' char
+if $(LAST_CMD_RESULT) != 1 then
+  npp_console local +  // enabling the output
+  echo ERROR: the selected text contains the ` symbol
+  npp_console local -  // disabling the output
+  exit
+endif
+set local s ~ strreplace `$(s)` `|` `^^^|`  // double-escaping the '|' char
+set local s ~ strreplace `$(s)` `&` `^^^&`  // double-escaping the '&' char
+set local s ~ strreplace `$(s)` `&lt;` `^^^&lt;`  // double-escaping the '&lt;' char
+set local s ~ strreplace `$(s)` `&gt;` `^^^&gt;`  // double-escaping the '&gt;' char
+set local s ~ strreplace `$(s)` `(` `^(`  // escaping the '(' char
+set local s ~ strreplace `$(s)` `)` `^)`  // escaping the ')' char
+set local s ~ strreplace `$(s)` `&quot;` `^&quot;`  // escaping the '&quot;' char
+set local LF ~ chr 0x0A  // '\n' character
+set local CR ~ chr 0x0D  // '\r' character
+:Loop
+// note: we use `` to preserve leading and trailing spaces in `$(s)`
+set local posLF ~ strfind `$(s)` `$(LF)`  // position of LF
+set local posCR ~ strfind `$(s)` `$(CR)`  // position of CR
+set local pos = $(posCR)
+if $(pos) == -1 then
+  set local pos = $(posLF)  // no CR
+else if $(pos) &gt; $(posLF) then
+  set local pos = $(posLF)  // LF is before CR
+endif
+if $(pos) != -1 then
+  set local line ~ substr 1 $(pos) `$(s)`  // part of the string before CR or LF
+else
+  set local line ~ substr 1 -1 `$(s)`  // the remaining string
+endif
+set local len ~ strlen `$(line)`  // note: `` preserves leading/trailing spaces
+set local len ~ $(len) - 2  // length without ``
+if $(len) != 0 then
+  set local cmd1 = cmd /C echo $(line)
+else
+  set local cmd1 = cmd /C echo.
+endif
+npp_console local +  // enabling the output
+$(cmd1)| &quot;$(AWK_EXE)&quot; -f &quot;$(NPP_DIRECTORY)\do.awk&quot;
+npp_console local -  // disabling the output
+if $(pos) != -1 then
+  // there is CR or LF remaining
+  set local pos1 ~ $(pos) + 1  // position considering '`' in `$(s)`
+  set local c ~ substr $(pos1) 1 `$(s)`  // either CR or LF char
+  set local pos ~ $(pos) + 1  // skip this character
+  if &quot;$(c)&quot; == &quot;$(CR)&quot; then
+    set local pos1 ~ $(pos) + 1  // position considering '`' in `$(s)`
+    set local c ~ substr $(pos1) 1 `$(s)`  // check the next char after CR
+    if &quot;$(c)&quot; == &quot;$(LF)&quot; then
+      set local pos ~ $(pos) + 1  // skip LF after CR
+    endif
+  endif
+  set local pos1 ~ $(pos) + 1  // position considering '`' in `$(s)`
+  set local s ~ substr $(pos1) -1 `$(s)`  // the remaining part of the string
+  goto Loop
+endif
+</pre>
+</blockquote>
+<blockquote>
+  <pre> </pre>
+</blockquote>
+<p>P.P.P.S. If you want to deal with the entire text of the document rather than with the selected text, the following script can be used:</p>
+<blockquote>
+  <pre>sci_sendmsg SCI_GETTEXTLENGTH  // retrieving the text length into $(MSG_RESULT)
+set local textLen ~ $(MSG_RESULT)  // the text length
+set local bufSize ~ $(textLen) + 1  // the text length plus the trailing '\0'
+npe_sendmsgbuflen local $(bufSize)  // ensuring the $(bufSize) is allocated for SCI_GETTEXT
+sci_sendmsg SCI_GETTEXT $(textLen) @&quot;&quot;  // retrieving the text into $(MSG_LPARAM)
+echo $(MSG_LPARAM)  // doing something with the retrieved text - e.g. printing
+ </pre>
+</blockquote>
 <p>See also: Processing &amp; replacing the selection <a href="4.6.3.html">[4.6.3]</a>; Modify selected text and save to file <a href="4.6.17.html">[4.6.17]</a>.</p>
 </BODY>
 </HTML>
