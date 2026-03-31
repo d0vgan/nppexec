@@ -428,6 +428,8 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
 
     { OPTB_CONSOLE_NOINTMSGS, OPTT_INT | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("NoInternalMsgs"), -1, NULL },
+    { OPTB_CONSOLE_CONDENSEEMPTYLINES, OPTT_INT | OPTF_READWRITE,
+      INI_SECTION_CONSOLE, _T("CondenseEmptyLines"), -1, NULL },
     { OPTB_CONSOLE_PRINTMSGREADY, OPTT_INT | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("PrintMsgReady"), -1, NULL },
     { OPTS_CONSOLE_CUSTOMMSGREADY, OPTT_STR | OPTF_READONLY,
@@ -4566,6 +4568,10 @@ void CNppExec::ReadOptions()
   if (GetOptions().GetInt(OPTB_CONSOLE_NOINTMSGS) < 0)
   {
     GetOptions().SetBool(OPTB_CONSOLE_NOINTMSGS, false);
+  }
+  if (GetOptions().GetInt(OPTB_CONSOLE_CONDENSEEMPTYLINES) < 0)
+  {
+    GetOptions().SetBool(OPTB_CONSOLE_CONDENSEEMPTYLINES, true);
   }
   if (GetOptions().GetInt(OPTB_CONSOLE_KILLPROCTREE) < 0)
   {

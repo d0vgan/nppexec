@@ -790,6 +790,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
   
     bool bSomethingHasBeenReadFromThePipe = false; // great name for a local variable :-)
 
+    const bool bCondenseEmptyLines = m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CONDENSEEMPTYLINES);
     const bool bConFltrEnable = m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_ENABLE);
     const bool bConFltrExclAllEmpty = m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_EXCLALLEMPTY);
     const bool bConFltrExclDupEmpty = m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_EXCLDUPEMPTY);
@@ -908,7 +909,7 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                             }
 
                             bufLine.Delete(0, pos+1);
-                            if ( (copy_len > 0) ||
+                            if ( (copy_len > 0) || (!bCondenseEmptyLines) ||
                                  ( ((!bConFltrExclAllEmpty) || (!bConFltrEnable)) &&
                                    ((!bPrevLineEmpty) || (!bConFltrEnable) || (!bConFltrExclDupEmpty))
                                  ) )

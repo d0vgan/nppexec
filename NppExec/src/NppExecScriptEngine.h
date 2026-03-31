@@ -1073,6 +1073,12 @@ class CScriptEngine : public IScriptEngine
                     mHasValues |= fConsoleNoIntMsgs;
                 }
 
+                void setConsoleCondenseEmptyLines(bool bConCondenseEmptyLines)
+                {
+                    mConsoleCondenseEmptyLines = bConCondenseEmptyLines;
+                    mHasValues |= fConCondenseEmptyLines;
+                }
+
                 void setConsolePrintMsgReady(bool bConsolePrintMsgReady)
                 {
                     mConsolePrintMsgReady = bConsolePrintMsgReady;
@@ -1155,6 +1161,7 @@ class CScriptEngine : public IScriptEngine
                 bool hasConsoleCdCurDir() const { return ((mHasValues & fConsoleCdCurDir) != 0); }
                 bool hasConsoleCmdHistory() const { return ((mHasValues & fConsoleCmdHistory) != 0); }
                 bool hasConsoleNoIntMsgs() const { return ((mHasValues & fConsoleNoIntMsgs) != 0); }
+                bool hasConsoleCondenseEmptyLines() const { return ((mHasValues & fConCondenseEmptyLines) != 0); }
                 bool hasConsolePrintMsgReady() const { return ((mHasValues & fConsolePrintMsgReady) != 0); }
                 bool hasConsoleNoCmdAliases() const { return ((mHasValues & fConsoleNoCmdAliases) != 0); }
                 bool hasConsoleSetOutputVar() const { return ((mHasValues & fConsoleSetOutputVar) != 0); }
@@ -1195,6 +1202,7 @@ class CScriptEngine : public IScriptEngine
                 void removeConsoleCdCurDir() { mHasValues &= ~fConsoleCdCurDir; }
                 void removeConsoleCmdHistory() { mHasValues &= ~fConsoleCmdHistory; }
                 void removeConsoleNoIntMsgs() { mHasValues &= ~fConsoleNoIntMsgs; }
+                void removeConsoleCondenseEmptyLines() { mHasValues &= ~fConCondenseEmptyLines; }
                 void removeConsolePrintMsgReady() { mHasValues &= ~fConsolePrintMsgReady; }
                 void removeConsoleNoCmdAliases() { mHasValues &= ~fConsoleNoCmdAliases; }
                 void removeConsoleSetOutputVar() { mHasValues &= ~fConsoleSetOutputVar; }
@@ -1331,6 +1339,10 @@ class CScriptEngine : public IScriptEngine
                     if ( hasConsoleNoIntMsgs() )
                     {
                         pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOINTMSGS, mConsoleNoIntMsgs);
+                    }
+                    if ( hasConsoleCondenseEmptyLines() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CONSOLE_CONDENSEEMPTYLINES, mConsoleCondenseEmptyLines);
                     }
                     if ( hasConsolePrintMsgReady() )
                     {
@@ -1503,7 +1515,8 @@ class CScriptEngine : public IScriptEngine
                     fExecSelTextMode          = 0x08000000,
                     fConsoleKillProcTree      = 0x10000000,
                     fUseEditorColorsInConsole = 0x20000000,
-                    fConPseudoConsole         = 0x40000000
+                    fConPseudoConsole         = 0x40000000,
+                    fConCondenseEmptyLines    = 0x80000000
                 };
 
                 // we might use std::optional (C++17) instead, but would it be so fun? :)
@@ -1535,6 +1548,7 @@ class CScriptEngine : public IScriptEngine
                 bool mConsoleCdCurDir{};
                 bool mConsoleCmdHistory{};
                 bool mConsoleNoIntMsgs{};
+                bool mConsoleCondenseEmptyLines{};
                 bool mConsolePrintMsgReady{};
                 bool mConsoleNoCmdAliases{};
                 bool mConsoleSetOutputVar{};

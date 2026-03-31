@@ -5080,6 +5080,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                     // u+/u-     pseudoconsole on/off (experimental)
                     // h+/h-     console commands history on/off
                     // m+/m-     console internal messages on/off
+                    // n+/n-     condense empty lines on/off
                     // p+/p-     print "==== READY ====" on/off
                     // q+/q-     command aliases on/off
                     // v+/v-     set the $(OUTPUT) variable on/off
@@ -5227,6 +5228,25 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                         MF_BYCOMMAND | (bOn ? MF_CHECKED : MF_UNCHECKED));
                                 }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_NOINTMSGS, bOn);
+                                isOK = true;
+                            }
+                            break;
+
+                        case _T('N'):
+                            if ( arg[1] == _T('+') || arg[1] == _T('-') )
+                            {
+                                bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConsoleCondenseEmptyLines() )
+                                        savedConf.setConsoleCondenseEmptyLines( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CONDENSEEMPTYLINES) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConsoleCondenseEmptyLines() )
+                                        savedConf.removeConsoleCondenseEmptyLines();
+                                }
+                                m_pNppExec->GetOptions().SetBool(OPTB_CONSOLE_CONDENSEEMPTYLINES, bOn);
                                 isOK = true;
                             }
                             break;
@@ -5567,6 +5587,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S1 += _T(" m");
         S2 += _T(", int_msgs: ");
         appendOnOff( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS), S1, S2 );
+        // cndns_empty
+        S1 += _T(" n");
+        S2 += _T(", cndns_empty: ");
+        appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CONDENSEEMPTYLINES), S1, S2 );
         // print_ready
         S1 += _T(" p");
         S2 += _T(", print_ready: ");
