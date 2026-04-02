@@ -1734,7 +1734,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  npe_console") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_console") _T_RE_EOL \
-    _T("  npe_console a+/a- d+/d- e0/e1 u+/u- h+/h- m+/m- p+/p- q+/q- v+/v- j+/j- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
+    _T("  npe_console a+/a- d+/d- e0/e1 u+/u- h+/h- m+/m- n+/n- p+/p- q+/q- v+/v- j+/j- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
     _T("  npe_console c<N> s<N>") _T_RE_EOL \
     _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
     _T("  npe_console <options> --") _T_RE_EOL \
@@ -1748,6 +1748,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("       u+/u-  pseudoconsole on/off (experimental)") _T_RE_EOL \
     _T("       h+/h-  console commands history on/off") _T_RE_EOL \
     _T("       m+/m-  console internal messages on/off") _T_RE_EOL \
+    _T("       n+/n-  condense empty lines on/off") _T_RE_EOL \
     _T("       p+/p-  print \"==== READY ====\" on/off") _T_RE_EOL \
     _T("       q+/q-  command aliases on/off") _T_RE_EOL \
     _T("       v+/v-  set the $(OUTPUT) local variable on/off") _T_RE_EOL \
@@ -1793,7 +1794,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("         Default value: 0.") _T_RE_EOL \
     _T("         Note: if a child process is running, NPE_CONSOLE prints the value") _T_RE_EOL \
     _T("         of this option corresponding to the child process.") _T_RE_EOL \
-    _T("  u+/u-  pseudoconsole on/off (experimental).") _T_RE_EOL \
+    _T("  u+/u-  Pseudoconsole on/off (experimental).") _T_RE_EOL \
     _T("         When On, the console new line is set to '\\r';") _T_RE_EOL \
     _T("         the input and output encodings are set to UTF-8 (i2, o2);") _T_RE_EOL \
     _T("         the ANSI escape sequences are set to \"remove\" (e1).") _T_RE_EOL \
@@ -1807,6 +1808,11 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  m+/m-  Console internal messages on/off.") _T_RE_EOL \
     _T("         Corresponding menu item (inverse): No internal messages.") _T_RE_EOL \
     _T("         If On, NppExec\'s Console prints all internal (green) messages.") _T_RE_EOL \
+    _T("  n+/n-  Condense empty lines on/off.") _T_RE_EOL \
+    _T("         When On, successive empty lines are condensed into one empty line.") _T_RE_EOL \
+    _T("         There is no corresponding menu item.") _T_RE_EOL \
+    _T("         This option is saved as \"CondenseEmptyLines\".") _T_RE_EOL \
+    _T("         Default value: on.") _T_RE_EOL \
     _T("  p+/p-  Print \"==== READY ====\" on/off.") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
     _T("         This option is saved as \"PrintMsgReady\".") _T_RE_EOL \

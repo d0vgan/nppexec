@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Glory to Ukraine! Glory to the heroes!
  + added: $(IS_CONSOLE), $(IS_CONSOLE0)
  + added: set <var> ~ strstrip <k> <string>
+ + added: npe_console n+/n- (condense empty lines)
  * changed: sendmsg no more strips the trailing EOL from the output strings
    (thus, in case of e.g. SCI_GETLINE, use: strstrip 0x42 `$(MSG_LPARAM)`)
  + NppExec Manual updated

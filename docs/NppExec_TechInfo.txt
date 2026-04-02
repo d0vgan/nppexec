@@ -39,6 +39,7 @@
  |  ShowHelp                        |  0                     (FALSE)  |  BOOL  |
  |  PrintMsgReady                   |  1                     (TRUE)   |  BOOL  |
  |  CustomMsgReady                  |  ========== READY ==========\r  | string |
+ |  CondenseEmptyLines              |  1                     (TRUE)   |  BOOL  |
  |  NoEmptyVars                     |  1                     (TRUE)   |  BOOL  |
  |  SaveCmdHistory                  |  1                     (TRUE)   |  BOOL  |
  |  TextColorNormal                 |  00 00 00                       |  HEX   |
@@ -99,6 +100,7 @@
    ShowHelp=0
    PrintMsgReady=1
    CustomMsgReady= ================ READY ================\r
+   CondenseEmptyLines=1
    OEM=1
    CmdHistory=1
    ChildProcess_StartupTimeout_ms=240
@@ -438,6 +440,15 @@
      CustomMsgReady= === Done. Last process id is $(pid) ===\r
 
    See also: PrintMsgReady.
+
+
+ CondenseEmptyLines
+ ------------------
+   When this option is enabled (set to 1), successive empty lines are condensed
+   into one empty line before printing to the Console.
+   If this option is disabled (set to 0), all successive empty lines are printed
+   one by one.
+   Can be enabled/disabled via "npe_console n+/n-".
 
 
  NoEmptyVars

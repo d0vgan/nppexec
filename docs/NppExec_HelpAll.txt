@@ -1539,7 +1539,7 @@ SEE ALSO:
 COMMAND:  npe_console
 USAGE:
   npe_console
-  npe_console a+/a- d+/d- e0/e1 u+/u- h+/h- m+/m- p+/p- q+/q- v+/v- j+/j- f+/f- r+/r- x+/x- k0..3
+  npe_console a+/a- d+/d- e0/e1 u+/u- h+/h- m+/m- n+/n- p+/p- q+/q- v+/v- j+/j- f+/f- r+/r- x+/x- k0..3
   npe_console c<N> s<N>
   npe_console o0/o1/o2 i0/i1/i2
   npe_console <options> --
@@ -1553,6 +1553,7 @@ DESCRIPTION:
        u+/u-  pseudoconsole on/off (experimental)
        h+/h-  console commands history on/off
        m+/m-  console internal messages on/off
+       n+/n-  condense empty lines on/off
        p+/p-  print "==== READY ====" on/off
        q+/q-  command aliases on/off
        v+/v-  set the $(OUTPUT) local variable on/off
@@ -1599,7 +1600,7 @@ REMARKS:
          Default value: 0.
          Note: if a child process is running, NPE_CONSOLE prints the value
          of this option corresponding to the child process.
-  u+/u-  pseudoconsole on/off (experimental).
+  u+/u-  Pseudoconsole on/off (experimental).
          When On, the console new line is set to '\r';
          the input and output encodings are set to UTF-8 (i2, o2);
          the ANSI escape sequences are set to "remove" (e1).
@@ -1613,6 +1614,11 @@ REMARKS:
   m+/m-  Console internal messages on/off.
          Corresponding menu item (inverse): No internal messages.
          If On, NppExec's Console prints all internal (green) messages.
+  n+/n-  Condense empty lines on/off.
+         When On, successive empty lines are condensed into one empty line.
+         There is no corresponding menu item.
+         This option is saved as "CondenseEmptyLines".
+         Default value: on.
   p+/p-  Print "==== READY ====" on/off.
          There is no corresponding menu item.
          This option is saved as "PrintMsgReady".
