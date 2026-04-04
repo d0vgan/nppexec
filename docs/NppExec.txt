@@ -1,7 +1,7 @@
 
  ****************************************************************************
  * NppExec plugin ver. 0.8.11 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - March 2026
+ * by DV <dvv81 @ ukr.net>, December 2006 - April 2026
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  *
@@ -250,7 +250,7 @@
  *  HISTORY  *
  *************
 
- v0.8.11 - March 2026
+ v0.8.11 - April 2026
  --------------------
  * Glory to Ukraine! Glory to the heroes!
  + added: $(IS_CONSOLE), $(IS_CONSOLE0)
