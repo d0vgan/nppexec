@@ -68,19 +68,15 @@ SCI_SENDMSG SCI_SETSEL $(wordStart) $(wordEnd)
 <blockquote>
   <pre> </pre>
 </blockquote>
-<p>P.P.S. If you don't want to use a temporary file and pass the selected text via a command line instead, use the following: </p>
+<p>P.P.S. If you don't want to use a temporary file and pass the selected text via a command line instead, refer to the following approach.<br>
+We'll be sending the selected string to an external tool by means of <code>cmd /C echo</code>, so let's create an auxiliary NppExec's script that will escape special characters for the <code>echo</code> command:</p>
 <blockquote>
-  <pre>npp_console local -  // disabling output to the Console
-npe_console local -- m-  // disabling the internal messages
-set local AWK_EXE = C:\tools\awk\awk95.exe  // path to an external tool
-set local s = $(SELECTED_TEXT)
-set local s ~ strreplace `$(s)` `^` `^^^^`  // double-escaping the '^' char
-if $(LAST_CMD_RESULT) != 1 then
-  npp_console local +  // enabling the output
-  echo ERROR: the selected text contains the ` symbol
-  npp_console local -  // disabling the output
+  <pre>// escape_string_for_cmd_echo
+if $(ARGC) != 2 then
+  set ECE_RESULT = 0  // failed
   exit
 endif
+set local s ~ strreplace `$(ARGV[1])` `^` `^^^^`  // double-escaping the '^' char
 set local s ~ strreplace `$(s)` `|` `^^^|`  // double-escaping the '|' char
 set local s ~ strreplace `$(s)` `&` `^^^&`  // double-escaping the '&' char
 set local s ~ strreplace `$(s)` `&lt;` `^^^&lt;`  // double-escaping the '&lt;' char
@@ -88,29 +84,38 @@ set local s ~ strreplace `$(s)` `&gt;` `^^^&gt;`  // double-escaping the '&gt;' 
 set local s ~ strreplace `$(s)` `(` `^(`  // escaping the '(' char
 set local s ~ strreplace `$(s)` `)` `^)`  // escaping the ')' char
 set local s ~ strreplace `$(s)` `&quot;` `^&quot;`  // escaping the '&quot;' char
+set ECE_STR = $(s)  // the escaped string
+set ECE_RESULT = 1  // succeeded
+</pre>
+</blockquote>
+<p>Save this script as &quot;escape_string_for_cmd_echo&quot;.<br>
+Now, having the auxiliary script above, let's create an NppExec's script that will send the selected string to an external tool:</p>
+<blockquote>
+  <pre>npp_console local -  // disabling output to the Console
+npe_console local -- m-  // disabling the internal messages
+set local AWK_EXE = C:\tools\awk\awk95.exe  // path to an external tool
+npp_exec escape_string_for_cmd_echo `$(SELECTED_TEXT)`
+if $(ECE_RESULT) != 1 then
+  npp_console local +  // enabling the output
+  echo ERROR: Could not escape a string (maybe it contains the ` symbol?)
+  exit
+endif
+set local s = $(ECE_STR)  // the escaped string
 npp_console local +  // enabling the output
 cmd /C echo $(s)| &quot;$(AWK_EXE)&quot; -f &quot;$(NPP_DIRECTORY)\do.awk&quot;</pre>
 </blockquote>
 <p>This example works with a single-line selection. But what if the selection is multi-line? In such case, we may need to split the selected text to lines and pass each line to an external tool. The corresponding NppExec's script will be noticeably more complicated. Here it is:</p>
 <blockquote>
   <pre>npp_console local -  // disabling output to the Console
-npe_console local -- m-  // disabling the internal messages
+npe_console local -- m- n-  // no internal messages, no empty lines condensing
 set local AWK_EXE = C:\tools\awk\awk95.exe  // path to an external tool
-set local s = $(SELECTED_TEXT)  // the selected text
-set local s ~ strreplace `$(s)` `^` `^^^^`  // double-escaping the '^' char
-if $(LAST_CMD_RESULT) != 1 then
+npp_exec escape_string_for_cmd_echo `$(SELECTED_TEXT)`
+if $(ECE_RESULT) != 1 then
   npp_console local +  // enabling the output
-  echo ERROR: the selected text contains the ` symbol
-  npp_console local -  // disabling the output
+  echo ERROR: Could not escape a string (maybe it contains the ` symbol?)
   exit
 endif
-set local s ~ strreplace `$(s)` `|` `^^^|`  // double-escaping the '|' char
-set local s ~ strreplace `$(s)` `&` `^^^&`  // double-escaping the '&' char
-set local s ~ strreplace `$(s)` `&lt;` `^^^&lt;`  // double-escaping the '&lt;' char
-set local s ~ strreplace `$(s)` `&gt;` `^^^&gt;`  // double-escaping the '&gt;' char
-set local s ~ strreplace `$(s)` `(` `^(`  // escaping the '(' char
-set local s ~ strreplace `$(s)` `)` `^)`  // escaping the ')' char
-set local s ~ strreplace `$(s)` `&quot;` `^&quot;`  // escaping the '&quot;' char
+set local s = $(ECE_STR)  // the escaped string
 set local LF ~ chr 0x0A  // '\n' character
 set local CR ~ chr 0x0D  // '\r' character
 :Loop
@@ -156,6 +161,65 @@ if $(pos) != -1 then
 endif
 </pre>
 </blockquote>
+<p>This last script sends each line of the selected text to a new instance of <code>cmd /C echo</code>. This can be time-consuming for a lot of lines. Instead, if the external tool supports string splitting, we may alter our approach. In particular, we may do the following steps:</p>
+<ol>
+  <li>replace all the EOL (end-of-line) characters in the selected text with a unique sequence of characters (such as &quot;~@#=&quot;);</li>
+  <li>pass the resulted string to the external tool;</li>
+  <li>the external tool will split its received string using the same unique sequence of characters as the separator (e.g. &quot;~@#=&quot;);</li>
+  <li>finally, the external tool will process the lines that have been split.</li>
+</ol>
+<p>In this case, the AWK program &quot;do.awk&quot; will become:</p>
+<blockquote>
+  <pre>{
+  sep = &quot;~@#=&quot;
+  n = split($0, a, sep)
+  for (i = 1; i &lt;= n; i++)
+  {
+    print a[i]  # print each line
+  }
+}</pre>
+</blockquote>
+<p>And here is the corresponding NppExec's script:</p>
+<blockquote>
+  <pre>npp_console local -  // disabling output to the Console
+npe_console local -- m- n-  // no internal msgs, no empty lines condensing
+set local LF ~ chr 0x0A  // '\n' character
+set local CR ~ chr 0x0D  // '\r' character
+sci_sendmsg SCI_GETEOLMODE  // get EOL from Scintilla
+set local eol = $(MSG_RESULT)
+if $(eol) == 2 then
+  set local eol = $(LF)  // &quot;\n&quot;
+else if $(eol) == 1 then
+  set local eol = $(CR)  // &quot;\r&quot;
+else
+  set local eol = $(CR)$(LF)  // &quot;\r\n&quot;
+endif
+set local alt_eol = ~@#=  // unique combination of characters
+set local s ~ strreplace `$(SELECTED_TEXT)` `$(eol)` `$(alt_eol)`
+if $(LAST_CMD_RESULT) != 1 then
+  npp_console local +  // enabling the output
+  echo ERROR: the selected text contains the ` symbol
+  exit
+endif
+npp_exec escape_string_for_cmd_echo `$(s)`
+if $(ECE_RESULT) != 1 then
+  npp_console local +  // enabling the output
+  echo ERROR: Could not escape a string (maybe it contains the ` symbol?)
+  exit
+endif
+set local s = $(ECE_STR)  // the escaped string
+set local t ~ strstrip 0x23 `$(s)`
+if `$(t)` != `` then
+  set local cmd1 = cmd /C echo $(s)
+else
+  set local cmd1 = cmd /C echo.
+endif
+npp_console local +  // enabling the output
+$(cmd1)| awk -f &quot;$(NPP_DIRECTORY)\do.awk&quot;
+</pre>
+</blockquote>
+<p>Note: all the three last NppExec's scripts use the &quot;escape_string_for_cmd_echo&quot; script mentioned above. So be sure it has been created and saved.</p>
+
 <blockquote>
   <pre> </pre>
 </blockquote>
