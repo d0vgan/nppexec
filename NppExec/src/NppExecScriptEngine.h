@@ -1731,15 +1731,8 @@ class CScriptEngine : public IScriptEngine
                 return ScriptContextList.GetLast()->GetItem();
             }
 
-            std::shared_ptr<CChildProcess> GetRunningChildProcess()
-            {
-                return pChildProcess;
-            }
-
-            bool IsChildProcessRunning() const
-            {
-                return (bool)(pChildProcess);
-            }
+            std::shared_ptr<CChildProcess> GetRunningChildProcess();
+            bool IsChildProcessRunning() const;
         } ExecState;
 
         const ExecState& GetExecState() const { return m_execState; }

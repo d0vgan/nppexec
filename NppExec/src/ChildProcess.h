@@ -4,6 +4,7 @@
 
 #include "base.h"
 #include "cpp/CStrT.h"
+#include "ConsoleVtParser.h"
 
 class CNppExec;
 class CScriptEngine;
@@ -106,13 +107,17 @@ struct PseudoConsoleHelper
     typeDeleteProcThreadAttributeList pfnDeleteProcThreadAttributeList = nullptr;
 };
 
+#include "ChildProcessIo.h"
+
 class CChildProcess
 {
+    friend class CChildProcessIo;
+
     public:
         enum eAnsiEscSeq {
             escKeepRaw = 0,  // keep the esc-sequence characters without processing
             escRemove,       // remove the esc-sequence characters
-            escProcess = escRemove, // = escRemove (the processing is not implemented yet)
+            escProcess,      // process via VT parser
 
             escTotalCount    // the last item here!
         };
@@ -122,12 +127,24 @@ class CChildProcess
         CChildProcess(CScriptEngine* pScriptEngine);
         ~CChildProcess();
         const TCHAR* GetInstanceStr() const;
+        // Legacy blocking entrypoint (Start + WaitForExit). Prefer Start/WaitForExit at call sites.
         bool Create(HWND hParentWnd, LPCTSTR cszCommandLine);
+        // Phase 2: lifecycle API. Start creates the child process and returns.
+        // WaitForExit drives the read/kill/cleanup loop until the child exits
+        // (or until nTimeoutMs expires, in which case it returns false while keeping the
+        // child process running).
+        bool Start(HWND hParentWnd, LPCTSTR cszCommandLine);
+        bool WaitForExit(unsigned int nTimeoutMs = INFINITE);
+        bool IsRunning() const;
+        void Stop();
         bool Kill(const CProcessKiller::eKillMethod arrKillMethods[], int nKillMethods,
                   unsigned int nWaitTimeout,
                   CProcessKiller::eKillMethod* pnSucceededKillMethod);
         void MustBreak(unsigned int nBreakMethod);
 
+        // Stdin: encode on caller thread; WriteFile on stdin writer thread (P1.6).
+        // bFFlush: if true, FlushFileBuffers after WriteFile — can block until the child reads
+        // stdin; default false. No in-tree caller passes true (P1.7 audit).
         bool WriteInput(const TCHAR* szLine, bool bFFlush = false);
 
         tstr& GetOutput(); // non-const allows to avoid copying at the very end
@@ -136,6 +153,7 @@ class CChildProcess
         const PROCESS_INFORMATION* GetProcessInfo() const;
 
         bool IsPseudoCon() const;
+        bool ResizePseudoConsoleToConsole();
         const TCHAR* GetNewLine() const; // usually "\n" or "\r"
         unsigned int GetEncoding() const;
         unsigned int GetAnsiEscSeq() const;
@@ -154,30 +172,73 @@ class CChildProcess
 
         void  reset();
         bool  isBreaking() const;
-        void  closePipes();
-        void  closePseudoConsole();
         bool  applyOutputFilters(const tstr& _line, bool bOutput);
         bool  applyReplaceFilters(tstr& _line, tstr& printLine, bool bOutput);
         DWORD readPipesAndOutput(CStrT<char>& bufLine, 
                                  bool& bPrevLineEmpty,
                                  int&  nPrevState,
                                  bool  bOutputAll,
-                                 bool& bDoOutputNext);
+                                 bool& bDoOutputNext,
+                                 CStrT<char>& bufLineStderr,
+                                 bool& bPrevLineEmptyStderr,
+                                 int&  nPrevStateStderr,
+                                 bool& bDoOutputNextStderr);
+        DWORD processOutputBuffer(CStrT<char>& bufLine,
+                                  bool& bPrevLineEmpty,
+                                  int&  nPrevState,
+                                  bool  bFlushPartialLine,
+                                  bool& bDoOutputNext,
+                                  bool  bSomethingHasBeenReadFromPipe,
+                                  bool  bFromStderr = false);
+        DWORD readOnePipeDirect(HANDLE hReadPipe,
+                                bool  bOutputAll,
+                                bool  bFromStderr);
+        DWORD processOutputQueue(CStrT<char>& bufLine,
+                                 bool& bPrevLineEmpty,
+                                 int&  nPrevState,
+                                 bool& bDoOutputNext,
+                                 CStrT<char>& bufLineStderr,
+                                 bool& bPrevLineEmptyStderr,
+                                 int&  nPrevStateStderr,
+                                 bool& bDoOutputNextStderr,
+                                 bool  bOutputAll,
+                                 bool  bReadStdout,
+                                 bool  bReadStderr);
+        DWORD readPipesDirect(CStrT<char>& bufLine,
+                              bool& bPrevLineEmpty,
+                              int&  nPrevState,
+                              bool  bOutputAll,
+                              bool& bDoOutputNext,
+                              CStrT<char>& bufLineStderr,
+                              bool& bPrevLineEmptyStderr,
+                              int&  nPrevStateStderr,
+                              bool& bDoOutputNextStderr);
 
     private:
         CNppExec*           m_pNppExec;
         CScriptEngine*      m_pScriptEngine;
         tstr                m_strInstance;
         tstr                m_strOutput;
+        tstr                m_sCmdLine;     // stored original command line for kill heuristics
+        HANDLE              m_hJob;         // job object handle (kept alive while the child runs)
         int                 m_nExitCode;
         unsigned int        m_nBreakMethod;
-        HANDLE              m_hStdInReadPipe;
-        HANDLE              m_hStdInWritePipe; 
-        HANDLE              m_hStdOutReadPipe;
-        HANDLE              m_hStdOutWritePipe;
-        PseudoConsoleHelper::typeHPCON m_hPseudoCon;
-        LPPROC_THREAD_ATTRIBUTE_LIST   m_pAttributeList;
+        CChildProcessIo     m_Io;
         PROCESS_INFORMATION m_ProcessInfo;
+
+        // Phase 2 (P2.1): keep read-loop state across multiple WaitForExit(timeout) calls.
+        CStrT<char>  m_bufLine;
+        bool         m_bPrevLineEmpty;
+        int          m_nPrevState;
+        bool         m_bDoOutputNext;
+
+        CStrT<char>  m_bufLineStderr;
+        bool         m_bPrevLineEmptyStderr;
+        int          m_nPrevStateStderr;
+        bool         m_bDoOutputNextStderr;
+
+        CConsoleVtParser m_VtParserStdout;
+        CConsoleVtParser m_VtParserStderr;
 };
 
 //--------------------------------------------------------------------

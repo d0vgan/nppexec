@@ -1,0 +1,12 @@
+// B1: CFG-A (u- e1) — R01, R02, R08 — run each block separately or as script
+npp_console 1
+npe_console u- e1
+cmd /c echo hello
+
+npp_console 1
+npe_console u- e1
+python -u -c "import time; [print(i, flush=True) or time.sleep(0.3) for i in range(5)]"
+
+npp_console 1
+npe_console u- e1
+python -u -c "import time; print('start', flush=True); time.sleep(30); print('end', flush=True)"

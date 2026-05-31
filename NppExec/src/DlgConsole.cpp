@@ -1734,7 +1734,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("COMMAND:  npe_console") _T_RE_EOL \
     _T("USAGE:") _T_RE_EOL \
     _T("  npe_console") _T_RE_EOL \
-    _T("  npe_console a+/a- d+/d- e0/e1 u+/u- h+/h- m+/m- n+/n- p+/p- q+/q- v+/v- j+/j- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
+    _T("  npe_console a+/a- d+/d- e0/e1/e2 u+/u- h+/h- m+/m- n+/n- p+/p- q+/q- v+/v- j+/j- f+/f- r+/r- x+/x- k0..3") _T_RE_EOL \
     _T("  npe_console c<N> s<N>") _T_RE_EOL \
     _T("  npe_console o0/o1/o2 i0/i1/i2") _T_RE_EOL \
     _T("  npe_console <options> --") _T_RE_EOL \
@@ -1744,7 +1744,7 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  2. X+/X-  enables/disables the option/mode X:") _T_RE_EOL \
     _T("       a+/a-  append mode (don\'t clear Console) on/off") _T_RE_EOL \
     _T("       d+/d-  follow $(CURRENT_DIRECTORY) on/off") _T_RE_EOL \
-    _T("       e0/e1  ansi escape sequences: raw/remove") _T_RE_EOL \
+    _T("       e0/e1/e2  ansi escape sequences: raw/remove/process") _T_RE_EOL \
     _T("       u+/u-  pseudoconsole on/off (experimental)") _T_RE_EOL \
     _T("       h+/h-  console commands history on/off") _T_RE_EOL \
     _T("       m+/m-  console internal messages on/off") _T_RE_EOL \
@@ -1786,9 +1786,10 @@ const tCmdItemInfo CONSOLE_CMD_INFO[] = {
     _T("  d+/d-  Follow $(CURRENT_DIRECTORY) on/off.") _T_RE_EOL \
     _T("         Corresponding menu item: Follow $(CURRENT_DIRECTORY).") _T_RE_EOL \
     _T("         If On, NppExec follows the directory of current file.") _T_RE_EOL \
-    _T("  e0/e1  ANSI escape sequences: raw/remove.") _T_RE_EOL \
+    _T("  e0/e1/e2  ANSI escape sequences: raw/remove/process.") _T_RE_EOL \
     _T("         e0: keep raw esc-sequence characters;") _T_RE_EOL \
     _T("         e1: remove esc-sequence characters.") _T_RE_EOL \
+    _T("         e2: process esc-sequence characters (VT parser).") _T_RE_EOL \
     _T("         There is no corresponding menu item.") _T_RE_EOL \
     _T("         This option is saved as \"AnsiEscapeSequences\".") _T_RE_EOL \
     _T("         Default value: 0.") _T_RE_EOL \
@@ -3070,8 +3071,8 @@ void ConsoleDlg::OnClose(HWND hDlg, unsigned int nCloseConsoleFlags)
   if (bClose)
   {
     NppExec.setConsoleVisible(false);
-    // When _consoleIsVisible is set to false, the child process 
-    // is killed within CChildProcess::Create.
+    // When _consoleIsVisible is set to false, the child process
+    // is killed within CChildProcess::WaitForExit (via script abort / MustBreak).
     // Therefore it's very important to process
     // closing of this dialog here.
     /*
@@ -5135,6 +5136,9 @@ void ConsoleDlg::OnSize(HWND hDlg)
     left += (4 + rect.right - rect.left);
     chTabAsChar.MoveWindow(left, top + 1, TRUE);
   }
+
+  // P3.3: if an active child uses ConPTY, resize it to current console geometry.
+  Runtime::GetNppExec().GetCommandExecutor().ResizeRunningChildPseudoConsole();
 }
 
 void ConsoleDlg::printConsoleReady()

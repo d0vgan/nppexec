@@ -1,0 +1,4 @@
+// R06: after "cmd /k" starts, type: echo from_keyboard  then Enter (manual)
+npp_console 1
+npe_console u- e1
+cmd /k

@@ -331,7 +331,7 @@ const int   DEFAULT_CHILDP_CYCLETIMEOUT_MS    = 120;
 const int   DEFAULT_CHILDP_EXITTIMEOUT_MS     = 2000;
 const int   DEFAULT_CHILDP_KILLTIMEOUT_MS     = 500;
 const int   DEFAULT_CHILDP_RUNPOLICY          = 0;
-const int   DEFAULT_CHILDP_PSEUDOCONSOLE      = 0;
+const int   DEFAULT_CHILDP_PSEUDOCONSOLE      = 1;
 const int   DEFAULT_CHILDS_SYNCTIMEOUT_MS     = 200;
 const int   DEFAULT_EXITS_TIMEOUT_MS          = 4000;
 const int   DEFAULT_PATH_AUTODBLQUOTES        = 0;
@@ -5105,6 +5105,8 @@ void CNppExec::SetConsoleFont(HWND hEd, const LOGFONT* plf)
   {
     GetConsole().GetConsoleEdit().SetFont(plf);
     GetConsole().UpdateColours();
+    // P3.3: apply new font geometry to active ConPTY child.
+    GetCommandExecutor().ResizeRunningChildPseudoConsole();
   }
 }
 
@@ -5394,6 +5396,7 @@ CNppExecConsole::CNppExecConsole() //: m_pNppExec(0)
   , m_colorTextMsg(COLOR_INVALID)
   , m_colorTextErr(COLOR_INVALID)
   , m_colorBkgnd(COLOR_INVALID)
+  , m_nVtOutputRegionBeginPos(0)
 {
     m_StateList.push_back(ConsoleState());
 }
@@ -5755,6 +5758,11 @@ void CNppExecConsole::_printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessa
         m_reConsole.AddStr( cszMessage, FALSE, _getCurrentColorTextMsg() );
     m_reConsole.AddStr( _T(""), _isScrollToEnd(), _getCurrentColorTextNorm() );
     _lockConsoleEndPos(scrptEngnId);
+    if ( nPrintFlags & pfIsInternalMsg )
+    {
+        // Keep NppExec status messages outside VT erase/backspace region.
+        m_nVtOutputRegionBeginPos = m_reConsole.GetTextLengthEx();
+    }
 
     if ( (nPrintFlags & pfLogThisMsg) && Runtime::GetLogger().IsLogFileOpen() )
     {
@@ -5794,7 +5802,7 @@ void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessag
         return;
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
-    COLORREF color = _getCurrentColorTextNorm();
+    COLORREF color = (nPrintFlags & pfChildStdErr) ? _getCurrentColorTextErr() : _getCurrentColorTextNorm();
     int  style = 0;
 
     CWarningAnalyzer& WarningAnalyzer = Runtime::GetNppExec().GetWarningAnalyzer();
@@ -6219,6 +6227,7 @@ void CNppExecConsole::_clearText(ScriptEngineId scrptEngnId)
         m_reConsole.SetText( _T("") );
         _restoreDefaultTextStyle( scrptEngnId, true );
     }
+    m_nVtOutputRegionBeginPos = 0;
 }
 
 void CNppExecConsole::RestoreDefaultTextStyle(bool bLockPos)
@@ -6430,6 +6439,142 @@ void CNppExecConsole::_processSlashB(ScriptEngineId /*scrptEngnId*/, int nCount)
     m_reConsole.ExSetSel(nPos - nCount, nPos);
     m_reConsole.ReplaceSelText( _T("") );
 
+}
+
+void CNppExecConsole::VtEraseLineInOutputRegion()
+{
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    const ScriptEngineId scrptEngnId = GetScriptEngineId();
+    if ( !_isOutputEnabled(scrptEngnId) )
+        return;
+
+    if ( !postponeThisCall(scrptEngnId) )
+    {
+        _vtEraseLineInOutputRegion(scrptEngnId);
+    }
+    else
+    {
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_vtEraseLineInOutputRegion, this, scrptEngnId);
+        {
+            CCriticalSectionLockGuard lock(m_csStateList);
+            _getState(scrptEngnId).PostponedCalls.push_back(postponedCall);
+        }
+    }
+}
+
+void CNppExecConsole::VtEraseScreenInOutputRegion()
+{
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    const ScriptEngineId scrptEngnId = GetScriptEngineId();
+    if ( !_isOutputEnabled(scrptEngnId) )
+        return;
+
+    if ( !postponeThisCall(scrptEngnId) )
+    {
+        _vtEraseScreenInOutputRegion(scrptEngnId);
+    }
+    else
+    {
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_vtEraseScreenInOutputRegion, this, scrptEngnId);
+        {
+            CCriticalSectionLockGuard lock(m_csStateList);
+            _getState(scrptEngnId).PostponedCalls.push_back(postponedCall);
+        }
+    }
+}
+
+void CNppExecConsole::VtBackspaceInOutputRegion(int nCount)
+{
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    if ( nCount <= 0 )
+        return;
+
+    const ScriptEngineId scrptEngnId = GetScriptEngineId();
+    if ( !_isOutputEnabled(scrptEngnId) )
+        return;
+
+    if ( !postponeThisCall(scrptEngnId) )
+    {
+        _vtBackspaceInOutputRegion(scrptEngnId, nCount);
+    }
+    else
+    {
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_vtBackspaceInOutputRegion, this, scrptEngnId, nCount);
+        {
+            CCriticalSectionLockGuard lock(m_csStateList);
+            _getState(scrptEngnId).PostponedCalls.push_back(postponedCall);
+        }
+    }
+}
+
+void CNppExecConsole::_vtEraseLineInOutputRegion(ScriptEngineId scrptEngnId)
+{
+    extern INT nConsoleFirstUnlockedPos;
+
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    const int nLockPos = nConsoleFirstUnlockedPos;
+    const int nRegionBegin = (m_nVtOutputRegionBeginPos < nLockPos) ? m_nVtOutputRegionBeginPos : nLockPos;
+    int nLineIndex = m_reConsole.ExLineFromChar(nLockPos);
+    if ( nLineIndex < 0 )
+        nLineIndex = 0;
+
+    int nLineStart = m_reConsole.LineIndex(nLineIndex);
+    if ( nLineStart < 0 || nLineStart > nLockPos )
+        nLineStart = nLockPos;
+    if ( nLineStart < nRegionBegin )
+        nLineStart = nRegionBegin;
+
+    m_reConsole.ExSetSel(nLineStart, nLockPos);
+    m_reConsole.ReplaceSelText( _T("") );
+    _lockConsolePos(scrptEngnId, nLineStart);
+}
+
+void CNppExecConsole::_vtEraseScreenInOutputRegion(ScriptEngineId scrptEngnId)
+{
+    extern INT nConsoleFirstUnlockedPos;
+
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    const int nLockPos = nConsoleFirstUnlockedPos;
+    const int nRegionBegin = (m_nVtOutputRegionBeginPos < nLockPos) ? m_nVtOutputRegionBeginPos : nLockPos;
+    if ( nLockPos <= 0 )
+        return;
+
+    m_reConsole.ExSetSel(nRegionBegin, nLockPos);
+    m_reConsole.ReplaceSelText( _T("") );
+    _lockConsolePos(scrptEngnId, nRegionBegin);
+}
+
+void CNppExecConsole::_vtBackspaceInOutputRegion(ScriptEngineId scrptEngnId, int nCount)
+{
+    extern INT nConsoleFirstUnlockedPos;
+
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    int nLockPos = nConsoleFirstUnlockedPos;
+    const int nRegionBegin = (m_nVtOutputRegionBeginPos < nLockPos) ? m_nVtOutputRegionBeginPos : nLockPos;
+    if ( nLockPos <= 0 )
+        return;
+
+    if ( nCount > (nLockPos - nRegionBegin) )
+        nCount = (nLockPos - nRegionBegin);
+    if ( nCount <= 0 )
+        return;
+
+    const int nStart = nLockPos - nCount;
+    m_reConsole.ExSetSel(nStart, nLockPos);
+    m_reConsole.ReplaceSelText( _T("") );
+    _lockConsolePos(scrptEngnId, nStart);
 }
 
 void CNppExecConsole::OnScriptEngineStarted()

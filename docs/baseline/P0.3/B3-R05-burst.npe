@@ -1,0 +1,3 @@
+npp_console 1
+npe_console u- e1
+python -u -c "print('X'*9000); print('END')"

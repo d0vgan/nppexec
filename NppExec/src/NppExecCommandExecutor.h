@@ -342,6 +342,7 @@ public:
 
     std::shared_ptr<CChildProcess> GetRunningChildProcess();
     const std::shared_ptr<CChildProcess> GetRunningChildProcess() const;
+    bool ResizeRunningChildPseudoConsole();
     bool IsChildProcessPseudoCon() const;
     const tstr GetChildProcessNewLine() const;
     unsigned int GetChildProcessEncoding() const;
@@ -351,6 +352,8 @@ public:
     void SetTriedExitCmd(bool bTriedExitCmd);
 
     void ExecuteChildProcessCommand(tstr& cmd, bool bSubstituteMacroVars, bool bForceLockEndPos = false);
+    // Forwards to CChildProcess::WriteInput. bFFlush defaults false — do not enable unless
+    // the caller explicitly needs FlushFileBuffers (hang risk on full stdin pipe; P1.7).
     bool WriteChildProcessInput(const TCHAR* szLine, bool bFFlush = false);
     bool WriteChildProcessInputNewLine(bool bFFlush = false); // writes "\n" or "\r"
 
