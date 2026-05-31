@@ -2049,6 +2049,19 @@ void CScriptEngine::UndoAbort(const TCHAR* cszMessage)
     Runtime::GetLogger().AddEx_WithoutOutput( _T("; CScriptEngine::UndoAbort() (instance = %s) : %s"), GetInstanceStr(), cszMessage );
 }
 
+std::shared_ptr<CChildProcess> CScriptEngine::ExecState::GetRunningChildProcess()
+{
+    // Phase 2 (P2.3): pChildProcess lives for the whole Do() run; expose it only while OS process is active.
+    if ( pChildProcess && pChildProcess->IsRunning() )
+        return pChildProcess;
+    return std::shared_ptr<CChildProcess>();
+}
+
+bool CScriptEngine::ExecState::IsChildProcessRunning() const
+{
+    return (pChildProcess && pChildProcess->IsRunning());
+}
+
 std::shared_ptr<CChildProcess> CScriptEngine::GetRunningChildProcess()
 {
     std::shared_ptr<CChildProcess> pChildProc;
@@ -2907,8 +2920,10 @@ CScriptEngine::eCmdResult CScriptEngine::Do(const tstr& params)
 
     std::shared_ptr<CChildProcess> proc(new CChildProcess(this));
     m_execState.pChildProcess = proc;
-    // Note: proc->Create() does not return until the child process exits
-    if ( proc->Create(m_pNppExec->GetConsole().GetDialogWnd(), params.c_str()) )
+
+    const HWND hParentWnd = m_pNppExec->GetConsole().GetDialogWnd();
+    // Phase 2 (P2.2): spawn and poll/wait are separate; blocks until exit (same as legacy Create()).
+    if ( proc->Start(hParentWnd, params.c_str()) && proc->WaitForExit(INFINITE) )
     {
         Runtime::GetLogger().Add(   _T("; child process finished") );
     }
@@ -5076,7 +5091,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                 {
                     // a+/a-     append mode on/off
                     // d+/d-     follow current directory on/off
-                    // e0/e1     ansi escape sequences: raw/remove
+                    // e0/e1/e2  ansi escape sequences: raw/remove/process
                     // u+/u-     pseudoconsole on/off (experimental)
                     // h+/h-     console commands history on/off
                     // m+/m-     console internal messages on/off

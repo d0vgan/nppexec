@@ -1346,7 +1346,8 @@ public:
     enum ePrintFlags {
         pfLogThisMsg    = 0x01,
         pfNewLine       = 0x02,
-        pfIsInternalMsg = 0x04
+        pfIsInternalMsg = 0x04,
+        pfChildStdErr   = 0x08  // reserved (legacy: stderr merged into stdout pipe; not used for colour)
     };
     void PrintError(LPCTSTR cszMessage, UINT nPrintFlags = pfLogThisMsg);
     void PrintMessage(LPCTSTR cszMessage, UINT nPrintFlags);
@@ -1384,6 +1385,9 @@ public:
     // special characters...
     void ProcessSlashR(); // "\r"
     void ProcessSlashB(int nCount); // "\b"
+    void VtEraseLineInOutputRegion();
+    void VtEraseScreenInOutputRegion();
+    void VtBackspaceInOutputRegion(int nCount);
 
     void OnScriptEngineStarted();
     void OnScriptEngineFinished();
@@ -1433,6 +1437,7 @@ protected:
     COLORREF m_colorTextMsg;
     COLORREF m_colorTextErr;
     COLORREF m_colorBkgnd;
+    int      m_nVtOutputRegionBeginPos;
     std::list<ConsoleState> m_StateList;
 
     const ConsoleState& _getState(ScriptEngineId scrptEngnId) const;
@@ -1455,6 +1460,9 @@ protected:
     void _printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
     void _printStr(ScriptEngineId scrptEngnId, LPCTSTR cszStr, UINT nPrintFlags);
     void _printSysError(ScriptEngineId scrptEngnId, LPCTSTR cszFunctionName, DWORD dwErrorCode, UINT nPrintFlags);
+    void _vtEraseLineInOutputRegion(ScriptEngineId scrptEngnId);
+    void _vtEraseScreenInOutputRegion(ScriptEngineId scrptEngnId);
+    void _vtBackspaceInOutputRegion(ScriptEngineId scrptEngnId, int nCount);
 
     void _lockConsolePos(ScriptEngineId scrptEngnId, INT nPos);
     void _lockConsoleEndPos(ScriptEngineId scrptEngnId);

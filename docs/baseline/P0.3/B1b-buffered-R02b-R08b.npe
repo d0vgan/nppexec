@@ -1,0 +1,9 @@
+// B1b: CFG-A — buffered stdout (no python -u) — primary stall repro per plan
+// Most programs behave like this, not like "python -u"
+npp_console 1
+npe_console u- e1
+python -c "import time; [print(i) or time.sleep(0.3) for i in range(5)]"
+
+npp_console 1
+npe_console u- e1
+python -c "import time; print('start'); time.sleep(30); print('end')"

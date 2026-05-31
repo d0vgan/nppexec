@@ -575,6 +575,12 @@ const std::shared_ptr<CChildProcess> CNppExecCommandExecutor::GetRunningChildPro
     return std::shared_ptr<CChildProcess>();
 }
 
+bool CNppExecCommandExecutor::ResizeRunningChildPseudoConsole()
+{
+    const auto pChildProc = GetRunningChildProcess();
+    return (pChildProc ? pChildProc->ResizePseudoConsoleToConsole() : false);
+}
+
 bool CNppExecCommandExecutor::IsChildProcessPseudoCon() const
 {
     // See also: CChildProcess::IsPseudoCon()
@@ -626,7 +632,8 @@ unsigned int CNppExecCommandExecutor::GetChildProcessAnsiEscSeq() const
         nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
         if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
         {
-            // TODO: NppExec simply removes ANSI Escape Sequences
+            // In PseudoConsole mode, raw ESC bytes are not useful in RichEdit UI.
+            // Force parser mode when "raw" is requested.
             if ( nAnsiEscSeq == CChildProcess::escKeepRaw )
                 nAnsiEscSeq = CChildProcess::escProcess;
         }

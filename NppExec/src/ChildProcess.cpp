@@ -1,4 +1,4 @@
-#include "ChildProcess.h"
+﻿#include "ChildProcess.h"
 #include "NppExecHelpers.h"
 #include "NppExec.h"
 #include "NppExecScriptEngine.h"
@@ -9,15 +9,96 @@
 
 PseudoConsoleHelper g_pseudoCon;
 
-const int nPseudoConWidth = 192;
-const int nPseudoConHeight = 1000;
-
 enum eNewLine {
     nlNone = 0,
     nlLF = 1, // \n
     nlCR = 3, // \r
     nlBS = 7  // \b
 };
+
+static bool IsProcessStillActive(HANDLE hProcess)
+{
+    if ( !hProcess )
+        return false;
+
+    DWORD dwExitCode = STILL_ACTIVE;
+    if ( !::GetExitCodeProcess(hProcess, &dwExitCode) )
+        return false;
+
+    return (dwExitCode == STILL_ACTIVE);
+}
+
+static bool EncodeInputLine(const TCHAR* szLine, unsigned int enc, CStrT<char>& outBuf)
+{
+    if ( !szLine )
+        return false;
+
+    char* pStr = NULL;
+    int   len = 0;
+
+  #ifdef UNICODE
+
+    switch ( enc )
+    {
+        case CConsoleEncodingDlg::ENC_OEM :
+            pStr = SysUniConv::newUnicodeToMultiByte( szLine, -1, CP_OEMCP, &len );
+            break;
+
+        case CConsoleEncodingDlg::ENC_UTF8 :
+            pStr = SysUniConv::newUnicodeToUTF8( szLine, -1, &len );
+            break;
+
+        default:
+            pStr = SysUniConv::newUnicodeToMultiByte( szLine, -1, CP_ACP, &len );
+            break;
+    }
+
+    if ( !pStr )
+        return false;
+
+    outBuf.Assign(pStr, len);
+    delete [] pStr;
+
+  #else
+
+    bool bNewMemory = false;
+
+    switch ( enc )
+    {
+        case CConsoleEncodingDlg::ENC_OEM :
+            len = lstrlen(szLine);
+            pStr = new char[len + 1];
+            if ( pStr )
+            {
+                ::CharToOem(szLine, pStr);
+                bNewMemory = true;
+            }
+            break;
+
+        case CConsoleEncodingDlg::ENC_UTF8 :
+            pStr = SysUniConv::newMultiByteToUTF8(szLine, -1, CP_ACP, &len);
+            if ( pStr )
+                bNewMemory = true;
+            break;
+
+        default:
+            len = lstrlen(szLine);
+            pStr = (char*) szLine;
+            bNewMemory = false;
+            break;
+    }
+
+    if ( !pStr )
+        return false;
+
+    outBuf.Assign(pStr, len);
+    if ( bNewMemory )
+        delete [] pStr;
+
+  #endif
+
+    return true;
+}
 
 CChildProcess::CChildProcess(CScriptEngine* pScriptEngine)
 {
@@ -179,164 +260,49 @@ void CChildProcess::applyCommandLinePolicy(tstr& sCmdLine, eCommandLinePolicy mo
 }
 
 // cszCommandLine must be transformed by ModifyCommandLine(...) already
-bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
+bool CChildProcess::Create(HWND hParentWnd, LPCTSTR cszCommandLine)
 {
-    SECURITY_DESCRIPTOR sd;
-    SECURITY_ATTRIBUTES sa;
-    STARTUPINFOEX       si;
+    // Legacy blocking entrypoint — spawn then wait until exit (see CScriptEngine::Do).
+    if ( !Start(hParentWnd, cszCommandLine) )
+        return false;
+    return WaitForExit(INFINITE);
+}
+
+bool CChildProcess::Start(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
+{
+    STARTUPINFOEX si;
+    DWORD         dwCreationFlags = 0;
 
     reset();
+    m_sCmdLine = cszCommandLine;
 
-    if ( IsWindowsNT() )
-    {
-        // security stuff for NT
-        InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION);
-        SetSecurityDescriptorDacl(&sd, TRUE, NULL, FALSE);
-        sa.lpSecurityDescriptor = &sd;
-    }
-    else
-    {
-        sa.lpSecurityDescriptor = NULL;
-    }
-    sa.nLength = sizeof(SECURITY_ATTRIBUTES);
-    sa.bInheritHandle = TRUE;
-
-    const int DEFAULT_PIPE_SIZE = 0;
-
-    // Create the Pipe and get r/w handles
-    if ( !::CreatePipe(&m_hStdOutReadPipe, &m_hStdOutWritePipe, &sa, DEFAULT_PIPE_SIZE) )
-    {
-        m_pNppExec->GetConsole().PrintError( _T("CreatePipe(<StdOut>) failed") );
+    if ( !m_Io.createPipes(m_pNppExec) )
         return false;
-    }
-    if ( m_hStdOutWritePipe == NULL )
-    {
-        if ( m_hStdOutReadPipe != NULL )
-            ::CloseHandle(m_hStdOutReadPipe);
-        m_pNppExec->GetConsole().PrintError( _T("hStdOutWritePipe = NULL") );
-        return false;
-    }
-    if ( m_hStdOutReadPipe == NULL )
-    {
-        ::CloseHandle(m_hStdOutWritePipe);
-        m_pNppExec->GetConsole().PrintError( _T("hStdOutReadPipe = NULL") );
-        return false;
-    }
 
-    if ( !::CreatePipe(&m_hStdInReadPipe, &m_hStdInWritePipe, &sa, DEFAULT_PIPE_SIZE) )
-    {
-        m_pNppExec->GetConsole().PrintError( _T("CreatePipe(<StdIn>) failed") );
+    if ( !m_Io.createPseudoConsole(m_pNppExec) )
         return false;
-    }
-    if ( m_hStdInWritePipe == NULL )
-    {
-        if ( m_hStdInReadPipe != NULL )
-            ::CloseHandle(m_hStdInReadPipe);
-        m_pNppExec->GetConsole().PrintError( _T("hStdInWritePipe = NULL") );
-        return false;
-    }
-    if ( m_hStdInReadPipe == NULL )
-    {
-        ::CloseHandle(m_hStdInWritePipe);
-        m_pNppExec->GetConsole().PrintError( _T("hStdInReadPipe = NULL") );
-        return false;
-    }
 
-    ::SetHandleInformation(m_hStdInWritePipe, HANDLE_FLAG_INHERIT, 0);
-    ::SetHandleInformation(m_hStdOutReadPipe, HANDLE_FLAG_INHERIT, 0);
-
-    m_hPseudoCon = NULL;
-    m_pAttributeList = NULL;
-
-    if ( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_PSEUDOCONSOLE) && (g_pseudoCon.pfnCreatePseudoConsole != nullptr) )
-    {
-        COORD conSize = { nPseudoConWidth, nPseudoConHeight };
-        HRESULT hr = g_pseudoCon.pfnCreatePseudoConsole(conSize, m_hStdInReadPipe, m_hStdOutWritePipe, 0, &m_hPseudoCon);
-        if ( FAILED(hr) )
-        {
-            m_hPseudoCon = NULL;
-        }
-    }
-
-    // Job object
-    HANDLE hJob = NULL;
+    // Job object (HEAD order: before STARTUPINFOEX); kept alive for the whole child lifetime via m_hJob.
+    m_hJob = NULL;
     if ( m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_KILLPROCTREE) )
     {
-        hJob = ::CreateJobObject(NULL, NULL);
-        if ( hJob != NULL )
+        m_hJob = ::CreateJobObject(NULL, NULL);
+        if ( m_hJob != NULL )
         {
             JOBOBJECT_EXTENDED_LIMIT_INFORMATION jeli;
-
             ::ZeroMemory(&jeli, sizeof(jeli));
             jeli.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+
             // Causes all processes associated with the job to terminate when the last handle to the job is closed.
-            if ( !::SetInformationJobObject(hJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)) )
+            if ( !::SetInformationJobObject(m_hJob, JobObjectExtendedLimitInformation, &jeli, sizeof(jeli)) )
             {
-                ::CloseHandle(hJob);
-                hJob = NULL;
+                ::CloseHandle(m_hJob);
+                m_hJob = NULL;
             }
         }
     }
 
-    /*
-    DWORD dwMode = PIPE_READMODE_BYTE | PIPE_NOWAIT;
-    SetNamedPipeHandleState(m_hStdOutWritePipe, &dwMode, NULL, NULL);
-    dwMode = PIPE_READMODE_BYTE | PIPE_NOWAIT;
-    SetNamedPipeHandleState(m_hStdOutReadPipe, &dwMode, NULL, NULL);
-    */
-
-    DWORD dwCreationFlags = 0;
-
-    // initialize STARTUPINFOEX struct
-    ::ZeroMemory(&si, sizeof(STARTUPINFOEX));
-    si.StartupInfo.cb = sizeof(STARTUPINFOEX);
-    si.StartupInfo.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
-    si.StartupInfo.wShowWindow = SW_HIDE;
-    if ( m_hPseudoCon )
-    {
-        SIZE_T bytesRequired = 0;
-        g_pseudoCon.pfnInitializeProcThreadAttributeList(NULL, 1, 0, &bytesRequired);
-        si.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST) ::HeapAlloc(::GetProcessHeap(), 0, bytesRequired);
-        if ( si.lpAttributeList )
-        {
-            if ( g_pseudoCon.pfnInitializeProcThreadAttributeList(si.lpAttributeList, 1, 0, &bytesRequired) )
-            {
-                if ( g_pseudoCon.pfnUpdateProcThreadAttribute(
-                         si.lpAttributeList,
-                         0, 
-                         PseudoConsoleHelper::constPROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE,
-                         m_hPseudoCon,
-                         sizeof(m_hPseudoCon),
-                         NULL,
-                         NULL) )
-                {
-                    dwCreationFlags |= PseudoConsoleHelper::constEXTENDED_STARTUPINFO_PRESENT;
-                    m_pAttributeList = si.lpAttributeList;
-                }
-                else
-                {
-                    HeapFree(GetProcessHeap(), 0, si.lpAttributeList);
-                    closePseudoConsole();
-                }
-            }
-            else
-            {
-                HeapFree(GetProcessHeap(), 0, si.lpAttributeList);
-                closePseudoConsole();
-            }
-        }
-        else
-        {
-            closePseudoConsole();
-        }
-    }
-
-    if ( !m_hPseudoCon )
-    {
-        si.StartupInfo.hStdInput = m_hStdInReadPipe;
-        si.StartupInfo.hStdOutput = m_hStdOutWritePipe;
-        si.StartupInfo.hStdError = m_hStdOutWritePipe;
-    }
+    m_Io.configureStartupInfo(si, dwCreationFlags);
 
     eCommandLinePolicy mode = clpNone;
     switch ( m_pNppExec->GetOptions().GetInt(OPTU_CHILDP_RUNPOLICY) )
@@ -348,10 +314,11 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
             mode = clpComSpec;
             break;
     };
+
     tstr sCmdLine = cszCommandLine;
     applyCommandLinePolicy(sCmdLine, mode);
 
-    if ( hJob != NULL )
+    if ( m_hJob != NULL )
     {
         BOOL bIsProcessInJob = FALSE;
         if ( ::IsProcessInJob(GetCurrentProcess(), NULL, &bIsProcessInJob) )
@@ -366,32 +333,30 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
             sCmdLine.data(),
             NULL,                        // security
             NULL,                        // security
-            TRUE,                        // inherits handles
-            dwCreationFlags,             // creation flags
+            TRUE,                        // inherits handles (HEAD)
+            dwCreationFlags,            // creation flags
             NULL,                        // environment
             NULL,                        // current directory
-            &si.StartupInfo,             // startup info
-            &m_ProcessInfo               // process info
-       ) )
+            &si.StartupInfo,            // startup info
+            &m_ProcessInfo              // process info
+        ) )
     {
-        if ( hJob != NULL )
+        if ( m_hJob != NULL )
         {
-            if ( !::AssignProcessToJobObject(hJob, m_ProcessInfo.hProcess) )
+            if ( !::AssignProcessToJobObject(m_hJob, m_ProcessInfo.hProcess) )
             {
-                ::CloseHandle(hJob);
-                hJob = NULL;
+                ::CloseHandle(m_hJob);
+                m_hJob = NULL;
             }
         }
 
         ::CloseHandle(m_ProcessInfo.hThread); m_ProcessInfo.hThread = NULL;
-        if ( m_hPseudoCon )
-        {
-            ::CloseHandle(m_hStdOutWritePipe); m_hStdOutWritePipe = NULL;
-            ::CloseHandle(m_hStdInReadPipe); m_hStdInReadPipe = NULL;
-        }
+        m_Io.onChildProcessStarted();
 
-        bool isConsoleProcessRunning = true;
-    
+        // Stdout reader is intentionally NOT started in pipe-mode:
+        // readPipesDirect runs on the script thread to keep legacy timing parity.
+        m_Io.startStdinWriter();
+
         const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
         m_pNppExec->GetConsole().PrintMessage( tstr().Format(80, _T("Process started (PID=%u) >>>"), m_ProcessInfo.dwProcessId), nMsgFlags );
 
@@ -401,113 +366,207 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
             tstr varName = MACRO_PID;
             m_pNppExec->GetMacroVars().SetUserMacroVar( m_pScriptEngine, varName, szProcessId, CNppExecMacroVars::svLocalVar ); // local var
         }
-    
+
         // this pause is necessary for child processes that return immediatelly
         ::WaitForSingleObject(m_ProcessInfo.hProcess, m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_STARTUPTIMEOUT_MS));
-        
-        CStrT<char>  bufLine;
-        bool         bPrevLineEmpty = false;
-        bool         bDoOutputNext = true;
-        int          nPrevState = nlNone;
-        DWORD        dwRead = 0;
-        unsigned int nEmptyCount = 0;
-        const DWORD  dwCycleTimeOut = m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_CYCLETIMEOUT_MS);
-        const DWORD  dwExitTimeOut = m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_EXITTIMEOUT_MS);
-    
-        bufLine.Clear(); // just in case :-)
-    
-        do 
-        {
-            // inside this cycle: the bOutputAll parameter must be controlled within readPipesAndOutput
-            dwRead = readPipesAndOutput(bufLine, bPrevLineEmpty, nPrevState, false, bDoOutputNext);
 
-            if ( CNppExec::_bIsNppShutdown )
+        // Initialize read-loop state (kept across multiple WaitForExit(timeout) calls).
+        m_bufLine.Clear(); // just in case :-)
+        m_bufLineStderr.Clear();
+
+        m_bPrevLineEmpty = false;
+        m_bDoOutputNext = true;
+        m_nPrevState = nlNone;
+
+        m_bPrevLineEmptyStderr = false;
+        m_bDoOutputNextStderr = true;
+        m_nPrevStateStderr = nlNone;
+
+        return true;
+    }
+
+    DWORD dwErrorCode = ::GetLastError();
+
+    m_Io.closeAll();
+    if ( m_hJob != NULL )
+    {
+        ::CloseHandle(m_hJob);
+        m_hJob = NULL;
+    }
+
+    if ( m_pScriptEngine )
+    {
+        m_pNppExec->GetConsole().PrintError( m_pScriptEngine->GetLastLoggedCmd().c_str() );
+    }
+    m_pNppExec->GetConsole().PrintSysError( _T("CreateProcess()"), dwErrorCode );
+
+    return false;
+}
+
+bool CChildProcess::WaitForExit(unsigned int nTimeoutMs)
+{
+    if ( !m_ProcessInfo.hProcess )
+        return false;
+
+    bool isConsoleProcessRunning = true;
+
+    DWORD dwRead = 0;
+    unsigned int nEmptyCount = 0;
+
+    const DWORD dwCycleTimeOut = m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_CYCLETIMEOUT_MS);
+    const DWORD dwExitTimeOut  = m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_EXITTIMEOUT_MS);
+
+    const bool bUseTimeout = (nTimeoutMs != INFINITE);
+    ULONGLONG tEnd = 0;
+    if ( bUseTimeout )
+        tEnd = ::GetTickCount64() + (ULONGLONG) nTimeoutMs;
+
+    bool bTimedOut = false;
+
+    do
+    {
+        // inside this cycle: the bOutputAll parameter must be controlled within readPipesAndOutput
+        dwRead = readPipesAndOutput(m_bufLine, m_bPrevLineEmpty, m_nPrevState, false, m_bDoOutputNext,
+                                    m_bufLineStderr, m_bPrevLineEmptyStderr, m_nPrevStateStderr, m_bDoOutputNextStderr);
+
+        if ( CNppExec::_bIsNppShutdown )
+        {
+            // Notepad++ is exiting
+            if ( dwRead == 0 )
             {
-                // Notepad++ is exiting
-                if ( dwRead == 0 )
+                // no output from the child process
+                ++nEmptyCount;
+                if ( nEmptyCount > (dwExitTimeOut/dwCycleTimeOut) )
                 {
-                    // no output from the child process
-                    ++nEmptyCount;
-                    if ( nEmptyCount > (dwExitTimeOut/dwCycleTimeOut) )
-                    {
-                        // no output during more than dwExitTimeOut ms, let's kill the process...
-                        m_nBreakMethod = CProcessKiller::killCtrlBreak;
-                    }
+                    // no output during more than dwExitTimeOut ms, let's kill the process...
+                    m_nBreakMethod = CProcessKiller::killCtrlBreak;
                 }
-                else
-                    nEmptyCount = 0;
+            }
+            else
+            {
+                nEmptyCount = 0;
+            }
+        }
+
+        // P1.5: when stdout data was read, poll process exit without cycle sleep;
+        // when idle, use full cycle timeout (decouples wait from read chunk size).
+        const DWORD dwProcessWait = (dwRead > 0) ? 0 : dwCycleTimeOut;
+        DWORD dwWaitTimeout = dwProcessWait;
+
+        if ( bUseTimeout )
+        {
+            const ULONGLONG now = ::GetTickCount64();
+            if ( now >= tEnd )
+            {
+                bTimedOut = true;
+                break;
             }
 
-        }
-        while ( (isConsoleProcessRunning = (::WaitForSingleObject(m_ProcessInfo.hProcess, dwCycleTimeOut) == WAIT_TIMEOUT))
-             && m_pScriptEngine->ContinueExecution() && !isBreaking() );
-        // NOTE: time-out inside WaitForSingleObject() prevents from 100% CPU usage!
-
-        if ( m_pScriptEngine->ContinueExecution() && (!isBreaking()) && !m_pScriptEngine->GetTriedExitCmd() )
-        {
-            // maybe the child process is exited but not all its data is read
-            readPipesAndOutput(bufLine, bPrevLineEmpty, nPrevState, true, bDoOutputNext);
+            const ULONGLONG rem = tEnd - now;
+            if ( (ULONGLONG)dwWaitTimeout > rem )
+                dwWaitTimeout = (DWORD) rem;
         }
 
-        if ( (!m_pScriptEngine->ContinueExecution()) || isBreaking() )
+        const DWORD dwWaitResult = ::WaitForSingleObject(m_ProcessInfo.hProcess, dwWaitTimeout);
+        isConsoleProcessRunning = (dwWaitResult == WAIT_TIMEOUT) && IsProcessStillActive(m_ProcessInfo.hProcess);
+
+        if ( bUseTimeout && ::GetTickCount64() >= tEnd )
         {
             if ( isConsoleProcessRunning )
+                bTimedOut = true;
+        }
+    }
+    while ( isConsoleProcessRunning
+             && m_pScriptEngine->ContinueExecution() && !isBreaking() && !bTimedOut );
+
+    if ( bTimedOut && isConsoleProcessRunning )
+        return false;
+
+    if ( (!m_pScriptEngine->ContinueExecution()) || isBreaking() )
+    {
+        if ( isConsoleProcessRunning )
+        {
+            // Stop I/O threads before kill — do not drain stdout while child is still alive.
+            m_Io.stopStdoutReader();
+            m_Io.stopStdinWriter();
+
+            int nKillMethods = 0;
+            CProcessKiller::eKillMethod arrKillMethods[4];
+
+            tstr sAppName;
+            CListT<tstr> ArgsList;
+            if ( StrSplitToArgs(m_sCmdLine.c_str(), ArgsList, 2) > 0 )
             {
-                int nKillMethods = 0;
-                CProcessKiller::eKillMethod arrKillMethods[4];
+                sAppName = ArgsList.GetFirst()->GetItem();
+                NppExecHelpers::StrLower(sAppName);
+            }
 
-                tstr sAppName;
-                CListT<tstr> ArgsList; 
-                if (StrSplitToArgs(cszCommandLine, ArgsList, 2) > 0)
-                {
-                  sAppName = ArgsList.GetFirst()->GetItem();
-                  NppExecHelpers::StrLower(sAppName);
-                }
+            if ( (sAppName == _T("cmd")) || (sAppName == _T("cmd.exe")) )
+            {
+                // cmd can't be closed with Ctrl-Break for unknown reason...
+            }
+            else
+            {
+                if ( m_nBreakMethod == CProcessKiller::killCtrlC )
+                    arrKillMethods[nKillMethods++] = CProcessKiller::killCtrlC;
+                else
+                    arrKillMethods[nKillMethods++] = CProcessKiller::killCtrlBreak;
+            }
+            arrKillMethods[nKillMethods++] = CProcessKiller::killWmClose;
 
-                if ( (sAppName == _T("cmd")) || (sAppName == _T("cmd.exe")) )
+            Runtime::GetLogger().AddEx( _T("; trying to kill the child process... (instance = %s)"), GetInstanceStr() );
+
+            unsigned int nWaitTimeout = m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_KILLTIMEOUT_MS);
+            CProcessKiller::eKillMethod nSucceededKillMethod = CProcessKiller::killNone;
+            if ( Kill(arrKillMethods, nKillMethods, nWaitTimeout, &nSucceededKillMethod) )
+            {
+                Runtime::GetLogger().AddEx( _T("; the child process has been killed (instance = %s)"), GetInstanceStr() );
+
+                if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
                 {
-                    // cmd can't be closed with Ctrl-Break for unknown reason...
+                    tstr Msg;
+                    Msg.Format( 80, _T("<<< Process has been killed (PID=%d)"), m_ProcessInfo.dwProcessId );
+                    switch ( nSucceededKillMethod )
+                    {
+                        case CProcessKiller::killCtrlBreak:
+                            Msg += _T(" with Ctrl-Break");
+                            break;
+                        case CProcessKiller::killCtrlC:
+                            Msg += _T(" with Ctrl-C");
+                            break;
+                        case CProcessKiller::killWmClose:
+                            Msg += _T(" with WM_CLOSE");
+                            break;
+                    }
+                    Msg += _T('.');
+                    const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+                    m_pNppExec->GetConsole().PrintMessage( Msg.c_str(), nPrintMsgFlags );
                 }
                 else
                 {
-                    if ( m_nBreakMethod == CProcessKiller::killCtrlC )
-                        arrKillMethods[nKillMethods++] = CProcessKiller::killCtrlC;
-                    else
-                        arrKillMethods[nKillMethods++] = CProcessKiller::killCtrlBreak;
+                    if (m_nPrevState != nlLF /* new line */ )
+                    {
+                        const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                        m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
+                    }
                 }
-                arrKillMethods[nKillMethods++] = CProcessKiller::killWmClose;
+            }
+            else
+            {
+                Runtime::GetLogger().AddEx( _T("; trying to terminate the child process... (instance = %s)"), GetInstanceStr() );
 
-                Runtime::GetLogger().AddEx( _T("; trying to kill the child process... (instance = %s)"), GetInstanceStr() );
-
-                unsigned int nWaitTimeout = m_pNppExec->GetOptions().GetUint(OPTU_CHILDP_KILLTIMEOUT_MS);
-                CProcessKiller::eKillMethod nSucceededKillMethod = CProcessKiller::killNone;
-                if ( Kill(arrKillMethods, nKillMethods, nWaitTimeout, &nSucceededKillMethod) )
+                if ( ::TerminateProcess(m_ProcessInfo.hProcess, 0) )
                 {
-                    Runtime::GetLogger().AddEx( _T("; the child process has been killed (instance = %s)"), GetInstanceStr() );
+                    Runtime::GetLogger().AddEx( _T("; the child process has been terminated (instance = %s)"), GetInstanceStr() );
 
                     if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
                     {
-                        tstr Msg;
-                        Msg.Format( 80, _T("<<< Process has been killed (PID=%d)"), m_ProcessInfo.dwProcessId );
-                        switch ( nSucceededKillMethod )
-                        {
-                            case CProcessKiller::killCtrlBreak:
-                                Msg += _T(" with Ctrl-Break");
-                                break;
-                            case CProcessKiller::killCtrlC:
-                                Msg += _T(" with Ctrl-C");
-                                break;
-                            case CProcessKiller::killWmClose:
-                                Msg += _T(" with WM_CLOSE");
-                                break;
-                        }
-                        Msg += _T('.');
                         const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
-                        m_pNppExec->GetConsole().PrintMessage( Msg.c_str(), nPrintMsgFlags );
+                        m_pNppExec->GetConsole().PrintMessage( tstr().Format(80, _T("<<< Process has been terminated (PID=%d)."), m_ProcessInfo.dwProcessId), nPrintMsgFlags );
                     }
                     else
                     {
-                        if (nPrevState != nlLF /* new line */ )
+                        if ( m_nPrevState != nlLF /* new line */ )
                         {
                             const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
                             m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
@@ -516,102 +575,80 @@ bool CChildProcess::Create(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
                 }
                 else
                 {
-                    Runtime::GetLogger().AddEx( _T("; trying to terminate the child process... (instance = %s)"), GetInstanceStr() );
-
-                    if ( ::TerminateProcess(m_ProcessInfo.hProcess, 0) )
-                    {
-                        Runtime::GetLogger().AddEx( _T("; the child process has been terminated (instance = %s)"), GetInstanceStr() );
-
-                        if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
-                        {
-                            const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
-                            m_pNppExec->GetConsole().PrintMessage( tstr().Format(80, _T("<<< Process has been terminated (PID=%d)."), m_ProcessInfo.dwProcessId), nPrintMsgFlags );
-                        }
-                        else
-                        {
-                            if (nPrevState != nlLF /* new line */ )
-                            {
-                                const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-                                m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
-                            }
-                        }
-                    }
-                    else
-                    {
-                        m_pNppExec->GetConsole().PrintError( tstr().Format(80, _T("<<< TerminateProcess() returned FALSE (PID=%d)."), m_ProcessInfo.dwProcessId) );
-                    }
-                }
-
-            }
-        }
-
-        DWORD dwExitCode = (DWORD)(-1);
-        ::GetExitCodeProcess(m_ProcessInfo.hProcess, &dwExitCode);
-        m_nExitCode = (int) dwExitCode;
-
-        // Process cleanup
-        ::CloseHandle(m_ProcessInfo.hProcess); m_ProcessInfo.hProcess = NULL;
-        closePseudoConsole();
-        closePipes();
-        if ( hJob != NULL )
-        {
-            ::CloseHandle(hJob);
-            hJob = NULL;
-        }
-
-        if ( m_pScriptEngine->ContinueExecution() && !isBreaking() )
-        {
-            if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
-            {
-                const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
-                m_pNppExec->GetConsole().PrintMessage( tstr().Format(100, _T("<<< Process finished (PID=%u). (Exit code %d)"), m_ProcessInfo.dwProcessId, m_nExitCode), nPrintMsgFlags ); 
-            }
-            else
-            {
-                if (nPrevState != nlLF /* new line */ )
-                {
-                    const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
-                    m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
+                    m_pNppExec->GetConsole().PrintError( tstr().Format(80, _T("<<< TerminateProcess() returned FALSE (PID=%d)."), m_ProcessInfo.dwProcessId) );
                 }
             }
         }
-
-        return true;
     }
-    else
+
+    // P1.4: drain stdout only after the child process has terminated (not while it is waiting on stdin).
+    if ( m_pScriptEngine->ContinueExecution() && !m_pScriptEngine->GetTriedExitCmd() )
     {
-        DWORD dwErrorCode = ::GetLastError();
-
-        closePseudoConsole();
-        closePipes();
-        if ( hJob != NULL )
+        if ( !IsProcessStillActive(m_ProcessInfo.hProcess) )
         {
-            ::CloseHandle(hJob);
-            hJob = NULL;
+            readPipesAndOutput(m_bufLine, m_bPrevLineEmpty, m_nPrevState, true, m_bDoOutputNext,
+                               m_bufLineStderr, m_bPrevLineEmptyStderr, m_nPrevStateStderr, m_bDoOutputNextStderr);
         }
-
-        if ( m_pScriptEngine )
-        {
-            m_pNppExec->GetConsole().PrintError( m_pScriptEngine->GetLastLoggedCmd().c_str() );
-        }
-        m_pNppExec->GetConsole().PrintSysError( _T("CreateProcess()"), dwErrorCode );
-
-        return false;
     }
+
+    DWORD dwExitCode = (DWORD)(-1);
+    ::GetExitCodeProcess(m_ProcessInfo.hProcess, &dwExitCode);
+    m_nExitCode = (int) dwExitCode;
+
+    // Process cleanup (reader usually stopped in final readPipesAndOutput or kill path above)
+    ::CloseHandle(m_ProcessInfo.hProcess); m_ProcessInfo.hProcess = NULL;
+    m_Io.stopStdoutReader();
+    m_Io.stopStdinWriter();
+    m_Io.closeAll();
+
+    if ( m_hJob != NULL )
+    {
+        ::CloseHandle(m_hJob);
+        m_hJob = NULL;
+    }
+
+    if ( m_pScriptEngine->ContinueExecution() && !isBreaking() )
+    {
+        if ( !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
+        {
+            const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+            m_pNppExec->GetConsole().PrintMessage( tstr().Format(100, _T("<<< Process finished (PID=%u). (Exit code %d)"), m_ProcessInfo.dwProcessId, m_nExitCode), nPrintMsgFlags );
+        }
+        else
+        {
+            if ( m_nPrevState != nlLF /* new line */ )
+            {
+                const UINT nPrintMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine;
+                m_pNppExec->GetConsole().PrintMessage( _T(""), nPrintMsgFlags );
+            }
+        }
+    }
+
+    return true;
 }
 
 void CChildProcess::reset()
 {
     m_strOutput.Clear();
+    m_sCmdLine.Clear();
     m_nExitCode = -1;
     m_nBreakMethod = CProcessKiller::killNone;
-    m_hStdInReadPipe = NULL;
-    m_hStdInWritePipe = NULL; 
-    m_hStdOutReadPipe = NULL;
-    m_hStdOutWritePipe = NULL;
-    m_hPseudoCon = NULL;
-    m_pAttributeList = NULL;
+    m_hJob = NULL;
+    m_Io.reset();
     ::ZeroMemory(&m_ProcessInfo, sizeof(PROCESS_INFORMATION));
+
+    m_bufLine.Clear();
+    m_bPrevLineEmpty = false;
+    m_nPrevState = nlNone;
+    m_bDoOutputNext = true;
+
+    m_bufLineStderr.Clear();
+    m_bPrevLineEmptyStderr = false;
+    m_nPrevStateStderr = nlNone;
+    m_bDoOutputNextStderr = true;
+
+    m_VtParserStdout.Reset();
+    m_VtParserStderr.Reset();
 }
 
 bool CChildProcess::isBreaking() const
@@ -778,17 +815,158 @@ bool CChildProcess::applyReplaceFilters(tstr& _line, tstr& printLine, bool bOutp
     return bOutput;
 }
 
-DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine, 
+DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
                                         bool& bPrevLineEmpty,
                                         int&  nPrevState,
                                         bool  bOutputAll,
-                                        bool& bDoOutputNext)
+                                        bool& bDoOutputNext,
+                                        CStrT<char>& bufLineStderr,
+                                        bool& bPrevLineEmptyStderr,
+                                        int&  nPrevStateStderr,
+                                        bool& bDoOutputNextStderr)
 {
-    DWORD       dwBytesRead = 0;
-    char        Buf[CONSOLEPIPE_BUFSIZE];
+    if ( bOutputAll )
+        m_Io.stopStdoutReader();
+    else
+        ::Sleep(10);
+
+    return readPipesDirect(bufLine, bPrevLineEmpty, nPrevState, bOutputAll, bDoOutputNext,
+                           bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, bDoOutputNextStderr);
+}
+
+DWORD CChildProcess::readOnePipeDirect(HANDLE hReadPipe,
+                                     bool  bOutputAll,
+                                     bool  bFromStderr)
+{
+    DWORD dwBytesRead = 0;
+    char  Buf[CONSOLEPIPE_BUFSIZE];
+    bool bSomethingHasBeenReadFromThePipe = false;
+
+    if ( !hReadPipe )
+    {
+        return 0;
+    }
+
+    do
+    {
+        dwBytesRead = 0;
+        if ( !::PeekNamedPipe(hReadPipe, NULL, 0, NULL, &dwBytesRead, NULL) )
+        {
+            dwBytesRead = 0;
+        }
+
+        bool bOutputThisPass = bOutputAll;
+        if ( !dwBytesRead )
+        {
+            if ( !bSomethingHasBeenReadFromThePipe )
+                bOutputThisPass = true;
+        }
+
+        if ( (dwBytesRead > 0) || bOutputThisPass )
+        {
+            bool bContainsData = (dwBytesRead > 0) ? true : false;
+
+            if ( bContainsData )
+                ::ZeroMemory(Buf, CONSOLEPIPE_BUFSIZE);
+
+            DWORD dwRead = 0;
+            if ( (bContainsData
+                  && ::ReadFile(hReadPipe, Buf, (CONSOLEPIPE_BUFSIZE-1)*sizeof(char), &dwRead, NULL)
+                  && (dwRead > 0)) || bOutputThisPass )
+            {
+                if ( bContainsData )
+                {
+                    Buf[dwRead/sizeof(char)] = 0;
+                    m_Io.enqueueOutputChunk(Buf, (int)(dwRead/sizeof(char)), bFromStderr);
+                    dwBytesRead = dwRead;
+                    bSomethingHasBeenReadFromThePipe = true;
+                }
+                else
+                {
+                    dwBytesRead = 0;
+                }
+            }
+        }
+
+    }
+    while ( (dwBytesRead > 0) && m_pScriptEngine->ContinueExecution() && !isBreaking() );
+
+    return dwBytesRead;
+}
+
+DWORD CChildProcess::processOutputQueue(CStrT<char>& bufLine,
+                                        bool& bPrevLineEmpty,
+                                        int&  nPrevState,
+                                        bool& bDoOutputNext,
+                                        CStrT<char>& bufLineStderr,
+                                        bool& bPrevLineEmptyStderr,
+                                        int&  nPrevStateStderr,
+                                        bool& bDoOutputNextStderr,
+                                        bool  bOutputAll,
+                                        bool  bReadStdout,
+                                        bool  bReadStderr)
+{
+    DWORD dwTotal = 0;
+    CStrT<char> chunk;
+    bool bStderr = false;
+
+    while ( m_Io.popOutputChunk(chunk, bStderr) )
+    {
+        if ( bStderr )
+        {
+            bufLineStderr.Append(chunk);
+            processOutputBuffer(bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, false, bDoOutputNextStderr, true, true);
+            dwTotal += (DWORD) chunk.length();
+        }
+        else
+        {
+            bufLine.Append(chunk);
+            processOutputBuffer(bufLine, bPrevLineEmpty, nPrevState, false, bDoOutputNext, true, false);
+            dwTotal += (DWORD) chunk.length();
+        }
+    }
+
+    if ( bOutputAll || !bReadStdout )
+        processOutputBuffer(bufLine, bPrevLineEmpty, nPrevState, true, bDoOutputNext, bReadStdout, false);
+
+    if ( m_Io.hasSeparateStderrPipe() && (bOutputAll || !bReadStderr) )
+        processOutputBuffer(bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, true, bDoOutputNextStderr, bReadStderr, true);
+
+    return dwTotal;
+}
+
+DWORD CChildProcess::readPipesDirect(CStrT<char>& bufLine,
+                                     bool& bPrevLineEmpty,
+                                     int&  nPrevState,
+                                     bool  bOutputAll,
+                                     bool& bDoOutputNext,
+                                     CStrT<char>& bufLineStderr,
+                                     bool& bPrevLineEmptyStderr,
+                                     int&  nPrevStateStderr,
+                                     bool& bDoOutputNextStderr)
+{
+    const bool bReadStdout = (readOnePipeDirect(m_Io.getStdOutReadPipe(), bOutputAll, false) > 0);
+    bool bReadStderr = false;
+
+    if ( m_Io.hasSeparateStderrPipe() )
+    {
+        bReadStderr = (readOnePipeDirect(m_Io.getStdErrReadPipe(), bOutputAll, true) > 0);
+    }
+
+    return processOutputQueue(bufLine, bPrevLineEmpty, nPrevState, bDoOutputNext,
+                              bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, bDoOutputNextStderr,
+                              bOutputAll, bReadStdout, bReadStderr);
+}
+
+DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
+                                         bool& bPrevLineEmpty,
+                                         int&  nPrevState,
+                                         bool  bFlushPartialLine,
+                                         bool& bDoOutputNext,
+                                         bool  bSomethingHasBeenReadFromPipe,
+                                         bool  bFromStderr)
+{
     CStrT<char> outLine;
-  
-    bool bSomethingHasBeenReadFromThePipe = false; // great name for a local variable :-)
 
     const bool bCondenseEmptyLines = m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CONDENSEEMPTYLINES);
     const bool bConFltrEnable = m_pNppExec->GetOptions().GetBool(OPTB_CONFLTR_ENABLE);
@@ -797,275 +975,240 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
     const bool bOutputVar = m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_SETOUTPUTVAR);
     const unsigned int nAnsiEscSeq = GetAnsiEscSeq();
 
-    const int nBufLineLength = bufLine.length();
+    bool bOutputAll = bFlushPartialLine;
+    if ( !bSomethingHasBeenReadFromPipe )
+        bOutputAll = true;
 
-    do
-    { 
-        ::Sleep(10);  // it prevents from 100% CPU usage while reading!
-        dwBytesRead = 0;
-        if ( !::PeekNamedPipe(m_hStdOutReadPipe, NULL, 0, NULL, &dwBytesRead, NULL) )
+    int copy_len;
+
+    do {
+
+        copy_len = -1;
+
+        for ( int pos = 0; pos < bufLine.length(); pos++ )
         {
-            dwBytesRead = 0;
-        }
-        if ( !dwBytesRead )
-        {
-            // no data in the pipe
-            if ( !bSomethingHasBeenReadFromThePipe )
+            int nIsNewLine = nlNone;
+            if ( bufLine[pos] == '\n' )
             {
-                // did we read something from the pipe already?
-                // if no, then let's output the data from bufLine (if any)
-                bOutputAll = true;
+                nIsNewLine = nlLF;
             }
-        }
-        if ( (dwBytesRead > 0) || bOutputAll )
-        {
-            // some data is in the Pipe or bOutputAll==true
-
-            bool bContainsData = (dwBytesRead > 0) ? true : false;
-            // without bContainsData==true the ReadFile operation will never return
-
-            if ( bContainsData )
-                ::ZeroMemory(Buf, CONSOLEPIPE_BUFSIZE);
-            dwBytesRead = 0;
-            if ( (bContainsData 
-                  && ::ReadFile(m_hStdOutReadPipe, Buf, (CONSOLEPIPE_BUFSIZE-1)*sizeof(char), &dwBytesRead, NULL)
-                  && (dwBytesRead > 0)) || bOutputAll )
+            else if ( bufLine[pos] == '\r' )
             {
-                // some data has been read from the Pipe or bOutputAll==true
-        
-                int copy_len;
-
-                Buf[dwBytesRead/sizeof(char)] = 0;
-
-                bufLine.Append( Buf, dwBytesRead/sizeof(char) );
-
-                if ( dwBytesRead > 0 )
+                if ( bufLine[pos+1] != '\n' )
                 {
-                    bSomethingHasBeenReadFromThePipe = true;
+                    if ( (bufLine[pos+1] != '\r') || (bufLine.GetAt(pos+2) != '\n') )
+                    {
+                        nIsNewLine = nlCR;
+                    }
+                }
+            }
+            else if ( bufLine[pos] == '\b' )
+            {
+                nIsNewLine = nlBS;
+            }
+
+            if ( nIsNewLine || (bOutputAll && (pos == bufLine.length()-1)) )
+            {
+                copy_len = pos;
+                if ( !nIsNewLine )
+                {
+                    copy_len++;
+                }
+                else if ( (pos > 0) && (bufLine[pos-1] == '\r') )
+                {
+                    copy_len--;
+                    if ( (pos > 1) && (bufLine[pos-2] == '\r') )
+                        copy_len--;
                 }
 
-                // The following lines are needed for filtered output only.
-                // I.e. you can replace all these lines by this one:
-                //     GetConsole().PrintOutput(Buf);
-                // if you don't need filtered output. (*)
-                // (*) But don't forget about Unicode version:
-                //     OEM -> WideChar or UTF-8 -> WideChar
-        
-                /**/
-                do {
-         
-                    copy_len = -1;
+                outLine.Assign(bufLine.c_str(), copy_len);
 
-                    for ( int pos = 0; pos < bufLine.length(); pos++ )
+                if ( nIsNewLine == nlBS )
+                {
+                    while ( bufLine[pos+1] == '\b' )
                     {
-                        int nIsNewLine = nlNone;
-                        if ( bufLine[pos] == '\n' )
-                        {
-                            nIsNewLine = nlLF;
-                        }
-                        else if ( bufLine[pos] == '\r' )
-                        {
-                            if ( bufLine[pos+1] != '\n' )
-                            {
-                                // not "\r\n" pair
-                                if ( (bufLine[pos+1] != '\r') || (bufLine.GetAt(pos+2) != '\n') )
-                                {
-                                    // not "\r\r\n" (stupid M$'s line ending)
-                                    // just "\r"
-                                    nIsNewLine = nlCR;
-                                }
-                            }
-                        }
-                        else if ( bufLine[pos] == '\b' )
-                        {
-                            nIsNewLine = nlBS;
-                        }
-                        
-                        if ( nIsNewLine || (bOutputAll && (pos == bufLine.length()-1)) )
-                        {
-                            copy_len = pos;
-                            if ( !nIsNewLine )
-                            {
-                                // i.e. bOutputAll is true
-                                copy_len++;
-                            }
-                            else if ( (pos > 0) && (bufLine[pos-1] == '\r') )
-                            {
-                                copy_len--;
-                                if ( (pos > 1) && (bufLine[pos-2] == '\r') )
-                                    copy_len--;
-                            }
-
-                            outLine.Assign(bufLine.c_str(), copy_len);
-
-                            if ( nIsNewLine == nlBS ) // '\b'
-                            {
-                                // counting "\b\b..." and skip them
-                                while ( bufLine[pos+1] == '\b' )
-                                {
-                                    ++nIsNewLine;
-                                    ++pos;
-                                }
-                            }
-
-                            bufLine.Delete(0, pos+1);
-                            if ( (copy_len > 0) || (!bCondenseEmptyLines) ||
-                                 ( ((!bConFltrExclAllEmpty) || (!bConFltrEnable)) &&
-                                   ((!bPrevLineEmpty) || (!bConFltrEnable) || (!bConFltrExclDupEmpty))
-                                 ) )
-                            {
-                                tstr printLine;
-                                bool bOutput = bConFltrEnable ? bDoOutputNext : true;
-
-                                if ( bOutput )
-                                {
-                                    tstr _line;
-
-                                    if ( outLine.length() > 0 )
-                                    {
-                                        unsigned int enc = CConsoleEncodingDlg::getOutputEncoding(GetEncoding());
-                                    
-                                      #ifdef UNICODE
-
-                                        switch ( enc )
-                                        {
-                                            case CConsoleEncodingDlg::ENC_OEM :
-                                                _line = NppExecHelpers::CStrToWStr(outLine, CP_OEMCP);
-                                                break;
-                                            
-                                            case CConsoleEncodingDlg::ENC_UTF8 :
-                                                _line = NppExecHelpers::CStrToWStr(outLine, CP_UTF8);
-                                                break;
-
-                                            default:
-                                                _line = NppExecHelpers::CStrToWStr(outLine, CP_ACP);
-                                                break;
-                                        }
-
-                                        {
-                                            wchar_t wchNulChar = CNppConsoleRichEdit::GetNulChar();
-                                            if ( wchNulChar != 0 )
-                                            {
-                                                _line.Replace( wchar_t(0x0000), wchNulChar ); // e.g. to 0x25E6 - the "White Bullet" symbol
-                                            }
-                                        }
-
-                                      #else
-
-                                        {
-                                            char chNulChar = CNppConsoleRichEdit::GetNulChar();
-                                            if ( chNulChar != 0 )
-                                            {
-                                                outLine.Replace( char(0x00), chNulChar ); // e.g. to 0x17 - the "End of Text Block" symbol
-                                            }
-                                        }
-
-                                        switch ( enc )
-                                        {
-                                            case CConsoleEncodingDlg::ENC_OEM :
-                                                if ( _line.SetSize(outLine.length() + 1) )
-                                                {
-                                                    ::OemToChar( outLine.c_str(), _line.c_str() );
-                                                    _line.CalculateLength();
-                                                }
-                                                break;
-                                            
-                                            case CConsoleEncodingDlg::ENC_UTF8 :
-                                                {
-                                                    char* pStr = SysUniConv::newUTF8ToMultiByte( outLine.c_str() );
-                                                    if ( pStr )
-                                                    {
-                                                        _line = pStr;
-                                                        delete [] pStr;
-                                                    }
-                                                }
-                                                break;
-
-                                            default:
-                                                _line = outLine;
-                                                break;
-                                        }
-
-                                      #endif
-
-                                        printLine = _line;
-                                        NppExecHelpers::StrLower(_line);
-                                    }
-
-                                    // >>> console output filters
-                                    bOutput = applyOutputFilters(_line, bOutput);
-                                    // <<< console output filters
-
-                                    // >>> console replace filters
-                                    bOutput = applyReplaceFilters(_line, printLine, bOutput);
-                                    // <<< console replace filters
-                                }
-                                    
-                                if ( bOutput )
-                                {
-                                    bool bPrintThisLine = true;
-
-                                    if ( nAnsiEscSeq == escRemove )
-                                    {
-                                        bPrintThisLine = RemoveAnsiEscSequencesFromLine(printLine);
-                                    }
-
-                                    if ( nPrevState == nlCR ) // '\r'
-                                    {
-                                        if ( !(nIsNewLine == nlLF && pos <= 1 && copy_len == 0) )
-                                            m_pNppExec->GetConsole().ProcessSlashR();
-                                    }
-                                    else if ( nPrevState >= nlBS ) // '\b'...
-                                    {
-                                        m_pNppExec->GetConsole().ProcessSlashB( (nPrevState - nlBS) + 1 );
-                                    }
-
-                                    if ( bPrintThisLine )
-                                    {
-                                        if ( bOutputVar )
-                                        {
-                                            m_strOutput += printLine;
-                                            if ( nIsNewLine == nlLF )
-                                            {
-                                                m_strOutput += _T("\n");
-                                            }
-                                        }
-
-                                        UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg;
-                                        if ( nIsNewLine == nlLF )
-                                            nPrintOutFlags |= CNppExecConsole::pfNewLine;
-                                        m_pNppExec->GetConsole().PrintOutput( printLine.c_str(), nPrintOutFlags );
-                                    }
-                                }
-
-                                // if the current line is not over, then the current filter 
-                                // must be applied to the rest of this line
-                                bDoOutputNext = bOutput;
-                            }
-                            bPrevLineEmpty = (copy_len > 0) ? false : true;
-                            nPrevState = nIsNewLine;
-                            if ( nIsNewLine == nlLF )
-                            {
-                                // current line is over - abort current filter
-                                bDoOutputNext = true;
-                            }
-                            break;
-                        }
-                    
+                        ++nIsNewLine;
+                        ++pos;
                     }
-                } while ( copy_len >= 0 );
-                /**/
+                }
 
+                bufLine.Delete(0, pos+1);
+                if ( (copy_len > 0) || (!bCondenseEmptyLines) ||
+                     ( ((!bConFltrExclAllEmpty) || (!bConFltrEnable)) &&
+                       ((!bPrevLineEmpty) || (!bConFltrEnable) || (!bConFltrExclDupEmpty))
+                     ) )
+                {
+                    tstr printLine;
+                    bool bOutput = bConFltrEnable ? bDoOutputNext : true;
+
+                    if ( bOutput )
+                    {
+                        tstr _line;
+
+                        if ( outLine.length() > 0 )
+                        {
+                            unsigned int enc = CConsoleEncodingDlg::getOutputEncoding(GetEncoding());
+
+                          #ifdef UNICODE
+
+                            switch ( enc )
+                            {
+                                case CConsoleEncodingDlg::ENC_OEM :
+                                    _line = NppExecHelpers::CStrToWStr(outLine, CP_OEMCP);
+                                    break;
+
+                                case CConsoleEncodingDlg::ENC_UTF8 :
+                                    _line = NppExecHelpers::CStrToWStr(outLine, CP_UTF8);
+                                    break;
+
+                                default:
+                                    _line = NppExecHelpers::CStrToWStr(outLine, CP_ACP);
+                                    break;
+                            }
+
+                            {
+                                wchar_t wchNulChar = CNppConsoleRichEdit::GetNulChar();
+                                if ( wchNulChar != 0 )
+                                {
+                                    _line.Replace( wchar_t(0x0000), wchNulChar );
+                                }
+                            }
+
+                          #else
+
+                            {
+                                char chNulChar = CNppConsoleRichEdit::GetNulChar();
+                                if ( chNulChar != 0 )
+                                {
+                                    outLine.Replace( char(0x00), chNulChar );
+                                }
+                            }
+
+                            switch ( enc )
+                            {
+                                case CConsoleEncodingDlg::ENC_OEM :
+                                    if ( _line.SetSize(outLine.length() + 1) )
+                                    {
+                                        ::OemToChar( outLine.c_str(), _line.c_str() );
+                                        _line.CalculateLength();
+                                    }
+                                    break;
+
+                                case CConsoleEncodingDlg::ENC_UTF8 :
+                                    {
+                                        char* pStr = SysUniConv::newUTF8ToMultiByte( outLine.c_str() );
+                                        if ( pStr )
+                                        {
+                                            _line = pStr;
+                                            delete [] pStr;
+                                        }
+                                    }
+                                    break;
+
+                                default:
+                                    _line = outLine;
+                                    break;
+                            }
+
+                          #endif
+
+                            printLine = _line;
+                            NppExecHelpers::StrLower(_line);
+                        }
+
+                        bOutput = applyOutputFilters(_line, bOutput);
+                        bOutput = applyReplaceFilters(_line, printLine, bOutput);
+                    }
+
+                    if ( bOutput )
+                    {
+                        bool bPrintThisLine = true;
+
+                        if ( nAnsiEscSeq == escRemove )
+                        {
+                            bPrintThisLine = RemoveAnsiEscSequencesFromLine(printLine);
+                        }
+                        else if ( nAnsiEscSeq == escProcess )
+                        {
+                            tstr vtOutput;
+                            CConsoleVtParser& vtParser = bFromStderr ? m_VtParserStderr : m_VtParserStdout;
+                            bPrintThisLine = vtParser.ProcessChunk(printLine, vtOutput);
+                            printLine.Swap(vtOutput);
+
+                            CConsoleVtParser::VtActions vtActions;
+                            vtParser.ConsumeActions(vtActions);
+                            if ( vtActions.bClearScreen )
+                                m_pNppExec->GetConsole().VtEraseScreenInOutputRegion();
+                            if ( vtActions.bClearLine )
+                                m_pNppExec->GetConsole().VtEraseLineInOutputRegion();
+                            if ( vtActions.nBackspaceCount > 0 )
+                                m_pNppExec->GetConsole().VtBackspaceInOutputRegion(vtActions.nBackspaceCount);
+                        }
+
+                        if ( nPrevState == nlCR )
+                        {
+                            if ( !(nIsNewLine == nlLF && pos <= 1 && copy_len == 0) )
+                                m_pNppExec->GetConsole().ProcessSlashR();
+                        }
+                        else if ( nPrevState >= nlBS )
+                        {
+                            m_pNppExec->GetConsole().ProcessSlashB( (nPrevState - nlBS) + 1 );
+                        }
+
+                        if ( bPrintThisLine )
+                        {
+                            if ( bOutputVar )
+                            {
+                                m_strOutput += printLine;
+                                if ( nIsNewLine == nlLF )
+                                {
+                                    m_strOutput += _T("\n");
+                                }
+                            }
+
+                            UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg;
+                            if ( nIsNewLine == nlLF )
+                                nPrintOutFlags |= CNppExecConsole::pfNewLine;
+
+                            if ( (nAnsiEscSeq == escProcess) )
+                            {
+                                CConsoleVtParser& vtParser = bFromStderr ? m_VtParserStderr : m_VtParserStdout;
+                                if ( vtParser.HasActiveTextColor() )
+                                {
+                                    CNppExecConsole& console = m_pNppExec->GetConsole();
+                                    const COLORREF oldColor = console.GetCurrentColorTextNorm();
+                                    console.SetCurrentColorTextNorm(vtParser.GetActiveTextColor());
+                                    console.PrintOutput(printLine.c_str(), nPrintOutFlags);
+                                    console.SetCurrentColorTextNorm(oldColor);
+                                }
+                                else
+                                {
+                                    m_pNppExec->GetConsole().PrintOutput(printLine.c_str(), nPrintOutFlags);
+                                }
+                            }
+                            else
+                            {
+                                m_pNppExec->GetConsole().PrintOutput(printLine.c_str(), nPrintOutFlags);
+                            }
+                        }
+                    }
+
+                    bDoOutputNext = bOutput;
+                }
+                bPrevLineEmpty = (copy_len > 0) ? false : true;
+                nPrevState = nIsNewLine;
+                if ( nIsNewLine == nlLF )
+                {
+                    bDoOutputNext = true;
+                }
+                break;
             }
+
         }
+    } while ( copy_len >= 0 );
 
-    } 
-    while ( (dwBytesRead > 0) && m_pScriptEngine->ContinueExecution() && !isBreaking() );
-
-    if ( bOutputAll && !dwBytesRead )  dwBytesRead = nBufLineLength;
-    return dwBytesRead;
+    return 0;
 }
-
 bool CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
 {
     // ANSI escape codes, references:
@@ -1235,6 +1378,24 @@ void CChildProcess::MustBreak(unsigned int nBreakMethod)
     m_nBreakMethod = nBreakMethod;
 }
 
+bool CChildProcess::IsRunning() const
+{
+    if ( !m_ProcessInfo.hProcess )
+        return false;
+
+    DWORD dwExitCode = STILL_ACTIVE;
+    if ( !::GetExitCodeProcess(m_ProcessInfo.hProcess, &dwExitCode) )
+        return false;
+
+    return (dwExitCode == STILL_ACTIVE);
+}
+
+void CChildProcess::Stop()
+{
+    // Request the poll loop to stop and let WaitForExit() take the existing kill path.
+    MustBreak(CProcessKiller::killCtrlBreak);
+}
+
 bool CChildProcess::Kill(const CProcessKiller::eKillMethod arrKillMethods[], int nKillMethods,
                          unsigned int nWaitTimeout,
                          CProcessKiller::eKillMethod* pnSucceededKillMethod)
@@ -1257,119 +1418,26 @@ bool CChildProcess::Kill(const CProcessKiller::eKillMethod arrKillMethods[], int
 
 bool CChildProcess::WriteInput(const TCHAR* szLine, bool bFFlush )
 {
-    if ( (!szLine) || (!m_hStdInWritePipe) )
+    if ( (!szLine) || (!m_Io.getStdInWritePipe()) )
         return false;
 
     Runtime::GetLogger().AddEx_WithoutOutput( _T("; CChildProcess::WriteInput(\"%s\") (instance = %s)"), szLine, GetInstanceStr() );
-    
-    char*        pStr = NULL;
-    int          len = 0;
-    DWORD        dwBytesWritten = 0;
-    unsigned int enc = CConsoleEncodingDlg::getInputEncoding(GetEncoding());
 
-  #ifdef UNICODE
-    
-    switch ( enc )
-    {
-        case CConsoleEncodingDlg::ENC_OEM :
-            pStr = SysUniConv::newUnicodeToMultiByte( szLine, -1, CP_OEMCP, &len );
-            break;
-        
-        case CConsoleEncodingDlg::ENC_UTF8 :
-            pStr = SysUniConv::newUnicodeToUTF8( szLine, -1, &len );
-            break;
+    CStrT<char> encoded;
+    const unsigned int enc = CConsoleEncodingDlg::getInputEncoding(GetEncoding());
+    if ( !EncodeInputLine(szLine, enc, encoded) )
+        return false;
 
-        default:
-            pStr = SysUniConv::newUnicodeToMultiByte( szLine, -1, CP_ACP, &len );
-            break;
-    }
-    
-    if ( pStr )
-    {
-        ::WriteFile(m_hStdInWritePipe, pStr, len*sizeof(char), &dwBytesWritten, NULL);
-        if ( bFFlush )
-        {
-            // beware! this may hang the application (due to MustDie's pipes)
-            ::FlushFileBuffers(m_hStdInWritePipe);
-        }
-        delete [] pStr;
-    }
-                  
-  #else
-    
-    bool bNewMemory = false;
-    
-    switch ( enc )
-    {
-        case CConsoleEncodingDlg::ENC_OEM :
-            len = lstrlen(szLine);
-            pStr = new char[len + 1];
-            if ( pStr )
-            {
-                ::CharToOem(szLine, pStr);
-                bNewMemory = true;
-            }
-            break;
+    const int nLen = encoded.length();
+    if ( (nLen <= 0) && !bFFlush )
+        return true;
 
-        case CConsoleEncodingDlg::ENC_UTF8 :
-            pStr = SysUniConv::newMultiByteToUTF8(szLine, -1, CP_ACP, &len);
-            if ( pStr )
-            {
-                bNewMemory = true;
-            }
-            break;
+    // P1.6: enqueue on caller thread; blocking WriteFile/FlushFileBuffers on writer thread only.
+    if ( m_Io.isStdinWriterActive() )
+        return m_Io.enqueueStdin(encoded.c_str(), nLen, bFFlush);
 
-        default:
-            len = lstrlen(szLine);
-            pStr = (char *) szLine;
-            bNewMemory = false;
-            break;
-    }
-
-    if ( pStr )
-    {
-        ::WriteFile(m_hStdInWritePipe, pStr, len*sizeof(char), &dwBytesWritten, NULL);
-        if ( bFFlush )
-        {
-            // beware! this may hang the application (due to MustDie's pipes)
-            ::FlushFileBuffers(m_hStdInWritePipe);
-        }
-        if ( bNewMemory )
-            delete [] pStr;
-    }
-  
-  #endif
-
+    m_Io.writeStdinDirect(encoded.c_str(), nLen, bFFlush);
     return true;
-}
-
-void CChildProcess::closePipes()
-{
-    auto closePipe = [](HANDLE& hPipe)
-    {
-        if ( hPipe )
-        {
-            ::CloseHandle(hPipe);
-            hPipe = NULL;
-        }
-    };
-
-    closePipe(m_hStdOutReadPipe);
-    closePipe(m_hStdOutWritePipe);
-    closePipe(m_hStdInReadPipe);
-    closePipe(m_hStdInWritePipe);
-}
-
-void CChildProcess::closePseudoConsole()
-{
-    if ( g_pseudoCon.pfnClosePseudoConsole && m_hPseudoCon )
-    {
-        g_pseudoCon.pfnClosePseudoConsole(m_hPseudoCon); m_hPseudoCon = NULL;
-    }
-    if ( m_pAttributeList )
-    {
-        g_pseudoCon.pfnDeleteProcThreadAttributeList(m_pAttributeList); m_pAttributeList = NULL;
-    }
 }
 
 tstr& CChildProcess::GetOutput()
@@ -1395,26 +1463,30 @@ const PROCESS_INFORMATION* CChildProcess::GetProcessInfo() const
 bool CChildProcess::IsPseudoCon() const
 {
     // See also: CNppExecCommandExecutor::IsChildProcessPseudoCon()
-    return (m_hPseudoCon ? true : false);
+    return m_Io.isPseudoCon();
+}
+
+bool CChildProcess::ResizePseudoConsoleToConsole()
+{
+    return m_Io.resizePseudoConsole(m_pNppExec);
 }
 
 const TCHAR* CChildProcess::GetNewLine() const
 {
-    return (m_hPseudoCon ? _T("\r") : m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER));
+    return (m_Io.isPseudoCon() ? _T("\r") : m_pNppExec->GetOptions().GetStr(OPTS_KEY_ENTER));
 }
 
 unsigned int CChildProcess::GetEncoding() const
 {
-    return (m_hPseudoCon ? CConsoleEncodingDlg::getPseudoConsoleEncoding() : m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING));
+    return (m_Io.isPseudoCon() ? CConsoleEncodingDlg::getPseudoConsoleEncoding() : m_pNppExec->GetOptions().GetUint(OPTU_CONSOLE_ENCODING));
 }
 
 unsigned int CChildProcess::GetAnsiEscSeq() const
 {
     int nAnsiEscSeq = m_pNppExec->GetOptions().GetInt(OPTI_CONSOLE_ANSIESCSEQ);
-    if ( m_hPseudoCon )
+    if ( m_Io.isPseudoCon() )
     {
-        // TODO: NppExec simply removes ANSI Escape Sequences
-        // (PsequdoConsole requires _full_ support of them)
+        // PseudoConsole output should be parsed (or at least stripped), not dumped raw.
         if ( nAnsiEscSeq == escKeepRaw )
             nAnsiEscSeq = escProcess;
     }
