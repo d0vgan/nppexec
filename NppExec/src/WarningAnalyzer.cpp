@@ -17,14 +17,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "WarningAnalyzer.h"
+#include "WarningMaskMatcher.h"
 #include "NppExecScriptEngine.h"
 #include "c_base/str_func.h"
 #include "tchar.h"
 #include "richedit.h"
 
-static bool match_mask_2( const TCHAR*, const TCHAR*, TCHAR*, TCHAR*, TCHAR*, TCHAR* );
 static void preprocessMask( TCHAR* outMask, const TCHAR* inMask, unsigned int& outMaskType );
-static bool is_num_str(const TCHAR* s);
+
+// %ABSFILE% expects *1 to capture a single drive letter (A-Z). Reject bogus matches
+// (e.g. quoted paths like "C:\file" where *1 can become "\"C" and still match ":\*2").
+static bool isValidAbsFileDriveCapture( const TCHAR* s )
+{
+    if ( !s || !s[0] || s[1] )
+        return false;
+
+    const TCHAR c = s[0];
+    return ( ( c >= _T('A') ) && ( c <= _T('Z') ) )
+        || ( ( c >= _T('a') ) && ( c <= _T('z') ) );
+}
+
+// Masks like "%FILE%" preprocess to a literal '"' before *1; drive splitting does not apply.
+static bool absFilePromotionAllowed( const TCHAR* internalMask )
+{
+    return ( internalMask == NULL ) || ( _tcsstr( internalMask, _T("\"*1") ) == NULL );
+}
 
 
 const tregex CWarningAnalyzer::m_rgxFindFilename = tregex( _T( "(?:(([a-zA-Z]:[\\\\/]|\\.)[^.]*\\.[^:\"\\(\\s]{1,8})|(^\\w[^\\s:\\\\/]*\\.\\w{1,8}))(?=[\\s:(\",oline]{1,9}[0-9]+)" ) );
@@ -388,7 +405,9 @@ bool CWarningAnalyzer::match( const TCHAR* str )
                 } while ( ch != 0 );
 
                 // Let's try to match %ABSFILE%...
-                if ( match_mask_2(szWarnMaskAbs, str, ostr1, ostr2, ostr3, ostr4) )
+                if ( absFilePromotionAllowed( pszMask )
+                  && match_mask_2(szWarnMaskAbs, str, ostr1, ostr2, ostr3, ostr4)
+                  && isValidAbsFileDriveCapture( ostr1 ) )
                 {
                     // %ABSFILE% matched
                     pszMask = szWarnMaskAbs;
@@ -582,153 +601,6 @@ bool CWarningAnalyzer::IsEffectEnabled( int FilterNumber ) const
 void CWarningAnalyzer::EnableEffect( int FilterNumber, bool Enable )
 {
     m_Filter[ FilterNumber ].Effect.Enable = Enable;
-}
-
-bool match_mask_2( const TCHAR* mask
-                 , const TCHAR* str
-                 ,       TCHAR* postr1
-                 ,       TCHAR* postr2
-                 ,       TCHAR* postr3
-                 ,       TCHAR* postr4
-                 )
-{
-    if ( mask && str )
-    {
-        const TCHAR* pMask = mask;
-        const TCHAR* pStr  = str;
-        TCHAR* postr   = NULL;
-        TCHAR* postr0  = NULL;
-        bool   matched = false;
-        bool   done    = false;
-
-        while (!done)
-        {
-            if ( *pMask == _T('*') ) // 0 or more characters
-            {
-                ++pMask;
-                if ( *pMask == TCM_FILE1 )
-                {
-                    postr = postr1;
-                }
-                else if ( *pMask == TCM_FILE2 )
-                {
-                    postr = postr2;
-                }
-                else if ( *pMask == TCM_LINE )
-                {
-                    postr = postr3; // a number expected
-                }
-                else if ( *pMask == TCM_CHAR )
-                {
-                    postr = postr4; // a number expected
-                }
-                else
-                {
-                    postr = NULL;
-                }
-                postr0 = postr;
-
-                if ( ( (postr == postr3) || (postr == postr4) )
-                  && ( !is_num_str(pStr) ) 
-                   )
-                {
-                    // pStr is expected to contain a number, but it's not
-                    matched = false;
-                }
-                else
-                {
-                    if (*pMask) ++pMask;
-
-                    if (*pMask == 0)
-                    {
-                        matched = true;
-                        if ( postr )
-                        {
-                            while ( (postr < postr0 + WARN_MAX_FILENAME) && (*postr++ = *pStr++) ) ;
-                            *postr = 0;
-                        }
-                    }
-                    else
-                    {
-                        while ( ( !( matched = match_mask_2( pMask, pStr, postr1, postr2, postr3, postr4 ) ) )
-                              &&( *pStr != 0 )
-                              )
-                        {
-                            if ( postr )
-                            {
-                                if ( postr < postr0 + WARN_MAX_FILENAME )
-                                {
-                                    *postr++ = *pStr;
-                                }
-                            }
-                            pStr++;
-                        }
-                        if ( postr )
-                        {
-                            *postr = 0;
-                        }
-                    }
-                }
-                done = true;
-            }
-            else if ( ( pMask[0] == _T(':')   ) // ABS PATH can be drive:\... or drive:/...
-                    &&( pMask[1] == _T('\\')  )
-                    &&( pMask[2] == _T('*')   )
-                    &&( pMask[3] == TCM_FILE2 )
-                    &&( pStr[0] == _T(':')    )
-                    &&( ( pStr[1] == _T('\\') )
-                      ||( pStr[1] == _T('/')  )
-                      )
-                    )
-            {
-                    ++pMask;
-                    ++pStr;
-                    ++pMask;
-                    ++pStr;
-            }
-            else if ( *pMask == 0 ) // mask is over
-            {
-                matched = (*pStr == 0) ? true : false;
-                done = true;
-            }
-            else
-            {
-                if ( ( *pMask == *pStr ) // exact match, case-sensitive
-                  || ( (*pMask == _T('?')) && (*pStr != 0) ) // any character
-                  || ( (*pMask == _T(' ')) && NppExecHelpers::IsAnySpaceChar(*pStr) ) // tab treated as space
-                   ) 
-                {
-                    ++pMask;
-                    ++pStr;
-                }
-                else
-                {
-                    matched = false;
-                    done = true;
-                }
-            }
-        }
-        return matched;
-    }
-    return false;
-}
-
-bool is_num_str(const TCHAR* s)
-{
-    if ( *s )
-    {
-        while ( NppExecHelpers::IsAnySpaceChar(*s) )  ++s;
-        if ( *s )
-        {
-            if ( (*s == _T('-')) || (*s == _T('+')) )
-                ++s;
-
-            if ( (*s >= _T('0')) && (*s <= _T('9')) )
-                return true;
-        }
-    }
-
-    return false;
 }
 
 unsigned char CWarningAnalyzer::xtou( const TCHAR x1, const TCHAR x0 )
