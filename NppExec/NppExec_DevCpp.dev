@@ -1,7 +1,7 @@
 [Project]
 FileName=NppExec_DevCpp.dev
 Name=NppExec
-UnitCount=86
+UnitCount=88
 Type=3
 Ver=2
 IsCpp=1
@@ -942,3 +942,22 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
+[Unit87]
+FileName=src\WarningMaskMatcher.cpp
+CompileCpp=1
+Folder=NppExec
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit88]
+FileName=src\WarningMaskMatcher.h
+CompileCpp=1
+Folder=NppExec
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
