@@ -289,6 +289,7 @@
     <ClCompile Include="src\NppScriptList.cpp" />
     <ClCompile Include="src\PluginCommunication\NppExecPluginInterface.cpp" />
     <ClCompile Include="src\WarningAnalyzer.cpp" />
+    <ClCompile Include="src\WarningMaskMatcher.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\base.h" />
@@ -348,6 +349,7 @@
     <ClInclude Include="src\PluginCommunication\nppexec_msgs.h" />
     <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\WarningAnalyzer.h" />
+    <ClInclude Include="src\WarningMaskMatcher.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\NppExec.rc" />

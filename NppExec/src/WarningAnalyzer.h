@@ -20,6 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _warning_analyzer_h_
 //---------------------------------------------------------------------------
 #include "base.h"
+#include "WarningMaskMatcher.h"
 #include <regex>
 #include <map>
 
@@ -29,7 +30,6 @@ typedef std::match_results<tstring::const_iterator> tsmatch;
 
 #define WARN_MASK_SIZE            ( 150 )
 #define WARN_MAX_FILTER           ( 10 )
-#define WARN_MAX_FILENAME         ( 2000 )
 #define WARN_BUILTIN_ERROR_FILTER ( -1 )
 
 class CWarningAnalyzer 

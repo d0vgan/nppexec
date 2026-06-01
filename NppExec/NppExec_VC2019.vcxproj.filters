@@ -105,6 +105,9 @@
     <ClCompile Include="src\WarningAnalyzer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\WarningMaskMatcher.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="src\NppExecCommandExecutor.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -225,6 +228,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\WarningAnalyzer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\WarningMaskMatcher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\NppExecCommandExecutor.h">
