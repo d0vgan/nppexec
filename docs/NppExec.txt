@@ -1,7 +1,7 @@
 
  ****************************************************************************
- * NppExec plugin ver. 0.8.11 for Notepad++
- * by DV <dvv81 @ ukr.net>, December 2006 - April 2026
+ * NppExec plugin ver. 0.8.12 for Notepad++
+ * by DV <dvv81 @ ukr.net>, December 2006 - June 2026
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
  *
@@ -249,6 +249,12 @@
  *************
  *  HISTORY  *
  *************
+
+ v0.8.12 - June 2026
+ -------------------
+ * Glory to Ukraine! Glory to the heroes!
+ - fixed: WarningAnalyzer failed to match e.g. "%FILE%" (%LINE%) :*
+
 
  v0.8.11 - April 2026
  --------------------

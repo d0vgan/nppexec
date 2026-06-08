@@ -1,7 +1,7 @@
 import os
 
-VERSION_TO_SET = "0.8.11"
-DATE_TO_SET = "April 2026"
+VERSION_TO_SET = "0.8.12"
+DATE_TO_SET = "June 2026"
 
 
 def run():

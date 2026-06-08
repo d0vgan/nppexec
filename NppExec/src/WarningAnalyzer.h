@@ -32,7 +32,7 @@ typedef std::match_results<tstring::const_iterator> tsmatch;
 #define WARN_MAX_FILTER           ( 10 )
 #define WARN_BUILTIN_ERROR_FILTER ( -1 )
 
-class CWarningAnalyzer 
+class CWarningAnalyzer
 {
 public:
     enum eMaskType {

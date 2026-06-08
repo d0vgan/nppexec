@@ -434,7 +434,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         TCHAR* postr4 = ostr4;
 
         // %ABSFILE%
-        if ( _tcsstr(pszMask, TSM_ABSFILE) ) 
+        if ( _tcsstr(pszMask, TSM_ABSFILE) )
         {
             while ( *postr1 )  ++postr1;
             *postr1++ = _T(':');
@@ -464,7 +464,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             // there is no %ABSFILE% or %FILE% in the Mask
             m_FileName[0] = 0;
         }
-        
+
         // skip leading spaces
         while ( NppExecHelpers::IsAnySpaceChar(*postr3) )  ++postr3;
         m_nLine = _ttoi(postr3);
@@ -508,7 +508,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
                         ErrPositionIndicator[m_nLine] = static_cast<int>(match[0].str().size());
                     m_nChar = ErrPositionIndicator[m_nLine];
                 }
-            } 
+            }
             else
             {
                 m_nLine = 0;
@@ -629,5 +629,5 @@ TCHAR* CWarningAnalyzer::utox( unsigned char i, TCHAR *x, int size )
         x[count--] = ( (j & 0xF) > 9 ? 'A' + (j & 0xF) - 10 : '0' + (j & 0xF) );
         j = j >> 4;
     }
-    return ( x );    
+    return ( x );
 }
