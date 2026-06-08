@@ -33,14 +33,14 @@ static bool isValidAbsFileDriveCapture( const TCHAR* s )
         return false;
 
     const TCHAR c = s[0];
-    return ( ( c >= _T('A') ) && ( c <= _T('Z') ) )
-        || ( ( c >= _T('a') ) && ( c <= _T('z') ) );
+    return ( (c >= _T('A')) && (c <= _T('Z')) )
+        || ( (c >= _T('a')) && (c <= _T('z')) );
 }
 
 // Masks like "%FILE%" preprocess to a literal '"' before *1; drive splitting does not apply.
 static bool absFilePromotionAllowed( const TCHAR* internalMask )
 {
-    return ( internalMask == NULL ) || ( _tcsstr( internalMask, _T("\"*1") ) == NULL );
+    return ( internalMask == NULL ) || ( _tcsstr(internalMask, _T("\"*1")) == NULL );
 }
 
 
@@ -79,7 +79,7 @@ void CWarningAnalyzer::SetEffect( int FilterNumber, const TEffect& Effect )
 {
     if ( FilterNumber < WARN_MAX_FILTER )
     {
-        m_Filter[ FilterNumber ].Effect = Effect;
+        m_Filter[FilterNumber].Effect = Effect;
     }
 }
 
@@ -94,20 +94,20 @@ void preprocessMask( TCHAR* outMask, const TCHAR* inMask, unsigned int& outMaskT
             int len = 0;
 
             // absolute path: %A% or %ABSFILE%
-            if ( ( inMask[ 1 ] == _T('A') )
-               &&( inMask[ 2 ] == _T('%') )
+            if ( ( inMask[1] == _T('A') )
+               &&( inMask[2] == _T('%') )
                )
             {
                 len = 3;
             }
-            else if ( ( inMask[ 1 ] == _T('A') )
-                    &&( inMask[ 2 ] == _T('B') )
-                    &&( inMask[ 3 ] == _T('S') )
-                    &&( inMask[ 4 ] == _T('F') )
-                    &&( inMask[ 5 ] == _T('I') )
-                    &&( inMask[ 6 ] == _T('L') )
-                    &&( inMask[ 7 ] == _T('E') )
-                    &&( inMask[ 8 ] == _T('%') )
+            else if ( ( inMask[1] == _T('A') )
+                    &&( inMask[2] == _T('B') )
+                    &&( inMask[3] == _T('S') )
+                    &&( inMask[4] == _T('F') )
+                    &&( inMask[5] == _T('I') )
+                    &&( inMask[6] == _T('L') )
+                    &&( inMask[7] == _T('E') )
+                    &&( inMask[8] == _T('%') )
                )
             {
                 len = 9;
@@ -127,17 +127,17 @@ void preprocessMask( TCHAR* outMask, const TCHAR* inMask, unsigned int& outMaskT
             // file name: %F% or %FILE%
             if ( len == 0 )
             {
-                if ( ( inMask[ 1 ] == _T('F') )
-                   &&( inMask[ 2 ] == _T('%') )
+                if ( ( inMask[1] == _T('F') )
+                   &&( inMask[2] == _T('%') )
                    )
                 {
                     len = 3;
                 }
-                else if ( ( inMask[ 1 ] == _T('F') )
-                        &&( inMask[ 2 ] == _T('I') )
-                        &&( inMask[ 3 ] == _T('L') )
-                        &&( inMask[ 4 ] == _T('E') )
-                        &&( inMask[ 5 ] == _T('%') )
+                else if ( ( inMask[1] == _T('F') )
+                        &&( inMask[2] == _T('I') )
+                        &&( inMask[3] == _T('L') )
+                        &&( inMask[4] == _T('E') )
+                        &&( inMask[5] == _T('%') )
                         )
                 {
                     len = 6;
@@ -154,17 +154,17 @@ void preprocessMask( TCHAR* outMask, const TCHAR* inMask, unsigned int& outMaskT
             // line: %L% or %LINE%
             if ( len == 0 )
             {
-                if ( ( inMask[ 1 ] == _T('L') )
-                   &&( inMask[ 2 ] == _T('%') )
+                if ( ( inMask[1] == _T('L') )
+                   &&( inMask[2] == _T('%') )
                    )
                 {
                     len = 3;
                 }
-                else if ( ( inMask[ 1 ] == _T('L') )
-                        &&( inMask[ 2 ] == _T('I') )
-                        &&( inMask[ 3 ] == _T('N') )
-                        &&( inMask[ 4 ] == _T('E') )
-                        &&( inMask[ 5 ] == _T('%') )
+                else if ( ( inMask[1] == _T('L') )
+                        &&( inMask[2] == _T('I') )
+                        &&( inMask[3] == _T('N') )
+                        &&( inMask[4] == _T('E') )
+                        &&( inMask[5] == _T('%') )
                         )
                 {
                     len = 6;
@@ -181,17 +181,17 @@ void preprocessMask( TCHAR* outMask, const TCHAR* inMask, unsigned int& outMaskT
             // char: %C% or %CHAR%
             if ( len == 0 )
             {
-                if ( ( inMask[ 1 ] == _T('C') )
-                   &&( inMask[ 2 ] == _T('%') )
+                if ( ( inMask[1] == _T('C') )
+                   &&( inMask[2] == _T('%') )
                    )
                 {
                     len = 3;
                 }
-                else if ( ( inMask[ 1 ] == _T('C') )
-                        &&( inMask[ 2 ] == _T('H') )
-                        &&( inMask[ 3 ] == _T('A') )
-                        &&( inMask[ 4 ] == _T('R') )
-                        &&( inMask[ 5 ] == _T('%') )
+                else if ( ( inMask[1] == _T('C') )
+                        &&( inMask[2] == _T('H') )
+                        &&( inMask[3] == _T('A') )
+                        &&( inMask[4] == _T('R') )
+                        &&( inMask[5] == _T('%') )
                         )
                 {
                     len = 6;
@@ -233,15 +233,13 @@ void CWarningAnalyzer::SetMask( int FilterNumber, const TCHAR* Mask )
     }
 }
 
-
 void CWarningAnalyzer::GetEffect( int FilterNumber, TEffect& Effect ) const
 {
     if ( FilterNumber < WARN_MAX_FILTER )
     {
-        Effect = m_Filter[ FilterNumber ].Effect;
+        Effect = m_Filter[FilterNumber].Effect;
     }
 }
-
 
 const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*MaskLength*/ ) const
 {
@@ -258,11 +256,11 @@ const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*Mas
         {
             if ( *pstr2 == _T('*') )
             {
-                if ( ( pstr2[ 1 ] == TCM_FILE1 )
-                   &&( pstr2[ 2 ] == _T(':')  )
-                   &&( pstr2[ 3 ] == _T('\\') )
-                   &&( pstr2[ 4 ] == _T('*')  )
-                   &&( pstr2[ 5 ] == TCM_FILE2 )
+                if ( ( pstr2[1] == TCM_FILE1 )
+                   &&( pstr2[2] == _T(':')  )
+                   &&( pstr2[3] == _T('\\') )
+                   &&( pstr2[4] == _T('*')  )
+                   &&( pstr2[5] == TCM_FILE2 )
                    )
                 {
                     pstr2 += 6;
@@ -276,7 +274,7 @@ const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*Mas
                     *pstr1++ = _T('E');
                     *pstr1++ = _T('%');
                 }
-                else if ( pstr2[ 1 ] == TCM_FILE1 )
+                else if ( pstr2[1] == TCM_FILE1 )
                 {
                     pstr2 += 2;
                     *pstr1++ = _T('%');
@@ -286,7 +284,7 @@ const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*Mas
                     *pstr1++ = _T('E');
                     *pstr1++ = _T('%');
                 }
-                else if ( pstr2[ 1 ] == TCM_LINE )
+                else if ( pstr2[1] == TCM_LINE )
                 {
                     pstr2 += 2;
                     *pstr1++ = _T('%');
@@ -296,7 +294,7 @@ const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*Mas
                     *pstr1++ = _T('E');
                     *pstr1++ = _T('%');
                 }
-                else if ( pstr2[ 1 ] == TCM_CHAR )
+                else if ( pstr2[1] == TCM_CHAR )
                 {
                     pstr2 += 2;
                     *pstr1++ = _T('%');
@@ -306,12 +304,12 @@ const TCHAR* CWarningAnalyzer::GetMask( int FilterNumber, TCHAR* Mask, int /*Mas
                     *pstr1++ = _T('R');
                     *pstr1++ = _T('%');
                 }
-                else if ( pstr2[ 1 ] == _T('*') )
+                else if ( pstr2[1] == _T('*') )
                 {
                     pstr2 += 2;
                     *pstr1++ = _T('*');
                 }
-                else if ( pstr2[ 1 ] == 0 )
+                else if ( pstr2[1] == 0 )
                 {
                     pstr2++;
                 }
@@ -405,9 +403,9 @@ bool CWarningAnalyzer::match( const TCHAR* str )
                 } while ( ch != 0 );
 
                 // Let's try to match %ABSFILE%...
-                if ( absFilePromotionAllowed( pszMask )
+                if ( absFilePromotionAllowed(pszMask)
                   && match_mask_2(szWarnMaskAbs, str, ostr1, ostr2, ostr3, ostr4)
-                  && isValidAbsFileDriveCapture( ostr1 ) )
+                  && isValidAbsFileDriveCapture(ostr1) )
                 {
                     // %ABSFILE% matched
                     pszMask = szWarnMaskAbs;
@@ -436,7 +434,7 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         TCHAR* postr4 = ostr4;
 
         // %ABSFILE%
-        if ( _tcsstr( pszMask, TSM_ABSFILE ) ) 
+        if ( _tcsstr(pszMask, TSM_ABSFILE) ) 
         {
             while ( *postr1 )  ++postr1;
             *postr1++ = _T(':');
@@ -444,12 +442,12 @@ bool CWarningAnalyzer::match( const TCHAR* str )
             while ( (*postr1++ = *postr2++) != 0 );
         }
         // %ABSFILE% or %FILE%
-        if ( _tcsstr( pszMask, TSM_FILE ) )
+        if ( _tcsstr(pszMask, TSM_FILE) )
         {
             postr2 = m_FileName;
             postr1 = ostr1;
             // skip leading spaces
-            while ( NppExecHelpers::IsAnySpaceChar(*postr1))  ++postr1;
+            while ( NppExecHelpers::IsAnySpaceChar(*postr1) )  ++postr1;
             // copy
             while ( (*postr2++ = *postr1++) != 0 );
             // skip trailing spaces
@@ -484,29 +482,29 @@ bool CWarningAnalyzer::match( const TCHAR* str )
         static std::map<int,int> ErrPositionIndicator;
         static tstring PreviousFileName;
         static int PreviousLineNo = 0;
-        if ( std::regex_search( HeyStack, match, m_rgxFindFilename ) && match[0].str().size()) // Find file name (find needle in a hey stack)
+        if ( std::regex_search(HeyStack, match, m_rgxFindFilename) && match[0].str().size() ) // Find file name (find needle in a hey stack)
         {
-            tstring filename = match[0].str().size() > 1 && match[0].str()[0] == L'.' ? match[0].str().substr( 1 ) : match[0].str();
+            tstring filename = match[0].str().size() > 1 && match[0].str()[0] == L'.' ? match[0].str().substr(1) : match[0].str();
             if ( filename != PreviousFileName )
             {
                 PreviousFileName = filename;
                 ErrPositionIndicator.clear();
             }
-            lstrcpyn( m_FileName, filename.c_str(), sizeof( m_FileName )/sizeof( m_FileName[0]) );
+            lstrcpyn( m_FileName, filename.c_str(), sizeof(m_FileName)/sizeof(m_FileName[0]) );
             m_nLastFoundIndex = WARN_BUILTIN_ERROR_FILTER;
             tstring Suffix = match.suffix();
             tstring strLineNo = std::regex_replace( Suffix, m_rgxFindFileLineNo, _T("$1") ); // Replace to get file number only
-            if ( strLineNo.size() && isdigit( strLineNo[0] ) )
+            if ( strLineNo.size() && isdigit(strLineNo[0]) )
             {
                 m_nLine = std::stoi( strLineNo.c_str() );
                 PreviousLineNo = m_nLine;
                 tstring strCharNo = std::regex_replace( HeyStack, m_rgxFindFileLinePos, _T("$1") ); // (if exist) replace to get nChar only
-                if ( strCharNo.size() && isdigit( strCharNo[0] ) )
+                if ( strCharNo.size() && isdigit(strCharNo[0]) )
                     m_nChar = std::stoi( strCharNo.c_str() );
                 else
                 {
                     Suffix = match.suffix();
-                    if ( std::regex_search( Suffix, match, m_rgxFindErrPosIndicator ) ) // Find error possition indicator
+                    if ( std::regex_search(Suffix, match, m_rgxFindErrPosIndicator) ) // Find error possition indicator
                         ErrPositionIndicator[m_nLine] = static_cast<int>(match[0].str().size());
                     m_nChar = ErrPositionIndicator[m_nLine];
                 }
@@ -516,16 +514,16 @@ bool CWarningAnalyzer::match( const TCHAR* str )
                 m_nLine = 0;
                 m_nChar = 0;
             }
-            if ( filename.size() > 4 && lstrcmpi( filename.c_str() + (filename.size() - 4), _T(".exe")) == 0 )
+            if ( filename.size() > 4 && lstrcmpi(filename.c_str() + (filename.size() - 4), _T(".exe")) == 0 )
                 return false;
             pszMask = m_BuiltInErrorFilter.Mask;
             m_BuiltInErrorFilter.Effect.SetRGB(Runtime::GetNppExec().GetConsole().GetCurrentColorTextErr());
         }
         else
         {
-            if ( std::regex_search( HeyStack, match, m_rgxFindErrPosIndicatorAtStartOfLine ) ) // Find error possition indicator
+            if ( std::regex_search(HeyStack, match, m_rgxFindErrPosIndicatorAtStartOfLine) ) // Find error possition indicator
             {
-                tstring ErrorPositionIndicator = match[0].str().size() > 2 && match[0].str().compare( 0, 3, _T("...") ) == 0 ? match[0].str().substr( 3 ) : match[0].str();
+                tstring ErrorPositionIndicator = match[0].str().size() > 2 && match[0].str().compare(0, 3, _T("...")) == 0 ? match[0].str().substr(3) : match[0].str();
                 ErrPositionIndicator[PreviousLineNo] = static_cast<int>(ErrorPositionIndicator.size());
             }
         }
@@ -587,34 +585,34 @@ int CWarningAnalyzer::GetStyle() const
 {
     const TFilter& filter = (m_nLastFoundIndex == WARN_BUILTIN_ERROR_FILTER) ? m_BuiltInErrorFilter : m_Filter[m_nLastFoundIndex];
     const TEffect& effect = filter.Effect;
-    return ( ( effect.Italic     ? CFE_ITALIC    : 0 )
-           + ( effect.Bold       ? CFE_BOLD      : 0 )
-           + ( effect.Underlined ? CFE_UNDERLINE : 0 )
+    return ( (effect.Italic     ? CFE_ITALIC    : 0)
+           + (effect.Bold       ? CFE_BOLD      : 0)
+           + (effect.Underlined ? CFE_UNDERLINE : 0)
            );
 }
 
 bool CWarningAnalyzer::IsEffectEnabled( int FilterNumber ) const
 {
-    return m_Filter[ FilterNumber ].Effect.Enable;
+    return m_Filter[FilterNumber].Effect.Enable;
 }
 
 void CWarningAnalyzer::EnableEffect( int FilterNumber, bool Enable )
 {
-    m_Filter[ FilterNumber ].Effect.Enable = Enable;
+    m_Filter[FilterNumber].Effect.Enable = Enable;
 }
 
 unsigned char CWarningAnalyzer::xtou( const TCHAR x1, const TCHAR x0 )
 {
 
-    return ((unsigned char) ( 16 * ( ( x0 == 0  )               ? 0
-                                   : ( x1 >='A' )&&( x1 <='F' ) ? x1 - 'A' + 10
-                                   : ( x1 >='a' )&&( x1 <='f' ) ? x1 - 'a' + 10
-                                   : ( x1 >='0' )&&( x1 <='9' ) ? x1 - '0'
+    return ((unsigned char) ( 16 * ( (x0 == 0)                ? 0
+                                   : (x1 >='A') && (x1 <='F') ? x1 - 'A' + 10
+                                   : (x1 >='a') && (x1 <='f') ? x1 - 'a' + 10
+                                   : (x1 >='0') && (x1 <='9') ? x1 - '0'
                                    : 0
                                    )
-                            +      ( ( x0 >='A' )&&( x0 <='F' ) ? x0 - 'A' + 10
-                                   : ( x0 >='a' )&&( x0 <='f' ) ? x0 - 'a' + 10
-                                   : ( x0 >='0' )&&( x0 <='9' ) ? x0 - '0'
+                            +      ( (x0 >='A') && (x0 <='F') ? x0 - 'A' + 10
+                                   : (x0 >='a') && (x0 <='f') ? x0 - 'a' + 10
+                                   : (x0 >='0') && (x0 <='9') ? x0 - '0'
                                    : 0
                                    )
                             ));
@@ -628,8 +626,8 @@ TCHAR* CWarningAnalyzer::utox( unsigned char i, TCHAR *x, int size )
     x[size-1] = 0;
     while ( count >= 0 )
     {
-        x[ count-- ] = ( (j&0xF) > 9 ? 'A' + (j&0xF) - 10 : '0' + (j&0xF) );
-        j = j>>4;
+        x[count--] = ( (j & 0xF) > 9 ? 'A' + (j & 0xF) - 10 : '0' + (j & 0xF) );
+        j = j >> 4;
     }
     return ( x );    
 }
