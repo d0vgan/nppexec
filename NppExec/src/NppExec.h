@@ -20,6 +20,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * NppExec History:
  ****************************************************************************
 
+ v0.8.12.1 - June 2026
+ ---------------------
+ * Glory to Ukraine! Glory to the heroes!
+ - improved: now WarningAnalyzer automatically removes "" around a file path/name
+ - fixed: the Console Output Filters dialog did not clear WarningAnalyzer's cache
+
+
  v0.8.12 - June 2026
  -------------------
  * Glory to Ukraine! Glory to the heroes!
@@ -836,7 +843,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <iterator>
 
 #define NPPEXEC_VER_DWORD 0x08FC
-#define NPPEXEC_VER_STR   _T("0.8.12")
+#define NPPEXEC_VER_STR   _T("0.8.12.1")
 
 #define SCRPTENGNID_DEBUG_OUTPUT 0
 

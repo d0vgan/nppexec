@@ -1,6 +1,6 @@
 import os
 
-VERSION_TO_SET = "0.8.12"
+VERSION_TO_SET = "0.8.12.1"
 DATE_TO_SET = "June 2026"
 
 
