@@ -17,7 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 /****************************************************************************
- * NppExec plugin ver. 0.8.12 for Notepad++
+ * NppExec plugin ver. 0.8.12.1 for Notepad++
  * by DV <dvv81 @ ukr.net>, December 2006 - June 2026
  * https://github.com/d0vgan/nppexec
  * Powered by Function Parser (C) Juha Nieminen, Joel Yliluoma
@@ -3927,6 +3927,7 @@ void CNppExec::OnOutputFilter()
 {
   if ( PluginDialogBox(IDD_CONSOLE_FILTER, ConsoleOutputFilterDlgProc) == 1 )
   {
+    GetWarningAnalyzer().ClearCachedMatches();
     UpdateOutputFilterMenuItem();
     UpdateGoToErrorMenuItem();
   }

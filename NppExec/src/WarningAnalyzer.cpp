@@ -531,8 +531,23 @@ bool CWarningAnalyzer::match( const TCHAR* str )
 
     if ( pszMask )
     {
+        bool isQuoted = false;
+        size_t nLen = static_cast<size_t>(lstrlen(m_FileName));
+        if ( m_FileName[0] == _T('"') ) // leading "
+        {
+            if ( nLen > 1 && m_FileName[nLen - 1] == _T('"') ) // trailing "
+            {
+                isQuoted = true;
+                nLen -= 2; // without ""
+            }
+        }
+
         TMatchData md;
-        md.sFileName = m_FileName;
+        md.sFileName.append(isQuoted ? m_FileName + 1 : m_FileName, nLen); // without ""
+        if ( isQuoted )
+        {
+            lstrcpy(m_FileName, md.sFileName.c_str());
+        }
         md.nLine = m_nLine;
         md.nChar = m_nChar;
         md.nLastFoundIndex = m_nLastFoundIndex;
