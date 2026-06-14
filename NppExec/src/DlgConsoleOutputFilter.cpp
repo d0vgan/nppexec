@@ -63,7 +63,7 @@ static const TCHAR* const cszQuickReference_Mask =
 static const TCHAR* const cszQuickReference_HighLight =
     _T("Use wildcard characters in the edit boxes:\t* (asterisk) matches any 0 or more characters\t\t") \
     _T("\t\t\t\t\t\t\t? (question mark) matches any single character\r\n") \
-    _T("You can also use the following Keywords:\t%LINE% or %L%   line in the file to which it shall Jump\r\n") \
+    _T("You can also use the following Keywords:\t%LINE% or %L%   line in the file to which it shall jump\r\n") \
     _T("\t\t\t\t\t%CHAR% or %C%   character position in the line to jump\r\n") \
     _T("\t\t\t\t\t%FILE% or %F%   relative or absolute file name (..\\..\\directory\\file.ext)\r\n") \
     _T("\t\t\t\t\t%ABSFILE% or %A%   absolute file name (C:\\directory\\file.ext)\r\n") \
