@@ -80,27 +80,28 @@ static HHOOK s_hMsgHook = NULL;
 
 static LRESULT CALLBACK GetMsgProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
-   LPMSG lpMsg = (LPMSG) lParam;
+    // this hook procedure helps to handle Tab/Space/Enter as expected
+    LPMSG lpMsg = (LPMSG) lParam;
 
-   if ( (nCode >= 0) && (wParam == PM_REMOVE) )
-   {
-      // Don't translate non-input events.
-      if ( (lpMsg->message >= WM_KEYFIRST) && (lpMsg->message <= WM_KEYLAST) )
-      {
-         if ( IsDialogMessage(s_hDlg, lpMsg) )
-         {
-            // The value returned from this hookproc is ignored, 
-            // and it cannot be used to tell Windows the message has been handled.
-            // To avoid further processing, convert the message to WM_NULL 
-            // before returning.
-            lpMsg->message = WM_NULL;
-            lpMsg->lParam  = 0;
-            lpMsg->wParam  = 0;
-         }
-      }
-   }
+    if ( (nCode >= 0) && (wParam == PM_REMOVE) )
+    {
+        // Don't translate non-input events.
+        if ( (lpMsg->message >= WM_KEYFIRST) && (lpMsg->message <= WM_KEYLAST) )
+        {
+            if ( IsDialogMessage(s_hDlg, lpMsg) )
+            {
+                // The value returned from this hookproc is ignored,
+                // and it cannot be used to tell Windows the message has been handled.
+                // To avoid further processing, convert the message to WM_NULL
+                // before returning.
+                lpMsg->message = WM_NULL;
+                lpMsg->lParam  = 0;
+                lpMsg->wParam  = 0;
+            }
+        }
+    }
 
-   return CallNextHookEx(s_hMsgHook, nCode, wParam, lParam);
+    return CallNextHookEx(s_hMsgHook, nCode, wParam, lParam);
 }
 
 
@@ -200,7 +201,7 @@ void CConsoleOutputFilterDlg::OnBtOK()
 {
     CStaticOptionsManager& Options = Runtime::GetNppExec().GetOptions();
     TCHAR str[OUTPUTFILTER_BUFSIZE];
-    
+
     if ( m_hTabDlg[DLG_FLTR] )
     {
         int mask = 0;
@@ -216,7 +217,7 @@ void CConsoleOutputFilterDlg::OnBtOK()
             if ( m_ch_Exclude[i].IsChecked() )  mask |= (0x01 << i);
         }
         Options.SetInt(OPTI_CONFLTR_EXCLMASK, mask);
-        
+
         Options.SetInt( OPTB_CONFLTR_ENABLE, m_ch_FilterEnable.IsChecked() );
         Options.SetInt( OPTB_CONFLTR_EXCLALLEMPTY, m_ch_ExcludeAllEmpty.IsChecked() );
         Options.SetInt( OPTB_CONFLTR_EXCLDUPEMPTY, m_ch_ExcludeDupEmpty.IsChecked() );
@@ -250,7 +251,7 @@ void CConsoleOutputFilterDlg::OnBtOK()
             if ( m_ch_RCase[i].IsChecked() )  mask |= (0x01 << i);
         }
         Options.SetInt(OPTI_CONFLTR_R_CASEMASK, mask);
-        
+
         Options.SetInt( OPTB_CONFLTR_R_ENABLE, m_ch_REnable.IsChecked() );
         Options.SetInt( OPTB_CONFLTR_R_EXCLEMPTY, m_ch_RExcludeEmpty.IsChecked() );
 
@@ -286,9 +287,9 @@ void CConsoleOutputFilterDlg::OnBtOK()
 
             m_cb_Recognition[i].GetWindowText(str, OUTPUTFILTER_BUFSIZE - 1);
             WarningAnalyzer.SetMask( i, str );
-        
+
             Options.SetStr(OPTS_CONFLTR_RCGNMSK1 + i, str);
-        
+
             if ( str[0] )
             {
                 WarningAnalyzer.SetEffect( i, Effect );
@@ -297,7 +298,7 @@ void CConsoleOutputFilterDlg::OnBtOK()
 
         updateHistoryContent(OPTS_CONFLTR_RCGNMSK1, RECOGNITION_ITEMS, m_HighlightHistory);
     }
-    
+
 }
 
 void CConsoleOutputFilterDlg::OnBtCancel()
@@ -307,7 +308,7 @@ void CConsoleOutputFilterDlg::OnBtCancel()
         updateHistoryContent(OPTS_CONFLTR_EXCLLINE1, FILTER_ITEMS, m_ExcludeHistory);
         updateHistoryContent(OPTS_CONFLTR_INCLLINE1, FILTER_ITEMS, m_IncludeHistory);
     }
-    
+
     if ( m_hTabDlg[DLG_HGLT] )
     {
         updateHistoryContent(OPTS_CONFLTR_RCGNMSK1, RECOGNITION_ITEMS, m_HighlightHistory);
@@ -354,7 +355,7 @@ void updateComboBoxContent(CAnyComboBox cb[], int index, int items,
 {
     TCHAR szText[OUTPUTFILTER_BUFSIZE];
     TCHAR szTemp[OUTPUTFILTER_BUFSIZE];
-    
+
     if ( index >= 0 )
     {
         int n1, n2;
@@ -394,7 +395,7 @@ void updateComboBoxContent(CAnyComboBox cb[], int index, int items,
             }
         }
     }
-    
+
     if ( index >= 0 )
     {
         const CListItemT<tstr>* p = History.GetFirst();
@@ -411,7 +412,7 @@ void updateComboBoxContent(CAnyComboBox cb[], int index, int items,
         {
             cb[index].AddString(szText);
         }
-        
+
         int i = cb[index].FindStringExact(szText);
         if ( i != CB_ERR )
         {
@@ -422,10 +423,10 @@ void updateComboBoxContent(CAnyComboBox cb[], int index, int items,
 
 void CConsoleOutputFilterDlg::OnCbnDropDown(unsigned int idComboBox)
 {
-    if ( (idComboBox >= IDC_CB_EXCLUDE1) && 
+    if ( (idComboBox >= IDC_CB_EXCLUDE1) &&
          (idComboBox < IDC_CB_EXCLUDE1 + FILTER_ITEMS) )
     {
-        updateComboBoxContent(m_cb_Exclude, idComboBox - IDC_CB_EXCLUDE1, 
+        updateComboBoxContent(m_cb_Exclude, idComboBox - IDC_CB_EXCLUDE1,
           FILTER_ITEMS, m_ExcludeHistory);
         return;
     }
@@ -433,7 +434,7 @@ void CConsoleOutputFilterDlg::OnCbnDropDown(unsigned int idComboBox)
     if ( (idComboBox >= IDC_CB_INCLUDE1) &&
          (idComboBox < IDC_CB_INCLUDE1 + FILTER_ITEMS) )
     {
-        updateComboBoxContent(m_cb_Include, idComboBox - IDC_CB_INCLUDE1, 
+        updateComboBoxContent(m_cb_Include, idComboBox - IDC_CB_INCLUDE1,
           FILTER_ITEMS, m_IncludeHistory);
         return;
     }
@@ -503,7 +504,7 @@ INT_PTR CConsoleOutputFilterDlg::OnCtlColorStatic(HWND hDlg, WPARAM wParam, LPAR
         {
             if ( hCtrlWnd == ::GetFocus() )
             {
-                // The checkbox is focused. 
+                // The checkbox is focused.
                 // Let's modify its background color...
                 ::SetBkColor( (HDC)wParam, RGB_BK_CHECKBOX );
                 return (INT_PTR)m_hBrushBkCheckbox;
@@ -541,7 +542,7 @@ void CConsoleOutputFilterDlg::OnNotify(HWND hDlg, LPNMHDR pnmhdr)
                     IDD_CONSOLE_HIGHLIGHTFILTER
                 };
 
-                m_hTabDlg[m_nLastTab] = CreateDialog( 
+                m_hTabDlg[m_nLastTab] = CreateDialog(
                   (HINSTANCE) Runtime::GetNppExec().m_hDllModule,
                   MAKEINTRESOURCE(nDlgId[m_nLastTab]),
                   hDlg,
@@ -571,7 +572,7 @@ void CConsoleOutputFilterDlg::OnInitDialog(HWND hDlg)
     {
         m_hTabDlg[i] = NULL;
     }
-    
+
     m_hTabs = CreateWindowEx( 0
                             , WC_TABCONTROL
                             , _T("coucou")
@@ -590,7 +591,7 @@ void CConsoleOutputFilterDlg::OnInitDialog(HWND hDlg)
     }
 
     // adding tabs...
-    
+
     tie.mask = TCIF_TEXT;
 
     tie.pszText = (LPTSTR) _T("Filter");
@@ -598,12 +599,12 @@ void CConsoleOutputFilterDlg::OnInitDialog(HWND hDlg)
 
     tie.pszText = (LPTSTR) _T("Replace");
     TabCtrl_InsertItem(m_hTabs, 2, &tie);
-    
+
     tie.pszText = (LPTSTR) _T("HighLight");
     TabCtrl_InsertItem(m_hTabs, 3, &tie);
 
     // set active tab
-    NMHDR nmh;    
+    NMHDR nmh;
     nmh.code = TCN_SELCHANGE;
     nmh.hwndFrom = m_hTabs;
     nmh.idFrom = 0;
@@ -621,7 +622,7 @@ void CConsoleOutputFilterDlg::OnInitDialog(HWND hDlg)
             break;
         }
     }
-    
+
     if ( hClient )
     {
         RECT rcClientWnd;
@@ -640,7 +641,7 @@ void CConsoleOutputFilterDlg::OnInitDialog(HWND hDlg)
 
             width = (rcClientWnd.right - rcClientWnd.left) + 6;
             height = (rcClientWnd.bottom - rcClientWnd.top) + 29;
-            
+
             ::MoveWindow(m_hTabs, 10, 10, width, height, FALSE);
             if ( ::GetWindowRect(m_hTabs, &rcClientWnd) )
             {
@@ -652,11 +653,11 @@ void CConsoleOutputFilterDlg::OnInitDialog(HWND hDlg)
                 height = rcWnd.bottom - rcWnd.top;
 
                 ::MoveWindow(
-                    hDlg, 
-                    0, 
-                    0, 
-                    width, 
-                    height, 
+                    hDlg,
+                    0,
+                    0,
+                    width,
+                    height,
                     FALSE
                 );
             }
@@ -713,7 +714,7 @@ void CConsoleOutputFilterDlg::OnInitDlgFltr(HWND hDlgFltr)
 
     updateComboBoxContent(m_cb_Exclude, -1, FILTER_ITEMS, m_ExcludeHistory);
     updateComboBoxContent(m_cb_Include, -1, FILTER_ITEMS, m_IncludeHistory);
-    
+
     // finally...
     OnChFilterEnable();
 }
@@ -771,7 +772,7 @@ void CConsoleOutputFilterDlg::OnInitDlgHglt(HWND hDlgHglt)
     }
 
     // settings...
-    
+
     CWarningAnalyzer& WarningAnalyzer = Runtime::GetNppExec().GetWarningAnalyzer();
     TCHAR RecMask[OUTPUTFILTER_BUFSIZE];
 
@@ -898,7 +899,7 @@ INT_PTR CALLBACK ConsoleOutputFilterProc(HWND hDlg,UINT uMsg,WPARAM wParam,LPARA
         case WM_INITDIALOG:
             ConsoleOutputFilterDlg.OnInitDlgFltr(hDlg);
             return 1;
-        
+
         case WM_COMMAND:
             if ( LOWORD(wParam) == IDC_CH_FILTER_ENABLE )
             {
@@ -961,7 +962,7 @@ INT_PTR CALLBACK ConsoleHighLightFilterProc(HWND hDlg, UINT uMsg, WPARAM wParam,
             ConsoleOutputFilterDlg.OnInitDlgHglt(hDlg);
             return 1;
 
-        case WM_COMMAND:    
+        case WM_COMMAND:
             if (HIWORD(wParam) == CBN_DROPDOWN)
             {
                 ConsoleOutputFilterDlg.OnCbnDropDown(LOWORD(wParam));
