@@ -60,7 +60,10 @@ private:
   int  m_nLastTab;
   HBRUSH m_hBrushBkCheckbox;
   HWND m_hToolTip;
-  
+  HFONT m_hFontItalic;
+  HFONT m_hFontBold;
+  HFONT m_hFontUnderline;
+
   CAnyCheckBox m_ch_Include[FILTER_ITEMS];
   CAnyComboBox m_cb_Include[FILTER_ITEMS];
   CAnyCheckBox m_ch_Exclude[FILTER_ITEMS];

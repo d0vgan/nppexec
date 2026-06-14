@@ -172,6 +172,7 @@ INT_PTR CALLBACK AdvancedOptionsDlgProc(
 
 CAdvOptDlg::CAdvOptDlg() : CAnyWindow()
 {
+    m_hToolTip = NULL;
 }
 
 CAdvOptDlg::~CAdvOptDlg()

@@ -162,6 +162,10 @@ CConsoleOutputFilterDlg::CConsoleOutputFilterDlg() : CAnyWindow()
 {
     m_nLastTab = 2; // Highlight tab
     m_hBrushBkCheckbox = NULL;
+    m_hToolTip = NULL;
+    m_hFontItalic = NULL;
+    m_hFontBold = NULL;
+    m_hFontUnderline = NULL;
 }
 
 CConsoleOutputFilterDlg::~CConsoleOutputFilterDlg()
@@ -729,6 +733,32 @@ void CConsoleOutputFilterDlg::OnInitDlgHglt(HWND hDlgHglt)
         ::SetWindowText(hQR, cszQuickReference_HighLight);
     }
 
+    HFONT hDefFont = (HFONT) ::SendMessage(hDlgHglt, WM_GETFONT, 0, 0);
+    if ( hDefFont )
+    {
+        LOGFONT lf;
+        ::GetObject(hDefFont, sizeof(LOGFONT), &lf);
+
+        lf.lfWeight = FW_NORMAL;
+        lf.lfItalic = TRUE;
+        lf.lfUnderline = FALSE;
+        m_hFontItalic = ::CreateFontIndirect(&lf);
+
+        lf.lfWeight = FW_BOLD;
+        lf.lfItalic = FALSE;
+        lf.lfUnderline = FALSE;
+        m_hFontBold = ::CreateFontIndirect(&lf);
+
+        lf.lfWeight = FW_NORMAL;
+        lf.lfItalic = FALSE;
+        lf.lfUnderline = TRUE;
+        m_hFontUnderline = ::CreateFontIndirect(&lf);
+
+        ::SendDlgItemMessage(hDlgHglt, IDC_ITALIC, WM_SETFONT, (WPARAM) m_hFontItalic, TRUE);
+        ::SendDlgItemMessage(hDlgHglt, IDC_BOLD, WM_SETFONT, (WPARAM) m_hFontBold, TRUE);
+        ::SendDlgItemMessage(hDlgHglt, IDC_UNDERLINED, WM_SETFONT, (WPARAM) m_hFontUnderline, TRUE);
+    }
+
     for ( int i = 0; i < RECOGNITION_ITEMS; i++ )
     {
         m_ch_Recognition[i].m_hWnd          = ::GetDlgItem(hDlgHglt, IDC_CH_HIGHLIGHT1 + i);
@@ -810,6 +840,36 @@ void CConsoleOutputFilterDlg::OnInitDlgRplc(HWND hDlgRplc)
     OnChRplcFilterEnable();
 }
 
+namespace
+{
+    void delete_font_object(HFONT& hFont)
+    {
+        if ( hFont )
+        {
+            ::DeleteObject(hFont);
+            hFont = NULL;
+        }
+    }
+
+    void delete_brush_object(HBRUSH& hBrush)
+    {
+        if ( hBrush )
+        {
+            ::DeleteObject(hBrush);
+            hBrush = NULL;
+        }
+    }
+
+    void destroy_window(HWND& hWnd)
+    {
+        if ( hWnd )
+        {
+            ::DestroyWindow(hWnd);
+            hWnd = NULL;
+        }
+    }
+}
+
 void CConsoleOutputFilterDlg::OnEndDialog()
 {
     UnhookWindowsHookEx(s_hMsgHook);
@@ -818,30 +878,17 @@ void CConsoleOutputFilterDlg::OnEndDialog()
 
     for ( int i = 0; i < DLG_COUNT; i++ )
     {
-        if ( m_hTabDlg[i] )
-        {
-            ::DestroyWindow(m_hTabDlg[i]);
-            m_hTabDlg[i] = NULL;
-        }
+        destroy_window( m_hTabDlg[i] );
     }
 
-    if ( m_hTabs )
-    {
-        ::DestroyWindow(m_hTabs);
-        m_hTabs = NULL;
-    }
+    destroy_window(m_hTabs);
+    destroy_window(m_hToolTip);
 
-    if ( m_hBrushBkCheckbox )
-    {
-        ::DeleteObject(m_hBrushBkCheckbox);
-        m_hBrushBkCheckbox = NULL;
-    }
+    delete_brush_object(m_hBrushBkCheckbox);
 
-    if ( m_hToolTip )
-    {
-        ::DestroyWindow(m_hToolTip);
-        m_hToolTip = NULL;
-    }
+    delete_font_object(m_hFontItalic);
+    delete_font_object(m_hFontBold);
+    delete_font_object(m_hFontUnderline);
 }
 
 INT_PTR CALLBACK ConsoleOutputFilterProc(HWND hDlg,UINT uMsg,WPARAM wParam,LPARAM lParam)

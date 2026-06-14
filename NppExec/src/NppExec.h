@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Glory to Ukraine! Glory to the heroes!
  - improved: now WarningAnalyzer automatically removes "" around a file path/name
  - fixed: the Console Output Filters dialog did not clear WarningAnalyzer's cache
+ + improved: now Highlight's [I], [B], [U] have Italic, Bold and Underline style
 
 
  v0.8.12 - June 2026
