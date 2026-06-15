@@ -31,10 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define  TCS_HOTTRACK  0x0040
 #endif
 
-enum {
-    HL_FIRSTCOLORID = IDC_HIGHLIGHT_COLOR1,
-    HL_LASTCOLORID = IDC_HIGHLIGHT_COLOR10,
-};
 
 CConsoleOutputFilterDlg      ConsoleOutputFilterDlg;
 
@@ -282,7 +278,7 @@ void CConsoleOutputFilterDlg::OnBtOK()
             Effect.Bold       = m_ch_Recognition_Style[i][FILTER_REC_BOLD      ].IsChecked() ? true : false;
             Effect.Underlined = m_ch_Recognition_Style[i][FILTER_REC_UNDERLINED].IsChecked() ? true : false;
 
-            COLORREF color = PickColorBtn_GetColor(GetDlgItem(hDlgHglt, HL_FIRSTCOLORID + i));
+            COLORREF color = PickColorBtn_GetColor(GetDlgItem(hDlgHglt, IDC_HIGHLIGHT_COLOR1 + i));
             Effect.SetRGB(color);
 
             m_cb_Recognition[i].GetWindowText(str, OUTPUTFILTER_BUFSIZE - 1);
@@ -719,6 +715,27 @@ void CConsoleOutputFilterDlg::OnInitDlgFltr(HWND hDlgFltr)
     OnChFilterEnable();
 }
 
+namespace
+{
+    void add_tooltip_text(HWND hToolTip, HWND hDlg, UINT uFirstCtrlId, UINT uLastCtrlId, LPCTSTR cszText)
+    {
+        if ( !hToolTip )
+            return;
+
+        for ( UINT id = uFirstCtrlId; id <= uLastCtrlId; ++id )
+        {
+            HWND hCtrl = ::GetDlgItem(hDlg, id);
+            TOOLINFO ti;
+            ti.cbSize = sizeof(ti);
+            ti.hwnd = hDlg;
+            ti.uFlags = TTF_IDISHWND | TTF_SUBCLASS;
+            ti.uId = (UINT_PTR) hCtrl;
+            ti.lpszText = (LPTSTR) cszText;
+            ::SendMessage(hToolTip, TTM_ADDTOOL, 0, (LPARAM) &ti);
+        }
+    }
+}
+
 void CConsoleOutputFilterDlg::OnInitDlgHglt(HWND hDlgHglt)
 {
     SetWindowPos( hDlgHglt
@@ -790,12 +807,16 @@ void CConsoleOutputFilterDlg::OnInitDlgHglt(HWND hDlgHglt)
             m_ch_Recognition_Style[i][FILTER_REC_UNDERLINED].SetCheck( Effect.Underlined );
 
             COLORREF color = Effect.GetRGB();
-            PickColorBtn_SetColor(GetDlgItem(hDlgHglt, HL_FIRSTCOLORID + i), color);
+            PickColorBtn_SetColor(GetDlgItem(hDlgHglt, IDC_HIGHLIGHT_COLOR1 + i), color);
         }
     }
 
     updateComboBoxContent(m_cb_Recognition, -1, RECOGNITION_ITEMS, m_HighlightHistory);
-    m_hToolTip = PickColorBtn_InitializeTooltips(hDlgHglt, HL_FIRSTCOLORID, HL_LASTCOLORID);
+    m_hToolTip = PickColorBtn_InitializeTooltips(hDlgHglt, IDC_HIGHLIGHT_COLOR1, IDC_HIGHLIGHT_COLOR10);
+
+    add_tooltip_text(m_hToolTip, hDlgHglt, IDC_CH_HIGHLIGHT_I1, IDC_CH_HIGHLIGHT_I10, _T("Italic"));
+    add_tooltip_text(m_hToolTip, hDlgHglt, IDC_CH_HIGHLIGHT_B1, IDC_CH_HIGHLIGHT_B10, _T("Bold"));
+    add_tooltip_text(m_hToolTip, hDlgHglt, IDC_CH_HIGHLIGHT_U1, IDC_CH_HIGHLIGHT_U10, _T("Underlined"));
 }
 
 void CConsoleOutputFilterDlg::OnInitDlgRplc(HWND hDlgRplc)
