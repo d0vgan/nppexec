@@ -65,10 +65,10 @@ Record V3/V4 explicitly in **Notes**. B1b buffered burst-at-exit alone is **not*
 
 | Field | Value |
 |-------|-------|
-| **Step ID** | P5.1 (next) |
-| **Title** | Cooked mode preserved (regression check) |
-| **Agent / session** | |
-| **Started** | |
+| **Step ID** | P5.2 |
+| **Title** | Raw mode: keys → bytes via `WriteInput` |
+| **Started** | 2026-06-03 |
+| **Agent / session** | Cooked `t-` ghost-blank Enter fix verified (2026-07-06); P5.2 raw matrix (`t+ h+`) pending |
 
 ---
 
@@ -85,6 +85,12 @@ Record answers here; steps marked `blocked` depend on these.
 | D5 | Filters on raw bytes / lines / post-VT? | *pending* | | |
 | D6 | No application-specific child-process logic? | **yes** | 2026-05-27 | Generic transport + VT/input only; no per-app flags/heuristics; **allowed exception**: `cmd` skips Ctrl-Break/Ctrl-C in kill list (plan §1.1.1) |
 
+### Deferred (return later)
+
+| ID | Issue | Notes |
+|----|-------|-------|
+| DEFER-1 | ConPTY cursor seeding for empty-console launchers (e.g. bare `sfk.exe`) | **Fixed (x64):** `QueueUserAPC` in-child stub moves cursor to (0,1) before `main()`; avoids `AttachConsole` from GUI host (error 31). `AttachConsole` kept as x86 / fallback. |
+
 ---
 
 ## Phase summary
@@ -94,10 +100,9 @@ Record answers here; steps marked `blocked` depend on these.
 | **P0** Baseline | `done` | 3/3 | 2026-05-25 | docs + harness |
 | **P1** Pipe I/O | `done` | 8/8 | 2026-05-26 | uncommitted; pipe mode = legacy readPipesDirect |
 | **P2** Lifecycle API | `done` | 4/4 | 2026-05-27 | P2.4 boundary audit complete; V2–V4 user OK |
-| **P3** PseudoConsole | `done` | 6/6 | 2026-05-27 | P3.5/P3.6 docs audits done: keep global `CreatePseudoConsole` `flags=0`; ConPTY encoding aligned to UTF-8 |
+| **P3** PseudoConsole | `done` | 7/7 | 2026-07-06 | P3.7 ConPTY interactive I/O; user verified gawk getline under `cmd` |
 | **P4** VT + RichEdit | `done` | 6/6 | 2026-05-27 | P4.6 docs added: RichEdit/grid limits + current `e2` scope/constraints |
-| **P5** Input enhancements | `in_progress` | 0/5 | 2026-05-27 | P5.1 next |
-| **P5** Input enhancements | `not_started` | 0/5 | | |
+| **P5** Input enhancements | `in_progress` | 1/5 | 2026-07-06 | P5.2 next (cooked `t-` ConPTY Enter verified) |
 | **P6** Optional tracks | `not_started` | 0/1 | | |
 | **M1** Milestone | `not_started` | requires P1 | | |
 | **M2** Milestone | `not_started` | requires P1+P3 | | |
@@ -152,14 +157,13 @@ Record answers here; steps marked `blocked` depend on these.
 | P3.4 | Replace fixed 192×1000 | `done` | 2026-05-27 | uncommitted | build | folded into P3.2 (defaults 192×50, max rows 1000) |
 | P3.5 | Review global `CreatePseudoConsole` flags | `done` | 2026-05-27 | docs audit | n/a | `CreatePseudoConsole(..., flags=0, ...)` confirmed in `ChildProcessIo.cpp`; keep `flags=0` (no global need for `PSEUDOCONSOLE_INHERIT_CURSOR`); no per-app branching (§1.1). |
 | P3.6 | Encoding alignment / optional auto-detect | `done` | 2026-05-27 | docs audit | n/a | ConPTY path already aligned globally: `GetEncoding()` returns `getPseudoConsoleEncoding()` in pseudo mode, and `getPseudoConsoleEncoding()` is UTF-8 input+output; no per-app auto-detect added. |
-
-### Phase 4 — VT parser + RichEdit
+| P3.7 | ConPTY interactive I/O (gawk getline / cmd under `u+`) | `done` | 2026-07-06 | uncommitted | both | **User verified** (2026-07-06): `cmd` → gawk `BEGIN { print 123; getline s }` → type `abc` + Enter — stable `123` before stdin, single `abc` echo, blank line **after** echoed input (before prompt), repeat OK under **`u+ e1` and `u+ e2`** (matches VS Code / real terminal). **2026-07-06 (t-):** ghost blank row **before** echoed input on Enter — root cause: cooked child Enter path did not set `bCommandEntered`, so `WM_CHAR` VK_RETURN still reached RichEdit and inserted `\\r\\n` after clear-before-submit; fix in `DlgConsole.cpp`. Supporting: `OnConPTYInputSubmitted` echo-prefix suppress (`NppExec.cpp`), skip synthetic lock EOL when suppress flag set, `clearConsoleInputLine` drops empty input row. **Stdout (e1):** start `CChildProcessIo` reader when `isPseudoCon()`; blocking `ReadFile` only; `m_hStdoutDataEvent` wakes `WaitForExit`; `processOutputQueue` flushes only when chunks arrived (no idle partial flush). **Stdin:** `WriteChildProcessInputAsLine` — one pipe write `text+\\r` under ConPTY; cooked Enter clears local line before submit. **escProcess / e2:** skip destructive VT (EL/ED/backspace) when `HasUnlockedConsoleInput()`; reset VT parser per output line; drop incomplete CSI at chunk end; `bPrintThisLine` for empty `outLine` so ConPTY’s post-echo blank line is not swallowed. **Files:** `ChildProcess.cpp`, `ChildProcessIo.*`, `ConsoleVtParser.cpp`, `NppExecCommandExecutor.*`, `DlgConsole.cpp`, `NppExec.cpp`, `NppExec.h`, `NppExecScriptEngine.cpp`. **Backups:** [2026-07-06-conpty-interactive](backup/2026-07-06-conpty-interactive/) (e1 I/O); [2026-07-06-conpty-e2](backup/2026-07-06-conpty-e2/) (e1+e2 VT); [2026-07-06-conpty-cooked-enter](backup/2026-07-06-conpty-cooked-enter/) (cooked `t-` Enter / R09b). R09 cooked/`u+` doubling resolved; cosmetic duplicate `cmd` at spawn remains. |
 
 | ID | Step | Status | Completed | Commit / PR | Verified | Notes |
 |----|------|--------|-----------|-------------|----------|-------|
 | P4.1 | `CConsoleVtParser` (or equivalent) byte stream | `done` | 2026-05-27 | uncommitted | build | Added `ConsoleVtParser.h/.cpp` (stateful stream parser); `escProcess` now routes through parser state (stdout/stderr instances), while `escRemove` keeps legacy one-shot stripping. |
 | P4.2 | Minimum VT: SGR, EL/ED, cursor motion, `\r` | `done` | 2026-05-27 | uncommitted | build | `escProcess` now applies basic CSI actions: SGR foreground colors (incl. reset), EL/ED mapped to line/screen clear, cursor-left (`CSI n D`) mapped to backspace deletes; `\r` remains existing `ProcessSlashR` path. |
-| P4.3 | Map VT ops to RichEdit output region | `done` | 2026-05-27 | uncommitted | build | Added output-region-aware VT console ops (`VtEraseLineInOutputRegion`, `VtEraseScreenInOutputRegion`, `VtBackspaceInOutputRegion`) and wired parser actions to them, preserving `nConsoleFirstUnlockedPos` input area. |
+| P4.3 | Map VT ops to RichEdit output region | `done` | 2026-05-27 | uncommitted | build | Added output-region-aware VT console ops (`VtEraseLineInOutputRegion`, `VtEraseScreenInOutputRegion`, `VtBackspaceInOutputRegion`) and wired parser actions to them, preserving `nConsoleFirstUnlockedPos` input area. **2026-07-06:** under ConPTY + `e2`, destructive VT skipped when `HasUnlockedConsoleInput()` so cmd line-edit sequences do not wipe typed input. |
 | P4.4 | Real `escProcess` (not alias of remove) | `done` | 2026-05-27 | uncommitted | build | `escProcess` already active in runtime; finalized by removing stale “remove-only” TODO wording and updating `npe_console` help/comments to `e0/e1/e2` (raw/remove/process), confirming non-alias semantics. |
 | P4.5 | Thin `readPipesAndOutput` → parser queue | `done` | 2026-05-27 | uncommitted | build | `readPipesDirect` now follows read→queue→process: `readOnePipeDirect` enqueues raw chunks into `CChildProcessIo` output queue and `processOutputQueue` drains/decode/renders centrally, preserving prompt/partial-line behavior. |
 | P4.6 | Document RichEdit/grid limitations | `done` | 2026-05-27 | docs | n/a | Plan updated with explicit Phase 4.6 limitations table: current VT capabilities, RichEdit/grid constraints, deferred semantics, and operational guidance (`e2`, monospace, `u-` fallback). |
@@ -168,8 +172,8 @@ Record answers here; steps marked `blocked` depend on these.
 
 | ID | Step | Status | Completed | Commit / PR | Verified | Notes |
 |----|------|--------|-----------|-------------|----------|-------|
-| P5.1 | Cooked mode preserved (regression check) | `not_started` | | | | |
-| P5.2 | Raw mode: keys → bytes via `WriteInput` | `not_started` | | | | |
+| P5.1 | Cooked mode preserved (regression check) | `done` | 2026-06-03 | uncommitted | both? | User: `hello` + `nppexec:proc_input world` under `cmd /k` — stdin OK; cmd “not recognized” expected; note `nppexec:` prefix for Console `proc_input` |
+| P5.2 | Raw mode: keys → bytes via `WriteInput` | `in_progress` | 2026-06-03 | uncommitted | build+manual | `t+/t-`; `nppexec:` local; arrows→history when `h+`; CSI bytes when `h-`. **2026-07-06:** raw `t+ h+` Enter — clear local line **only under ConPTY** (match cooked `t-`); ConPTY uses `ExecuteChildProcessCommand` (atomic stdin); pipe `u-` keeps per-keystroke `WriteChildProcessInputLineAsKeystrokes`. **2026-07-06:** cooked `t-` + `u+ e2` — user verified gawk getline + `exit` (no ghost blank before echo; no doubled input); Enter fix = `bCommandEntered` on cooked child path (`DlgConsole.cpp`). **Verify:** repro matrix P5.2 raw checks + `t+ u+ e2 h+` gawk combo still pending. |
 | P5.3 | Signals: Ctrl+C / Break + ConPTY | `not_started` | | | | |
 | P5.4 | `proc_input` / `proc_signal` encoding parity | `not_started` | | | | |
 | P5.5 | Resize notifies child (depends P3.3) | `not_started` | | | | |
@@ -198,6 +202,12 @@ Record answers here; steps marked `blocked` depend on these.
 Newest first. One line per session that touched implementation.
 
 ```
+2026-07-06 | DEFER-1 | fix | build | ConPTY cursor seed via QueueUserAPC in-child stub (x64): bare sfk.exe under u+ gets normal help; avoids AttachConsole error 31 from N++ GUI host.
+2026-07-06 | P3.7 | fix | build | ConPTY kill: Ctrl+Break / console-close / N++ exit [Kill] must not use AttachConsole+GenerateConsoleCtrlEvent from GUI host (N++ window vanishes, process orphaned). Use ClosePseudoConsole + TerminateProcess. DEFER-1: cursor seed AttachConsole error 31 noted.
+2026-07-06 | P3.7/P5.2 | done | manual | Cooked `t-` + `u+ e2`: ghost blank row before echoed input on Enter — `WM_CHAR` VK_RETURN not swallowed (cooked child Enter path missing `bCommandEntered`); RichEdit inserted \\r\\n after clear-before-submit. User verified gawk getline (`abc`) + prompt `exit`. Fix: `DlgConsole.cpp`. Backup: docs/backup/2026-07-06-conpty-cooked-enter/
+2026-07-06 | P5.2 | impl | build | Raw `t+ h+` Enter: ConPTY-only clear-before-submit (pipe u- regression guard); ConPTY h+ uses ExecuteChildProcessCommand (atomic stdin). Manual: repro matrix P5.2 + gawk under t+ pending.
+2026-07-06 | P3.7/P4 | done | both | `u+ e2` escProcess ConPTY: skip destructive VT when unlocked input; VT parser reset per line + incomplete CSI drop; blank line after echoed input (`bPrintThisLine` for empty outLine). User: gawk getline under `cmd`/`u+ e2` matches e1/VS Code. Backup: docs/backup/2026-07-06-conpty-e2/
+2026-07-06 | P3.7 | done | both | ConPTY interactive I/O: reader thread + stdout wake event; queue flush race fixed; atomic stdin (`WriteChildProcessInputAsLine`); cooked clear-before-echo. User: gawk getline under `cmd`/`u+` stable (123 then abc). Backup: docs/backup/2026-07-06-conpty-interactive/
 2026-05-27 | P4.6 | done | docs | Added RichEdit/grid limitation notes and current VT capability boundaries
 2026-05-27 | P4.5 | note | user | Verified good after deploy
 2026-05-27 | P4.5 | done | build | Refactored hot path to read→queue→process (`processOutputQueue`), behavior preserved
@@ -250,6 +260,19 @@ Newest first. One line per session that touched implementation.
 
 | Date | Change |
 |------|--------|
+| 2026-07-06 | **P3.7 / P5.2 (cooked `t-`):** ghost blank row before ConPTY echo on Enter — cooked child input path now sets `bCommandEntered` so `WM_CHAR` VK_RETURN is swallowed (RichEdit no longer inserts `\\r\\n` after clear-before-submit). User verified `u+ e2 t-` gawk getline + `exit`. Backup at `docs/backup/2026-07-06-conpty-cooked-enter/`. |
+| 2026-07-06 | **P5.2:** raw `t+ h+` Enter aligned with cooked ConPTY policy — clear local line only when `u+`; pipe `u-` keeps visible input + per-keystroke submit. |
+| 2026-07-06 | **P3.7 / P4 (e2):** `escProcess` under ConPTY — `HasUnlockedConsoleInput()` guards destructive VT; per-line VT parser reset; incomplete escape dropped at chunk end; empty-line print policy aligned with `escRemove` (blank line after echoed stdin). User verified gawk `print 123; getline` under `cmd` with `u+ e2`. Backup at `docs/backup/2026-07-06-conpty-e2/`. |
+| 2026-07-06 | **P3.7 done:** ConPTY interactive I/O — reader started in `Start()` when `u+`; `m_hStdoutDataEvent`; fix spurious `processOutputQueue` partial flush; atomic stdin via `WriteChildProcessInputAsLine`; cooked Enter clears local line (R09 cooked/`u+`). User verified gawk `print 123; getline` under `cmd`. Backup at `docs/backup/2026-07-06-conpty-interactive/`. |
+| 2026-06-03 | P5.2 fix: ensureOutputRowBreakBeforeAppend — ConPTY omits \\r before `X:\\` prompt / `<<<` msgs (glue root cause). |
+| 2026-06-03 | P5.2 fix: ProcessSlashR/ProcessSlashB apply at output tail (not user caret); bare \\r on non-empty row → newline (RichEdit P4.6). |
+| 2026-06-03 | P5.2 fix: raw t+ h+ clears local line before submit (no cmdcmd); ProcessSlashR row erase + lock clamp (ConPTY \\r prompt). |
+| 2026-06-03 | P5.2 revert: partial stdout flush + ConPTY stdin flush; raw Enter no longer clears line before lock (fixes `exit` glued to prompt) — superseded by row erase fix. |
+| 2026-06-03 | P5.2 I/O: ConPTY newline flush on Enter; flush partial stdout while child alive (B1c/gawk under cmd) — reverted same day. |
+| 2026-06-03 | P5.2 fix: raw mode restores h+ arrow history; nppexec: lines routed via ExecuteChildProcessCommand on Enter. |
+| 2026-06-03 | P5.2 impl: `npe_console t+/t-`, `ChildProcess_RawInput`, EN_MSGFILTER raw key path; build OK. |
+| 2026-06-03 | P5.1 done: user verified `hello` + `nppexec:proc_input world` under `cmd /k`; collateral prefix documented. |
+| 2026-05-27 | P5.1 started: code audit confirms cooked path unchanged; repro matrix P5.1 checklist added (manual V2–V4 pending). |
 | 2026-05-27 | P4 complete: P4.6 documented RichEdit/grid limitations and current VT scope. |
 | 2026-05-27 | P4.5 done: read/decode path thinned to queue-based processing (`readOnePipeDirect` + `processOutputQueue`). |
 | 2026-05-27 | P4.4 done: `escProcess` finalized; updated `npe_console` wording/docs from e0/e1 to e0/e1/e2. |

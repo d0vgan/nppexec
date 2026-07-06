@@ -209,6 +209,10 @@ bool bContainsData = (dwBytesRead &gt; 0) ? true : false;</pre>
 <p>This is relevant for Windows 2000, XP, Vista, 7, 8, 8.1, 10 and 11. Microsoft even introduced so-called PseudoConsole in Windows 10, but still has not fixed this buggy implementation of PeekNamedPipe.</p>
 <p>This is the only reason of why sometimes you don't see any output in NppExec's Console while some output is expected. The data is inside the pipe's internal buffer and there is no way to get it from there. Sad but true.</p>
 
+<p><strong>Stdin (2026, pipe I/O refactor):</strong> User input from the Console is encoded and queued; a dedicated thread calls <code>WriteFile</code> on the stdin pipe. NppExec does <em>not</em> call <code>FlushFileBuffers</code> on stdin by default (only when <code>WriteInput(..., bFFlush=true)</code>, which no built-in caller uses). Forcing flush can block until the child process reads stdin. Use unbuffered modes or <code>fflush()</code> in the child program when output must appear before stdin is read (see also §4.8.2).</p>
+<p>In normal pipe mode (not PseudoConsole), <code>stderr</code> is redirected into the same pipe as <code>stdout</code> (legacy behaviour). With PseudoConsole enabled, stdout and stderr are merged in the ConPTY stream.</p>
+<p><strong>Interactive prompts:</strong> The internal line <code>Process started (PID=…) &gt;&gt;&gt;</code> ends with NppExec's <code> &gt;&gt;&gt;</code> marker (not the child's prompt). Programs such as <code>python -i</code> on a pipe may print the banner after the first prompt and send <code>&gt;&gt;&gt; </code> without a newline; NppExec redraws the current console line for such partial output (like a terminal <code>\r</code>).</p>
+
 
 <blockquote>
   <pre> </pre>

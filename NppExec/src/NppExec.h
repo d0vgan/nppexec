@@ -920,6 +920,7 @@ enum EPluginOptions {
     OPTU_CHILDP_RUNPOLICY,
     OPTS_CHILDP_COMSPECSWITCHES,
     OPTB_CHILDP_PSEUDOCONSOLE,
+    OPTB_CHILDP_RAWINPUT,
     OPTU_CHILDS_SYNCTIMEOUT_MS,
     OPTU_EXITS_TIMEOUT_MS,
     OPTB_PATH_AUTODBLQUOTES,
@@ -1402,6 +1403,10 @@ public:
     void VtEraseLineInOutputRegion();
     void VtEraseScreenInOutputRegion();
     void VtBackspaceInOutputRegion(int nCount);
+    // True when the user has typed in the unlocked Console input region (below the lock).
+    bool HasUnlockedConsoleInput() const;
+    // ConPTY: ignore leading \\r / blank \\n from echo right after stdin submit.
+    void OnConPTYInputSubmitted();
 
     void OnScriptEngineStarted();
     void OnScriptEngineFinished();
@@ -1452,6 +1457,7 @@ protected:
     COLORREF m_colorTextErr;
     COLORREF m_colorBkgnd;
     int      m_nVtOutputRegionBeginPos;
+    bool     m_bConPTYSuppressEchoPrefix;
     std::list<ConsoleState> m_StateList;
 
     const ConsoleState& _getState(ScriptEngineId scrptEngnId) const;

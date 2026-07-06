@@ -160,6 +160,15 @@ bool CConsoleVtParser::ProcessChunk(const tstr& input, tstr& output)
         ++p;
     }
 
+    // Drop an incomplete sequence at chunk end (line-oriented processing resets per line).
+    if ( m_State != esNone )
+    {
+        m_State = esNone;
+        m_Wait1Ch = 0;
+        m_Wait2Ch = 0;
+        m_CsiParams.Clear();
+    }
+
     return (!output.IsEmpty() || input.IsEmpty());
 }
 

@@ -344,6 +344,7 @@ public:
     const std::shared_ptr<CChildProcess> GetRunningChildProcess() const;
     bool ResizeRunningChildPseudoConsole();
     bool IsChildProcessPseudoCon() const;
+    bool IsChildProcessRawInput() const;
     const tstr GetChildProcessNewLine() const;
     unsigned int GetChildProcessEncoding() const;
     unsigned int GetChildProcessAnsiEscSeq() const;
@@ -356,6 +357,10 @@ public:
     // the caller explicitly needs FlushFileBuffers (hang risk on full stdin pipe; P1.7).
     bool WriteChildProcessInput(const TCHAR* szLine, bool bFFlush = false);
     bool WriteChildProcessInputNewLine(bool bFFlush = false); // writes "\n" or "\r"
+    // One pipe write under ConPTY (text+newline); legacy two-write path in pipe mode.
+    bool WriteChildProcessInputAsLine(const TCHAR* szLine, bool bFFlush = false);
+    // t+ h+: mimic t- wire format — one WriteInput per keystroke, then newline.
+    void WriteChildProcessInputLineAsKeystrokes(LPCTSTR szLine);
 
     void ChildProcessMustBreak(unsigned int nBreakMethod); // about to break the current child process
     void ChildProcessMustBreakAll(unsigned int nBreakMethod); // about to break all child processes

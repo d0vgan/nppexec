@@ -333,7 +333,7 @@ bool CChildProcess::Start(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
             sCmdLine.data(),
             NULL,                        // security
             NULL,                        // security
-            TRUE,                        // inherits handles (HEAD)
+            m_Io.shouldChildInheritHandles(), // ConPTY: FALSE (MS samples); pipe mode: TRUE (HEAD)
             dwCreationFlags,            // creation flags
             NULL,                        // environment
             NULL,                        // current directory
@@ -353,8 +353,12 @@ bool CChildProcess::Start(HWND /*hParentWnd*/, LPCTSTR cszCommandLine)
         ::CloseHandle(m_ProcessInfo.hThread); m_ProcessInfo.hThread = NULL;
         m_Io.onChildProcessStarted();
 
-        // Stdout reader is intentionally NOT started in pipe-mode:
-        // readPipesDirect runs on the script thread to keep legacy timing parity.
+        // Pipe mode: readPipesDirect on the script thread (legacy HEAD timing).
+        // ConPTY: dedicated reader thread — PeekNamedPipe is unreliable on ConPTY pipes
+        // and would delay interactive output (e.g. gawk print before getline).
+        if ( m_Io.isPseudoCon() )
+            m_Io.startStdoutReader(this);
+
         m_Io.startStdinWriter();
 
         const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
@@ -467,8 +471,21 @@ bool CChildProcess::WaitForExit(unsigned int nTimeoutMs)
                 dwWaitTimeout = (DWORD) rem;
         }
 
-        const DWORD dwWaitResult = ::WaitForSingleObject(m_ProcessInfo.hProcess, dwWaitTimeout);
-        isConsoleProcessRunning = (dwWaitResult == WAIT_TIMEOUT) && IsProcessStillActive(m_ProcessInfo.hProcess);
+        const DWORD dwWaitResult = [this, dwWaitTimeout]() -> DWORD
+        {
+            HANDLE hStdoutEvent = m_Io.getStdoutDataEvent();
+            if ( hStdoutEvent )
+            {
+                HANDLE waitHandles[2] = { m_ProcessInfo.hProcess, hStdoutEvent };
+                return ::WaitForMultipleObjects(2, waitHandles, FALSE, dwWaitTimeout);
+            }
+            return ::WaitForSingleObject(m_ProcessInfo.hProcess, dwWaitTimeout);
+        }();
+
+        if ( dwWaitResult == WAIT_OBJECT_0 )
+            isConsoleProcessRunning = false;
+        else
+            isConsoleProcessRunning = IsProcessStillActive(m_ProcessInfo.hProcess);
 
         if ( bUseTimeout && ::GetTickCount64() >= tEnd )
         {
@@ -827,11 +844,37 @@ DWORD CChildProcess::readPipesAndOutput(CStrT<char>& bufLine,
 {
     if ( bOutputAll )
         m_Io.stopStdoutReader();
-    else
+    else if ( !m_Io.isStdoutReaderActive() )
         ::Sleep(10);
 
-    return readPipesDirect(bufLine, bPrevLineEmpty, nPrevState, bOutputAll, bDoOutputNext,
-                           bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, bDoOutputNextStderr);
+    const DWORD dwRead = readPipesDirect(bufLine, bPrevLineEmpty, nPrevState, bOutputAll, bDoOutputNext,
+                                         bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, bDoOutputNextStderr);
+
+    // Partial-line flush for pipe-mode script-thread reads only (reader thread owns ConPTY).
+    if ( !bOutputAll && IsRunning() && !m_Io.isStdoutReaderActive() )
+    {
+        if ( bufLine.length() > 0 )
+        {
+            const char c = bufLine[bufLine.length() - 1];
+            if ( (c != '\r') && (c != '\n') && (c >= 32) )
+            {
+                processOutputBuffer(bufLine, bPrevLineEmpty, nPrevState, true, bDoOutputNext,
+                                    false, false);
+            }
+        }
+
+        if ( m_Io.hasSeparateStderrPipe() && (bufLineStderr.length() > 0) )
+        {
+            const char c = bufLineStderr[bufLineStderr.length() - 1];
+            if ( (c != '\r') && (c != '\n') && (c >= 32) )
+            {
+                processOutputBuffer(bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, true, bDoOutputNextStderr,
+                                    false, true);
+            }
+        }
+    }
+
+    return dwRead;
 }
 
 DWORD CChildProcess::readOnePipeDirect(HANDLE hReadPipe,
@@ -907,6 +950,7 @@ DWORD CChildProcess::processOutputQueue(CStrT<char>& bufLine,
                                         bool  bReadStderr)
 {
     DWORD dwTotal = 0;
+    DWORD dwTotalStderr = 0;
     CStrT<char> chunk;
     bool bStderr = false;
 
@@ -916,7 +960,7 @@ DWORD CChildProcess::processOutputQueue(CStrT<char>& bufLine,
         {
             bufLineStderr.Append(chunk);
             processOutputBuffer(bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, false, bDoOutputNextStderr, true, true);
-            dwTotal += (DWORD) chunk.length();
+            dwTotalStderr += (DWORD) chunk.length();
         }
         else
         {
@@ -926,13 +970,15 @@ DWORD CChildProcess::processOutputQueue(CStrT<char>& bufLine,
         }
     }
 
-    if ( bOutputAll || !bReadStdout )
-        processOutputBuffer(bufLine, bPrevLineEmpty, nPrevState, true, bDoOutputNext, bReadStdout, false);
+    // When the reader thread is active, bReadStdout is false — only flush after real data
+    // or final drain; otherwise every idle poll forces a spurious partial flush (race).
+    if ( bOutputAll || (dwTotal > 0) )
+        processOutputBuffer(bufLine, bPrevLineEmpty, nPrevState, true, bDoOutputNext, true, false);
 
-    if ( m_Io.hasSeparateStderrPipe() && (bOutputAll || !bReadStderr) )
-        processOutputBuffer(bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, true, bDoOutputNextStderr, bReadStderr, true);
+    if ( m_Io.hasSeparateStderrPipe() && (bOutputAll || (dwTotalStderr > 0)) )
+        processOutputBuffer(bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, true, bDoOutputNextStderr, true, true);
 
-    return dwTotal;
+    return dwTotal + dwTotalStderr;
 }
 
 DWORD CChildProcess::readPipesDirect(CStrT<char>& bufLine,
@@ -945,12 +991,16 @@ DWORD CChildProcess::readPipesDirect(CStrT<char>& bufLine,
                                      int&  nPrevStateStderr,
                                      bool& bDoOutputNextStderr)
 {
-    const bool bReadStdout = (readOnePipeDirect(m_Io.getStdOutReadPipe(), bOutputAll, false) > 0);
+    bool bReadStdout = false;
     bool bReadStderr = false;
 
-    if ( m_Io.hasSeparateStderrPipe() )
+    // When the ConPTY reader thread is active it owns blocking ReadFile on stdout.
+    if ( !m_Io.isStdoutReaderActive() )
     {
-        bReadStderr = (readOnePipeDirect(m_Io.getStdErrReadPipe(), bOutputAll, true) > 0);
+        bReadStdout = (readOnePipeDirect(m_Io.getStdOutReadPipe(), bOutputAll, false) > 0);
+
+        if ( m_Io.hasSeparateStderrPipe() )
+            bReadStderr = (readOnePipeDirect(m_Io.getStdErrReadPipe(), bOutputAll, true) > 0);
     }
 
     return processOutputQueue(bufLine, bPrevLineEmpty, nPrevState, bDoOutputNext,
@@ -1132,23 +1182,31 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                         {
                             tstr vtOutput;
                             CConsoleVtParser& vtParser = bFromStderr ? m_VtParserStderr : m_VtParserStdout;
-                            bPrintThisLine = vtParser.ProcessChunk(printLine, vtOutput);
+                            // Per-line VT decode (same scope as escRemove); do not carry parser
+                            // state across line fragments — ConPTY splits sequences at newlines.
+                            vtParser.Reset();
+                            vtParser.ProcessChunk(printLine, vtOutput);
                             printLine.Swap(vtOutput);
 
                             CConsoleVtParser::VtActions vtActions;
                             vtParser.ConsumeActions(vtActions);
-                            if ( vtActions.bClearScreen )
-                                m_pNppExec->GetConsole().VtEraseScreenInOutputRegion();
-                            if ( vtActions.bClearLine )
-                                m_pNppExec->GetConsole().VtEraseLineInOutputRegion();
-                            if ( vtActions.nBackspaceCount > 0 )
-                                m_pNppExec->GetConsole().VtBackspaceInOutputRegion(vtActions.nBackspaceCount);
+                            CNppExecConsole& console = m_pNppExec->GetConsole();
+                            const bool bApplyDestructiveVt = !console.HasUnlockedConsoleInput();
+                            if ( vtActions.bClearScreen && bApplyDestructiveVt )
+                                console.VtEraseScreenInOutputRegion();
+                            if ( vtActions.bClearLine && bApplyDestructiveVt )
+                                console.VtEraseLineInOutputRegion();
+                            if ( vtActions.nBackspaceCount > 0 && bApplyDestructiveVt )
+                                console.VtBackspaceInOutputRegion(vtActions.nBackspaceCount);
+
+                            // Match escRemove: emit blank lines (e.g. \\n after echoed input),
+                            // but skip lines that were only VT sequences.
+                            bPrintThisLine = (printLine.length() > 0) || (outLine.length() == 0);
                         }
 
-                        if ( nPrevState == nlCR )
+                        if ( nIsNewLine == nlCR )
                         {
-                            if ( !(nIsNewLine == nlLF && pos <= 1 && copy_len == 0) )
-                                m_pNppExec->GetConsole().ProcessSlashR();
+                            m_pNppExec->GetConsole().ProcessSlashR();
                         }
                         else if ( nPrevState >= nlBS )
                         {
@@ -1400,6 +1458,56 @@ bool CChildProcess::Kill(const CProcessKiller::eKillMethod arrKillMethods[], int
                          unsigned int nWaitTimeout,
                          CProcessKiller::eKillMethod* pnSucceededKillMethod)
 {
+    if ( m_Io.isPseudoCon() )
+    {
+        // ConPTY: CProcessKiller::KillByConsoleCtrlEvent attaches this GUI process to the
+        // child's pseudo console, then GenerateConsoleCtrlEvent(CTRL_BREAK). Unlike Ctrl+C,
+        // Ctrl+Break cannot be ignored via SetConsoleCtrlHandler — the host receives it and
+        // Notepad++'s main window disappears while notepad++.exe keeps running.
+        // ClosePseudoConsole terminates processes attached to the PTY instead.
+        for ( int i = 0; i < nKillMethods; i++ )
+        {
+            if ( (arrKillMethods[i] == CProcessKiller::killCtrlC)
+                    || (arrKillMethods[i] == CProcessKiller::killCtrlBreak) )
+            {
+                HANDLE hIn = m_Io.getStdInWritePipe();
+                if ( hIn )
+                {
+                    const char ch = '\x03';
+                    DWORD nWritten = 0;
+                    ::WriteFile(hIn, &ch, 1, &nWritten, NULL);
+                }
+            }
+        }
+
+        const DWORD dwGrace = (nWaitTimeout > 300u) ? 300u : nWaitTimeout;
+        if ( dwGrace > 0 )
+        {
+            if ( ::WaitForSingleObject(m_ProcessInfo.hProcess, dwGrace) == WAIT_OBJECT_0 )
+            {
+                if ( pnSucceededKillMethod )
+                    *pnSucceededKillMethod = CProcessKiller::killCtrlBreak;
+                return true;
+            }
+        }
+
+        m_Io.closePseudoConsole();
+
+        if ( ::WaitForSingleObject(m_ProcessInfo.hProcess, nWaitTimeout) == WAIT_OBJECT_0 )
+        {
+            if ( pnSucceededKillMethod )
+                *pnSucceededKillMethod = CProcessKiller::killCtrlBreak;
+            return true;
+        }
+
+        if ( ::TerminateProcess(m_ProcessInfo.hProcess, 1) )
+        {
+            ::WaitForSingleObject(m_ProcessInfo.hProcess, nWaitTimeout);
+            return true;
+        }
+        return false;
+    }
+
     bool isKilled = false;
     CProcessKiller pk(GetProcessInfo());
     for ( int i = 0; i < nKillMethods; i++ )
@@ -1573,6 +1681,7 @@ BOOL CALLBACK CProcessKiller::KillAppEnumFunc(HWND hWnd, LPARAM lParam)
 
 bool CProcessKiller::KillByConsoleCtrlEvent(unsigned int nCtrlEvent, unsigned int nWaitTimeout)
 {
+    // Do not use for ConPTY children from a GUI host — see CChildProcess::Kill().
     typedef BOOL (WINAPI * PFNATTCON)(DWORD);
 
     bool isKilled = false;

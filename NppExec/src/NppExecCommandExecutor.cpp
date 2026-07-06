@@ -395,6 +395,12 @@ bool CNppExecCommandExecutor::IsChildProcessRunning() const
     return false;
 }
 
+bool CNppExecCommandExecutor::IsChildProcessRawInput() const
+{
+    return IsChildProcessRunning() &&
+           m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_RAWINPUT);
+}
+
 bool CNppExecCommandExecutor::IsCommandQueueEmpty() const
 {
     CCriticalSectionLockGuard lock(m_csExecuteQueue);
@@ -713,15 +719,11 @@ void CNppExecCommandExecutor::ExecuteChildProcessCommand(tstr& cmd, bool bSubsti
     }
     else
     {
-        WriteChildProcessInput( cmd.c_str() );
+        WriteChildProcessInputAsLine( cmd.c_str() );
     }
 
     if ( !bScriptThreadRunning )
     {
-        WriteChildProcessInputNewLine();
-          // "\n" must be sent separately in some cases - ask M$ why
-          // or, in case of NppExecCmdPrefix, it sends "\n" to show child process'es prompt
-
         m_pNppExec->GetConsole().LockConsoleEndPosAfterEnterPressed(bForceLockEndPos);
     }
 }
@@ -736,6 +738,47 @@ bool CNppExecCommandExecutor::WriteChildProcessInputNewLine(bool bFFlush )
 {
     std::shared_ptr<CChildProcess> pChildProc = GetRunningChildProcess();
     return (pChildProc ? pChildProc->WriteInput(pChildProc->GetNewLine(), bFFlush) : false);
+}
+
+bool CNppExecCommandExecutor::WriteChildProcessInputAsLine(const TCHAR* szLine, bool bFFlush )
+{
+    if ( !szLine )
+        return false;
+
+    if ( IsChildProcessPseudoCon() )
+    {
+        tstr line(szLine);
+        line += GetChildProcessNewLine();
+        return WriteChildProcessInput(line.c_str(), bFFlush);
+    }
+
+    if ( !WriteChildProcessInput(szLine, bFFlush) )
+        return false;
+
+    // Pipe mode: line and newline as separate writes (legacy HEAD behaviour).
+    return WriteChildProcessInputNewLine(bFFlush);
+}
+
+void CNppExecCommandExecutor::WriteChildProcessInputLineAsKeystrokes(LPCTSTR szLine)
+{
+    if ( !szLine || !szLine[0] )
+        return;
+
+    Runtime::GetLogger().AddEx_WithoutOutput( _T_RE_EOL _T("; @Child Process\'es Input (keystrokes): %s"), szLine );
+    Runtime::GetLogger().Add( _T("") );
+
+    if ( IsChildProcessPseudoCon() )
+    {
+        WriteChildProcessInputAsLine(szLine);
+        return;
+    }
+
+    for ( const TCHAR* p = szLine; *p; ++p )
+    {
+        TCHAR s[2] = { *p, 0 };
+        WriteChildProcessInput(s);
+    }
+    WriteChildProcessInputNewLine();
 }
 
 void CNppExecCommandExecutor::ChildProcessMustBreak(unsigned int nBreakMethod)

@@ -87,6 +87,7 @@ CChildProcessIo::CChildProcessIo()
     , m_pAttributeList(NULL)
     , m_hStdoutReaderThread(NULL)
     , m_bStdoutReaderStop(0)
+    , m_hStdoutDataEvent(NULL)
     , m_hStdinWriterThread(NULL)
     , m_bStdinWriterStop(0)
     , m_hStdinDataEvent(NULL)
@@ -230,7 +231,16 @@ bool CChildProcessIo::createPseudoConsole(CNppExec* pNppExec)
     const HRESULT hr = g_pseudoCon.pfnCreatePseudoConsole(conSize, m_hStdInReadPipe, m_hStdOutWritePipe, 0,
         &m_hPseudoCon);
     if ( FAILED(hr) )
+    {
         m_hPseudoCon = NULL;
+        if ( !pNppExec->GetOptions().GetBool(OPTB_CONSOLE_NOINTMSGS) )
+        {
+            const UINT nFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfNewLine | CNppExecConsole::pfIsInternalMsg;
+            pNppExec->GetConsole().PrintMessage(
+                tstr().Format(120, _T("CreatePseudoConsole() failed (HRESULT=0x%08X); using pipe transport"), (unsigned) hr),
+                nFlags);
+        }
+    }
 
     return true;
 }
@@ -250,11 +260,14 @@ void CChildProcessIo::configureStartupInfo(STARTUPINFOEX& si, DWORD& dwCreationF
     // Match HEAD CChildProcess::Create() startup layout (works with PseudoConsole on Win10+).
     ::ZeroMemory(&si, sizeof(STARTUPINFOEX));
     si.StartupInfo.cb = sizeof(STARTUPINFOEX);
-    si.StartupInfo.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
     si.StartupInfo.wShowWindow = SW_HIDE;
 
     if ( m_hPseudoCon )
     {
+        // ConPTY: stdio comes from PROC_THREAD_ATTRIBUTE_PSEUDOCONSOLE, not STARTF_USESTDHANDLES.
+        // Setting STARTF_USESTDHANDLES without valid handles makes some tools (e.g. sfk.exe)
+        // think they were double-clicked and show the first-run installer UI instead of help.
+        si.StartupInfo.dwFlags = STARTF_USESHOWWINDOW;
         SIZE_T bytesRequired = 0;
         g_pseudoCon.pfnInitializeProcThreadAttributeList(NULL, 1, 0, &bytesRequired);
         si.lpAttributeList = (LPPROC_THREAD_ATTRIBUTE_LIST) ::HeapAlloc(::GetProcessHeap(), 0, bytesRequired);
@@ -294,10 +307,34 @@ void CChildProcessIo::configureStartupInfo(STARTUPINFOEX& si, DWORD& dwCreationF
 
     if ( !m_hPseudoCon )
     {
+        si.StartupInfo.dwFlags = STARTF_USESHOWWINDOW | STARTF_USESTDHANDLES;
         si.StartupInfo.hStdInput = m_hStdInReadPipe;
         si.StartupInfo.hStdOutput = m_hStdOutWritePipe;
         si.StartupInfo.hStdError = m_hStdOutWritePipe; // legacy: stderr merged into stdout pipe
     }
+    else
+    {
+        // ConPTY samples: close PTY-side pipe ends before CreateProcess so they are not
+        // inherited when bInheritHandles is TRUE (historical NppExec default).
+        if ( m_hStdOutWritePipe )
+        {
+            ::CloseHandle(m_hStdOutWritePipe);
+            m_hStdOutWritePipe = NULL;
+        }
+        if ( m_hStdInReadPipe )
+        {
+            ::CloseHandle(m_hStdInReadPipe);
+            m_hStdInReadPipe = NULL;
+        }
+    }
+}
+
+void CChildProcessIo::preparePseudoConsoleChildProcess(HANDLE /*hProcess*/, DWORD /*dwProcessId*/, HANDLE /*hThread*/, CNppExec* /*pNppExec*/)
+{
+    // DEFER-1: ConPTY children cannot be cursor-seeded from a GUI plugin host.
+    // AttachConsole() always fails (ACCESS_DENIED / GEN_FAILURE) for pseudo-console
+    // processes, including from the ConPTY creator. Console-only test harnesses are
+    // misleading. See tools/conpty_gui_harness/ for a GUI+DLL reproduction.
 }
 
 void CChildProcessIo::onChildProcessStarted()
@@ -351,6 +388,13 @@ bool CChildProcessIo::isPseudoCon() const
     return (m_hPseudoCon != NULL);
 }
 
+bool CChildProcessIo::shouldChildInheritHandles() const
+{
+    // Pipe mode (HEAD): inherit handles so redirected stdio pipes reach the child.
+    // ConPTY: Microsoft samples use FALSE; PTY-side pipe ends are closed before spawn.
+    return !isPseudoCon();
+}
+
 bool CChildProcessIo::hasSeparateStderrPipe() const
 {
     return (m_hStdErrReadPipe != NULL) && !isPseudoCon();
@@ -367,6 +411,9 @@ void CChildProcessIo::enqueueOutputChunk(const char* pData, int nLen, bool bStde
 
     CCriticalSectionLockGuard lock(m_csOutputQueue);
     m_OutputQueue.Add(item);
+
+    if ( m_hStdoutDataEvent )
+        ::SetEvent(m_hStdoutDataEvent);
 }
 
 void CChildProcessIo::enqueueStdoutChunk(const char* pData, int nLen)
@@ -452,6 +499,12 @@ bool CChildProcessIo::startStdoutReader(CChildProcess* pOwner)
     if ( !m_hStdOutReadPipe || !pOwner )
         return false;
 
+    if ( !m_hStdoutDataEvent )
+        m_hStdoutDataEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
+
+    if ( !m_hStdoutDataEvent )
+        return false;
+
     m_pOwner = pOwner;
     InterlockedExchange(&m_bStdoutReaderStop, 0);
 
@@ -475,11 +528,22 @@ void CChildProcessIo::stopStdoutReader()
     }
 
     m_pOwner = NULL;
+
+    if ( m_hStdoutDataEvent )
+    {
+        ::CloseHandle(m_hStdoutDataEvent);
+        m_hStdoutDataEvent = NULL;
+    }
 }
 
 bool CChildProcessIo::isStdoutReaderActive() const
 {
     return (m_hStdoutReaderThread != NULL);
+}
+
+HANDLE CChildProcessIo::getStdoutDataEvent() const
+{
+    return m_hStdoutDataEvent;
 }
 
 DWORD WINAPI CChildProcessIo::stdoutReaderThreadProc(LPVOID pParam)
@@ -683,12 +747,8 @@ void CChildProcessIo::pumpAvailableStderr(char* pBuf)
 void CChildProcessIo::stdoutReaderThreadFunc()
 {
     char Buf[CONSOLEPIPE_BUFSIZE];
-    bool bStdoutAlive = (m_hStdOutReadPipe != NULL);
-    bool bStderrAlive = hasSeparateStderrPipe();
 
-    // Match legacy readPipesAndOutput: Peek+Read until the pipe is empty, then block for more.
-    // One ReadFile per wake left banner bytes in the kernel buffer until a later cycle (python -i).
-
+    // P1.3: blocking ReadFile only — PeekNamedPipe is unreliable on ConPTY pipes.
     while ( InterlockedCompareExchange(&m_bStdoutReaderStop, 0, 0) == 0 )
     {
         if ( !m_pOwner )
@@ -705,52 +765,20 @@ void CChildProcessIo::stdoutReaderThreadFunc()
                 break;
         }
 
-        if ( bStderrAlive )
-            pumpAvailableStderr(Buf);
-
-        bool bDrainedAny = false;
-
-        if ( bStdoutAlive )
-            bDrainedAny = drainAvailableFromPipe(m_hStdOutReadPipe, Buf, false, bStdoutAlive);
-
-        if ( !bStdoutAlive && bStderrAlive )
-            bDrainedAny = drainAvailableFromPipe(m_hStdErrReadPipe, Buf, true, bStderrAlive);
-
-        if ( !bStdoutAlive && !bStderrAlive )
+        if ( !m_hStdOutReadPipe )
             break;
 
-        if ( bDrainedAny )
+        const DWORD dwRead = readFromPipe(m_hStdOutReadPipe, Buf, CONSOLEPIPE_BUFSIZE);
+        if ( dwRead > 0 )
+        {
+            enqueueOutputChunk(Buf, (int)dwRead, false);
             continue;
+        }
 
-        if ( bStdoutAlive )
-        {
-            const DWORD dwRead = readFromPipe(m_hStdOutReadPipe, Buf, CONSOLEPIPE_BUFSIZE);
-            if ( dwRead > 0 )
-            {
-                enqueueOutputChunk(Buf, (int)dwRead, false);
-            }
-            else
-            {
-                const DWORD dwErr = ::GetLastError();
-                if ( (dwErr == ERROR_BROKEN_PIPE) || (dwErr == ERROR_PIPE_NOT_CONNECTED) )
-                    bStdoutAlive = false;
-                else if ( dwErr == ERROR_OPERATION_ABORTED )
-                    break;
-            }
-        }
-        else if ( bStderrAlive )
-        {
-            const DWORD dwRead = readFromPipe(m_hStdErrReadPipe, Buf, CONSOLEPIPE_BUFSIZE);
-            if ( dwRead > 0 )
-            {
-                enqueueOutputChunk(Buf, (int)dwRead, true);
-            }
-            else
-            {
-                const DWORD dwErr = ::GetLastError();
-                if ( (dwErr == ERROR_BROKEN_PIPE) || (dwErr == ERROR_PIPE_NOT_CONNECTED) || (dwErr == ERROR_OPERATION_ABORTED) )
-                    bStderrAlive = false;
-            }
-        }
+        const DWORD dwErr = ::GetLastError();
+        if ( (dwErr == ERROR_BROKEN_PIPE) || (dwErr == ERROR_PIPE_NOT_CONNECTED) )
+            break;
+        if ( dwErr == ERROR_OPERATION_ABORTED )
+            break;
     }
 }

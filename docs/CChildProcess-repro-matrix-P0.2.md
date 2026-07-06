@@ -69,11 +69,89 @@ Toggle PseudoConsole for **running** child only: `npe_console u+` / `u-` (see he
 | **R08** | Long-running + **`-u`/`flush`** while alive | May pass even when pipe read is weak | P1 (regression) |
 | **R08b** | Long-running **buffered** (no `-u`) | [4.8.3](NppExec_Manual/4.8.3.html) §9 class — **primary stall repro** | P1 |
 | **R09** | `u+` interactive input echo | Line appears twice after Enter in apps that echo terminal input (`gawk getline`, `python -i`) | P5 |
+| **R09b** | `u+` cooked `t-` ghost blank before echo | Extra empty row before echoed input on Enter (`u+ e2 t-`) | P3.7 |
 | **R10** | `u+` + `cmd` + `cls` | Console clear not reflected in RichEdit without VT/screen-buffer emulation | P4 |
+| **P5.1** | Cooked input preserved (`WriteInput` + newline) | `ExecuteChildProcessCommand`, `LockConsoleEndPosAfterEnterPressed`, stdin writer thread | P5 (regression) |
+| **P5.2** | Raw input (`npe_console t+`) | Keys → `WriteInput` without line buffer; arrows → CSI; Ctrl+C → `0x03` | P5 |
 
 ---
 
 ## 4. Test procedures
+
+### P5.1 — Cooked mode preserved (regression check)
+
+**Goal:** Confirm Phase 4 output/VT work did not break the existing cooked input contract.
+
+**Script prefix (adjust transport as needed):**
+
+```nppexec
+npp_console 1
+npe_console u- e1
+```
+
+Use **CFG-A** (`u-`) and **CFG-B** (`u+`) for transport parity. Use `e1` during P5.1 unless testing ANSI/VT interaction.
+
+| ID | Scenario | Command / action | Pass criteria |
+|----|----------|------------------|---------------|
+| **P5.1a** | Console Enter → child stdin | `cmd /k` then type `hello` + Enter | Child receives `hello` + newline; prompt returns (pipe: `\r\n` or configured Enter; ConPTY: `\r`) |
+| **P5.1b** | `proc_input` while child running | From Console with child active: **`nppexec:proc_input hello`** (collateral prefix required — plain `proc_input` is sent to the child as typed text, not executed by NppExec) | `PROC_INPUT:` line in console; payload + newline on stdin; child may echo line and try to run it as a command (e.g. `cmd` → “not recognized”) |
+| **P5.1c** | Multi-line collateral child command | `npp_exec "echo line1" & "echo line2"` (if collateral enabled) | Child runs; input path not required for collateral-only lines |
+| **P5.1d** | No child running | Type in Console while idle | `WriteChildProcessInput` returns false (no crash); no stdin sent |
+| **P5.1e** | `GetRunningChildProcess` gate | Start `cmd /k`, Enter text before `Process finished` | `WriteChildProcessInput` succeeds only while `IsRunning()` |
+| **P5.1f** | Newline encoding | Under `u+`, verify `\r` newline via `GetNewLine()` | Matches `GetChildProcessNewLine()` / plan (usually `\r` under ConPTY) |
+| **P5.1g** | Lock after Enter | After Enter, caret locked at end of output region | `LockConsoleEndPosAfterEnterPressed` still called from `ExecuteChildProcessCommand` |
+| **P5.1h** | Interactive prompt (pipe) | `gawk -e "BEGIN { print 123; getline s }"` then type `aaa` + Enter | Child reads line; under `u+ e2 t-` (2026-07-06): single echo, no ghost blank before echo (R09b fixed); doubling (R09) resolved with clear-before-submit |
+| **B1c-cmd** | gawk under `cmd /k` | Same awk one-liner via Console; then `aaa` + Enter | **Expect:** `123` may lag until stdin (stdio buffering when gawk not on a TTY); after `aaa`+Enter see `aaa`, `123`, then prompt. Under `u+`, partial stdout flush while child is alive helps early `123`. |
+
+**Code audit summary (2026-05-27):**
+
+| Check | Result |
+|-------|--------|
+| `ExecuteChildProcessCommand` → `WriteChildProcessInput` + `WriteChildProcessInputNewLine` | Unchanged |
+| `GetRunningChildProcess()` / `IsRunning()` gating | Unchanged (P2.3) |
+| `CChildProcess::WriteInput` → `m_Io.enqueueStdin` / writer thread | Unchanged (P1.6) |
+| `bFFlush` default false | Unchanged (P1.7) |
+| Phase 4 output path (`processOutputBuffer`, VT) | Does not modify stdin path |
+
+**Failure signatures (not cooked regression):** `WriteInput` returns true but child never sees bytes (check P1.6 writer / pipe); Enter does nothing when no running child (expected).
+
+**Results (manual, 2026-06-03):** **pass** — `cmd /k`, typed `hello` + Enter: child received line (cmd error for unknown command); duplicate `hello` line = ConPTY/local echo (R09, not P5.1 fail). **`nppexec:proc_input world`**: `PROC_INPUT: world`, `world` on stdin, same cmd error — cooked + `proc_input` path OK. Preset: ___ (record `u-` / `u+` if you re-run both).
+
+**Interpretation:** Russian *«не является внутренней или внешней…»* means `cmd` parsed stdin as a command — expected for arbitrary words, not a transport failure.
+
+### P5.2 — Raw terminal input (`t+/t-`)
+
+**Enable before child (or in script):**
+
+```nppexec
+npp_console 1
+npe_console t+ u+ e2
+cmd /k
+```
+
+**Default `t+` with `h+` (Commands History on):** edit the line in RichEdit; **full line sent on Enter** (same editing model as cooked mode for cmd). **`t+` with `h-`:** byte stream (CSI arrows, etc.) for TUIs.
+
+| Check | Pass criteria |
+|-------|----------------|
+| Printable keys | Bytes reach child via `WriteInput`; no cooked line commit on Enter |
+| Enter | Sends `GetNewLine()` only (`\r` under ConPTY) |
+| Tab / arrows (`h-`) | `\t`, `\x1b[A`…`\x1b[D` sent to child |
+| Arrows (`h+`, default) | NppExec Commands History (not sent to child) |
+| `nppexec:proc_input …` + Enter | Runs NppExec locally (line not sent byte-by-byte to child) |
+| Ctrl+C | Sends `0x03` (not `ChildProcessMustBreak`) while raw mode active |
+| `t-` | Restores cooked line input (P5.1 behavior) |
+
+**Note:** Raw mode suppresses local RichEdit typing for child-bound keys; rely on child echo (helps R09 under `u+`). Prefix lines (`nppexec:…`) are edited locally like cooked mode.
+
+**Regression guard (2026-07-06):** `t+ h+` must clear the local input line **only under ConPTY** (`u+`), same as cooked `t-`. Pipe mode (`u-`) must keep local text until child output arrives.
+
+**P5.2 + P3.7 combo (ConPTY):** after `npe_console t+ u+ e2` + `cmd /k`, rerun gawk `BEGIN { print 123; getline s }` → `abc` — must match cooked `t-` (123, abc, blank line after echo, prompt).
+
+**Cooked `t-` baseline (2026-07-06, user verified):** `npe_console u+ e2 t-` + `cmd` → gawk getline → type `abc` + Enter → `123`, `abc`, blank line, prompt; `exit` on prompt — no ghost blank before echoed text (R09b fixed via `bCommandEntered` on cooked child Enter).
+
+**Results:** cooked `t-` + P3.7 gawk — **pass** (2026-07-06). Raw `t+ h+` matrix — ___ (pending)
+
+---
 
 ### R01 — Line-buffered (`cmd /c echo`)
 

@@ -332,6 +332,7 @@ const int   DEFAULT_CHILDP_EXITTIMEOUT_MS     = 2000;
 const int   DEFAULT_CHILDP_KILLTIMEOUT_MS     = 500;
 const int   DEFAULT_CHILDP_RUNPOLICY          = 0;
 const int   DEFAULT_CHILDP_PSEUDOCONSOLE      = 1;
+const int   DEFAULT_CHILDP_RAWINPUT           = 0;
 const int   DEFAULT_CHILDS_SYNCTIMEOUT_MS     = 200;
 const int   DEFAULT_EXITS_TIMEOUT_MS          = 4000;
 const int   DEFAULT_PATH_AUTODBLQUOTES        = 0;
@@ -1132,6 +1133,9 @@ const CStaticOptionsManager::OPT_ITEM optArray[OPT_COUNT] = {
     { OPTB_CHILDP_PSEUDOCONSOLE, OPTT_BOOL | OPTF_READWRITE,
       INI_SECTION_CONSOLE, _T("ChildProcess_PseudoConsole"),
       DEFAULT_CHILDP_PSEUDOCONSOLE, NULL },
+    { OPTB_CHILDP_RAWINPUT, OPTT_BOOL | OPTF_READWRITE,
+      INI_SECTION_CONSOLE, _T("ChildProcess_RawInput"),
+      DEFAULT_CHILDP_RAWINPUT, NULL },
     { OPTU_CHILDS_SYNCTIMEOUT_MS, OPTT_INT | OPTF_READONLY,
       INI_SECTION_CONSOLE, _T("ChildScript_SyncTimeout_ms"),
       DEFAULT_CHILDS_SYNCTIMEOUT_MS, NULL },
@@ -3696,8 +3700,7 @@ void CNppExec::DoExecText(const tstr& sText, unsigned int nExecTextMode)
             tCmdList CollateralCmdList = CScriptEngine::getCollateralCmdListForChildProcess(this, CmdList);
             if ( CollateralCmdList.IsEmpty() )
             {
-                CommandExecutor.WriteChildProcessInput( pszText );
-                CommandExecutor.WriteChildProcessInputNewLine();
+                CommandExecutor.WriteChildProcessInputAsLine( pszText );
             }
             else
             {
@@ -3706,8 +3709,7 @@ void CNppExec::DoExecText(const tstr& sText, unsigned int nExecTextMode)
         }
         else
         {
-            CommandExecutor.WriteChildProcessInput( pszText );
-            CommandExecutor.WriteChildProcessInputNewLine();
+            CommandExecutor.WriteChildProcessInputAsLine( pszText );
         }
     }
     else
@@ -5397,6 +5399,7 @@ CNppExecConsole::CNppExecConsole() //: m_pNppExec(0)
   , m_colorTextErr(COLOR_INVALID)
   , m_colorBkgnd(COLOR_INVALID)
   , m_nVtOutputRegionBeginPos(0)
+  , m_bConPTYSuppressEchoPrefix(false)
 {
     m_StateList.push_back(ConsoleState());
 }
@@ -5556,6 +5559,125 @@ bool CNppExecConsole::postponeThisCall(ScriptEngineId scrptEngnId)
 
     return bPostpone;
 }
+
+namespace {
+
+static bool isDriveLetter(TCHAR c)
+{
+    return ((c >= _T('A')) && (c <= _T('Z'))) || ((c >= _T('a')) && (c <= _T('z')));
+}
+
+// cmd prompt: X:\path> — not an echoed command line (C:\...\foo.exe "args").
+static bool looksLikeCmdPrompt(LPCTSTR s)
+{
+    if ( !s || !s[0] )
+        return false;
+
+    const size_t len = (size_t) _tcslen(s);
+    if ( len < 4 )
+        return false;
+
+    if ( s[len - 1] != _T('>') )
+        return false;
+
+    if ( !isDriveLetter(s[0]) || (s[1] != _T(':')) || (s[2] != _T('\\')) )
+        return false;
+
+    if ( _tcsstr(s, _T(".exe")) != NULL || _tcsstr(s, _T(".EXE")) != NULL )
+        return false;
+
+    if ( _tcschr(s, _T('"')) != NULL )
+        return false;
+
+    return true;
+}
+
+static void ensureOutputRowBreakBeforeAppend(CAnyRichEdit& re, LPCTSTR cszMessage)
+{
+    if ( !cszMessage || !cszMessage[0] )
+        return;
+
+    const int nTextLen = re.GetTextLengthEx();
+    if ( nTextLen <= 0 )
+        return;
+
+    TCHAR lastCh = 0;
+    re.GetTextAt(nTextLen - 1, 1, &lastCh);
+    if ( lastCh == _T('\r') || lastCh == _T('\n') )
+        return;
+
+    bool needBreak = false;
+
+    if ( looksLikeCmdPrompt(cszMessage) )
+        needBreak = true;
+    else if ( (cszMessage[0] == _T('<')) && (cszMessage[1] == _T('<')) && (cszMessage[2] == _T('<')) )
+        needBreak = true;
+
+    if ( needBreak )
+    {
+        re.ExSetSel(nTextLen, nTextLen);
+        re.ReplaceSelText( _T_RE_EOL );
+    }
+}
+
+static size_t findEmbeddedDrivePrompt(LPCTSTR s, size_t startPos)
+{
+    if ( !s )
+        return (size_t) -1;
+
+    const size_t len = (size_t) _tcslen(s);
+    for ( size_t i = startPos + 1; i + 2 < len; i++ )
+    {
+        if ( isDriveLetter(s[i]) && (s[i + 1] == _T(':')) && (s[i + 2] == _T('\\')) )
+        {
+            if ( looksLikeCmdPrompt(s + i) )
+                return i;
+        }
+    }
+
+    return (size_t) -1;
+}
+
+static void appendChildOutputWithRowDiscipline(CAnyRichEdit& re, LPCTSTR cszMessage,
+                                               BOOL bScroll, COLORREF color,
+                                               DWORD dwMask, DWORD dwEffects, bool bNewLineAfter)
+{
+    if ( !cszMessage || !cszMessage[0] )
+    {
+        if ( bNewLineAfter )
+            re.AddStr(_T_RE_EOL, bScroll, color, dwMask, dwEffects);
+        return;
+    }
+
+    size_t pos = 0;
+    const size_t len = (size_t) _tcslen(cszMessage);
+
+    for ( ;; )
+    {
+        const size_t splitAt = findEmbeddedDrivePrompt(cszMessage, pos);
+        if ( splitAt >= len )
+        {
+            tstr tail;
+            tail.Assign(cszMessage + pos, (int) (len - pos));
+            ensureOutputRowBreakBeforeAppend(re, tail.c_str());
+            re.AddStr(tail.c_str(), bScroll, color, dwMask, dwEffects);
+            if ( bNewLineAfter )
+                re.AddStr(_T_RE_EOL, bScroll, color, dwMask, dwEffects);
+            break;
+        }
+
+        if ( splitAt > pos )
+        {
+            tstr prefix;
+            prefix.Assign(cszMessage + pos, (int) (splitAt - pos));
+            re.AddStr(prefix.c_str(), bScroll, color, dwMask, dwEffects);
+        }
+
+        pos = splitAt;
+    }
+}
+
+} // namespace
 
 void CNppExecConsole::SetCurrentColorTextNorm(COLORREF colorTextNorm)
 {
@@ -5752,6 +5874,7 @@ void CNppExecConsole::_printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessa
         return;
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
+    ensureOutputRowBreakBeforeAppend(m_reConsole, cszMessage);
     if ( nPrintFlags & pfNewLine )
         m_reConsole.AddLine( cszMessage, FALSE, _getCurrentColorTextMsg() );
     else
@@ -5802,6 +5925,18 @@ void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessag
         return;
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
+    const bool bConPTY = Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon();
+    if ( m_bConPTYSuppressEchoPrefix && bConPTY )
+    {
+        if ( !cszMessage || !cszMessage[0] )
+        {
+            if ( nPrintFlags & pfNewLine )
+                return;
+        }
+        else
+            m_bConPTYSuppressEchoPrefix = false;
+    }
+
     COLORREF color = (nPrintFlags & pfChildStdErr) ? _getCurrentColorTextErr() : _getCurrentColorTextNorm();
     int  style = 0;
 
@@ -5812,14 +5947,8 @@ void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessag
         style = WarningAnalyzer.GetStyle();
     }
 
-    if ( nPrintFlags & pfNewLine )
-    {
-        m_reConsole.AddLine( cszMessage, _isScrollToEnd(), color, CFM_EFFECTS, style );
-    }
-    else
-    {
-        m_reConsole.AddStr( cszMessage, _isScrollToEnd(), color, CFM_EFFECTS, style );
-    }
+    appendChildOutputWithRowDiscipline(m_reConsole, cszMessage, _isScrollToEnd(), color,
+                                       CFM_EFFECTS, style, (nPrintFlags & pfNewLine) != 0);
 
     _lockConsoleEndPos(scrptEngnId);
 
@@ -5862,6 +5991,7 @@ void CNppExecConsole::_printStr(ScriptEngineId /*scrptEngnId*/, LPCTSTR cszStr, 
         return;
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
+    ensureOutputRowBreakBeforeAppend(m_reConsole, cszStr);
     if ( nPrintFlags & pfNewLine )
         m_reConsole.AddLine( cszStr, _isScrollToEnd(), _getCurrentColorTextNorm(), CFM_EFFECTS, 0 );
     else
@@ -6033,7 +6163,16 @@ void CNppExecConsole::_lockConsoleEndPosAfterEnterPressed(ScriptEngineId scrptEn
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
     int nPos = m_reConsole.GetTextLengthEx();
-    nPos += _T_RE_EOL_LEN;
+    TCHAR lastCh = 0;
+    if ( nPos > 0 )
+        m_reConsole.GetTextAt(nPos - 1, 1, &lastCh);
+    // Skip synthetic EOL when the buffer already ends on a row break (e.g. ConPTY
+    // clear-before-echo leaves "...\\n" after removing typed stdin — +EOL would
+    // insert a spurious blank line before the terminal echo).
+    const bool bConPTY = Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon();
+    const bool bSkipSyntheticEol = bConPTY && m_bConPTYSuppressEchoPrefix;
+    if ( !bSkipSyntheticEol && (lastCh != _T('\r')) && (lastCh != _T('\n')) )
+        nPos += _T_RE_EOL_LEN;
     _lockConsolePos(scrptEngnId, nPos);
 }
 
@@ -6393,16 +6532,67 @@ void CNppExecConsole::ProcessSlashR() // "\r"
     }
 }
 
-void CNppExecConsole::_processSlashR(ScriptEngineId /*scrptEngnId*/)
+void CNppExecConsole::OnConPTYInputSubmitted()
+{
+    m_bConPTYSuppressEchoPrefix = true;
+}
+
+void CNppExecConsole::_processSlashR(ScriptEngineId scrptEngnId)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
 
+    // Drop the leading \\r ConPTY echoes after our stdin \\r (would become a blank row).
+    if ( m_bConPTYSuppressEchoPrefix &&
+         Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon() )
+        return;
+
     // Important: SendMsg() calls must _not_ be under m_csStateList
-    int nPos = m_reConsole.ExGetSelPos();
+    const int nTextLen = m_reConsole.GetTextLengthEx();
+    if ( nTextLen <= 0 )
+        return;
+
+    // \r from the child applies at the output tail (PrintOutput appends at -1,-1),
+    // not at the user's caret in the input region.
+    int nPos = nTextLen;
     int nLen = m_reConsole.LineLength(nPos);
-    m_reConsole.ExSetSel(nPos - nLen, nPos);
-    m_reConsole.ReplaceSelText( _T("") );
+    if ( nLen < 0 )
+        nLen = 0;
+
+    const int nLineStart = nPos - nLen;
+
+    if ( nLen > 0 )
+    {
+        if ( Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon() &&
+             !HasUnlockedConsoleInput() )
+        {
+            // ConPTY uses bare \\r to redraw the current row (prompt, echoed input).
+            // Erase row text so the next PrintOutput overwrites in place (P4.6 grid limit).
+            extern INT nConsoleFirstUnlockedPos;
+            int nLineStart = nPos - nLen;
+            const int nLockPos = nConsoleFirstUnlockedPos;
+            const int nRegionBegin = (m_nVtOutputRegionBeginPos < nLockPos) ? m_nVtOutputRegionBeginPos : nLockPos;
+            if ( nLineStart < nRegionBegin )
+                nLineStart = nRegionBegin;
+            m_reConsole.ExSetSel(nLineStart, nPos);
+            m_reConsole.ReplaceSelText( _T("") );
+            _lockConsolePos(scrptEngnId, nLineStart);
+        }
+        else
+        {
+            // RichEdit has no column grid (plan P4.6): cannot overwrite in place. Keep the
+            // current row (e.g. echoed command) and continue on the next line after bare \r.
+            m_reConsole.ExSetSel(nPos, nPos);
+            m_reConsole.ReplaceSelText( _T_RE_EOL );
+        }
+    }
+    else if ( nLineStart < nPos )
+    {
+        m_reConsole.ExSetSel(nLineStart, nPos);
+        m_reConsole.ReplaceSelText( _T("") );
+    }
+
+    _lockConsoleEndPos(scrptEngnId);
 }
 
 void CNppExecConsole::ProcessSlashB(int nCount) // "\b"
@@ -6435,7 +6625,12 @@ void CNppExecConsole::_processSlashB(ScriptEngineId /*scrptEngnId*/, int nCount)
         return;
 
     // Important: SendMsg() calls must _not_ be under m_csStateList
-    int nPos = m_reConsole.ExGetSelPos();
+    int nPos = m_reConsole.GetTextLengthEx();
+    if ( nCount > nPos )
+        nCount = nPos;
+    if ( nCount <= 0 )
+        return;
+
     m_reConsole.ExSetSel(nPos - nCount, nPos);
     m_reConsole.ReplaceSelText( _T("") );
 
@@ -6520,6 +6715,11 @@ void CNppExecConsole::_vtEraseLineInOutputRegion(ScriptEngineId scrptEngnId)
     if ( CNppExec::_bIsNppShutdown )
         return;
 
+    // ConPTY sends EL (CSI K) while the user is typing on the last row; applying it would
+    // wipe the unlocked input region and submit empty/truncated lines to the child.
+    if ( m_reConsole.GetTextLengthEx() > nConsoleFirstUnlockedPos )
+        return;
+
     const int nLockPos = nConsoleFirstUnlockedPos;
     const int nRegionBegin = (m_nVtOutputRegionBeginPos < nLockPos) ? m_nVtOutputRegionBeginPos : nLockPos;
     int nLineIndex = m_reConsole.ExLineFromChar(nLockPos);
@@ -6544,6 +6744,9 @@ void CNppExecConsole::_vtEraseScreenInOutputRegion(ScriptEngineId scrptEngnId)
     if ( CNppExec::_bIsNppShutdown )
         return;
 
+    if ( m_reConsole.GetTextLengthEx() > nConsoleFirstUnlockedPos )
+        return;
+
     const int nLockPos = nConsoleFirstUnlockedPos;
     const int nRegionBegin = (m_nVtOutputRegionBeginPos < nLockPos) ? m_nVtOutputRegionBeginPos : nLockPos;
     if ( nLockPos <= 0 )
@@ -6561,6 +6764,9 @@ void CNppExecConsole::_vtBackspaceInOutputRegion(ScriptEngineId scrptEngnId, int
     if ( CNppExec::_bIsNppShutdown )
         return;
 
+    if ( m_reConsole.GetTextLengthEx() > nConsoleFirstUnlockedPos )
+        return;
+
     int nLockPos = nConsoleFirstUnlockedPos;
     const int nRegionBegin = (m_nVtOutputRegionBeginPos < nLockPos) ? m_nVtOutputRegionBeginPos : nLockPos;
     if ( nLockPos <= 0 )
@@ -6575,6 +6781,16 @@ void CNppExecConsole::_vtBackspaceInOutputRegion(ScriptEngineId scrptEngnId, int
     m_reConsole.ExSetSel(nStart, nLockPos);
     m_reConsole.ReplaceSelText( _T("") );
     _lockConsolePos(scrptEngnId, nStart);
+}
+
+bool CNppExecConsole::HasUnlockedConsoleInput() const
+{
+    extern INT nConsoleFirstUnlockedPos;
+
+    if ( CNppExec::_bIsNppShutdown )
+        return false;
+
+    return (m_reConsole.GetTextLengthEx() > nConsoleFirstUnlockedPos);
 }
 
 void CNppExecConsole::OnScriptEngineStarted()

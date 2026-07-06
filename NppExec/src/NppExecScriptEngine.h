@@ -1003,6 +1003,12 @@ class CScriptEngine : public IScriptEngine
                     mHasValues |= fConPseudoConsole;
                 }
 
+                void setConRawInput(bool bConRawInput)
+                {
+                    mConRawInput = bConRawInput;
+                    mHasValues2 |= fConRawInput;
+                }
+
                 void setWarnEffectEnabled(const bool* pWarnEffectEnabled)
                 {
                     for ( int i = 0; i < WARN_MAX_FILTER; ++i )
@@ -1150,6 +1156,7 @@ class CScriptEngine : public IScriptEngine
                 bool hasConFltrRplcEnable() const { return ((mHasValues & fConFltrRplcEnable) != 0); }
                 bool hasConFltrCompilerErrors() const { return ((mHasValues & fConFltrCompilerErrors) != 0); }
                 bool hasConPseudoConsole() const { return ((mHasValues & fConPseudoConsole) != 0); }
+                bool hasConRawInput() const { return ((mHasValues2 & fConRawInput) != 0); }
                 bool hasWarnEffectEnabled() const { return ((mHasValues & fWarnEffectEnabled) != 0); }
                 bool hasEnvVar(const tstr& varName) const { return (mEnvVars.find(varName) != mEnvVars.end()); }
                 bool hasConsoleEncoding() const { return ((mHasValues & fConsoleEncoding) != 0); }
@@ -1191,6 +1198,7 @@ class CScriptEngine : public IScriptEngine
                 void removeConFltrRplcEnable() { mHasValues &= ~fConFltrRplcEnable; }
                 void removeConFltrCompilerErrors() { mHasValues &= ~fConFltrCompilerErrors; }
                 void removeConPseudoConsole() { mHasValues &= ~fConPseudoConsole; }
+                void removeConRawInput() { mHasValues2 &= ~fConRawInput; }
                 void removeWarnEffectEnabled() { mHasValues &= ~fWarnEffectEnabled; }
                 void removeEnvVar(const tstr& varName) { auto itr = mEnvVars.find(varName); if (itr != mEnvVars.end()) mEnvVars.erase(itr); }
                 void removeConsoleEncoding() { mHasValues &= ~fConsoleEncoding; }
@@ -1315,6 +1323,10 @@ class CScriptEngine : public IScriptEngine
                     if ( hasConPseudoConsole() )
                     {
                         pNppExec->GetOptions().SetBool(OPTB_CHILDP_PSEUDOCONSOLE, mConPseudoConsole);
+                    }
+                    if ( hasConRawInput() )
+                    {
+                        pNppExec->GetOptions().SetBool(OPTB_CHILDP_RAWINPUT, mConRawInput);
                     }
                     if ( hasExecClipTextMode() )
                     {
@@ -1519,8 +1531,13 @@ class CScriptEngine : public IScriptEngine
                     fConCondenseEmptyLines    = 0x80000000
                 };
 
+                enum eHasValues2 {
+                    fConRawInput              = 0x00000001
+                };
+
                 // we might use std::optional (C++17) instead, but would it be so fun? :)
                 unsigned int mHasValues{0};
+                unsigned int mHasValues2{0};
 
                 // DoConColour:
                 COLORREF mColorTextNorm{};
@@ -1536,6 +1553,7 @@ class CScriptEngine : public IScriptEngine
                 bool mConFltrRplcEnable{};
                 bool mConFltrCompilerErrors{};
                 bool mConPseudoConsole{};
+                bool mConRawInput{};
                 bool mWarnEffectEnabled[WARN_MAX_FILTER]{};
 
                 // DoNpeConsole:

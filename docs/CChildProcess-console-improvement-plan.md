@@ -395,7 +395,7 @@ implemented in Phase 4 (and reconciled with input-echo policy tracked for Phase 
 | Mode | Behavior |
 |------|----------|
 | **Cooked (default)** | Current: `ExecuteChildProcessCommand` → `WriteInput(text)` + `WriteInput(GetNewLine())`; `LockConsoleEndPosAfterEnterPressed`. |
-| **Raw (optional)** | `RichEditWndProc`: key down → bytes (arrows, Tab, Ctrl+C `\x03`) → `WriteInput` without forced newline. |
+| **Raw (optional)** | `npe_console t+/t-` (`ChildProcess_RawInput`). **With `h+` (default):** local line edit + full line on Enter (history/backspace like cooked); **with `h-`:** immediate bytes (CSI arrows, Tab). `nppexec:` lines always local. Default **off** (`t-`). |
 | **Signals** | Ctrl+C / Ctrl+Break via executor; ConPTY-aware where applicable. |
 | **Scripts** | `proc_input`, `proc_signal` — same encoding/newline rules as console. |
 | **Resize** | ConPTY resize (Phase 3) as WINCH equivalent for size-sensitive apps. |

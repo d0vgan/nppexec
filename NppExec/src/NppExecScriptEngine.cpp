@@ -5093,6 +5093,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                     // d+/d-     follow current directory on/off
                     // e0/e1/e2  ansi escape sequences: raw/remove/process
                     // u+/u-     pseudoconsole on/off (experimental)
+                    // t+/t-     raw terminal input on/off (keys -> WriteInput)
                     // h+/h-     console commands history on/off
                     // m+/m-     console internal messages on/off
                     // n+/n-     condense empty lines on/off
@@ -5193,6 +5194,25 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
                                         savedConf.removeConPseudoConsole();
                                 }
                                 m_pNppExec->GetOptions().SetBool(OPTB_CHILDP_PSEUDOCONSOLE, bOn);
+                                isOK = true;
+                            }
+                            break;
+
+                        case _T('T'):
+                            if ( arg[1] == _T('+') || arg[1] == _T('-') )
+                            {
+                                bool bOn = ( arg[1] == _T('+') );
+                                if ( isLocal )
+                                {
+                                    if ( !savedConf.hasConRawInput() )
+                                        savedConf.setConRawInput( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_RAWINPUT) );
+                                }
+                                else
+                                {
+                                    if ( savedConf.hasConRawInput() )
+                                        savedConf.removeConRawInput();
+                                }
+                                m_pNppExec->GetOptions().SetBool(OPTB_CHILDP_RAWINPUT, bOn);
                                 isOK = true;
                             }
                             break;
@@ -5594,6 +5614,10 @@ CScriptEngine::eCmdResult CScriptEngine::DoNpeConsole(const tstr& params)
         S1 += _T(" u");
         S2 += _T(", pseudocon: ");
         appendOnOff( m_pNppExec->GetCommandExecutor().IsChildProcessPseudoCon(), S1, S2 );
+        // raw input
+        S1 += _T(" t");
+        S2 += _T(", raw_input: ");
+        appendOnOff( m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_RAWINPUT), S1, S2 );
         // cmd_history
         S1 += _T(" h");
         S2 += _T_RE_EOL _T("; cmd_history: ");
@@ -6311,8 +6335,7 @@ CScriptEngine::eCmdResult CScriptEngine::DoNppExecText(const tstr& params)
         {
             Runtime::GetLogger().Add( _T("; sending the text to the running child process") );
 
-            CommandExecutor.WriteChildProcessInput( pszText );
-            CommandExecutor.WriteChildProcessInputNewLine();
+            CommandExecutor.WriteChildProcessInputAsLine( pszText );
         }
     }
     else
@@ -7686,12 +7709,11 @@ CScriptEngine::eCmdResult CScriptEngine::DoProcInput(const tstr& params)
     }
 
     CNppExecCommandExecutor& CommandExecutor = m_pNppExec->GetCommandExecutor();
-    CommandExecutor.WriteChildProcessInput( params.c_str() );
     const TCHAR ch = params.GetLastChar();
     if ( ch != _T('\n') && ch != _T('\r') )
-    {
-        CommandExecutor.WriteChildProcessInputNewLine();
-    }
+        CommandExecutor.WriteChildProcessInputAsLine( params.c_str() );
+    else
+        CommandExecutor.WriteChildProcessInput( params.c_str() );
 
     return CMDRESULT_SUCCEEDED;
 }

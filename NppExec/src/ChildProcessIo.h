@@ -41,6 +41,9 @@ class CChildProcessIo
         bool createPseudoConsole(CNppExec* pNppExec);
         bool resizePseudoConsole(CNppExec* pNppExec);
         void configureStartupInfo(STARTUPINFOEX& si, DWORD& dwCreationFlags);
+        // ConPTY: move cursor off (0,0) before child main() so empty-console launchers
+        // (e.g. sfk.exe with no args) do not treat the session as a double-click install.
+        void preparePseudoConsoleChildProcess(HANDLE hProcess, DWORD dwProcessId, HANDLE hThread, CNppExec* pNppExec);
         void onChildProcessStarted();
 
         void closePipes();
@@ -51,11 +54,13 @@ class CChildProcessIo
         HANDLE getStdOutReadPipe() const;
         HANDLE getStdErrReadPipe() const;
         bool   isPseudoCon() const;
+        bool   shouldChildInheritHandles() const;
         bool   hasSeparateStderrPipe() const;
 
         bool startStdoutReader(CChildProcess* pOwner);
         void stopStdoutReader();
         bool isStdoutReaderActive() const;
+        HANDLE getStdoutDataEvent() const;
 
         bool popStdoutChunk(CStrT<char>& chunk);
         bool popOutputChunk(CStrT<char>& chunk, bool& bStderr);
@@ -98,6 +103,7 @@ class CChildProcessIo
 
         HANDLE m_hStdoutReaderThread;
         volatile LONG m_bStdoutReaderStop;
+        HANDLE m_hStdoutDataEvent;
 
         CCriticalSection m_csOutputQueue;
         CListT< CChildProcessOutputChunk > m_OutputQueue;
