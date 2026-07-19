@@ -6,6 +6,7 @@
 #include "cpp/StrSplitT.h"
 #include "c_base/MatchMask.h"
 #include "c_base/int2str.h"
+#include "c_base/str2int.h"
 
 PseudoConsoleHelper g_pseudoCon;
 
@@ -970,12 +971,16 @@ DWORD CChildProcess::processOutputQueue(CStrT<char>& bufLine,
         }
     }
 
-    // When the reader thread is active, bReadStdout is false — only flush after real data
-    // or final drain; otherwise every idle poll forces a spurious partial flush (race).
-    if ( bOutputAll || (dwTotal > 0) )
+    // Complete (newline-terminated) lines are already emitted above. Do NOT force-flush
+    // an incomplete trailing line while a burst is in progress (dwTotal > 0): the child
+    // is still writing, and flushing now would split the line at an arbitrary ConPTY
+    // chunk boundary (dropping the pending newline / indentation). Flush the partial
+    // tail only on the final drain (bOutputAll), or when the child paused output (idle
+    // poll: no data this call) — e.g. an interactive prompt awaiting input.
+    if ( bOutputAll || (dwTotal == 0) )
         processOutputBuffer(bufLine, bPrevLineEmpty, nPrevState, true, bDoOutputNext, true, false);
 
-    if ( m_Io.hasSeparateStderrPipe() && (bOutputAll || (dwTotalStderr > 0)) )
+    if ( m_Io.hasSeparateStderrPipe() && (bOutputAll || (dwTotalStderr == 0)) )
         processOutputBuffer(bufLineStderr, bPrevLineEmptyStderr, nPrevStateStderr, true, bDoOutputNextStderr, true, true);
 
     return dwTotal + dwTotalStderr;
@@ -1029,6 +1034,14 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
     if ( !bSomethingHasBeenReadFromPipe )
         bOutputAll = true;
 
+    // A '\r' as the last byte of the current buffer may be the first half of a
+    // "\r\n" that got split across pipe-read chunks (common with ConPTY, whose
+    // rows are all "\r\n"-terminated). While the child may still produce output,
+    // hold such a trailing '\r' for the next read instead of treating it as a
+    // bare CR — otherwise the line's newline is lost and the following chunk's
+    // text concatenates onto this line (and ProcessSlashR mangles indentation).
+    const bool bDeferSplitCR = IsRunning();
+
     int copy_len;
 
     do {
@@ -1044,6 +1057,16 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
             }
             else if ( bufLine[pos] == '\r' )
             {
+                // Incomplete when we can't look far enough ahead to tell "\r\n"
+                // (or "\r\r\n") from a bare CR: defer while more data may arrive.
+                const bool bTrailingCR =
+                    ( pos + 1 >= bufLine.length() ) ||
+                    ( (bufLine[pos+1] == '\r') && (pos + 2 >= bufLine.length()) );
+                if ( bTrailingCR && bDeferSplitCR )
+                {
+                    break; // keep "...\r" buffered for the next read
+                }
+
                 if ( bufLine[pos+1] != '\n' )
                 {
                     if ( (bufLine[pos+1] != '\r') || (bufLine.GetAt(pos+2) != '\n') )
@@ -1176,7 +1199,15 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
 
                         if ( nAnsiEscSeq == escRemove )
                         {
-                            bPrintThisLine = RemoveAnsiEscSequencesFromLine(printLine);
+                            bool bCursorNextLine = false;
+                            bPrintThisLine = RemoveAnsiEscSequencesFromLine(printLine, &bCursorNextLine);
+
+                            // Same ConPTY handling as the escProcess path: a CUP/
+                            // CUD/CNL sequence used in place of "\r\n" advances to
+                            // the next output row, so treat this line as newline-
+                            // terminated instead of letting the next row concatenate.
+                            if ( bCursorNextLine && (nIsNewLine != nlLF) )
+                                nIsNewLine = nlLF;
                         }
                         else if ( nAnsiEscSeq == escProcess )
                         {
@@ -1198,6 +1229,14 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                                 console.VtEraseLineInOutputRegion();
                             if ( vtActions.nBackspaceCount > 0 && bApplyDestructiveVt )
                                 console.VtBackspaceInOutputRegion(vtActions.nBackspaceCount);
+
+                            // ConPTY advanced to the next row via an absolute cursor-position
+                            // (CUP) or cursor-down/next-line sequence instead of "\r\n" (e.g. at
+                            // the frame flush when git sets the window title). Treat this line as
+                            // newline-terminated so the following row starts fresh instead of
+                            // concatenating; and drop the bare-CR erase that would otherwise fire.
+                            if ( vtActions.bCursorNextLine && (nIsNewLine != nlLF) )
+                                nIsNewLine = nlLF;
 
                             // Match escRemove: emit blank lines (e.g. \\n after echoed input),
                             // but skip lines that were only VT sequences.
@@ -1267,7 +1306,7 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
 
     return 0;
 }
-bool CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
+bool CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line, bool* pbCursorNextLine)
 {
     // ANSI escape codes, references:
     //   https://en.wikipedia.org/wiki/ANSI_escape_code
@@ -1295,8 +1334,12 @@ bool CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
     TCHAR wait1_ch = 0;
     TCHAR wait2_ch = 0;
     tstr outputLine;
+    tstr csiParams;
 
     outputLine.Reserve(Line.length());
+
+    if ( pbCursorNextLine )
+        *pbCursorNextLine = false;
 
     while ( (curr_ch = *p) != 0 )
     {
@@ -1318,6 +1361,7 @@ bool CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
                 {
                     case _T('['):  // CSI
                         state = esCsi;
+                        csiParams.Clear();
                         break;
                     case _T(']'):  // OSC
                         state = esOsc;
@@ -1355,7 +1399,14 @@ bool CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
                 break;
 
             case esCsi:
-                if ( (curr_ch >= _T('A') && curr_ch <= _T('Z')) ||
+                if ( (curr_ch >= _T('0') && curr_ch <= _T('9')) ||
+                     (curr_ch == _T(';')) ||
+                     (curr_ch == _T('?')) )
+                {
+                    // CSI parameter byte
+                    csiParams.Append(curr_ch);
+                }
+                else if ( (curr_ch >= _T('A') && curr_ch <= _T('Z')) ||
                      (curr_ch >= _T('a') && curr_ch <= _T('z')) ||
                      (curr_ch == _T('@'))  ||
                      (curr_ch == _T('['))  ||
@@ -1369,10 +1420,32 @@ bool CChildProcess::RemoveAnsiEscSequencesFromLine(tstr& Line)
                      (curr_ch == _T('}'))  ||
                      (curr_ch == _T('~')) )
                 {
-                    // the "final byte" of the CSI sequence
+                    // the "final byte" of the CSI sequence.
+                    // ConPTY sometimes uses cursor-movement CSIs in place of
+                    // literal spaces / "\r\n"; mirror the escProcess (VT) path so
+                    // stripped output keeps its indentation and row breaks.
+                    if ( curr_ch == _T('C') ) // CUF (cursor forward) -> N spaces
+                    {
+                        int n = csiParams.IsEmpty() ? 1 : c_base::_tstr2int(csiParams.c_str());
+                        if ( n < 0 )
+                            n = 0;
+                        else if ( n > 4096 ) // guard against absurd/malformed counts
+                            n = 4096;
+                        for ( int i = 0; i < n; ++i )
+                            outputLine.Append( _T(' ') );
+                    }
+                    else if ( pbCursorNextLine )
+                    {
+                        if ( (curr_ch == _T('B')) || (curr_ch == _T('E')) ) // CUD / CNL
+                            *pbCursorNextLine = true;
+                        else if ( ((curr_ch == _T('H')) || (curr_ch == _T('f'))) &&
+                                  (!csiParams.IsEmpty()) ) // CUP / HVP with params
+                            *pbCursorNextLine = true;
+                    }
+                    csiParams.Clear();
                     state = esNone;
                 }
-                // else waiting for the CSI final character...
+                // else (intermediate byte) waiting for the CSI final character...
                 break;
 
             case esOsc:

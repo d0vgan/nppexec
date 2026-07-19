@@ -2,6 +2,8 @@
 #include "ChildProcess.h"
 #include "NppExec.h"
 #include "NppExecScriptEngine.h"
+#include <cstdio>
+#include <cstring>
 
 extern PseudoConsoleHelper g_pseudoCon;
 
@@ -400,10 +402,46 @@ bool CChildProcessIo::hasSeparateStderrPipe() const
     return (m_hStdErrReadPipe != NULL) && !isPseudoCon();
 }
 
+// Debug-only: when the env var NPPEXEC_CONPTY_DUMP is set, append every raw output
+// chunk (exactly as read from the ConPTY/pipe, before line-splitting) to that file,
+// with <R:len> markers and escaped control bytes. Lets us see the precise bytes and
+// chunk boundaries the child produced (e.g. whether ConPTY dropped a "\r\n").
+static void dumpRawChunkIfEnabled(const char* pData, int nLen, bool bStderr)
+{
+    static int s_enabled = -1;      // -1 unknown, 0 off, 1 on
+    static char s_path[MAX_PATH] = {0};
+    if ( s_enabled == -1 )
+    {
+        DWORD n = ::GetEnvironmentVariableA("NPPEXEC_CONPTY_DUMP", s_path, MAX_PATH);
+        s_enabled = (n > 0 && n < MAX_PATH) ? 1 : 0;
+    }
+    if ( s_enabled != 1 )
+        return;
+
+    FILE* f = NULL;
+    if ( fopen_s(&f, s_path, "ab") != 0 || !f )
+        return;
+    fprintf(f, "<R%s:%d>", bStderr ? "e" : "", nLen);
+    for ( int i = 0; i < nLen; ++i )
+    {
+        unsigned char c = (unsigned char) pData[i];
+        if ( c == 0x1B )      fputs("<ESC>", f);
+        else if ( c == '\r' ) fputs("<CR>", f);
+        else if ( c == '\n' ) fputs("<LF>", f);
+        else if ( c == '\t' ) fputs("<TAB>", f);
+        else if ( c < 0x20 )  fprintf(f, "<%02X>", c);
+        else                  fputc((int)c, f);
+    }
+    fputc('\n', f);
+    fclose(f);
+}
+
 void CChildProcessIo::enqueueOutputChunk(const char* pData, int nLen, bool bStderr)
 {
     if ( (!pData) || (nLen <= 0) )
         return;
+
+    dumpRawChunkIfEnabled(pData, nLen, bStderr);
 
     CChildProcessOutputChunk item;
     item.m_Data.Assign(pData, nLen);

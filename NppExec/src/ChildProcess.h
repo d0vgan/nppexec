@@ -158,7 +158,10 @@ class CChildProcess
         unsigned int GetEncoding() const;
         unsigned int GetAnsiEscSeq() const;
 
-        static bool RemoveAnsiEscSequencesFromLine(tstr& Line);
+        // pbCursorNextLine (optional, out): set to true when the line contained a
+        // ConPTY cursor-advance CSI (CUP/HVP with params, CUD, CNL) used in place
+        // of "\r\n"; the caller then treats the line as newline-terminated.
+        static bool RemoveAnsiEscSequencesFromLine(tstr& Line, bool* pbCursorNextLine = nullptr);
 
     protected:
         static bool IsWindowsNT();

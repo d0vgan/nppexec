@@ -104,7 +104,7 @@ bool CConsoleVtParser::ProcessChunk(const tstr& input, tstr& output)
                           (currCh == _T('}'))  ||
                           (currCh == _T('~')) )
                 {
-                    finalizeCsiSequence(currCh);
+                    finalizeCsiSequence(currCh, output);
                     m_State = esNone;
                 }
                 break;
@@ -188,12 +188,29 @@ COLORREF CConsoleVtParser::GetActiveTextColor() const
     return m_ActiveTextColor;
 }
 
-void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh)
+void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh, tstr& output)
 {
     switch ( finalCh )
     {
         case _T('m'): // SGR
             applySgrParams(m_CsiParams);
+            break;
+
+        case _T('C'): // CUF (cursor forward)
+            // ConPTY renders leading indentation by moving the cursor forward
+            // with "ESC[nC" instead of writing n literal spaces (it does this
+            // for a timing-dependent subset of rows at frame-diff boundaries).
+            // A parser that just drops the sequence would lose the indentation,
+            // so reproduce the forward move as n spaces of output.
+            {
+                int n = getFirstParamOrDefault(m_CsiParams, 1);
+                if ( n < 0 )
+                    n = 0;
+                else if ( n > 4096 ) // guard against absurd/malformed counts
+                    n = 4096;
+                for ( int i = 0; i < n; ++i )
+                    output.Append( _T(' ') );
+            }
             break;
 
         case _T('K'): // EL
@@ -210,6 +227,20 @@ void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh)
 
         case _T('D'): // cursor left
             m_Actions.nBackspaceCount += getFirstParamOrDefault(m_CsiParams, 1);
+            break;
+
+        case _T('H'): // CUP (cursor position)
+        case _T('f'): // HVP (horizontal/vertical position)
+            // "ESC[r;cH" with an explicit position advances to another output row
+            // (ConPTY uses it in place of "\r\n"); treat it as a line break. Bare
+            // "ESC[H" (home) has no params and pairs with a screen clear, so ignore it.
+            if ( !m_CsiParams.IsEmpty() )
+                m_Actions.bCursorNextLine = true;
+            break;
+
+        case _T('B'): // CUD (cursor down)
+        case _T('E'): // CNL (cursor next line)
+            m_Actions.bCursorNextLine = true;
             break;
     }
 

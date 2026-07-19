@@ -13,6 +13,14 @@ class CConsoleVtParser
             bool bClearLine = false;
             bool bClearScreen = false;
             int nBackspaceCount = 0;
+            // ConPTY often advances to the next output row with an absolute cursor-
+            // position (CUP "ESC[r;cH") or cursor-down/next-line (CUD "ESC[nB",
+            // CNL "ESC[nE") sequence instead of a "\r\n" — e.g. at a frame/flush
+            // boundary such as when the child sets the window title. A CR/LF-only
+            // splitter would then merge the two logical rows. This flags that the
+            // parsed line ended with such a downward cursor move so the caller can
+            // treat the line as newline-terminated.
+            bool bCursorNextLine = false;
         };
 
         CConsoleVtParser();
@@ -50,7 +58,7 @@ class CConsoleVtParser
         VtActions m_Actions;
 
     private:
-        void finalizeCsiSequence(TCHAR finalCh);
+        void finalizeCsiSequence(TCHAR finalCh, tstr& output);
         void applySgrParams(const CStrT<TCHAR>& params);
         static int getFirstParamOrDefault(const CStrT<TCHAR>& params, int nDefaultValue);
 };
