@@ -1196,6 +1196,12 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                     if ( bOutput )
                     {
                         bool bPrintThisLine = true;
+                        // For escProcess, ConPTY may pack several output rows into a single
+                        // CR/LF-delimited chunk: it paints the initial visible screen by
+                        // positioning each row with an absolute cursor move (CUP "ESC[r;cH")
+                        // rather than "\r\n". The VT parser splits those into rows, each with
+                        // its own color; a non-null pointer here means "iterate the rows".
+                        const std::vector<CConsoleVtParser::VtOutputRow>* pVtRows = nullptr;
 
                         if ( nAnsiEscSeq == escRemove )
                         {
@@ -1231,12 +1237,14 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                                 console.VtBackspaceInOutputRegion(vtActions.nBackspaceCount);
 
                             // ConPTY advanced to the next row via an absolute cursor-position
-                            // (CUP) or cursor-down/next-line sequence instead of "\r\n" (e.g. at
-                            // the frame flush when git sets the window title). Treat this line as
-                            // newline-terminated so the following row starts fresh instead of
-                            // concatenating; and drop the bare-CR erase that would otherwise fire.
+                            // (CUP) or cursor-down/next-line sequence instead of "\r\n" with no
+                            // text following it (e.g. the frame flush when git sets the window
+                            // title). Treat this line as newline-terminated so the following row
+                            // starts fresh; and drop the bare-CR erase that would otherwise fire.
                             if ( vtActions.bCursorNextLine && (nIsNewLine != nlLF) )
                                 nIsNewLine = nlLF;
+
+                            pVtRows = &vtParser.GetOutputRows();
 
                             // Match escRemove: emit blank lines (e.g. \\n after echoed input),
                             // but skip lines that were only VT sequences.
@@ -1254,27 +1262,62 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
 
                         if ( bPrintThisLine )
                         {
-                            if ( bOutputVar )
-                            {
-                                m_strOutput += printLine;
-                                if ( nIsNewLine == nlLF )
-                                {
-                                    m_strOutput += _T("\n");
-                                }
-                            }
-
                             UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg;
                             if ( nIsNewLine == nlLF )
                                 nPrintOutFlags |= CNppExecConsole::pfNewLine;
 
-                            if ( (nAnsiEscSeq == escProcess) )
+                            if ( pVtRows && (pVtRows->size() > 1) )
                             {
-                                CConsoleVtParser& vtParser = bFromStderr ? m_VtParserStderr : m_VtParserStdout;
-                                if ( vtParser.HasActiveTextColor() )
+                                // A ConPTY initial-screen paint collapsed several rows into this
+                                // chunk. Emit each on its own console line (all but the last are
+                                // unconditionally newline-terminated), each with its own color.
+                                CNppExecConsole& console = m_pNppExec->GetConsole();
+                                const std::vector<CConsoleVtParser::VtOutputRow>& rows = *pVtRows;
+                                const size_t nRows = rows.size();
+                                for ( size_t i = 0; i < nRows; ++i )
+                                {
+                                    const CConsoleVtParser::VtOutputRow& row = rows[i];
+                                    const bool bLastRow = (i + 1 == nRows);
+                                    UINT nRowFlags = CNppExecConsole::pfLogThisMsg;
+                                    if ( !bLastRow || (nIsNewLine == nlLF) )
+                                        nRowFlags |= CNppExecConsole::pfNewLine;
+
+                                    if ( bOutputVar )
+                                    {
+                                        m_strOutput += row.text;
+                                        if ( nRowFlags & CNppExecConsole::pfNewLine )
+                                            m_strOutput += _T("\n");
+                                    }
+
+                                    if ( row.bHasColor )
+                                    {
+                                        const COLORREF oldColor = console.GetCurrentColorTextNorm();
+                                        console.SetCurrentColorTextNorm(row.color);
+                                        console.PrintOutput(row.text.c_str(), nRowFlags);
+                                        console.SetCurrentColorTextNorm(oldColor);
+                                    }
+                                    else
+                                    {
+                                        console.PrintOutput(row.text.c_str(), nRowFlags);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                if ( bOutputVar )
+                                {
+                                    m_strOutput += printLine;
+                                    if ( nIsNewLine == nlLF )
+                                    {
+                                        m_strOutput += _T("\n");
+                                    }
+                                }
+
+                                if ( pVtRows && (pVtRows->size() == 1) && (*pVtRows)[0].bHasColor )
                                 {
                                     CNppExecConsole& console = m_pNppExec->GetConsole();
                                     const COLORREF oldColor = console.GetCurrentColorTextNorm();
-                                    console.SetCurrentColorTextNorm(vtParser.GetActiveTextColor());
+                                    console.SetCurrentColorTextNorm((*pVtRows)[0].color);
                                     console.PrintOutput(printLine.c_str(), nPrintOutFlags);
                                     console.SetCurrentColorTextNorm(oldColor);
                                 }
@@ -1282,10 +1325,6 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                                 {
                                     m_pNppExec->GetConsole().PrintOutput(printLine.c_str(), nPrintOutFlags);
                                 }
-                            }
-                            else
-                            {
-                                m_pNppExec->GetConsole().PrintOutput(printLine.c_str(), nPrintOutFlags);
                             }
                         }
                     }

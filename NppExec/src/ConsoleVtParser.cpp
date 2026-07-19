@@ -16,6 +16,15 @@ void CConsoleVtParser::Reset()
     m_bHasActiveTextColor = false;
     m_ActiveTextColor = RGB(0, 0, 0);
     m_Actions = VtActions();
+    m_Rows.clear();
+    m_CurRow = VtOutputRow();
+    m_bPendingRowBreak = false;
+    m_nPendingIndent = 0;
+}
+
+const std::vector<CConsoleVtParser::VtOutputRow>& CConsoleVtParser::GetOutputRows() const
+{
+    return m_Rows;
 }
 
 bool CConsoleVtParser::ProcessChunk(const tstr& input, tstr& output)
@@ -37,7 +46,7 @@ bool CConsoleVtParser::ProcessChunk(const tstr& input, tstr& output)
                 }
                 else
                 {
-                    output.Append(currCh);
+                    emitVisibleChar(currCh);
                 }
                 break;
 
@@ -104,7 +113,7 @@ bool CConsoleVtParser::ProcessChunk(const tstr& input, tstr& output)
                           (currCh == _T('}'))  ||
                           (currCh == _T('~')) )
                 {
-                    finalizeCsiSequence(currCh, output);
+                    finalizeCsiSequence(currCh);
                     m_State = esNone;
                 }
                 break;
@@ -169,7 +178,95 @@ bool CConsoleVtParser::ProcessChunk(const tstr& input, tstr& output)
         m_CsiParams.Clear();
     }
 
-    return (!output.IsEmpty() || input.IsEmpty());
+    // A cursor move that had no text following it (e.g. the title-set frame boundary)
+    // just terminates the line; signal it so the caller newline-terminates instead of
+    // emitting a spurious extra row.
+    if ( m_bPendingRowBreak )
+    {
+        m_Actions.bCursorNextLine = true;
+        m_bPendingRowBreak = false;
+        m_nPendingIndent = 0;
+    }
+
+    // Flush the row under construction (always, so an empty line still yields one row).
+    pushCurrentRow(true);
+
+    // Rebuild 'output' as the row texts joined by '\n' (used by the caller only for
+    // length checks and the output-var; printing iterates GetOutputRows() directly).
+    output.Clear();
+    for ( size_t i = 0; i < m_Rows.size(); ++i )
+    {
+        if ( i != 0 )
+            output.Append( _T('\n') );
+        output.Append( m_Rows[i].text );
+    }
+
+    return (!m_Rows.empty() || input.IsEmpty());
+}
+
+void CConsoleVtParser::emitVisibleChar(TCHAR ch)
+{
+    if ( ch == _T(' ') || ch == _T('\t') )
+    {
+        // Leading blanks that arrive while a row break is pending become part of the
+        // new row's indentation; a bare cursor move followed only by blanks should not
+        // resolve into a fresh row on its own.
+        if ( m_bPendingRowBreak )
+        {
+            ++m_nPendingIndent;
+            return;
+        }
+        m_CurRow.text.Append(ch);
+        return;
+    }
+
+    if ( m_bPendingRowBreak )
+    {
+        // First non-blank after the cursor move: close the previous row and start a
+        // new one indented to the target column.
+        pushCurrentRow(false);
+        for ( int i = 0; i < m_nPendingIndent; ++i )
+            m_CurRow.text.Append( _T(' ') );
+        m_bPendingRowBreak = false;
+        m_nPendingIndent = 0;
+    }
+
+    m_CurRow.text.Append(ch);
+    // The row's color tracks the color in effect for its visible (non-blank) text, so
+    // a trailing "ESC[31m" left dangling at a row boundary can't recolor this row.
+    m_CurRow.bHasColor = m_bHasActiveTextColor;
+    m_CurRow.color = m_ActiveTextColor;
+}
+
+void CConsoleVtParser::emitForwardSpaces(int n)
+{
+    if ( n <= 0 )
+        return;
+    if ( n > 4096 ) // guard against absurd/malformed counts
+        n = 4096;
+    if ( m_bPendingRowBreak )
+    {
+        m_nPendingIndent += n;
+        return;
+    }
+    for ( int i = 0; i < n; ++i )
+        m_CurRow.text.Append( _T(' ') );
+}
+
+void CConsoleVtParser::requestRowBreak(int nIndent)
+{
+    m_bPendingRowBreak = true;
+    m_nPendingIndent = (nIndent > 0) ? nIndent : 0;
+}
+
+void CConsoleVtParser::pushCurrentRow(bool bForce)
+{
+    // Avoid creating a leading empty row (e.g. a line that opens with a cursor move).
+    if ( !bForce && m_CurRow.text.IsEmpty() && m_Rows.empty() )
+        return;
+
+    m_Rows.push_back(m_CurRow);
+    m_CurRow = VtOutputRow();
 }
 
 void CConsoleVtParser::ConsumeActions(VtActions& actions)
@@ -188,7 +285,7 @@ COLORREF CConsoleVtParser::GetActiveTextColor() const
     return m_ActiveTextColor;
 }
 
-void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh, tstr& output)
+void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh)
 {
     switch ( finalCh )
     {
@@ -202,15 +299,7 @@ void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh, tstr& output)
             // for a timing-dependent subset of rows at frame-diff boundaries).
             // A parser that just drops the sequence would lose the indentation,
             // so reproduce the forward move as n spaces of output.
-            {
-                int n = getFirstParamOrDefault(m_CsiParams, 1);
-                if ( n < 0 )
-                    n = 0;
-                else if ( n > 4096 ) // guard against absurd/malformed counts
-                    n = 4096;
-                for ( int i = 0; i < n; ++i )
-                    output.Append( _T(' ') );
-            }
+            emitForwardSpaces( getFirstParamOrDefault(m_CsiParams, 1) );
             break;
 
         case _T('K'): // EL
@@ -232,15 +321,21 @@ void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh, tstr& output)
         case _T('H'): // CUP (cursor position)
         case _T('f'): // HVP (horizontal/vertical position)
             // "ESC[r;cH" with an explicit position advances to another output row
-            // (ConPTY uses it in place of "\r\n"); treat it as a line break. Bare
-            // "ESC[H" (home) has no params and pairs with a screen clear, so ignore it.
+            // (ConPTY paints the initial visible screen this way instead of "\r\n").
+            // Treat it as a row break and use the column as the new row's indent.
+            // Bare "ESC[H" (home) has no params and pairs with a screen clear -> ignore.
             if ( !m_CsiParams.IsEmpty() )
-                m_Actions.bCursorNextLine = true;
+            {
+                CStrSplitT<TCHAR> args;
+                const int nArgs = args.Split(m_CsiParams.c_str(), _T(";"));
+                int col = (nArgs >= 2) ? c_base::_tstr2int(args.GetArg(1).c_str()) : 1;
+                requestRowBreak( (col > 1) ? (col - 1) : 0 );
+            }
             break;
 
         case _T('B'): // CUD (cursor down)
         case _T('E'): // CNL (cursor next line)
-            m_Actions.bCursorNextLine = true;
+            requestRowBreak(0);
             break;
     }
 
