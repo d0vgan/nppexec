@@ -1362,7 +1362,8 @@ public:
         pfLogThisMsg    = 0x01,
         pfNewLine       = 0x02,
         pfIsInternalMsg = 0x04,
-        pfChildStdErr   = 0x08  // reserved (legacy: stderr merged into stdout pipe; not used for colour)
+        pfChildStdErr   = 0x08, // reserved (legacy: stderr merged into stdout pipe; not used for colour)
+        pfFromChild     = 0x10  // stdout/stderr from the child reader (ConPTY column model)
     };
     void PrintError(LPCTSTR cszMessage, UINT nPrintFlags = pfLogThisMsg);
     void PrintMessage(LPCTSTR cszMessage, UINT nPrintFlags);
@@ -1407,6 +1408,10 @@ public:
     bool HasUnlockedConsoleInput() const;
     // ConPTY: ignore leading \\r / blank \\n from echo right after stdin submit.
     void OnConPTYInputSubmitted();
+    // ConPTY output cursor column on the current row (0-based). CUF advances it;
+    // bare \\r resets it; printed text is written at this column (overwrite).
+    void AdvanceConPtyColumn(int n);
+    void ResetConPtyColumn();
 
     void OnScriptEngineStarted();
     void OnScriptEngineFinished();
@@ -1458,6 +1463,7 @@ protected:
     COLORREF m_colorBkgnd;
     int      m_nVtOutputRegionBeginPos;
     bool     m_bConPTYSuppressEchoPrefix;
+    int      m_nConPtyColumn; // write cursor on the current ConPTY output row
     std::list<ConsoleState> m_StateList;
 
     const ConsoleState& _getState(ScriptEngineId scrptEngnId) const;
@@ -1478,8 +1484,10 @@ protected:
     void _printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
     void _printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
     void _printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
+    void _writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int style, bool bNewLineAfter);
     void _printStr(ScriptEngineId scrptEngnId, LPCTSTR cszStr, UINT nPrintFlags);
     void _printSysError(ScriptEngineId scrptEngnId, LPCTSTR cszFunctionName, DWORD dwErrorCode, UINT nPrintFlags);
+    void _onNppExecOwnedOutputBoundary();
     void _vtEraseLineInOutputRegion(ScriptEngineId scrptEngnId);
     void _vtEraseScreenInOutputRegion(ScriptEngineId scrptEngnId);
     void _vtBackspaceInOutputRegion(ScriptEngineId scrptEngnId, int nCount);

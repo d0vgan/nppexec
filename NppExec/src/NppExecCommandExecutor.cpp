@@ -30,6 +30,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 extern PseudoConsoleHelper g_pseudoCon;
 
+static void sendChildPromptEnterAfterCollateral(CNppExec* pNppExec)
+{
+    CNppExecCommandExecutor& cmdExec = pNppExec->GetCommandExecutor();
+    if ( !cmdExec.IsChildProcessRunning() )
+        return;
+    // Emulated Enter is stdin to the child — not gated on script output enable.
+    if ( cmdExec.IsChildProcessPseudoCon() )
+        pNppExec->GetConsole().OnConPTYInputSubmitted();
+    cmdExec.WriteChildProcessInputNewLine();
+    pNppExec->GetConsole().LockConsoleEndPosAfterEnterPressed();
+}
+
 static DWORD WINAPI dwRunCollateralScriptThread(LPVOID lpScrptEngnRnr)
 {
     Runtime::GetLogger().OnThreadStarted();
@@ -52,13 +64,7 @@ static DWORD WINAPI dwRunCollateralScriptThread(LPVOID lpScrptEngnRnr)
             pParentScriptEngine = pParentScriptEngine->GetParentScriptEngine();
         if ( pParentScriptEngine )
             scrptEngnId = pParentScriptEngine->GetThreadId();
-        if ( pNppExec->GetConsole().GetOutputEnabledDirectly(scrptEngnId) != 0 )
-        {
-            pNppExec->GetCommandExecutor().WriteChildProcessInputNewLine();
-              // sends "\n" to show child process'es prompt
-
-            pNppExec->GetConsole().LockConsoleEndPosAfterEnterPressed();
-        }
+        sendChildPromptEnterAfterCollateral(pNppExec);
     }
     else if ( !pScriptEngine->IsExternal() )
     {
@@ -72,6 +78,8 @@ static DWORD WINAPI dwRunCollateralScriptThread(LPVOID lpScrptEngnRnr)
             const UINT nMsgFlags = CNppExecConsole::pfLogThisMsg;
             pNppExec->GetConsole().PrintMessage( sMsgReady.c_str(), nMsgFlags );
         }
+        if ( pScriptEngine->IsCollateral() )
+            sendChildPromptEnterAfterCollateral(pNppExec);
         pNppExec->GetConsole().RestoreDefaultTextStyle(true);
     }
 
@@ -399,6 +407,14 @@ bool CNppExecCommandExecutor::IsChildProcessRawInput() const
 {
     return IsChildProcessRunning() &&
            m_pNppExec->GetOptions().GetBool(OPTB_CHILDP_RAWINPUT);
+}
+
+bool CNppExecCommandExecutor::IsChildProcessRawImmediateInput() const
+{
+    // t+ h-: no local Commands History buffer — CSI arrows / EL / bare \\r redraw
+    // must be applied in place so the child's line editor can overwrite the current row.
+    return IsChildProcessRawInput() &&
+           !m_pNppExec->GetOptions().GetBool(OPTB_CONSOLE_CMDHISTORY);
 }
 
 bool CNppExecCommandExecutor::IsCommandQueueEmpty() const
@@ -1268,19 +1284,7 @@ DWORD CNppExecCommandExecutor::ScriptableCommand::RunConsoleScript(Command* pCom
 
     if ( pCommand->GetExecutor()->IsChildProcessRunning() )
     {
-        DWORD scrptEngnId = 0;
-        std::shared_ptr<CScriptEngine> pParentScriptEngine = pScriptEngine->GetParentScriptEngine();
-        while ( pParentScriptEngine && pParentScriptEngine->IsDone() )
-            pParentScriptEngine = pParentScriptEngine->GetParentScriptEngine();
-        if ( pParentScriptEngine )
-            scrptEngnId = pParentScriptEngine->GetThreadId();
-        if ( pNppExec->GetConsole().GetOutputEnabledDirectly(scrptEngnId) != 0 )
-        {
-            pCommand->GetExecutor()->WriteChildProcessInputNewLine();
-              // sends "\n" to show child process'es prompt
-
-            pNppExec->GetConsole().LockConsoleEndPosAfterEnterPressed();
-        }
+        sendChildPromptEnterAfterCollateral(pNppExec);
     }
   
     pNppExec->GetPluginInterfaceImpl().NotifyExternalPluginResult(pCommand->GetId(), pScriptEngine->IsAborted() ? NPE_RESULT_ABORTED : NPE_RESULT_OK);

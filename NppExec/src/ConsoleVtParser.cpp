@@ -27,6 +27,11 @@ const std::vector<CConsoleVtParser::VtOutputRow>& CConsoleVtParser::GetOutputRow
     return m_Rows;
 }
 
+std::vector<CConsoleVtParser::VtOutputRow>& CConsoleVtParser::GetOutputRows()
+{
+    return m_Rows;
+}
+
 bool CConsoleVtParser::ProcessChunk(const tstr& input, tstr& output)
 {
     output.Clear();
@@ -294,12 +299,21 @@ void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh)
             break;
 
         case _T('C'): // CUF (cursor forward)
-            // ConPTY renders leading indentation by moving the cursor forward
-            // with "ESC[nC" instead of writing n literal spaces (it does this
-            // for a timing-dependent subset of rows at frame-diff boundaries).
-            // A parser that just drops the sequence would lose the indentation,
-            // so reproduce the forward move as n spaces of output.
-            emitForwardSpaces( getFirstParamOrDefault(m_CsiParams, 1) );
+            // At the start of a row (no text yet): accumulate as a column advance so
+            // the caller can either keep it as a cursor move (ConPTY bare-\\r history
+            // redraw: \\r + CUF(promptLen) + EL + cmd) or turn it into leading spaces
+            // (git status indent). After visible text has started, emit spaces (rare).
+            {
+                int n = getFirstParamOrDefault(m_CsiParams, 1);
+                if ( n < 0 )
+                    n = 0;
+                else if ( n > 4096 )
+                    n = 4096;
+                if ( m_CurRow.text.IsEmpty() && m_Rows.empty() && !m_bPendingRowBreak )
+                    m_Actions.nCursorForward += n;
+                else
+                    emitForwardSpaces(n);
+            }
             break;
 
         case _T('K'): // EL

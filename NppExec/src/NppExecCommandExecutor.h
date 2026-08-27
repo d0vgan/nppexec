@@ -345,6 +345,8 @@ public:
     bool ResizeRunningChildPseudoConsole();
     bool IsChildProcessPseudoCon() const;
     bool IsChildProcessRawInput() const;
+    // t+ with h-: keys go to the child immediately; child owns line editing / history redraw.
+    bool IsChildProcessRawImmediateInput() const;
     const tstr GetChildProcessNewLine() const;
     unsigned int GetChildProcessEncoding() const;
     unsigned int GetChildProcessAnsiEscSeq() const;

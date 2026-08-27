@@ -1201,7 +1201,7 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                         // positioning each row with an absolute cursor move (CUP "ESC[r;cH")
                         // rather than "\r\n". The VT parser splits those into rows, each with
                         // its own color; a non-null pointer here means "iterate the rows".
-                        const std::vector<CConsoleVtParser::VtOutputRow>* pVtRows = nullptr;
+                        std::vector<CConsoleVtParser::VtOutputRow>* pVtRows = nullptr;
 
                         if ( nAnsiEscSeq == escRemove )
                         {
@@ -1228,7 +1228,34 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                             CConsoleVtParser::VtActions vtActions;
                             vtParser.ConsumeActions(vtActions);
                             CNppExecConsole& console = m_pNppExec->GetConsole();
-                            const bool bApplyDestructiveVt = !console.HasUnlockedConsoleInput();
+                            pVtRows = &vtParser.GetOutputRows();
+
+                            if ( vtActions.nCursorForward > 0 )
+                            {
+                                if ( m_pNppExec->GetCommandExecutor().IsChildProcessPseudoCon() )
+                                {
+                                    // CUF is a cursor move, not "insert N spaces at the append point".
+                                    console.AdvanceConPtyColumn(vtActions.nCursorForward);
+                                }
+                                else
+                                {
+                                    // Pipe mode: no column grid — approximate indent with spaces.
+                                    int n = vtActions.nCursorForward;
+                                    if ( n > 4096 ) n = 4096;
+                                    tstr spaces;
+                                    spaces.Reserve(n);
+                                    for ( int i = 0; i < n; ++i )
+                                        spaces.Append( _T(' ') );
+                                    printLine.Insert(0, spaces);
+                                    if ( !pVtRows->empty() )
+                                        (*pVtRows)[0].text.Insert(0, spaces);
+                                }
+                            }
+
+                            const bool bApplyDestructiveVt =
+                                m_pNppExec->GetCommandExecutor().IsChildProcessPseudoCon() ||
+                                !console.HasUnlockedConsoleInput();
+
                             if ( vtActions.bClearScreen && bApplyDestructiveVt )
                                 console.VtEraseScreenInOutputRegion();
                             if ( vtActions.bClearLine && bApplyDestructiveVt )
@@ -1243,8 +1270,6 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                             // starts fresh; and drop the bare-CR erase that would otherwise fire.
                             if ( vtActions.bCursorNextLine && (nIsNewLine != nlLF) )
                                 nIsNewLine = nlLF;
-
-                            pVtRows = &vtParser.GetOutputRows();
 
                             // Match escRemove: emit blank lines (e.g. \\n after echoed input),
                             // but skip lines that were only VT sequences.
@@ -1262,7 +1287,7 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
 
                         if ( bPrintThisLine )
                         {
-                            UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg;
+                            UINT nPrintOutFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfFromChild;
                             if ( nIsNewLine == nlLF )
                                 nPrintOutFlags |= CNppExecConsole::pfNewLine;
 
@@ -1278,7 +1303,7 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                                 {
                                     const CConsoleVtParser::VtOutputRow& row = rows[i];
                                     const bool bLastRow = (i + 1 == nRows);
-                                    UINT nRowFlags = CNppExecConsole::pfLogThisMsg;
+                                    UINT nRowFlags = CNppExecConsole::pfLogThisMsg | CNppExecConsole::pfFromChild;
                                     if ( !bLastRow || (nIsNewLine == nlLF) )
                                         nRowFlags |= CNppExecConsole::pfNewLine;
 

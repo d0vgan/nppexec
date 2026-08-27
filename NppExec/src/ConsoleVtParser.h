@@ -22,6 +22,10 @@ class CConsoleVtParser
             // parsed line ended with such a downward cursor move (with no text
             // following it) so the caller can treat the line as newline-terminated.
             bool bCursorNextLine = false;
+            // CUF at the start of a row (before any visible text): column advance for
+            // ConPTY row-replace (bare \\r + CUF + EL + text), or leading indent spaces
+            // when not in row-replace mode.
+            int nCursorForward = 0;
         };
 
         // One visible output row produced from a parsed line. ConPTY renders the
@@ -48,6 +52,7 @@ class CConsoleVtParser
         void ConsumeActions(VtActions& actions);
 
         const std::vector<VtOutputRow>& GetOutputRows() const;
+        std::vector<VtOutputRow>& GetOutputRows();
 
         bool HasActiveTextColor() const;
         COLORREF GetActiveTextColor() const;
