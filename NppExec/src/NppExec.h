@@ -1404,6 +1404,7 @@ public:
     void VtEraseLineInOutputRegion();
     void VtEraseScreenInOutputRegion();
     void VtBackspaceInOutputRegion(int nCount);
+    void VtEraseCharsInOutputRegion(int nCount);
     // True when the user has typed in the unlocked Console input region (below the lock).
     bool HasUnlockedConsoleInput() const;
     // ConPTY: ignore leading \\r / blank \\n from echo right after stdin submit.
@@ -1412,6 +1413,7 @@ public:
     // bare \\r resets it; printed text is written at this column (overwrite).
     void AdvanceConPtyColumn(int n);
     void ResetConPtyColumn();
+    void SetConPtyColumn(int nColumn);
 
     void OnScriptEngineStarted();
     void OnScriptEngineFinished();
@@ -1491,6 +1493,7 @@ protected:
     void _vtEraseLineInOutputRegion(ScriptEngineId scrptEngnId);
     void _vtEraseScreenInOutputRegion(ScriptEngineId scrptEngnId);
     void _vtBackspaceInOutputRegion(ScriptEngineId scrptEngnId, int nCount);
+    void _vtEraseCharsInOutputRegion(ScriptEngineId scrptEngnId, int nCount);
 
     void _lockConsolePos(ScriptEngineId scrptEngnId, INT nPos);
     void _lockConsoleEndPos(ScriptEngineId scrptEngnId);

@@ -3576,7 +3576,22 @@ static bool rawInputUsesLocalLineBuffer()
 
 static bool isInConsoleInputRegion(CAnyRichEdit& Edit, int nConsoleFirstUnlockedPos)
 {
-    return (Edit.ExGetSelPos() >= nConsoleFirstUnlockedPos);
+    const int nSel = Edit.ExGetSelPos();
+    if ( nSel >= nConsoleFirstUnlockedPos )
+        return true;
+
+    // t+ h-: echoed keystrokes are locked as they arrive, so the caret sits
+    // on the live line at or before the lock. That line is still the child's.
+    if ( !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
+        return false;
+
+    const int nLen = Edit.GetTextLengthEx();
+    if ( nLen <= 0 )
+        return true;
+
+    const int nLastLine = Edit.ExLineFromChar(nLen - 1);
+    const int nSelLine = Edit.ExLineFromChar(nSel);
+    return (nLastLine >= 0) && (nSelLine == nLastLine);
 }
 
 static tstr getConsoleInputLineText(CAnyRichEdit& Edit)
@@ -3713,6 +3728,27 @@ static bool trySubmitNppExecCollateralCommand(CAnyRichEdit& Edit, CNppExecComman
     return false;
 }
 
+static void prepareConPtyChildEnterRow(CAnyRichEdit& Edit, CNppExecConsole& console)
+{
+    // Empty-row submit (cooked t+ h+ / raw empty Enter): fresh row before cmd echo.
+    const int nEnd = Edit.GetTextLengthEx();
+    TCHAR lastCh = 0;
+    if ( nEnd > 0 )
+        Edit.GetTextAt(nEnd - 1, 1, &lastCh);
+    if ( (lastCh != _T('\r')) && (lastCh != _T('\n')) )
+    {
+        Edit.ExSetSel(nEnd, nEnd);
+        Edit.ReplaceSelText( _T_RE_EOL );
+    }
+    console.ResetConPtyColumn();
+}
+
+static void syncConPtyRawImmediateEnterColumn(CNppExecConsole& console)
+{
+    // t+ h- non-empty Enter: cmd's leading \\r\\n owns the row break — only resync column.
+    console.ResetConPtyColumn();
+}
+
 static void submitEmptyChildEnter(CAnyRichEdit& Edit, CNppExecCommandExecutor& cmdExec)
 {
     CNppExecConsole& console = Runtime::GetNppExec().GetConsole();
@@ -3721,18 +3757,12 @@ static void submitEmptyChildEnter(CAnyRichEdit& Edit, CNppExecCommandExecutor& c
 
     if ( bCookedConPTY )
     {
-        // Empty Enter: start a fresh row before cmd's in-place prompt redraw.
-        const int nEnd = Edit.GetTextLengthEx();
-        TCHAR lastCh = 0;
-        if ( nEnd > 0 )
-            Edit.GetTextAt(nEnd - 1, 1, &lastCh);
-        if ( (lastCh != _T('\r')) && (lastCh != _T('\n')) )
-        {
-            Edit.ExSetSel(nEnd, nEnd);
-            Edit.ReplaceSelText( _T_RE_EOL );
-        }
-        console.ResetConPtyColumn();
+        prepareConPtyChildEnterRow(Edit, console);
         console.OnConPTYInputSubmitted();
+    }
+    else if ( bConPTY && cmdExec.IsChildProcessRawImmediateInput() )
+    {
+        prepareConPtyChildEnterRow(Edit, console);
     }
     else if ( bConPTY )
     {
@@ -3743,11 +3773,21 @@ static void submitEmptyChildEnter(CAnyRichEdit& Edit, CNppExecCommandExecutor& c
     console.LockConsoleEndPosAfterEnterPressed(true);
 }
 
-static int s_nRawChildHistoryDepth = 0;
-
-static void resetRawChildHistoryDepth()
+static bool isRawChildSpecialKey(WPARAM vk)
 {
-    s_nRawChildHistoryDepth = 0;
+    switch ( vk )
+    {
+        case VK_TAB:
+        case VK_BACK:
+        case VK_ESCAPE:
+        case VK_UP:
+        case VK_DOWN:
+        case VK_RIGHT:
+        case VK_LEFT:
+            return true;
+        default:
+            return false;
+    }
 }
 
 static bool sendRawChildKeyDown(MSGFILTER* lpmsgf, bool bCtrl, bool bShift, bool bAlt,
@@ -3788,46 +3828,41 @@ static bool sendRawChildKeyDown(MSGFILTER* lpmsgf, bool bCtrl, bool bShift, bool
 
     if ( seq )
     {
-        // t+ h-: ESC clears the child's input without submitting; then Up×depth.
-        // Display updates come from ConPTY via the write-column model (CUF/\\r/EL) —
-        // no shell-specific prompt trimming in RichEdit.
-        if ( (lpmsgf->wParam == VK_UP || lpmsgf->wParam == VK_DOWN) &&
-             cmdExec.IsChildProcessRawImmediateInput() )
-        {
-            if ( lpmsgf->wParam == VK_UP )
-            {
-                if ( s_nRawChildHistoryDepth < 1000 )
-                    ++s_nRawChildHistoryDepth;
-            }
-            else
-            {
-                if ( s_nRawChildHistoryDepth == 0 )
-                {
-                    lpmsgf->wParam = 0;
-                    return true;
-                }
-                --s_nRawChildHistoryDepth;
-            }
-
-            cmdExec.WriteChildProcessInput( _T("\x1b") );
-
-            if ( s_nRawChildHistoryDepth > 0 )
-            {
-                for ( int i = 0; i < s_nRawChildHistoryDepth; ++i )
-                    cmdExec.WriteChildProcessInput( _T("\x1b[A") );
-            }
-
-            lpmsgf->wParam = 0;
-            return true;
-        }
-
-        resetRawChildHistoryDepth();
+        // t+ h-: one CSI (or byte) per key — cmd owns history index and line redraw.
         cmdExec.WriteChildProcessInput( seq );
         lpmsgf->wParam = 0;
         return true;
     }
 
     return false;
+}
+
+static bool sendRawChildKeyUp(MSGFILTER* lpmsgf, bool bCtrl, bool bAlt,
+                              int nConsoleFirstUnlockedPos, CAnyRichEdit& Edit)
+{
+    if ( !isRawChildConsoleInput() || (lpmsgf->msg != WM_KEYUP) || bAlt )
+        return false;
+
+    if ( !isInConsoleInputRegion(Edit, nConsoleFirstUnlockedPos) )
+        return false;
+
+    if ( bCtrl )
+        return false;
+
+    if ( !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
+        return false;
+
+    if ( rawInputUsesLocalLineBuffer() && rawInputByteTargetsChild(Edit, 0) )
+        return false;
+
+    if ( !rawInputByteTargetsChild(Edit, 0) )
+        return false;
+
+    if ( !isRawChildSpecialKey(lpmsgf->wParam) )
+        return false;
+
+    lpmsgf->wParam = 0;
+    return true;
 }
 
 static bool sendRawChildChar(MSGFILTER* lpmsgf, bool bCtrl,
@@ -3841,8 +3876,19 @@ static bool sendRawChildChar(MSGFILTER* lpmsgf, bool bCtrl,
 
     const UINT ch = (UINT) lpmsgf->wParam;
     // Special keys are sent on WM_KEYDOWN; ignore duplicate WM_CHAR.
+    // t+ h- Enter is already delivered as the child's newline. If RichEdit
+    // also inserts this CR, cmd's own CR LF becomes a blank row between
+    // the command and its output.
     if ( ch < 32 )
+    {
+        if ( (ch == (UINT) '\r' || ch == (UINT) '\n') &&
+             Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
+        {
+            lpmsgf->wParam = 0;
+            return true;
+        }
         return false;
+    }
 
     // Local line buffer or nppexec prefix line: let RichEdit update the input line.
     if ( rawInputUsesLocalLineBuffer() && rawInputByteTargetsChild(Edit, ch) )
@@ -3851,7 +3897,6 @@ static bool sendRawChildChar(MSGFILTER* lpmsgf, bool bCtrl,
     if ( !rawInputByteTargetsChild(Edit, ch) )
         return false;
 
-    resetRawChildHistoryDepth();
     TCHAR s[2] = { (TCHAR) ch, 0 };
     Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput( s );
     lpmsgf->wParam = 0;
@@ -4040,7 +4085,8 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
     }
 
     if ( !bUseCmdHistoryArrows &&
-         sendRawChildKeyDown(lpmsgf, bCtrl, bShift, bAlt, nConsoleFirstUnlockedPos, Edit) )
+         (sendRawChildKeyDown(lpmsgf, bCtrl, bShift, bAlt, nConsoleFirstUnlockedPos, Edit) ||
+          sendRawChildKeyUp(lpmsgf, bCtrl, bAlt, nConsoleFirstUnlockedPos, Edit)) )
         return 1;
 
     // >>> bCtrl
@@ -4588,13 +4634,25 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 
         if ( isRawChildConsoleInput() && isInConsoleInputRegion(Edit, nConsoleFirstUnlockedPos) && !bShift )
         {
+            CNppExecCommandExecutor& cmdExec = Runtime::GetNppExec().GetCommandExecutor();
+
+            if ( cmdExec.IsChildProcessRawImmediateInput() )
+            {
+                // Echoed text is already locked, so the unlocked tail is empty and
+                // the empty-Enter path would insert a local EOL. cmd answers \r
+                // with CR LF itself — a second EOL is the blank line before output.
+                if ( cmdExec.IsChildProcessPseudoCon() )
+                    syncConPtyRawImmediateEnterColumn(Runtime::GetNppExec().GetConsole());
+                cmdExec.WriteChildProcessInputNewLine();
+                Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed(true);
+                bCommandEntered = true;
+                lpmsgf->wParam = 0;
+                return 1;
+            }
+
             bool isMultiline = false;
             int nLenPos = 0;
             tstr cmd = getInputText(Edit, &isMultiline, &nLenPos);
-
-            resetRawChildHistoryDepth();
-
-            CNppExecCommandExecutor& cmdExec = Runtime::GetNppExec().GetCommandExecutor();
 
             if ( cmd.length() > 0 )
             {
@@ -4637,6 +4695,8 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                     // t+ h-: keystrokes were already sent to the child. Enter is only a
                     // newline — do not re-send the line, clear, or suppress ConPTY echo
                     // (suppressing the newline glues the next stdout onto the command).
+                    if ( bConPTY && cmdExec.IsChildProcessRawImmediateInput() )
+                        syncConPtyRawImmediateEnterColumn(Runtime::GetNppExec().GetConsole());
                     cmdExec.WriteChildProcessInputNewLine();
                     Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed(true);
                 }

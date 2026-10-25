@@ -5931,17 +5931,52 @@ void CNppExecConsole::ResetConPtyColumn()
     m_nConPtyColumn = 0;
 }
 
+void CNppExecConsole::SetConPtyColumn(int nColumn)
+{
+    if ( nColumn < 0 )
+        nColumn = 0;
+    else if ( nColumn > 4096 )
+        nColumn = 4096;
+    m_nConPtyColumn = nColumn;
+}
+
+// EM_LINELENGTH(text length) is one past the last character and can report 0,
+// which makes a history rewrite append instead of overwrite.
+static void getConPtyLastRow(CAnyRichEdit& edit, int& nTextLen, int& nLineStart, int& nLineLen)
+{
+    nTextLen = edit.GetTextLengthEx();
+    nLineStart = 0;
+    nLineLen = 0;
+    if ( nTextLen <= 0 )
+        return;
+
+    TCHAR lastCh = 0;
+    edit.GetTextAt(nTextLen - 1, 1, &lastCh);
+    if ( (lastCh == _T('\r')) || (lastCh == _T('\n')) )
+    {
+        nLineStart = nTextLen;
+        return;
+    }
+
+    int nLine = edit.ExLineFromChar(nTextLen - 1);
+    if ( nLine < 0 )
+        nLine = 0;
+    nLineStart = edit.LineIndex(nLine);
+    if ( (nLineStart < 0) || (nLineStart >= nTextLen) )
+        nLineStart = 0;
+    nLineLen = nTextLen - nLineStart;
+}
+
 void CNppExecConsole::_writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int style, bool bNewLineAfter)
 {
     // Write at m_nConPtyColumn on the last row (overwrite). CUF moves the column;
     // bare \\r resets it. This is shell-agnostic — no prompt-shape heuristics.
     const int nMsgLen = (cszMessage && cszMessage[0]) ? (int) _tcslen(cszMessage) : 0;
 
-    int nTextLen = m_reConsole.GetTextLengthEx();
-    int nLineLen = (nTextLen > 0) ? m_reConsole.LineLength(nTextLen) : 0;
-    if ( nLineLen < 0 )
-        nLineLen = 0;
-    int nLineStart = nTextLen - nLineLen;
+    int nTextLen = 0;
+    int nLineLen = 0;
+    int nLineStart = 0;
+    getConPtyLastRow(m_reConsole, nTextLen, nLineStart, nLineLen);
 
     int col = m_nConPtyColumn;
     if ( col < 0 )
@@ -5951,25 +5986,26 @@ void CNppExecConsole::_writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int
 
     if ( nMsgLen > 0 )
     {
-        const int nWritePos = nLineStart + col;
-        if ( nWritePos > nTextLen )
+        int nSelFrom = nLineStart + col;
+        int nSelTo = nSelFrom + nMsgLen;
+        // CUF is virtual — never seek past the tail (RichEdit would pad with spaces).
+        if ( nSelFrom > nTextLen )
         {
-            m_reConsole.ExSetSel(nWritePos, nWritePos);
+            nSelFrom = nTextLen;
+            nSelTo = nTextLen;
         }
-        else
+        else if ( nSelTo > nTextLen )
         {
-            int nReplaceEnd = nWritePos + nMsgLen;
-            if ( nReplaceEnd > nTextLen )
-                nReplaceEnd = nTextLen;
-            m_reConsole.ExSetSel(nWritePos, nReplaceEnd);
+            nSelTo = nTextLen;
         }
+        m_reConsole.ExSetSel(nSelFrom, nSelTo);
         m_reConsole.SetCharFormat(CFM_EFFECTS, style, color);
         m_reConsole.ReplaceSelText(cszMessage);
         nTextLen = m_reConsole.GetTextLengthEx();
         nLineLen = (nTextLen > 0) ? m_reConsole.LineLength(nTextLen) : 0;
         if ( nLineLen < 0 )
             nLineLen = 0;
-        m_nConPtyColumn = col + nMsgLen;
+        m_nConPtyColumn = (nSelFrom - nLineStart) + nMsgLen;
     }
 
     if ( bNewLineAfter )
@@ -6193,7 +6229,8 @@ void CNppExecConsole::_lockConsoleEndPosAfterEnterPressed(ScriptEngineId scrptEn
     // clear-before-echo leaves "...\\n" after removing typed stdin — +EOL would
     // insert a spurious blank line before the terminal echo).
     const bool bConPTY = Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon();
-    const bool bSkipSyntheticEol = bConPTY && m_bConPTYSuppressEchoPrefix;
+    const bool bRawImmediate = Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput();
+    const bool bSkipSyntheticEol = bConPTY && (m_bConPTYSuppressEchoPrefix || bRawImmediate);
     if ( !bSkipSyntheticEol && (lastCh != _T('\r')) && (lastCh != _T('\n')) )
         nPos += _T_RE_EOL_LEN;
     _lockConsolePos(scrptEngnId, nPos);
@@ -6591,7 +6628,8 @@ void CNppExecConsole::_processSlashR(ScriptEngineId scrptEngnId)
         // Bare \\r = move to column 0 of the current row (terminal semantics).
         // Do not erase: following text/EL/CUF update the row. Erasing here wiped
         // prompts and fought history redraws.
-        if ( HasUnlockedConsoleInput() )
+        if ( HasUnlockedConsoleInput() &&
+             !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
         {
             m_reConsole.ExSetSel(nPos, nPos);
             m_reConsole.ReplaceSelText( _T_RE_EOL );
@@ -6643,7 +6681,7 @@ void CNppExecConsole::ProcessSlashB(int nCount) // "\b"
     }
 }
 
-void CNppExecConsole::_processSlashB(ScriptEngineId /*scrptEngnId*/, int nCount)
+void CNppExecConsole::_processSlashB(ScriptEngineId scrptEngnId, int nCount)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6659,11 +6697,10 @@ void CNppExecConsole::_processSlashB(ScriptEngineId /*scrptEngnId*/, int nCount)
             if ( m_nConPtyColumn <= 0 )
                 break;
             --m_nConPtyColumn;
-            const int nTextLen = m_reConsole.GetTextLengthEx();
-            int nLineLen = (nTextLen > 0) ? m_reConsole.LineLength(nTextLen) : 0;
-            if ( nLineLen < 0 )
-                nLineLen = 0;
-            const int nLineStart = nTextLen - nLineLen;
+            int nTextLen = 0;
+            int nLineLen = 0;
+            int nLineStart = 0;
+            getConPtyLastRow(m_reConsole, nTextLen, nLineStart, nLineLen);
             const int nPos = nLineStart + m_nConPtyColumn;
             if ( (nPos >= nLineStart) && (nPos < nTextLen) )
             {
@@ -6671,6 +6708,10 @@ void CNppExecConsole::_processSlashB(ScriptEngineId /*scrptEngnId*/, int nCount)
                 m_reConsole.ReplaceSelText( _T("") );
             }
         }
+        // The deleted cell was locked output. Leave the caret on the live
+        // line at the new end; otherwise the next Arrow Up is treated as a
+        // RichEdit caret move onto the previous row.
+        _lockConsoleEndPos(scrptEngnId);
         return;
     }
 
@@ -6756,6 +6797,32 @@ void CNppExecConsole::VtBackspaceInOutputRegion(int nCount)
     }
 }
 
+void CNppExecConsole::VtEraseCharsInOutputRegion(int nCount)
+{
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    if ( nCount <= 0 )
+        return;
+
+    const ScriptEngineId scrptEngnId = GetScriptEngineId();
+    if ( !_isOutputEnabled(scrptEngnId) )
+        return;
+
+    if ( !postponeThisCall(scrptEngnId) )
+    {
+        _vtEraseCharsInOutputRegion(scrptEngnId, nCount);
+    }
+    else
+    {
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_vtEraseCharsInOutputRegion, this, scrptEngnId, nCount);
+        {
+            CCriticalSectionLockGuard lock(m_csStateList);
+            _getState(scrptEngnId).PostponedCalls.push_back(postponedCall);
+        }
+    }
+}
+
 void CNppExecConsole::_vtEraseLineInOutputRegion(ScriptEngineId scrptEngnId)
 {
     extern INT nConsoleFirstUnlockedPos;
@@ -6765,12 +6832,14 @@ void CNppExecConsole::_vtEraseLineInOutputRegion(ScriptEngineId scrptEngnId)
 
     if ( Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon() )
     {
+        int nTextLen = 0;
+        int nLineLen = 0;
+        int nLineStart = 0;
+        getConPtyLastRow(m_reConsole, nTextLen, nLineStart, nLineLen);
+
         // CSI K: clear from the current write column to end of the last row.
-        const int nTextLen = m_reConsole.GetTextLengthEx();
-        int nLineLen = (nTextLen > 0) ? m_reConsole.LineLength(nTextLen) : 0;
-        if ( nLineLen < 0 )
-            nLineLen = 0;
-        const int nLineStart = nTextLen - nLineLen;
+        // Do not snap the column to the lock: under t+ h- the lock is the end
+        // of the echoed line, and snapping there appends the history text.
         int nEraseFrom = nLineStart + m_nConPtyColumn;
         if ( nEraseFrom < nLineStart )
             nEraseFrom = nLineStart;
@@ -6851,6 +6920,70 @@ void CNppExecConsole::_vtBackspaceInOutputRegion(ScriptEngineId scrptEngnId, int
     m_reConsole.ExSetSel(nStart, nLockPos);
     m_reConsole.ReplaceSelText( _T("") );
     _lockConsolePos(scrptEngnId, nStart);
+}
+
+void CNppExecConsole::_vtEraseCharsInOutputRegion(ScriptEngineId scrptEngnId, int nCount)
+{
+    extern INT nConsoleFirstUnlockedPos;
+
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    if ( nCount <= 0 )
+        return;
+    if ( nCount > 4096 )
+        nCount = 4096;
+
+    if ( Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon() )
+    {
+        int nTextLen = 0;
+        int nLineLen = 0;
+        int nLineStart = 0;
+        getConPtyLastRow(m_reConsole, nTextLen, nLineStart, nLineLen);
+
+        int nEraseFrom = nLineStart + m_nConPtyColumn;
+        if ( nEraseFrom < nLineStart )
+            nEraseFrom = nLineStart;
+        if ( nEraseFrom > nTextLen )
+            nEraseFrom = nTextLen;
+
+        int nEraseTo = nEraseFrom + nCount;
+        if ( nEraseTo > nTextLen )
+            nEraseTo = nTextLen;
+
+        if ( nEraseFrom < nEraseTo )
+        {
+            m_reConsole.ExSetSel(nEraseFrom, nEraseTo);
+            m_reConsole.ReplaceSelText( _T("") );
+        }
+        _lockConsoleEndPos(scrptEngnId);
+        return;
+    }
+
+    // Pipe/cooked: do not erase into the unlocked input region.
+    if ( m_reConsole.GetTextLengthEx() > nConsoleFirstUnlockedPos )
+        return;
+
+    int nLockPos = nConsoleFirstUnlockedPos;
+    const int nRegionBegin = (m_nVtOutputRegionBeginPos < nLockPos) ? m_nVtOutputRegionBeginPos : nLockPos;
+    if ( nLockPos <= 0 )
+        return;
+
+    int nEraseFrom = nRegionBegin + m_nConPtyColumn;
+    if ( nEraseFrom < nRegionBegin )
+        nEraseFrom = nRegionBegin;
+    if ( nEraseFrom > nLockPos )
+        return;
+
+    int nEraseTo = nEraseFrom + nCount;
+    if ( nEraseTo > nLockPos )
+        nEraseTo = nLockPos;
+    if ( nEraseFrom >= nEraseTo )
+        return;
+
+    m_reConsole.ExSetSel(nEraseFrom, nEraseTo);
+    m_reConsole.ReplaceSelText( _T("") );
+    _lockConsolePos(scrptEngnId, nEraseFrom);
 }
 
 bool CNppExecConsole::HasUnlockedConsoleInput() const

@@ -14,6 +14,10 @@ class CConsoleVtParser
             bool bClearLine = false;
             bool bClearScreen = false;
             int nBackspaceCount = 0;
+            // ECH "CSI n X" — erase n characters forward from the cursor.
+            int nEraseCharCount = 0;
+            // CUP/HVP absolute column (0-based). Set when in-place cursor mode is active.
+            int nSetCursorColumn = -1;
             // ConPTY often advances to the next output row with an absolute cursor-
             // position (CUP "ESC[r;cH") or cursor-down/next-line (CUD "ESC[nB",
             // CNL "ESC[nE") sequence instead of a "\r\n" — e.g. at a frame/flush
@@ -44,6 +48,10 @@ class CConsoleVtParser
         CConsoleVtParser();
 
         void Reset();
+
+        // ConPTY t+ h-: CUP/HVP reposition the write column on the current row
+        // (cmd history redraw) instead of starting a new output row.
+        void SetInPlaceCursorMode(bool bInPlace);
 
         // Phase 4.1: byte-stream parser foundation.
         // VT sequences are consumed; visible text is split into rows (see VtOutputRow).
@@ -78,6 +86,7 @@ class CConsoleVtParser
         bool     m_bHasActiveTextColor;
         COLORREF m_ActiveTextColor;
         VtActions m_Actions;
+        bool m_bInPlaceCursorMode;
 
         // Row assembly (see VtOutputRow).
         std::vector<VtOutputRow> m_Rows;

@@ -1222,12 +1222,17 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                             // Per-line VT decode (same scope as escRemove); do not carry parser
                             // state across line fragments — ConPTY splits sequences at newlines.
                             vtParser.Reset();
+                            CNppExecConsole& console = m_pNppExec->GetConsole();
+                            CNppExecCommandExecutor& cmdExec = m_pNppExec->GetCommandExecutor();
+                            const bool bInPlaceVtCursor =
+                                cmdExec.IsChildProcessPseudoCon() &&
+                                cmdExec.IsChildProcessRawImmediateInput();
+                            vtParser.SetInPlaceCursorMode(bInPlaceVtCursor);
                             vtParser.ProcessChunk(printLine, vtOutput);
                             printLine.Swap(vtOutput);
 
                             CConsoleVtParser::VtActions vtActions;
                             vtParser.ConsumeActions(vtActions);
-                            CNppExecConsole& console = m_pNppExec->GetConsole();
                             pVtRows = &vtParser.GetOutputRows();
 
                             if ( vtActions.nCursorForward > 0 )
@@ -1253,13 +1258,23 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                             }
 
                             const bool bApplyDestructiveVt =
-                                m_pNppExec->GetCommandExecutor().IsChildProcessPseudoCon() ||
+                                cmdExec.IsChildProcessPseudoCon() ||
                                 !console.HasUnlockedConsoleInput();
+
+                            if ( vtActions.nSetCursorColumn >= 0 && bInPlaceVtCursor )
+                            {
+                                console.SetConPtyColumn(vtActions.nSetCursorColumn);
+                                // Drop the previous command before the replacement text.
+                                console.VtEraseLineInOutputRegion();
+                                vtActions.bCursorNextLine = false;
+                            }
 
                             if ( vtActions.bClearScreen && bApplyDestructiveVt )
                                 console.VtEraseScreenInOutputRegion();
                             if ( vtActions.bClearLine && bApplyDestructiveVt )
                                 console.VtEraseLineInOutputRegion();
+                            if ( vtActions.nEraseCharCount > 0 && bApplyDestructiveVt )
+                                console.VtEraseCharsInOutputRegion(vtActions.nEraseCharCount);
                             if ( vtActions.nBackspaceCount > 0 && bApplyDestructiveVt )
                                 console.VtBackspaceInOutputRegion(vtActions.nBackspaceCount);
 
@@ -1270,6 +1285,13 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                             // starts fresh; and drop the bare-CR erase that would otherwise fire.
                             if ( vtActions.bCursorNextLine && (nIsNewLine != nlLF) )
                                 nIsNewLine = nlLF;
+
+                            // cmd post-echo spacer: bare ECH + CRLF with no visible text.
+                            if ( (printLine.length() == 0) && (vtActions.nEraseCharCount > 0) &&
+                                 (nIsNewLine == nlLF) && cmdExec.IsChildProcessPseudoCon() )
+                            {
+                                nIsNewLine = nlNone;
+                            }
 
                             // Match escRemove: emit blank lines (e.g. \\n after echoed input),
                             // but skip lines that were only VT sequences.
@@ -1283,6 +1305,7 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                         else if ( nPrevState >= nlBS )
                         {
                             m_pNppExec->GetConsole().ProcessSlashB( (nPrevState - nlBS) + 1 );
+                            nPrevState = nlNone;
                         }
 
                         if ( bPrintThisLine )
@@ -1357,7 +1380,20 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                     bDoOutputNext = bOutput;
                 }
                 bPrevLineEmpty = (copy_len > 0) ? false : true;
-                nPrevState = nIsNewLine;
+                // cmd erases a cell as "\b \b" (cursor left, space, cursor left).
+                // The backspace is the fragment terminator, so applying it only on
+                // the next fragment leaves the space on screen and the caret one
+                // cell ahead until the next key. Apply it now, after this fragment's
+                // text, and do not apply it again.
+                if ( nIsNewLine >= nlBS )
+                {
+                    m_pNppExec->GetConsole().ProcessSlashB( (nIsNewLine - nlBS) + 1 );
+                    nPrevState = nlNone;
+                }
+                else
+                {
+                    nPrevState = nIsNewLine;
+                }
                 if ( nIsNewLine == nlLF )
                 {
                     bDoOutputNext = true;

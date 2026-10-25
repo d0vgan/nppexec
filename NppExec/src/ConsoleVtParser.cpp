@@ -16,6 +16,7 @@ void CConsoleVtParser::Reset()
     m_bHasActiveTextColor = false;
     m_ActiveTextColor = RGB(0, 0, 0);
     m_Actions = VtActions();
+    m_bInPlaceCursorMode = false;
     m_Rows.clear();
     m_CurRow = VtOutputRow();
     m_bPendingRowBreak = false;
@@ -274,6 +275,11 @@ void CConsoleVtParser::pushCurrentRow(bool bForce)
     m_CurRow = VtOutputRow();
 }
 
+void CConsoleVtParser::SetInPlaceCursorMode(bool bInPlace)
+{
+    m_bInPlaceCursorMode = bInPlace;
+}
+
 void CConsoleVtParser::ConsumeActions(VtActions& actions)
 {
     actions = m_Actions;
@@ -320,6 +326,17 @@ void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh)
             m_Actions.bClearLine = true;
             break;
 
+        case _T('X'): // ECH (erase character)
+            {
+                int n = getFirstParamOrDefault(m_CsiParams, 1);
+                if ( n < 0 )
+                    n = 0;
+                else if ( n > 4096 )
+                    n = 4096;
+                m_Actions.nEraseCharCount += n;
+            }
+            break;
+
         case _T('J'): // ED
             {
                 const int n = getFirstParamOrDefault(m_CsiParams, 0);
@@ -343,7 +360,16 @@ void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh)
                 CStrSplitT<TCHAR> args;
                 const int nArgs = args.Split(m_CsiParams.c_str(), _T(";"));
                 int col = (nArgs >= 2) ? c_base::_tstr2int(args.GetArg(1).c_str()) : 1;
-                requestRowBreak( (col > 1) ? (col - 1) : 0 );
+                if ( col < 1 )
+                    col = 1;
+                const int nCol0 = (col > 1) ? (col - 1) : 0;
+                // History redraw is a single CUP before any text in the chunk
+                // ("ESC[row;colH" + replacement). Later CUPs in the same chunk
+                // are a multi-row screen paint and must still break rows.
+                if ( m_bInPlaceCursorMode && m_CurRow.text.IsEmpty() && m_Rows.empty() && !m_bPendingRowBreak )
+                    m_Actions.nSetCursorColumn = nCol0;
+                else
+                    requestRowBreak(nCol0);
             }
             break;
 
