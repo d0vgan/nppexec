@@ -1422,6 +1422,18 @@ public:
     // t+ h-: the fragment just written ended with this many spaces and the cursor
     // stepped back onto them ("\b \b", or the space cmd appends before a history BS).
     void TrimConPtyBlotSpaces(int nTrailingSpaces);
+    // t+ h-: column where the child's prompt ended. Frozen on the first key.
+    void NoteConPtyUserInput();
+    int  GetConPtyColumn() const { return m_nConPtyColumn; }
+    int  GetConPtyInputOrigin() const { return m_nConPtyInputOrigin; }
+    // Text the child currently has on the input row, after the prompt.
+    tstr GetConPtyInputText();
+    // Discard the child's erase echo for nInputChars (so the line stays on screen
+    // while those characters are removed from the child's input buffer).
+    void ArmConPtyCancelEcho(int nInputChars);
+    // Removes a cancel-echo prefix from buf. Returns true when the rest of buf
+    // is an incomplete ESC sequence that must wait for the next read.
+    bool ConsumeConPtyCancelEcho(CStrT<char>& buf, bool bFlushPartial);
 
     void OnScriptEngineStarted();
     void OnScriptEngineFinished();
@@ -1474,6 +1486,10 @@ protected:
     int      m_nVtOutputRegionBeginPos;
     bool     m_bConPTYSuppressEchoPrefix;
     int      m_nConPtyColumn; // write cursor on the current ConPTY output row
+    int      m_nConPtyInputOrigin;
+    bool     m_bConPtyInputOriginFrozen;
+    volatile LONG m_nConPtyCancelEchoBsLeft;
+    int      m_nConPtyCancelEchoState; // 0 none, 1 ESC, 2 CSI
     std::list<ConsoleState> m_StateList;
 
     const ConsoleState& _getState(ScriptEngineId scrptEngnId) const;

@@ -3553,8 +3553,50 @@ bool ConsoleDlg::GoToLineIfWarningAnalyzerMatch(CAnyRichEdit& Edit, const int nL
 INT_PTR ConsoleDlg::OnPaste(CAnyRichEdit& Edit, MSGFILTER* lpmsgf)
 {
     tstr sText = NppExecHelpers::GetClipboardText();
+    CNppExecCommandExecutor& cmdExec = Runtime::GetNppExec().GetCommandExecutor();
+    if ( cmdExec.IsChildProcessRawImmediateInput() && (sText.length() > 0) )
+    {
+        // A trailing break from "copy the line" is still one input line.
+        tstr sSend = sText;
+        for ( ;; )
+        {
+            const TCHAR ch = sSend.GetLastChar();
+            if ( (ch != _T('\r')) && (ch != _T('\n')) )
+                break;
+            sSend.DeleteLastChar();
+        }
+        bool bMultiline = false;
+        for ( int i = 0; i < (int) sSend.length(); ++i )
+        {
+            const TCHAR ch = sSend.GetAt(i);
+            if ( (ch == _T('\r')) || (ch == _T('\n')) )
+            {
+                bMultiline = true;
+                break;
+            }
+        }
+        const int nLen = Edit.GetTextLengthEx();
+        const int nSel = Edit.ExGetSelPos();
+        bool bOnLastLine = true;
+        if ( nLen > 0 )
+        {
+            const int nLastLine = Edit.ExLineFromChar(nLen - 1);
+            bOnLastLine = (Edit.ExLineFromChar(nSel) == nLastLine) || (nSel >= nLen);
+        }
+        // t+ h-: the child owns this row. Inserting only here leaves the write
+        // column on the prompt, so the next echoed key paints over the paste
+        // and the child never sees "nppexec:".
+        if ( !bMultiline && bOnLastLine && (sSend.length() > 0) )
+        {
+            Runtime::GetNppExec().GetConsole().NoteConPtyUserInput();
+            if ( cmdExec.WriteChildProcessInput(sSend.c_str()) )
+            {
+                lpmsgf->wParam = 0;
+                return 1;
+            }
+        }
+    }
     Edit.ReplaceSelText(sText.c_str(), TRUE);
-    // Raw mode: child-bound paste stays in RichEdit until Enter submits the line.
     lpmsgf->wParam = 0;
     return 1;
 }
@@ -3785,6 +3827,7 @@ static bool sendRawChildKeyDown(MSGFILTER* lpmsgf, bool bCtrl, bool bShift, bool
     if ( seq )
     {
         // t+ h-: one CSI (or byte) per key — cmd owns history index and line redraw.
+        Runtime::GetNppExec().GetConsole().NoteConPtyUserInput();
         cmdExec.WriteChildProcessInput( seq );
         lpmsgf->wParam = 0;
         return true;
@@ -3846,6 +3889,7 @@ static bool sendRawChildChar(MSGFILTER* lpmsgf, bool bCtrl,
         return false;
 
     TCHAR s[2] = { (TCHAR) ch, 0 };
+    Runtime::GetNppExec().GetConsole().NoteConPtyUserInput();
     Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput( s );
     lpmsgf->wParam = 0;
     return true;
@@ -4595,6 +4639,39 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 
             if ( cmdExec.IsChildProcessRawImmediateInput() )
             {
+                CNppExecConsole& console = Runtime::GetNppExec().GetConsole();
+
+                // A paste sits in the unlocked tail; the child has not seen it.
+                bool isMultilinePaste = false;
+                int nPasteLen = 0;
+                tstr pasted = getInputText(Edit, &isMultilinePaste, &nPasteLen);
+                stripTrailingLineEndings(pasted);
+                if ( isNppExecCollateralInputLine(pasted) )
+                {
+                    trySubmitNppExecCollateralCommand(Edit, cmdExec, pasted, isMultilinePaste);
+                    bCommandEntered = true;
+                    lpmsgf->wParam = 0;
+                    return 1;
+                }
+
+                // Typed text was sent as it was typed. The finished line is the
+                // echo after the prompt. nppexec: / nppexec:: belong to NppExec.
+                tstr typed = console.GetConPtyInputText();
+                if ( isNppExecCollateralInputLine(typed) )
+                {
+                    // Queue the erase ahead of the prompt-refresh Enter the
+                    // collateral script sends when it finishes. Run NppExec now.
+                    console.ArmConPtyCancelEcho((int) typed.length());
+                    if ( console.GetConPtyColumn() < console.GetConPtyInputOrigin() + (int) typed.length() )
+                        cmdExec.WriteChildProcessInput( _T("\x1b[F") );
+                    for ( int i = 0; i < (int) typed.length(); ++i )
+                        cmdExec.WriteChildProcessInput( _T("\x08") );
+                    trySubmitNppExecCollateralCommand(Edit, cmdExec, typed, false);
+                    bCommandEntered = true;
+                    lpmsgf->wParam = 0;
+                    return 1;
+                }
+
                 // Echoed text is already locked, so the unlocked tail is empty and
                 // the empty-Enter path would insert a local EOL. cmd answers \r
                 // with CR LF itself — a second EOL is the blank line before output.
@@ -4603,7 +4680,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
                 // or a CUP back to the input). Zeroing the column writes that
                 // reprint over the left side of the prompt.
                 cmdExec.WriteChildProcessInputNewLine();
-                Runtime::GetNppExec().GetConsole().LockConsoleEndPosAfterEnterPressed(true);
+                console.LockConsoleEndPosAfterEnterPressed(true);
                 bCommandEntered = true;
                 lpmsgf->wParam = 0;
                 return 1;

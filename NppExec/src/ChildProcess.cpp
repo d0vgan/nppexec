@@ -1046,6 +1046,11 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
 
     do {
 
+        // t+ h-: backspaces that pull an nppexec: line out of the child's
+        // buffer. They must not erase that line on screen.
+        if ( m_pNppExec->GetConsole().ConsumeConPtyCancelEcho(bufLine, bOutputAll) )
+            return 0;
+
         copy_len = -1;
 
         for ( int pos = 0; pos < bufLine.length(); pos++ )

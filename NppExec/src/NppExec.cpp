@@ -5401,6 +5401,10 @@ CNppExecConsole::CNppExecConsole() //: m_pNppExec(0)
   , m_nVtOutputRegionBeginPos(0)
   , m_bConPTYSuppressEchoPrefix(false)
   , m_nConPtyColumn(0)
+  , m_nConPtyInputOrigin(0)
+  , m_bConPtyInputOriginFrozen(false)
+  , m_nConPtyCancelEchoBsLeft(0)
+  , m_nConPtyCancelEchoState(0)
 {
     m_StateList.push_back(ConsoleState());
 }
@@ -6098,6 +6102,108 @@ static void getConPtyLastRow(CAnyRichEdit& edit, int& nTextLen, int& nLineStart,
     nLineLen = nTextLen - nLineStart;
 }
 
+tstr CNppExecConsole::GetConPtyInputText()
+{
+    tstr s;
+    if ( !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon() )
+        return s;
+    if ( !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
+        return s;
+
+    int nTextLen = 0;
+    int nLineLen = 0;
+    int nLineStart = 0;
+    getConPtyLastRow(m_reConsole, nTextLen, nLineStart, nLineLen);
+
+    int nFrom = nLineStart + m_nConPtyInputOrigin;
+    if ( nFrom < nLineStart )
+        nFrom = nLineStart;
+    if ( nFrom >= nTextLen )
+        return s;
+
+    const int nLen = nTextLen - nFrom;
+    s.Reserve(nLen);
+    const int nGot = m_reConsole.GetTextAt(nFrom, nLen, s.data());
+    s.SetLengthValue(nGot);
+    while ( s.length() > 0 )
+    {
+        const TCHAR ch = s.GetLastChar();
+        if ( (ch != _T(' ')) && (ch != _T('\r')) && (ch != _T('\n')) )
+            break;
+        s.DeleteLastChar();
+    }
+    return s;
+}
+
+void CNppExecConsole::ArmConPtyCancelEcho(int nInputChars)
+{
+    m_nConPtyCancelEchoState = 0;
+    // Cooked Backspace is echoed as "\b \b": two BS per character erased.
+    const int nBs = (nInputChars > 0) ? (nInputChars * 2) : 0;
+    ::InterlockedExchange(&m_nConPtyCancelEchoBsLeft, nBs);
+}
+
+bool CNppExecConsole::ConsumeConPtyCancelEcho(CStrT<char>& buf, bool bFlushPartial)
+{
+    if ( (m_nConPtyCancelEchoBsLeft <= 0) && (m_nConPtyCancelEchoState == 0) )
+        return false;
+
+    int i = 0;
+    const int n = buf.length();
+    while ( i < n )
+    {
+        const unsigned char ch = (unsigned char) buf.GetAt(i);
+        if ( m_nConPtyCancelEchoState == 1 )
+        {
+            m_nConPtyCancelEchoState = (ch == '[') ? 2 : 0;
+            ++i;
+            continue;
+        }
+        if ( m_nConPtyCancelEchoState == 2 )
+        {
+            if ( ((ch >= 'A') && (ch <= 'Z')) || ((ch >= 'a') && (ch <= 'z')) || (ch == '~') )
+                m_nConPtyCancelEchoState = 0;
+            ++i;
+            continue;
+        }
+        if ( ch == 0x1B )
+        {
+            if ( (i + 1 >= n) && !bFlushPartial )
+            {
+                buf.Delete(0, i);
+                return true;
+            }
+            m_nConPtyCancelEchoState = 1;
+            ++i;
+            continue;
+        }
+        if ( ch == '\b' )
+        {
+            const LONG left = ::InterlockedDecrement(&m_nConPtyCancelEchoBsLeft);
+            ++i;
+            if ( left <= 0 )
+            {
+                ::InterlockedExchange(&m_nConPtyCancelEchoBsLeft, 0);
+                m_nConPtyCancelEchoState = 0;
+                break;
+            }
+            continue;
+        }
+        if ( ch == ' ' )
+        {
+            ++i;
+            continue;
+        }
+        // Not an erase echo (the next prompt). Stop discarding.
+        ::InterlockedExchange(&m_nConPtyCancelEchoBsLeft, 0);
+        m_nConPtyCancelEchoState = 0;
+        break;
+    }
+    if ( i > 0 )
+        buf.Delete(0, i);
+    return false;
+}
+
 void CNppExecConsole::_writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int style, bool bNewLineAfter)
 {
     // Write at m_nConPtyColumn on the last row (overwrite). CUF moves the column;
@@ -6145,7 +6251,24 @@ void CNppExecConsole::_writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int
         m_reConsole.ExSetSel(nTextLen, nTextLen);
         m_reConsole.ReplaceSelText( _T_RE_EOL );
         m_nConPtyColumn = 0;
+        // The next child row starts with a new prompt. Follow that prompt
+        // until the user presses a key.
+        m_bConPtyInputOriginFrozen = false;
+        m_nConPtyInputOrigin = 0;
     }
+    else if ( !m_bConPtyInputOriginFrozen )
+    {
+        m_nConPtyInputOrigin = m_nConPtyColumn;
+    }
+}
+
+void CNppExecConsole::NoteConPtyUserInput()
+{
+    if ( !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon() )
+        return;
+    if ( !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
+        return;
+    m_bConPtyInputOriginFrozen = true;
 }
 
 void CNppExecConsole::PrintStr(LPCTSTR cszStr, UINT nPrintFlags )
