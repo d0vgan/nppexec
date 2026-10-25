@@ -18,6 +18,9 @@ class CConsoleVtParser
             int nEraseCharCount = 0;
             // CUP/HVP absolute column (0-based). Set when in-place cursor mode is active.
             int nSetCursorColumn = -1;
+            // A later CUP on the same row, after the replacement text: park the
+            // cursor there and drop the padding that covered a longer command.
+            int nCursorColumnAfter = -1;
             // ConPTY often advances to the next output row with an absolute cursor-
             // position (CUP "ESC[r;cH") or cursor-down/next-line (CUD "ESC[nB",
             // CNL "ESC[nE") sequence instead of a "\r\n" — e.g. at a frame/flush
@@ -87,6 +90,12 @@ class CConsoleVtParser
         COLORREF m_ActiveTextColor;
         VtActions m_Actions;
         bool m_bInPlaceCursorMode;
+        int  m_nInPlaceCupRow;
+        // Text was written, then a CUP arrived before any earlier CUP named the
+        // row. Hold it: no further text means "park the cursor" (insert redraw);
+        // further text means the CUP really advanced to the next row.
+        bool m_bDeferInPlacePark;
+        int  m_nDeferParkColumn;
 
         // Row assembly (see VtOutputRow).
         std::vector<VtOutputRow> m_Rows;

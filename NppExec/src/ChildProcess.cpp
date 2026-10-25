@@ -1082,6 +1082,7 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
 
             if ( nIsNewLine || (bOutputAll && (pos == bufLine.length()-1)) )
             {
+                int nConPtyBlotSpaces = 0;
                 copy_len = pos;
                 if ( !nIsNewLine )
                 {
@@ -1196,6 +1197,7 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                     if ( bOutput )
                     {
                         bool bPrintThisLine = true;
+                        int nCursorColumnAfter = -1;
                         // For escProcess, ConPTY may pack several output rows into a single
                         // CR/LF-delimited chunk: it paints the initial visible screen by
                         // positioning each row with an absolute cursor move (CUP "ESC[r;cH")
@@ -1264,10 +1266,22 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                             if ( vtActions.nSetCursorColumn >= 0 && bInPlaceVtCursor )
                             {
                                 console.SetConPtyColumn(vtActions.nSetCursorColumn);
-                                // Drop the previous command before the replacement text.
-                                console.VtEraseLineInOutputRegion();
+                                if ( printLine.length() > 0 )
+                                {
+                                    // History or Delete: replacement text follows.
+                                    // Drop the previous command before it is written.
+                                    console.VtEraseLineInOutputRegion();
+                                }
+                                else
+                                {
+                                    // Home is a CUP with no text. Erasing here would
+                                    // wipe the command; only the caret moves.
+                                    console.PlaceConPtyCaret();
+                                }
                                 vtActions.bCursorNextLine = false;
                             }
+                            if ( bInPlaceVtCursor )
+                                nCursorColumnAfter = vtActions.nCursorColumnAfter;
 
                             if ( vtActions.bClearScreen && bApplyDestructiveVt )
                                 console.VtEraseScreenInOutputRegion();
@@ -1276,7 +1290,13 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                             if ( vtActions.nEraseCharCount > 0 && bApplyDestructiveVt )
                                 console.VtEraseCharsInOutputRegion(vtActions.nEraseCharCount);
                             if ( vtActions.nBackspaceCount > 0 && bApplyDestructiveVt )
-                                console.VtBackspaceInOutputRegion(vtActions.nBackspaceCount);
+                            {
+                                // CSI D is cursor-left, the same move as a lone "\b".
+                                if ( bInPlaceVtCursor )
+                                    console.ProcessSlashB(vtActions.nBackspaceCount);
+                                else
+                                    console.VtBackspaceInOutputRegion(vtActions.nBackspaceCount);
+                            }
 
                             // ConPTY advanced to the next row via an absolute cursor-position
                             // (CUP) or cursor-down/next-line sequence instead of "\r\n" with no
@@ -1375,19 +1395,40 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                                 }
                             }
                         }
+
+                        if ( nCursorColumnAfter >= 0 )
+                        {
+                            // Shorter history entry parks in the padding it used to
+                            // cover the longer command. Mid-line redraw parks before
+                            // the text it kept and leaves that text on screen.
+                            m_pNppExec->GetConsole().ParkConPtyCursor(nCursorColumnAfter);
+                        }
+
+                        if ( bPrintThisLine && (nIsNewLine >= nlBS) &&
+                             m_pNppExec->GetCommandExecutor().IsChildProcessPseudoCon() &&
+                             m_pNppExec->GetCommandExecutor().IsChildProcessRawImmediateInput() )
+                        {
+                            const TCHAR* psz = printLine.c_str();
+                            int n = (int) printLine.length();
+                            while ( (n > 0) && (psz[n - 1] == _T(' ')) )
+                                --n;
+                            nConPtyBlotSpaces = (int) printLine.length() - n;
+                        }
                     }
 
                     bDoOutputNext = bOutput;
                 }
                 bPrevLineEmpty = (copy_len > 0) ? false : true;
                 // cmd erases a cell as "\b \b" (cursor left, space, cursor left).
-                // The backspace is the fragment terminator, so applying it only on
-                // the next fragment leaves the space on screen and the caret one
-                // cell ahead until the next key. Apply it now, after this fragment's
-                // text, and do not apply it again.
+                // A lone "\b" is Arrow Left: move the caret, leave the character.
+                // The space in "\b \b" (and the space before a history BS) is
+                // nConPtyBlotSpaces and is removed after the cursor steps onto it.
                 if ( nIsNewLine >= nlBS )
                 {
-                    m_pNppExec->GetConsole().ProcessSlashB( (nIsNewLine - nlBS) + 1 );
+                    CNppExecConsole& console = m_pNppExec->GetConsole();
+                    console.ProcessSlashB( (nIsNewLine - nlBS) + 1 );
+                    if ( nConPtyBlotSpaces > 0 )
+                        console.TrimConPtyBlotSpaces(nConPtyBlotSpaces);
                     nPrevState = nlNone;
                 }
                 else

@@ -1414,6 +1414,14 @@ public:
     void AdvanceConPtyColumn(int n);
     void ResetConPtyColumn();
     void SetConPtyColumn(int nColumn);
+    // t+ h-: park the caret at this column. Padding spaces after it are removed;
+    // characters after it stay (mid-line redraw).
+    void ParkConPtyCursor(int nColumn);
+    // t+ h-: move the caret to the current column and leave the text (Home).
+    void PlaceConPtyCaret();
+    // t+ h-: the fragment just written ended with this many spaces and the cursor
+    // stepped back onto them ("\b \b", or the space cmd appends before a history BS).
+    void TrimConPtyBlotSpaces(int nTrailingSpaces);
 
     void OnScriptEngineStarted();
     void OnScriptEngineFinished();
@@ -1497,6 +1505,7 @@ protected:
 
     void _lockConsolePos(ScriptEngineId scrptEngnId, INT nPos);
     void _lockConsoleEndPos(ScriptEngineId scrptEngnId);
+    void placeConPtyCaret();
     void _lockConsoleEndPosAfterEnterPressed(ScriptEngineId scrptEngnId);
 
     int  _isOutputEnabledN(ScriptEngineId scrptEngnId) const;

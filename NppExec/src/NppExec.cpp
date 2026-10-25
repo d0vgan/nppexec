@@ -5924,6 +5924,11 @@ void CNppExecConsole::AdvanceConPtyColumn(int n)
     m_nConPtyColumn += n;
     if ( m_nConPtyColumn > 4096 )
         m_nConPtyColumn = 4096;
+
+    // Arrow Right is CUF. The column is the child's cursor; the caret has to follow
+    // it. A later print still locks to the end of what it wrote.
+    if ( Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
+        placeConPtyCaret();
 }
 
 void CNppExecConsole::ResetConPtyColumn()
@@ -5938,6 +5943,132 @@ void CNppExecConsole::SetConPtyColumn(int nColumn)
     else if ( nColumn > 4096 )
         nColumn = 4096;
     m_nConPtyColumn = nColumn;
+}
+
+static void getConPtyLastRow(CAnyRichEdit& edit, int& nTextLen, int& nLineStart, int& nLineLen);
+
+void CNppExecConsole::PlaceConPtyCaret()
+{
+    placeConPtyCaret();
+}
+
+void CNppExecConsole::placeConPtyCaret()
+{
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    int nTextLen = 0;
+    int nLineLen = 0;
+    int nLineStart = 0;
+    getConPtyLastRow(m_reConsole, nTextLen, nLineStart, nLineLen);
+
+    int nPos = nLineStart + m_nConPtyColumn;
+    if ( nPos < nLineStart )
+        nPos = nLineStart;
+    if ( nPos > nTextLen )
+        nPos = nTextLen;
+    m_reConsole.ExSetSel(nPos, nPos);
+}
+
+// True when every character in [nFrom, nTextLen) is a space. nLastNonSpace is the
+// index of the last non-space in that range, or -1 when there is none.
+static bool conPtyRangeIsSpaces(CAnyRichEdit& edit, int nFrom, int nTextLen, int& nLastNonSpace)
+{
+    nLastNonSpace = -1;
+    if ( nFrom >= nTextLen )
+        return true;
+    const int nTail = nTextLen - nFrom;
+    if ( (nTail <= 0) || (nTail > 8192) )
+        return false;
+
+    TCHAR* buf = new TCHAR[nTail + 1];
+    ::ZeroMemory(buf, (nTail + 1) * sizeof(TCHAR));
+    edit.GetTextAt(nFrom, nTail, buf);
+    bool bAllSpaces = true;
+    for ( int i = 0; i < nTail; ++i )
+    {
+        if ( buf[i] != _T(' ') )
+        {
+            bAllSpaces = false;
+            nLastNonSpace = i;
+        }
+    }
+    delete [] buf;
+    return bAllSpaces;
+}
+
+void CNppExecConsole::ParkConPtyCursor(int nColumn)
+{
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+
+    SetConPtyColumn(nColumn);
+
+    int nTextLen = 0;
+    int nLineLen = 0;
+    int nLineStart = 0;
+    getConPtyLastRow(m_reConsole, nTextLen, nLineStart, nLineLen);
+
+    int nFrom = nLineStart + m_nConPtyColumn;
+    if ( nFrom < nLineStart )
+        nFrom = nLineStart;
+    if ( nFrom > nTextLen )
+        nFrom = nTextLen;
+
+    int nLastNonSpace = -1;
+    if ( (nFrom < nTextLen) && conPtyRangeIsSpaces(m_reConsole, nFrom, nTextLen, nLastNonSpace) )
+    {
+        // Cursor sits in the padding cmd used to cover a longer line.
+        m_reConsole.ExSetSel(nFrom, nTextLen);
+        m_reConsole.ReplaceSelText( _T("") );
+        _lockConsoleEndPos(GetScriptEngineId());
+        return;
+    }
+
+    if ( (nLastNonSpace >= 0) && (nFrom + nLastNonSpace + 1 < nTextLen) )
+    {
+        // Mid-line redraw: "b  " with the caret before 'b'. Keep 'b', drop the
+        // padding, and put the caret back — locking would jump it past 'b'.
+        m_reConsole.ExSetSel(nFrom + nLastNonSpace + 1, nTextLen);
+        m_reConsole.ReplaceSelText( _T("") );
+        _lockConsoleEndPos(GetScriptEngineId());
+    }
+    placeConPtyCaret();
+}
+
+void CNppExecConsole::TrimConPtyBlotSpaces(int nTrailingSpaces)
+{
+    if ( CNppExec::_bIsNppShutdown )
+        return;
+    if ( nTrailingSpaces <= 0 )
+        return;
+    if ( !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon() )
+        return;
+    if ( !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
+        return;
+
+    int nTextLen = 0;
+    int nLineLen = 0;
+    int nLineStart = 0;
+    getConPtyLastRow(m_reConsole, nTextLen, nLineStart, nLineLen);
+
+    const int nEndCol = nTextLen - nLineStart;
+    const int nCursor = m_nConPtyColumn;
+    if ( (nCursor < 0) || (nCursor >= nEndCol) )
+        return;
+    // Only the spaces this fragment just wrote. A lone "\b" (Arrow Left) has
+    // none, so the character it landed on stays.
+    if ( nCursor < nEndCol - nTrailingSpaces )
+        return;
+
+    const int nFrom = nLineStart + nCursor;
+    int nLastNonSpace = -1;
+    if ( !conPtyRangeIsSpaces(m_reConsole, nFrom, nTextLen, nLastNonSpace) )
+        return;
+
+    m_reConsole.ExSetSel(nFrom, nTextLen);
+    m_reConsole.ReplaceSelText( _T("") );
+    _lockConsoleEndPos(GetScriptEngineId());
 }
 
 // EM_LINELENGTH(text length) is one past the last character and can report 0,
@@ -6692,11 +6823,18 @@ void CNppExecConsole::_processSlashB(ScriptEngineId scrptEngnId, int nCount)
     // Important: SendMsg() calls must _not_ be under m_csStateList
     if ( Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon() )
     {
+        // t+ h-: "\b" is a cursor move (Arrow Left, and the moves inside
+        // "\b \b"). Deleting here makes the last character vanish while the
+        // child still has it. The erase blot is removed by TrimConPtyBlotSpaces.
+        const bool bCursorOnly =
+            Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput();
         for ( int i = 0; i < nCount; ++i )
         {
             if ( m_nConPtyColumn <= 0 )
                 break;
             --m_nConPtyColumn;
+            if ( bCursorOnly )
+                continue;
             int nTextLen = 0;
             int nLineLen = 0;
             int nLineStart = 0;
@@ -6708,10 +6846,19 @@ void CNppExecConsole::_processSlashB(ScriptEngineId scrptEngnId, int nCount)
                 m_reConsole.ReplaceSelText( _T("") );
             }
         }
-        // The deleted cell was locked output. Leave the caret on the live
-        // line at the new end; otherwise the next Arrow Up is treated as a
-        // RichEdit caret move onto the previous row.
-        _lockConsoleEndPos(scrptEngnId);
+        if ( bCursorOnly )
+        {
+            // Caret follows the column. Do not lock to the end: that would
+            // put the caret back after the character that is still there.
+            placeConPtyCaret();
+        }
+        else
+        {
+            // The deleted cell was locked output. Leave the caret on the live
+            // line at the new end; otherwise the next Arrow Up is treated as a
+            // RichEdit caret move onto the previous row.
+            _lockConsoleEndPos(scrptEngnId);
+        }
         return;
     }
 

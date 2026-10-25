@@ -17,6 +17,9 @@ void CConsoleVtParser::Reset()
     m_ActiveTextColor = RGB(0, 0, 0);
     m_Actions = VtActions();
     m_bInPlaceCursorMode = false;
+    m_nInPlaceCupRow = -1;
+    m_bDeferInPlacePark = false;
+    m_nDeferParkColumn = 0;
     m_Rows.clear();
     m_CurRow = VtOutputRow();
     m_bPendingRowBreak = false;
@@ -184,6 +187,14 @@ bool CConsoleVtParser::ProcessChunk(const tstr& input, tstr& output)
         m_CsiParams.Clear();
     }
 
+    // Insert redraw: "4echo 123" then "ESC[r;cH" parks the cursor on that same
+    // row. A newline here is what drops the caret onto the next line.
+    if ( m_bDeferInPlacePark )
+    {
+        m_Actions.nCursorColumnAfter = m_nDeferParkColumn;
+        m_bDeferInPlacePark = false;
+    }
+
     // A cursor move that had no text following it (e.g. the title-set frame boundary)
     // just terminates the line; signal it so the caller newline-terminates instead of
     // emitting a spurious extra row.
@@ -212,6 +223,13 @@ bool CConsoleVtParser::ProcessChunk(const tstr& input, tstr& output)
 
 void CConsoleVtParser::emitVisibleChar(TCHAR ch)
 {
+    if ( m_bDeferInPlacePark )
+    {
+        // Visible text after the CUP: it was a row advance, not a cursor park.
+        m_bDeferInPlacePark = false;
+        requestRowBreak(m_nDeferParkColumn);
+    }
+
     if ( ch == _T(' ') || ch == _T('\t') )
     {
         // Leading blanks that arrive while a row break is pending become part of the
@@ -359,17 +377,50 @@ void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh)
             {
                 CStrSplitT<TCHAR> args;
                 const int nArgs = args.Split(m_CsiParams.c_str(), _T(";"));
+                int row = 1;
+                if ( (nArgs >= 1) && !args.GetArg(0).IsEmpty() )
+                    row = c_base::_tstr2int(args.GetArg(0).c_str());
+                if ( row < 1 )
+                    row = 1;
                 int col = (nArgs >= 2) ? c_base::_tstr2int(args.GetArg(1).c_str()) : 1;
                 if ( col < 1 )
                     col = 1;
                 const int nCol0 = (col > 1) ? (col - 1) : 0;
-                // History redraw is a single CUP before any text in the chunk
-                // ("ESC[row;colH" + replacement). Later CUPs in the same chunk
-                // are a multi-row screen paint and must still break rows.
-                if ( m_bInPlaceCursorMode && m_CurRow.text.IsEmpty() && m_Rows.empty() && !m_bPendingRowBreak )
-                    m_Actions.nSetCursorColumn = nCol0;
+                // First CUP before text repositions the input line. A later CUP
+                // on that same row only parks the cursor (cmd pads a shorter
+                // history entry with spaces, then moves back). A different row
+                // is still a multi-row screen paint.
+                if ( m_bInPlaceCursorMode && m_Rows.empty() && !m_bPendingRowBreak )
+                {
+                    if ( m_CurRow.text.IsEmpty() )
+                    {
+                        m_Actions.nSetCursorColumn = nCol0;
+                        m_nInPlaceCupRow = row;
+                    }
+                    else if ( row == m_nInPlaceCupRow )
+                    {
+                        m_bDeferInPlacePark = false;
+                        m_Actions.nCursorColumnAfter = nCol0;
+                    }
+                    else if ( m_nInPlaceCupRow < 0 )
+                    {
+                        // No earlier CUP named this row. cmd rewrites the input
+                        // from the cursor and then parks ("4echo 123" + ESC[r;cH).
+                        // A following visible character turns this into a row break.
+                        m_bDeferInPlacePark = true;
+                        m_nDeferParkColumn = nCol0;
+                        m_nInPlaceCupRow = row;
+                    }
+                    else
+                    {
+                        m_bDeferInPlacePark = false;
+                        requestRowBreak(nCol0);
+                    }
+                }
                 else
+                {
                     requestRowBreak(nCol0);
+                }
             }
             break;
 
