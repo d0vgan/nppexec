@@ -1424,6 +1424,10 @@ public:
     void TrimConPtyBlotSpaces(int nTrailingSpaces);
     // t+ h-: column where the child's prompt ended. Frozen on the first key.
     void NoteConPtyUserInput();
+    // t+ h-: Shift+Left/Right/Home/End. The child still moves the caret;
+    // the anchor is where that selection started.
+    void BeginConPtyShiftSel();
+    void ClearConPtyShiftSel();
     int  GetConPtyColumn() const { return m_nConPtyColumn; }
     int  GetConPtyInputOrigin() const { return m_nConPtyInputOrigin; }
     // Text the child currently has on the input row, after the prompt.
@@ -1490,6 +1494,7 @@ protected:
     bool     m_bConPtyInputOriginFrozen;
     volatile LONG m_nConPtyCancelEchoBsLeft;
     int      m_nConPtyCancelEchoState; // 0 none, 1 ESC, 2 CSI
+    int      m_nConPtySelAnchor; // -1, or the character where Shift+arrow started
     std::list<ConsoleState> m_StateList;
 
     const ConsoleState& _getState(ScriptEngineId scrptEngnId) const;

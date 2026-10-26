@@ -5405,6 +5405,7 @@ CNppExecConsole::CNppExecConsole() //: m_pNppExec(0)
   , m_bConPtyInputOriginFrozen(false)
   , m_nConPtyCancelEchoBsLeft(0)
   , m_nConPtyCancelEchoState(0)
+  , m_nConPtySelAnchor(-1)
 {
     m_StateList.push_back(ConsoleState());
 }
@@ -5971,7 +5972,46 @@ void CNppExecConsole::placeConPtyCaret()
         nPos = nLineStart;
     if ( nPos > nTextLen )
         nPos = nTextLen;
-    m_reConsole.ExSetSel(nPos, nPos);
+    // cpMax is the caret, including when it is to the left of the anchor.
+    if ( m_nConPtySelAnchor >= 0 )
+        m_reConsole.ExSetSel(m_nConPtySelAnchor, nPos);
+    else
+        m_reConsole.ExSetSel(nPos, nPos);
+}
+
+void CNppExecConsole::BeginConPtyShiftSel()
+{
+    if ( m_nConPtySelAnchor >= 0 )
+    {
+        int nStart = 0;
+        int nEnd = 0;
+        m_reConsole.ExGetSelPos(&nStart, &nEnd);
+        if ( nStart != nEnd )
+            return;
+    }
+
+    int nTextLen = 0;
+    int nLineLen = 0;
+    int nLineStart = 0;
+    getConPtyLastRow(m_reConsole, nTextLen, nLineStart, nLineLen);
+
+    int nPos = nLineStart + m_nConPtyColumn;
+    if ( nPos < nLineStart )
+        nPos = nLineStart;
+    if ( nPos > nTextLen )
+        nPos = nTextLen;
+    m_nConPtySelAnchor = nPos;
+}
+
+void CNppExecConsole::ClearConPtyShiftSel()
+{
+    if ( m_nConPtySelAnchor < 0 )
+        return;
+    // Drop the anchor before placing the caret. An arrow that continues in the
+    // selection direction often gets no echo (already at that end), so waiting
+    // for the child would leave the highlight up.
+    m_nConPtySelAnchor = -1;
+    placeConPtyCaret();
 }
 
 // True when every character in [nFrom, nTextLen) is a space. nLastNonSpace is the
@@ -6220,6 +6260,9 @@ void CNppExecConsole::_writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int
         col = 0;
     else if ( col > 4096 )
         col = 4096;
+
+    if ( (nMsgLen > 0) || bNewLineAfter )
+        m_nConPtySelAnchor = -1;
 
     if ( nMsgLen > 0 )
     {

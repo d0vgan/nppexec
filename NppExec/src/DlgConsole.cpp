@@ -3805,6 +3805,15 @@ static bool sendRawChildKeyDown(MSGFILTER* lpmsgf, bool bCtrl, bool bShift, bool
         return false;
 
     CNppExecCommandExecutor& cmdExec = Runtime::GetNppExec().GetCommandExecutor();
+    CNppExecConsole& console = Runtime::GetNppExec().GetConsole();
+
+    const WPARAM vk = lpmsgf->wParam;
+    const bool bSelMove = bShift &&
+        (vk == VK_LEFT || vk == VK_RIGHT || vk == VK_HOME || vk == VK_END);
+    if ( bSelMove )
+        console.BeginConPtyShiftSel();
+    else if ( (vk != VK_SHIFT) && (vk != VK_LSHIFT) && (vk != VK_RSHIFT) )
+        console.ClearConPtyShiftSel();
 
     const TCHAR* seq = nullptr;
 
@@ -3827,7 +3836,7 @@ static bool sendRawChildKeyDown(MSGFILTER* lpmsgf, bool bCtrl, bool bShift, bool
     if ( seq )
     {
         // t+ h-: one CSI (or byte) per key — cmd owns history index and line redraw.
-        Runtime::GetNppExec().GetConsole().NoteConPtyUserInput();
+        console.NoteConPtyUserInput();
         cmdExec.WriteChildProcessInput( seq );
         lpmsgf->wParam = 0;
         return true;
@@ -3889,6 +3898,7 @@ static bool sendRawChildChar(MSGFILTER* lpmsgf, bool bCtrl,
         return false;
 
     TCHAR s[2] = { (TCHAR) ch, 0 };
+    Runtime::GetNppExec().GetConsole().ClearConPtyShiftSel();
     Runtime::GetNppExec().GetConsole().NoteConPtyUserInput();
     Runtime::GetNppExec().GetCommandExecutor().WriteChildProcessInput( s );
     lpmsgf->wParam = 0;
@@ -4054,6 +4064,7 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
     if (lpmsgf->msg == WM_LBUTTONDOWN)
     {
         bDoubleClkEntered = false;
+        Runtime::GetNppExec().GetConsole().ClearConPtyShiftSel();
         return 0;
     }
     // <<< WM_LBUTTONDOWN
