@@ -56,6 +56,10 @@ class CConsoleVtParser
         // (cmd history redraw) instead of starting a new output row.
         void SetInPlaceCursorMode(bool bInPlace);
 
+        // Every ConPTY fragment: CUF is a column move. Materializing it as
+        // spaces pads the prompt out to the cursor and wraps the caret.
+        void SetColumnGrid(bool bOn);
+
         // Phase 4.1: byte-stream parser foundation.
         // VT sequences are consumed; visible text is split into rows (see VtOutputRow).
         // 'output' receives the row texts joined by '\n' (for length/output-var use).
@@ -90,6 +94,7 @@ class CConsoleVtParser
         COLORREF m_ActiveTextColor;
         VtActions m_Actions;
         bool m_bInPlaceCursorMode;
+        bool m_bColumnGrid;
         int  m_nInPlaceCupRow;
         // Text was written, then a CUP arrived before any earlier CUP named the
         // row. Hold it: no further text means "park the cursor" (insert redraw);

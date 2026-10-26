@@ -6142,6 +6142,52 @@ static void getConPtyLastRow(CAnyRichEdit& edit, int& nTextLen, int& nLineStart,
     nLineLen = nTextLen - nLineStart;
 }
 
+// Spaces that sit past the child's cursor are cursor padding (CUF/ECH), not
+// output. Drop them so a prompt is not followed by a blank run.
+static void trimConPtySpacesPastColumn(CAnyRichEdit& edit, int column)
+{
+    int nTextLen = 0;
+    int nLineLen = 0;
+    int nLineStart = 0;
+    getConPtyLastRow(edit, nTextLen, nLineStart, nLineLen);
+    if ( column < 0 )
+        column = 0;
+    const int nFrom = nLineStart + column;
+    if ( nFrom >= nTextLen )
+        return;
+    int nLastNonSpace = -1;
+    if ( !conPtyRangeIsSpaces(edit, nFrom, nTextLen, nLastNonSpace) )
+        return;
+    edit.ExSetSel(nFrom, nTextLen);
+    edit.ReplaceSelText( _T("") );
+}
+
+// The open tail row is the waiting prompt. Trailing spaces there wrap the
+// caret onto a blank line. A finished row (newline follows) keeps its own
+// trailing spaces — "echo hello   " is real output.
+static int trimConPtyOpenRowTrailingSpaces(CAnyRichEdit& edit)
+{
+    int nTextLen = 0;
+    int nLineLen = 0;
+    int nLineStart = 0;
+    getConPtyLastRow(edit, nTextLen, nLineStart, nLineLen);
+    int nFrom = nTextLen;
+    while ( nFrom > nLineStart )
+    {
+        TCHAR ch = 0;
+        edit.GetTextAt(nFrom - 1, 1, &ch);
+        if ( ch != _T(' ') )
+            break;
+        --nFrom;
+    }
+    if ( nFrom < nTextLen )
+    {
+        edit.ExSetSel(nFrom, nTextLen);
+        edit.ReplaceSelText( _T("") );
+    }
+    return nFrom - nLineStart;
+}
+
 tstr CNppExecConsole::GetConPtyInputText()
 {
     tstr s;
@@ -6286,6 +6332,14 @@ void CNppExecConsole::_writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int
         if ( nLineLen < 0 )
             nLineLen = 0;
         m_nConPtyColumn = (nSelFrom - nLineStart) + nMsgLen;
+        if ( bNewLineAfter )
+            trimConPtySpacesPastColumn(m_reConsole, m_nConPtyColumn);
+        else
+        {
+            const int nTrimmed = trimConPtyOpenRowTrailingSpaces(m_reConsole);
+            if ( m_nConPtyColumn > nTrimmed )
+                m_nConPtyColumn = nTrimmed;
+        }
     }
 
     if ( bNewLineAfter )
@@ -6526,8 +6580,9 @@ void CNppExecConsole::_lockConsoleEndPosAfterEnterPressed(ScriptEngineId scrptEn
     // clear-before-echo leaves "...\\n" after removing typed stdin — +EOL would
     // insert a spurious blank line before the terminal echo).
     const bool bConPTY = Runtime::GetNppExec().GetCommandExecutor().IsChildProcessPseudoCon();
-    const bool bRawImmediate = Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput();
-    const bool bSkipSyntheticEol = bConPTY && (m_bConPTYSuppressEchoPrefix || bRawImmediate);
+    // ConPTY already emits the real newline. A lock one past the tail paints
+    // the caret on a blank line under the prompt.
+    const bool bSkipSyntheticEol = bConPTY;
     if ( !bSkipSyntheticEol && (lastCh != _T('\r')) && (lastCh != _T('\n')) )
         nPos += _T_RE_EOL_LEN;
     _lockConsolePos(scrptEngnId, nPos);
@@ -6928,8 +6983,25 @@ void CNppExecConsole::_processSlashR(ScriptEngineId scrptEngnId)
         if ( HasUnlockedConsoleInput() &&
              !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
         {
-            m_reConsole.ExSetSel(nPos, nPos);
-            m_reConsole.ReplaceSelText( _T_RE_EOL );
+            extern INT nConsoleFirstUnlockedPos;
+            int nLastNonSpace = -1;
+            const bool bOnlySpaces =
+                conPtyRangeIsSpaces(m_reConsole, nConsoleFirstUnlockedPos, nTextLen, nLastNonSpace);
+            if ( bOnlySpaces )
+            {
+                // Padding past the lock. A newline here is the blank line
+                // under the prompt; the spaces are the run after ">".
+                if ( nConsoleFirstUnlockedPos < nTextLen )
+                {
+                    m_reConsole.ExSetSel(nConsoleFirstUnlockedPos, nTextLen);
+                    m_reConsole.ReplaceSelText( _T("") );
+                }
+            }
+            else
+            {
+                m_reConsole.ExSetSel(nPos, nPos);
+                m_reConsole.ReplaceSelText( _T_RE_EOL );
+            }
         }
         m_nConPtyColumn = 0;
         _lockConsoleEndPos(scrptEngnId);

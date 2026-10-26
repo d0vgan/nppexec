@@ -17,6 +17,7 @@ void CConsoleVtParser::Reset()
     m_ActiveTextColor = RGB(0, 0, 0);
     m_Actions = VtActions();
     m_bInPlaceCursorMode = false;
+    m_bColumnGrid = false;
     m_nInPlaceCupRow = -1;
     m_bDeferInPlacePark = false;
     m_nDeferParkColumn = 0;
@@ -298,6 +299,11 @@ void CConsoleVtParser::SetInPlaceCursorMode(bool bInPlace)
     m_bInPlaceCursorMode = bInPlace;
 }
 
+void CConsoleVtParser::SetColumnGrid(bool bOn)
+{
+    m_bColumnGrid = bOn;
+}
+
 void CConsoleVtParser::ConsumeActions(VtActions& actions)
 {
     actions = m_Actions;
@@ -333,7 +339,11 @@ void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh)
                     n = 0;
                 else if ( n > 4096 )
                     n = 4096;
-                if ( m_CurRow.text.IsEmpty() && m_Rows.empty() && !m_bPendingRowBreak )
+                // ConPTY has a real column. CUF after the prompt ("ESC[8C" to
+                // step over the previous command) must not become spaces, or
+                // the prompt line is padded and the caret wraps under it.
+                if ( m_bColumnGrid ||
+                     (m_CurRow.text.IsEmpty() && m_Rows.empty() && !m_bPendingRowBreak) )
                     m_Actions.nCursorForward += n;
                 else
                     emitForwardSpaces(n);

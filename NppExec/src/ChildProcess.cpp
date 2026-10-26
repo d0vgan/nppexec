@@ -1235,6 +1235,7 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                                 cmdExec.IsChildProcessPseudoCon() &&
                                 cmdExec.IsChildProcessRawImmediateInput();
                             vtParser.SetInPlaceCursorMode(bInPlaceVtCursor);
+                            vtParser.SetColumnGrid(cmdExec.IsChildProcessPseudoCon());
                             vtParser.ProcessChunk(printLine, vtOutput);
                             printLine.Swap(vtOutput);
 

@@ -3702,6 +3702,8 @@ static void stripTrailingLineEndings(tstr& cmd)
     }
 }
 
+static void prepareConPtyChildEnterRow(CAnyRichEdit& Edit, CNppExecConsole& console);
+
 static bool trySubmitNppExecCollateralCommand(CAnyRichEdit& Edit, CNppExecCommandExecutor& cmdExec,
                                                 tstr& cmd, bool isMultiline)
 {
@@ -3715,16 +3717,24 @@ static bool trySubmitNppExecCollateralCommand(CAnyRichEdit& Edit, CNppExecComman
     // Keep the typed line, end it with a real newline so echo output
     // is not glued on, run the NppExec command; when the collateral
     // script finishes it sends one Enter so cmd reprints a single prompt.
-    const int nEnd = Edit.GetTextLengthEx();
-    TCHAR lastCh = 0;
-    if ( nEnd > 0 )
-        Edit.GetTextAt(nEnd - 1, 1, &lastCh);
-    if ( (lastCh != _T('\r')) && (lastCh != _T('\n')) )
+    // A multi-line block must stay on screen: child bytes are written at
+    // column 0 of the tail row, so that row has to be empty.
+    CNppExecConsole& console = Runtime::GetNppExec().GetConsole();
+    if ( isMultiline && cmdExec.IsChildProcessPseudoCon() )
+        prepareConPtyChildEnterRow(Edit, console);
+    else
     {
-        Edit.ExSetSel(nEnd, nEnd);
-        Edit.ReplaceSelText( _T_RE_EOL );
+        const int nEnd = Edit.GetTextLengthEx();
+        TCHAR lastCh = 0;
+        if ( nEnd > 0 )
+            Edit.GetTextAt(nEnd - 1, 1, &lastCh);
+        if ( (lastCh != _T('\r')) && (lastCh != _T('\n')) )
+        {
+            Edit.ExSetSel(nEnd, nEnd);
+            Edit.ReplaceSelText( _T_RE_EOL );
+        }
     }
-    Runtime::GetNppExec().GetConsole().LockConsoleEndPos(true);
+    console.LockConsoleEndPos(true);
     cmdExec.ExecuteChildProcessCommand(cmd, true, true);
     return true;
 }
@@ -4805,8 +4815,19 @@ INT_PTR ConsoleDlg::OnNotify(HWND hDlg, LPARAM lParam)
 
                 if ( cmdExec.IsChildProcessPseudoCon() )
                 {
-                    clearConsoleInputLine(Edit);
-                    Runtime::GetNppExec().GetConsole().OnConPTYInputSubmitted();
+                    CNppExecConsole& console = Runtime::GetNppExec().GetConsole();
+                    if ( isMultiline )
+                    {
+                        // Keep the pasted block. Clearing it made PROC_INPUT /
+                        // command output paint over those lines.
+                        prepareConPtyChildEnterRow(Edit, console);
+                        console.LockConsoleEndPos(true);
+                    }
+                    else
+                    {
+                        clearConsoleInputLine(Edit);
+                    }
+                    console.OnConPTYInputSubmitted();
                 }
 
                 cmdExec.ExecuteChildProcessCommand(cmd, true, true);
