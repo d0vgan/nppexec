@@ -5837,7 +5837,7 @@ void CNppExecConsole::_onNppExecOwnedOutputBoundary()
         ResetConPtyColumn();
 }
 
-void CNppExecConsole::PrintOutput(LPCTSTR cszMessage, UINT nPrintFlags )
+void CNppExecConsole::PrintOutput(LPCTSTR cszMessage, UINT nPrintFlags, int nConPtyParkColumn)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -5848,7 +5848,7 @@ void CNppExecConsole::PrintOutput(LPCTSTR cszMessage, UINT nPrintFlags )
 
     if ( !postponeThisCall(scrptEngnId) )
     {
-        _printOutput(scrptEngnId, cszMessage, nPrintFlags);
+        _printOutput(scrptEngnId, cszMessage, nPrintFlags, nConPtyParkColumn);
     }
     else
     {
@@ -5856,12 +5856,12 @@ void CNppExecConsole::PrintOutput(LPCTSTR cszMessage, UINT nPrintFlags )
         ConsoleState& state = _getState(scrptEngnId);
         auto& postponedStrings = state.PostponedStrings;
         postponedStrings.push_back( tstr(cszMessage) );
-        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printOutput, this, scrptEngnId, postponedStrings.back().c_str(), nPrintFlags);
+        std::function<void ()> postponedCall = std::bind(&CNppExecConsole::_printOutput, this, scrptEngnId, postponedStrings.back().c_str(), nPrintFlags, nConPtyParkColumn);
         state.PostponedCalls.push_back(postponedCall);
     }
 }
 
-void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags)
+void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags, int nConPtyParkColumn)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -5892,7 +5892,7 @@ void CNppExecConsole::_printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessag
 
     const bool bNewLine = (nPrintFlags & pfNewLine) != 0;
     if ( bConPTY && bChildOutput )
-        _writeConPtyOutput(cszMessage, color, style, bNewLine);
+        _writeConPtyOutput(cszMessage, color, style, bNewLine, nConPtyParkColumn);
     else
         appendChildOutputSimple(m_reConsole, cszMessage, _isScrollToEnd(), color,
                                 CFM_EFFECTS, style, bNewLine);
@@ -6041,7 +6041,14 @@ static bool conPtyRangeIsSpaces(CAnyRichEdit& edit, int nFrom, int nTextLen, int
     return bAllSpaces;
 }
 
-void CNppExecConsole::ParkConPtyCursor(int nColumn)
+void CNppExecConsole::ParkConPtyCursor(int nColumn, bool bPaddingTailOnly)
+{
+    // Runs with the write, including for cooked t-. Postponing this moved the
+    // caret after t- had already locked the prompt.
+    _parkConPtyCursor(nColumn, bPaddingTailOnly);
+}
+
+void CNppExecConsole::_parkConPtyCursor(int nColumn, bool bPaddingTailOnly)
 {
     if ( CNppExec::_bIsNppShutdown )
         return;
@@ -6069,7 +6076,7 @@ void CNppExecConsole::ParkConPtyCursor(int nColumn)
         return;
     }
 
-    if ( (nLastNonSpace >= 0) && (nFrom + nLastNonSpace + 1 < nTextLen) )
+    if ( !bPaddingTailOnly && (nLastNonSpace >= 0) && (nFrom + nLastNonSpace + 1 < nTextLen) )
     {
         // Mid-line redraw: "b  " with the caret before 'b'. Keep 'b', drop the
         // padding, and put the caret back — locking would jump it past 'b'.
@@ -6290,7 +6297,7 @@ bool CNppExecConsole::ConsumeConPtyCancelEcho(CStrT<char>& buf, bool bFlushParti
     return false;
 }
 
-void CNppExecConsole::_writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int style, bool bNewLineAfter)
+void CNppExecConsole::_writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int style, bool bNewLineAfter, int nConPtyParkColumn)
 {
     // Write at m_nConPtyColumn on the last row (overwrite). CUF moves the column;
     // bare \\r resets it. This is shell-agnostic — no prompt-shape heuristics.
@@ -6334,11 +6341,21 @@ void CNppExecConsole::_writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int
         m_nConPtyColumn = (nSelFrom - nLineStart) + nMsgLen;
         if ( bNewLineAfter )
             trimConPtySpacesPastColumn(m_reConsole, m_nConPtyColumn);
-        else
+        else if ( !Runtime::GetNppExec().GetCommandExecutor().IsChildProcessRawImmediateInput() )
         {
+            // Cooked ConPTY. The open prompt's padding would wrap the caret.
             const int nTrimmed = trimConPtyOpenRowTrailingSpaces(m_reConsole);
             if ( m_nConPtyColumn > nTrimmed )
                 m_nConPtyColumn = nTrimmed;
+        }
+        else if ( nConPtyParkColumn >= 0 )
+        {
+            // Raw: only the spaces a cursor park moved back over. A typed
+            // space, and the space cmd writes before a history backspace,
+            // have no park and must stay until that backspace steps onto them.
+            trimConPtySpacesPastColumn(m_reConsole, nConPtyParkColumn);
+            if ( m_nConPtyColumn > nConPtyParkColumn )
+                m_nConPtyColumn = nConPtyParkColumn;
         }
     }
 
@@ -7069,6 +7086,12 @@ void CNppExecConsole::_processSlashB(ScriptEngineId scrptEngnId, int nCount)
         for ( int i = 0; i < nCount; ++i )
         {
             if ( m_nConPtyColumn <= 0 )
+                break;
+            // " \b" on an empty history: the space is already trimmed, so this
+            // backspace would step onto the prompt and the next Arrow Up would
+            // erase that character. The input origin is the prompt boundary.
+            if ( bCursorOnly && m_bConPtyInputOriginFrozen &&
+                 (m_nConPtyColumn <= m_nConPtyInputOrigin) )
                 break;
             --m_nConPtyColumn;
             if ( bCursorOnly )

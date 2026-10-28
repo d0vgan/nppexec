@@ -1367,7 +1367,7 @@ public:
     };
     void PrintError(LPCTSTR cszMessage, UINT nPrintFlags = pfLogThisMsg);
     void PrintMessage(LPCTSTR cszMessage, UINT nPrintFlags);
-    void PrintOutput(LPCTSTR cszMessage, UINT nPrintFlags = pfLogThisMsg|pfNewLine);
+    void PrintOutput(LPCTSTR cszMessage, UINT nPrintFlags = pfLogThisMsg|pfNewLine, int nConPtyParkColumn = -1);
     void PrintStr(LPCTSTR cszStr, UINT nPrintFlags = pfLogThisMsg|pfNewLine);
     void PrintSysError(LPCTSTR cszFunctionName, DWORD dwErrorCode, UINT nPrintFlags = pfLogThisMsg);
 
@@ -1415,8 +1415,9 @@ public:
     void ResetConPtyColumn();
     void SetConPtyColumn(int nColumn);
     // t+ h-: park the caret at this column. Padding spaces after it are removed;
-    // characters after it stay (mid-line redraw).
-    void ParkConPtyCursor(int nColumn);
+    // characters after it stay (mid-line redraw). bPaddingTailOnly drops a tail
+    // that is nothing but spaces (prompt padding) and otherwise only moves the caret.
+    void ParkConPtyCursor(int nColumn, bool bPaddingTailOnly = false);
     // t+ h-: move the caret to the current column and leave the text (Home).
     void PlaceConPtyCaret();
     // t+ h-: the fragment just written ended with this many spaces and the cursor
@@ -1514,8 +1515,9 @@ protected:
 
     void _printError(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
     void _printMessage(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
-    void _printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags);
-    void _writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int style, bool bNewLineAfter);
+    void _printOutput(ScriptEngineId scrptEngnId, LPCTSTR cszMessage, UINT nPrintFlags, int nConPtyParkColumn);
+    void _writeConPtyOutput(LPCTSTR cszMessage, COLORREF color, int style, bool bNewLineAfter, int nConPtyParkColumn);
+    void _parkConPtyCursor(int nColumn, bool bPaddingTailOnly);
     void _printStr(ScriptEngineId scrptEngnId, LPCTSTR cszStr, UINT nPrintFlags);
     void _printSysError(ScriptEngineId scrptEngnId, LPCTSTR cszFunctionName, DWORD dwErrorCode, UINT nPrintFlags);
     void _onNppExecOwnedOutputBoundary();

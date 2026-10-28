@@ -1281,12 +1281,14 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                                 else
                                 {
                                     // Home is a CUP with no text. Erasing here would
-                                    // wipe the command; only the caret moves.
-                                    console.PlaceConPtyCaret();
+                                    // wipe the command. A tail of only spaces is the
+                                    // prompt padding; drop it so Arrow Up still lands
+                                    // on this row. Real text only moves the caret.
+                                    console.ParkConPtyCursor(vtActions.nSetCursorColumn, true);
                                 }
                                 vtActions.bCursorNextLine = false;
                             }
-                            if ( bInPlaceVtCursor )
+                            if ( cmdExec.IsChildProcessPseudoCon() )
                                 nCursorColumnAfter = vtActions.nCursorColumnAfter;
 
                             if ( vtActions.bClearScreen && bApplyDestructiveVt )
@@ -1367,12 +1369,12 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                                     {
                                         const COLORREF oldColor = console.GetCurrentColorTextNorm();
                                         console.SetCurrentColorTextNorm(row.color);
-                                        console.PrintOutput(row.text.c_str(), nRowFlags);
+                                        console.PrintOutput(row.text.c_str(), nRowFlags, bLastRow ? nCursorColumnAfter : -1);
                                         console.SetCurrentColorTextNorm(oldColor);
                                     }
                                     else
                                     {
-                                        console.PrintOutput(row.text.c_str(), nRowFlags);
+                                        console.PrintOutput(row.text.c_str(), nRowFlags, bLastRow ? nCursorColumnAfter : -1);
                                     }
                                 }
                             }
@@ -1392,12 +1394,12 @@ DWORD CChildProcess::processOutputBuffer(CStrT<char>& bufLine,
                                     CNppExecConsole& console = m_pNppExec->GetConsole();
                                     const COLORREF oldColor = console.GetCurrentColorTextNorm();
                                     console.SetCurrentColorTextNorm((*pVtRows)[0].color);
-                                    console.PrintOutput(printLine.c_str(), nPrintOutFlags);
+                                    console.PrintOutput(printLine.c_str(), nPrintOutFlags, nCursorColumnAfter);
                                     console.SetCurrentColorTextNorm(oldColor);
                                 }
                                 else
                                 {
-                                    m_pNppExec->GetConsole().PrintOutput(printLine.c_str(), nPrintOutFlags);
+                                    m_pNppExec->GetConsole().PrintOutput(printLine.c_str(), nPrintOutFlags, nCursorColumnAfter);
                                 }
                             }
                         }

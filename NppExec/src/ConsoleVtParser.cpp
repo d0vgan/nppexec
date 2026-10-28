@@ -427,6 +427,31 @@ void CConsoleVtParser::finalizeCsiSequence(TCHAR finalCh)
                         requestRowBreak(nCol0);
                     }
                 }
+                else if ( m_bColumnGrid && !m_bPendingRowBreak && !m_CurRow.text.IsEmpty() &&
+                          (nCol0 <= m_CurRow.text.length()) )
+                {
+                    // "C:\path>" + spaces covering the previous command, then
+                    // CUP back onto that prompt. The tail is padding; parking
+                    // here keeps the caret after ">" instead of opening a row.
+                    const TCHAR* psz = m_CurRow.text.c_str();
+                    const int nLen = m_CurRow.text.length();
+                    bool bTailSpaces = true;
+                    for ( int i = nCol0; i < nLen; ++i )
+                    {
+                        if ( psz[i] != _T(' ') )
+                        {
+                            bTailSpaces = false;
+                            break;
+                        }
+                    }
+                    if ( bTailSpaces )
+                    {
+                        m_bDeferInPlacePark = true;
+                        m_nDeferParkColumn = nCol0;
+                    }
+                    else
+                        requestRowBreak(nCol0);
+                }
                 else
                 {
                     requestRowBreak(nCol0);
